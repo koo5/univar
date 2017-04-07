@@ -14,6 +14,9 @@ int main ( int argc, char** argv){
 	}
 	while(true);
 	
+
+dout << unifys << " unifys, " << steps << " steps." << endl;
+	
 	
 #ifdef getValue_profile
 dout << "getValue_BOUNDS = " << getValue_BOUNDS << "  getValue_OFFSETS = " 

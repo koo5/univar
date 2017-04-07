@@ -5055,7 +5055,7 @@ void cppout_consts(string name, vector<Rule> rs)
 char unify_with_var(Thing * a, Thing * b)
 {
     ASSERT(is_unbound(*b));
-    
+    unifys++;
     if (!are_equal(*a, *b))
     {
         if (is_unbound(*a))
@@ -5081,7 +5081,7 @@ void unbind_from_var(char magic, Thing * __restrict__ a, Thing * __restrict__ b)
 bool unify_with_const(Thing * a, Thing * b)
 {
     ASSERT(!is_bound(*a));
-
+unifys++;
     if (are_equal(*a, *b))
 	return true;
     if (is_unbound(*a))
@@ -5276,9 +5276,12 @@ void cppout_pred(string name, vector<Rule> rs)
 
 		if (name == "cppout_query") {
 		//would be nice to also write out the head of the rule, and do this for all rules, not just query
-			//out << "if (!(counter & 0b11111111111))";
 			out << "{";
-			out << "if (!silent) dout << \"RESULT \" << counter << \": \";\n";
+
+			out << "if (!(counter & 0b11111111111)){";
+			out << "if (!silent) dout << unifys << \" unifys \"  ;\n";
+			out << "if (!silent) dout << \" RESULT \" << counter << \": \";\n";
+
 			ASSERT(rule.body);
 			for (pquad bi: *rule.body) {
 				pos_t i1, i2;//s and o positions
@@ -5298,7 +5301,7 @@ void cppout_pred(string name, vector<Rule> rs)
 
 				out << "if (!silent) dout << str(bis) << \" " << bi->pred->tostring() << " \" << str(bio) << \".\";};\n";
 			}
-			out << "if (!silent) dout << \"\\n\";}\n";
+			out << "if (!silent) dout << \"\\n\";}}\n";
 		}
 		
 
@@ -6430,6 +6433,8 @@ out << "if(is_unbound(*state.s)) goto UNBOUNDX;"
 		//would be nice to also write out the head of the rule, and do this for all rules, not just query
 			//out << "if (!(counter & 0b11111111111))";
 			out << "{dout << \"RESULT \" << counter << \": \";\n";
+			out << "{dout << unifys << \" unifys \" << \n";
+	
 			ASSERT(rule.body);
 			for (pquad bi: *rule.body) {
 				pos_t i1, i2;//s and o positions

@@ -1,0 +1,2 @@
+env DBG="-Doneword" make -e
+env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so  ./tau  --silence addrules --silence readcurly --silence N3 --level 100 --cppout 1 --lambdas 0 run  tests/speed/adder

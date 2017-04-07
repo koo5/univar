@@ -59,6 +59,10 @@ std::map<string,bool*> _flags = {
 		,{"base",&fnamebase}
 		,{"builtins",&have_builtins}
 };
+typedef std::pair<int*, string> IOP;
+std::map<string,IOP> int_flags = {
+		  {"level",IOP(&level,"debug level")}
+};
 
 std::vector<string> extensions = {"jsonld", "natural3", "natq", "n3", "nq"};
 std::vector<string> _formats = {
@@ -126,13 +130,6 @@ public:
 class ArgsInput : public Input
 {
 public:
-/*
-	bool interactive = false;
-	bool do_reparse = true;
-	std::string name;
-	Mode mode = COMMANDS;
-	int limit = 123;
-*/
 	int argc;
 	char **argv;
 	int counter = 1;
@@ -542,6 +539,10 @@ void get_int(int &i, const string &tok)
 }
 */
 
+
+
+
+
 bool read_option(string s){
 	if(s.length() < 2 || s.at(0) != '-' || s == "--")
 		return false;
@@ -552,14 +553,6 @@ bool read_option(string s){
 
 	string _option = s;
 
-	for( std::pair<string,bool*> x : _flags){
-		CLI_TRACE(dout << _option << _option.size() << x.first << x.first.size() << std::endl;)
-		if(x.first == _option){
-			*x.second = !(*x.second);
-			if(x.first == "nocolor") switch_color();
-			return true;
-		}
-	}
 	
 	for(string x : _formats){
 		if(x == _option){
@@ -580,34 +573,39 @@ bool read_option(string s){
 			dout << endl;)
 			return true;
 		}
-	
 
-		if(_option == "level"){
-			level = std::stoi(token);
-			dout << "debug level:" << level << std::endl;
-			return true;
-		}
 
-		if(_option == "limit"){
-			INPUT->limit = std::stoi(token);
-			dout << "result limit:" << result_limit << std::endl;
-			return true;
-		}
-		
-		if(_option == "cppout"){
-			INPUT->do_cppout = std::stoi(token);
-			return true;
+		for( auto x : _flags){
+			CLI_TRACE(dout << _option << _option.size() << x.first << x.first.size() << std::endl;)
+			if(x.first == _option){
+				*x.second = std::stoi(token);
+				if(x.first == "nocolor") switch_color();
+				return true;
+			}
 		}
 
-		if(_option == "lambdas"){
-			INPUT->do_query = std::stoi(token);
-			return true;
+
+		for( auto x : int_flags){
+			if(x.first == _option){
+				*x.second.first = std::stoi(token);
+				dout << x.second.second << ":" << *x.second.first << std::endl;
+				return true;
+			}
 		}
 
-		if(_option == "test"){
-			INPUT->do_test = std::stoi(token);
-			return true;
-		}
+
+#define input_option(x, y, z) \
+		\
+		if(_option == x){ \
+			INPUT->y = std::stoi(token); \
+			dout << z << ":" << INPUT->y << std::endl; \
+			return true; \	
+		} 
+
+		input_option("cppout", do_cppout, "cppout");
+		input_option("lambdas", do_query, "lambdas");
+		input_option("test", do_test, "test");
+		input_option("limit", limit, "results limit");
 
 		INPUT->take_back();
 	}
@@ -619,6 +617,8 @@ bool read_option(string s){
 
 void do_run(string fn)
 {
+	
+
 	std::ifstream &is = *new std::ifstream(fn);
 	if (!is.is_open()) {//weird behavior with directories somewhere around here
 		dout << "[cli]failed to open \"" << fn << "\"." << std::endl;
@@ -922,7 +922,11 @@ int main ( int argc, char** argv)
 			}
 		}
 		else if (INPUT->mode == RUN) {
-			do_run(INPUT->pop_long());
+			string fn = INPUT->pop_long();
+			if (fn == "-")
+				emplace_stdin();
+			else
+				do_run(fn);
 		}
 		else {
 			assert(INPUT->mode == OLD);

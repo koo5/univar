@@ -16,7 +16,6 @@
 
 using namespace std;
 
-//Must only be used when (x).find(y) and (x).end() will be defined.
 #define has(x,y) ((x).find(y) != (x).end())
 
 typedef unsigned char byte;
@@ -313,31 +312,13 @@ kinda like http://software-lab.de/doc/ref.html#cell but with bits in the pointee
 110 = negative offset
  11 = list(size)
  gotta add list bnode
-*/
 
-/*oneword2:
-<maybekoo2> so, preallocator thread can pre-resolve all offsets into variables
-<maybekoo2> unbound shouldnt be identified by all zeroes but something like xxx01
-<maybekoo2> so, not the same typebits pattern as bound
-<maybekoo2> so, getValue only has to do one cmp instead of 3
-getValue:
- 00 = bound at runtime, at compile/alloc time also offset
-unify:
- 01 = unbound
- 10 = node
- 11 = list bnode(containing only remaining list size)
 
-// hrm gotta run a couple of tests, might as well see if we can cut down the generated object code size with the right patterns? probably not
+// hrm gotta run a couple of tests, might as well see if we can cut down the generated object code size with the right patterns? probably not:
 0100 = positive offset
 1100 = negative offset
 //gotta >> 2 , then mask off the lowest bit
-
-
- 
- unify is still a bitch, could we use a switch?
- (on some aggregate value computed/masked from the two things
 */
-
 
 
 typedef uintptr_t *Thing; // unsigned int that is capable of storing a pointer

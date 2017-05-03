@@ -39,6 +39,7 @@ typedef cppout3Thing void*;
 static Thing *cppout3getValue (cppout3Thing x) __attribute__ ((pure));
 static Thing *cppout3getValue (cppout3Thing x)
 {
+    /*may want to reorder this based on usage statistics*/
 	if(x & 0b11)
 	return x;
 	else

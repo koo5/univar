@@ -4,14 +4,10 @@ MESSAGE( STATUS "" )
 #cmake_minimum_required(VERSION 3.0)
 cmake_minimum_required(VERSION 2.8.7)
 
+project(newtau)
 
-project(tauchain)
-
-
-
-
-SET (CMAKE_C_COMPILER             "/usr/bin/clang")
-SET (CMAKE_CXX_COMPILER           "/usr/bin/clang++")#-libc++")
+SET (CMAKE_C_COMPILER   "/usr/bin/clang")
+SET (CMAKE_CXX_COMPILER "/usr/bin/clang++")#-libc++")
 SET (CMAKE_AR      "/usr/bin/llvm-ar")
 SET (CMAKE_LINKER  "/usr/bin/llvm-ld")
 SET (CMAKE_NM      "/usr/bin/llvm-nm")
@@ -25,8 +21,7 @@ set(MARPA_DIST ${CMAKE_SOURCE_DIR}/libmarpa/dist/)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -ggdb -g")# -stdlib=libc++ 
 set(ASAN "-fsanitize-undefined-trap-on-error -fsanitize=address -fsanitize=integer -fsanitize=unsigned-integer-overflow ")
-set(COMMON_FLAGS "-I${Boost_INCLUDE_DIRS} ${CMAKE_CXX_FLAGS}  -I${MARPA_DIST} -Dwith_marpa -DJSON  ")
-
+set(COMMON_FLAGS "-I${Boost_INCLUDE_DIRS} ${CMAKE_CXX_FLAGS} -I${MARPA_DIST} -Dwith_marpa -DJSON ")
 
 set(SOURCE_FILES
     jsonld_tau.cpp
@@ -48,12 +43,14 @@ set(SOURCE_FILES
     tau.cpp
     univar.cpp
     univar.h
+    cppout.cpp
+    newshit.cpp
     marpa_tau.cpp
 )
 
-
 find_package(Boost REQUIRED regex)
 
+#add_executable(newshit_parse_something ${SOURCE_FILES})
 add_executable(tau ${SOURCE_FILES})
 add_executable(tau-moderate ${SOURCE_FILES})
 add_executable(tau-moderate0 ${SOURCE_FILES})

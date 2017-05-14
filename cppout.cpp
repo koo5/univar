@@ -1,16 +1,23 @@
 #ifdef CPPOUT
 #define CPPOUT2
+#ifdef CPPOUT3
+
 /*todo:
- * http://stackoverflow.com/questions/8019849/labels-as-values-vs-switch-statement
-	: avoid the range check of 'entry' inherent in the switch(entry) statement
-
-  * reuse one consts array throughout the pred func
-
 
 ???
 unify bm?
 s and o re-fetching
 ???
+
+
+ unify is still a bitch, could we use a switch?
+ (on some aggregate value computed/masked from the two things
+
+
+  * http://stackoverflow.com/questions/8019849/labels-as-values-vs-switch-statement
+	: avoid the range check of 'entry' inherent in the switch(entry) statement
+
+  * reuse one consts array throughout the pred func
 
 
 oneword2:
@@ -27,30 +34,78 @@ unify:
  11 = list bnode(containing only remaining list size)
 
 
-
- unify is still a bitch, could we use a switch?
- (on some aggregate value computed/masked from the two things
 */
 
-------------------------------------------------------------------------
-
-#ifdef CPPOUT3
-typedef cppout3Thing void*;
-static Thing *cppout3getValue (cppout3Thing x) __attribute__ ((pure));
-static Thing *cppout3getValue (cppout3Thing x)
+struct Query;
+struct Search;
 {
-    /*may want to reorder this based on usage statistics*/
-	if(x & 0b11)
-	return x;
+
+
+}
+
+typedef cppout3Thing void*;
+static Thing *get_value (cppout3Thing x) __attribute__ ((pure));
+static Thing *get_value (cppout3Thing x)
+{
+    /*reorder this based on usage statistics*/
+    auto y = x & 0b11;
+	if(y)
+		return x;
 	else
-	return cppout3getValue(*x);
+	{
+		auto y = *x;
+		return cppout3getValue(y);
+	}
+}
+
+bool would_unify(const Thing *old_, const Thing *now_)
+{
+	FUN;
+
+	const Thing old = *old_;
+	const Thing now = *now_;
+
+	ASSERT(!is_bound(now));
+
+	if(is_var(old) && is_var(now))
+		return true;
+	else if (is_node(old))
+		return are_equal(old, now);
+	else if (types_differ(old, now)) // in oneword mode doesnt differentiate between bound and unbound!
+		return false;
+	ASSERT(false);
+}
+
+bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
+{
+	FUN;
+
+	ASSERT(!is_bound(*s));
+	ASSERT(!is_bound(*o));
+
+	EPDBG(dout << endl << endl << ep->size() << " ep items." << endl);
+
+	for (auto i: *ep)
+	{
+		auto os = i.first;
+		auto oo = i.second;
+//		ASSERT(!is_offset(*os));
+//		ASSERT(!is_offset(*oo));
+		//what about !is_bound
+
+		//TRACE(dout << endl << " epitem " << str(os) << "    VS     " << str(s) << endl << str(oo) << "    VS    " << str(o) << endl;)
+		EPDBG(dout << endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
+
+//reorder
+		if (!would_unify(os,s) || !would_unify(oo,o))
+		    continue;
+		return true;
+	}
+	return false;
 }
 
 
-
 #endif
-
-
 #ifdef CPPOUT2
 
 

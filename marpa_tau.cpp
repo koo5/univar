@@ -28,7 +28,6 @@ extern "C" {
 
 extern bool irc;
 
-
 typedef Marpa_Symbol_ID sym;
 typedef Marpa_Rule_ID rule;
 typedef std::vector<sym> syms;
@@ -88,7 +87,7 @@ struct Marpa {
 	map<sym, string> literals;
 	///or a rule
 	map<rule, sym> rules;
-	//done tracks both rules and terminals
+	//the "done" map tracks both rules and terminals
 	map<nodeid, sym> done;
 	/*prvr is the one we are called from. we will use prvr2 for querying the grammar, so that prvr doesnt get messed up*/
 	prover *prvr, *prvr2;
@@ -193,6 +192,7 @@ struct Marpa {
 	{
 		assert(thing);
 		//what we are adding
+
 		string thingv = value(thing);
 		TRACE(dout << "thingv:" << thingv << std::endl);
 
@@ -260,7 +260,6 @@ struct Marpa {
 		return symbol;
 	}
 
-
 	int check_int(int result)
 	{
 		if (result == -2)
@@ -282,13 +281,11 @@ struct Marpa {
 	sym symbol_new()
 	{
 		return check_int(marpa_g_symbol_new(g));
-
 	}
 
 	sym symbol_new_resid(nodeid thing)
 	{
 		return done[thing] = symbol_new();
-
 	}
 
 	void rule_new(sym lhs, syms rhs)
@@ -321,7 +318,6 @@ struct Marpa {
 		rules[check_int(r)] = lhs;
 	}
 
-
 	void print_events()
 	{
 
@@ -334,7 +330,6 @@ struct Marpa {
 				dout << " " << etype << ", " << e.t_value << std::endl;
 			}
 		}
-
 	}
 
 	void start_symbol_set(sym s)
@@ -352,7 +347,6 @@ struct Marpa {
 
 	}
 
-
 	bool is_ws(char x)
 	{
 		string wss = "\n\r \t";
@@ -362,7 +356,6 @@ struct Marpa {
 				return true;
 		return false;
 	}
-
 
 	ParsingResult parse(const string inp, termid &raw)
 	{
@@ -497,7 +490,7 @@ struct Marpa {
 
 		TRACE(dout << "retrieving parse tree.." << std::endl);
 
-		//marpa allows variously ordered lists of ambiguous parses, we just grab the default
+		//marpa allows variously ordered lists of ambiguous parses, we just grab the first one
 		Marpa_Bocage b = marpa_b_new(r, -1);
 		if (!b) {
 			TRACE(dout << "[n3]parsing failed, failed to create bocage" << std::endl);

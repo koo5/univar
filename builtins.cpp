@@ -1,3 +1,214 @@
+
+#ifdef WITH_NEWSHIT
+
+#include <marpa.h>
+
+string ns("http://www.semanticweb.org/kook/ontologies/2017/3/lemon-rdf#");
+
+std::map<string, int> syms;
+
+int named_symbol(QString name)
+{
+	if (syms.find(name) == syms.end())
+		syms[name] = num_symbols++;
+	return syms[name];
+}
+
+int char_symbol(QString name)
+{
+	int r = named_symbol(name);
+	rule(name + "_is_known_char", syms["known_char"], r);
+	return r
+}
+
+//typedef Rhs QList<int>;
+
+typedef ParseAction std::function<QVariant(QVariant)>;
+
+void sequence(QString debug_name, int lhs, int rhs, ParseAction action, int separator=-1, int min=1, bool proper=false)
+{
+	//todo:rdf?-structured debug dump
+	rules[check_marpa_return_int(marpa_g_sequence_new(lhs, rhs, separator, min,
+		    proper ? MARPA_PROPER_SEPARATION : 0)))] = Rule(debug_name, action);
+}
+
+void prepare_grammar()
+{
+	reasoner.addPrefix("", ns);
+
+	Query q("?X memberof :BuiltinsStatements");
+	QList<Uri> scope;
+	while(q.next())
+		scope.append(q.X);
+
+	//#maybe just convenience
+	named_symbol("maybe_spaces");
+	sequence(syms["maybe_spaces"], char_symbol(" "), action=ignore, min=0)
+
+	#anything means we are parsing for the editor and want to parse any fragments of the language
+		anything = start==None
+		if anything:
+			s.start=s.named_symbol('start')
+		else:
+			s.start = start.symbol # for example mltt expression
+		log("start=", s.start )
+
+		for i in scope:
+			if isinstance(i, SyntacticCategory):
+				i._symbol = m.symbol(s.name)
+				continue
+			elif isinstance(i, WorksAs):
+				if i._rule != None:
+					continue
+				lhs = i.ch.sup.parsed
+				rhs = i.ch.sub.parsed
+				if not isinstance(lhs, Ref) or not isinstance(rhs, Ref):
+					print ("invalid sub or sup in worksas")
+					continue
+				lhs = lhs.target.symbol
+				rhs = rhs.target.symbol
+				if args.log_parsing:
+					log('%s %s %s %s %s'%(i, i.ch.sup, i.ch.sub, lhs, rhs))
+				if lhs != None and rhs != None:
+					r = m.rule(str(i), lhs, rhs)
+					i._rule = r
+			else:
+				#the property is accessed, forcing registering of the grammar
+				_ = i.symbol
+
+		if anything:
+			for i in scope:
+				if i.symbol != None:
+					if args.log_parsing:
+						log(i.symbol)
+						rulename = 'start is %s' % s.symbol2debug_name(i.symbol)
+					else:
+						rulename = ""
+					s.rule(rulename , s.start, i.symbol)
+
+		"""
+		sups = DefaultDict(list)
+		pris = DefaultDict(list)
+		asoc = DefaultDict(-1)
+
+		for n in scope:
+			if n.__class__.__name__ == 'WorksAs':
+				sups[n.ch.sup.parsed.target.symbol].append(n.ch.sub.parsed.target.symbol)
+			if n.__class__.__name__ == 'HasPriority':
+				pris[n.ch.value.parsed.pyval].append(n.ch.node.parsed.target.symbol)
+			if n.__class__.__name__ == 'HasAssociativity':
+				asoc[n.ch.value.parsed.pyval].append(n.ch.node.parsed.target.symbol)
+
+		this is some nonsense
+		for k,v in sups:
+			for sub in v:
+				???pri = pris[sub]
+				if not pri in level_syms[sup]:
+					level_syms[sup][pri] = s.symbol(sup.name + pri)
+				lhs = level_syms[sup][pri]
+				rhs =
+				pris[sub]
+
+		"""
+
+
+
+
+	def sequence(s,debug_name, lhs, rhs, action=ident, separator=-1, min=1, proper=False):
+		assert type(lhs) == symbol_int
+		assert type(rhs) == symbol_int
+		assert type(debug_name) == unicode
+		s.rules.append((True, debug_name, lhs, rhs, action, separator, min, proper))
+
+	def known_char(s, char):
+		"""create a symbol for a single char"""
+		try:
+			return s.known_chars[char]
+		except KeyError:
+			r = s.known_chars[char] = s.symbol(char)
+			s.rule(char+"_is_known_char", s.syms.known_char, r)
+			return r
+
+	def known_string(s, string):
+		"""create a symbol for a string"""
+		rhs = [s.known_char(i) for i in string]
+		lhs = s.symbol(string)
+		s.rule(string+'_is_known_string', lhs, rhs, join)
+		return lhs
+
+	def string2tokens(s,raw):
+		"""return a list with known chars substituted with their corresponding symbol ids
+		see: known_char
+		"""
+		tokens = []
+		for i, char in enumerate(raw):
+			try:
+				symid=s.known_chars[char]
+			except KeyError:
+				symid=s.syms.nonspecial_char
+			tokens.append(symid)
+		return tokens
+
+void parse_something(string input, nodeid& output)
+{
+
+}
+
+void build_in_newshit()
+{
+	EEE;
+
+	string bu = "http://newshit.me#parse_something";
+	auto bui = dict.set(mkiri(pstr(bu)));
+
+	Thing output_thing;
+	builtins[bui].push_back(
+		[bu, entry, output_thing](Thing *input, Thing *output) mutable {
+		setproc(bu);
+		TRACE_ENTRY;
+		switch(entry){
+		case 0:
+			input = getValue(input);
+
+			if(!is_node(*x))
+			{
+				dout << "nope." << endl;
+				DONE;
+			}
+
+			node n = dict[get_node(*x)];
+			string v = *n.value;
+
+			if (n._type != node::LITERAL)
+			{
+				dout << "nope." << endl;
+				DONE;
+			}
+
+			nodeid result;
+			parse_something(v, result);
+			output_thing = create_node(result);
+			ouc = unify(output, output_thing);
+			while(ouc())
+			{
+				entry = 1;
+				return true;
+		case 1:;
+			}
+			END;
+		}
+	});
+}
+
+#endif
+
+
+
+
+
+
+
+
 #ifdef DHT
 
 #include <thread>         // std::thread

@@ -1,3 +1,8 @@
 allocator thread - facebook folly
 https://github.com/google/dtask
 http://stackoverflow.com/a/31688096
+when we support multi-arg preds, can we use something like
+x first_6 a b c d e f
+x rest nil
+in place of internalized lists, for comparable speed?
+

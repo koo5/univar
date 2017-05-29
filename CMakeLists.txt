@@ -50,7 +50,7 @@ set(SOURCE_FILES
 
 find_package(Boost REQUIRED regex)
 
-#add_executable(newshit_parse_something ${SOURCE_FILES})
+add_executable(tau_with_newshit ${SOURCE_FILES})
 add_executable(tau ${SOURCE_FILES})
 add_executable(tau-moderate ${SOURCE_FILES})
 add_executable(tau-moderate0 ${SOURCE_FILES})
@@ -61,6 +61,7 @@ add_executable(taud3 ${SOURCE_FILES})
 add_executable(taud3-asan ${SOURCE_FILES})
 
 
+SET_TARGET_PROPERTIES(tau_with_newshit   PROPERTIES COMPILE_FLAGS "${COMMON_FLAGS} -DDEBUG -O0 -DWITH_NEWSHIT -DDHT")
 SET_TARGET_PROPERTIES(tau   PROPERTIES COMPILE_FLAGS "${COMMON_FLAGS} -DDEBUG -O0")
 SET_TARGET_PROPERTIES(tau-moderate   PROPERTIES COMPILE_FLAGS "${COMMON_FLAGS} -O1")
 SET_TARGET_PROPERTIES(tau-moderate0   PROPERTIES COMPILE_FLAGS "${COMMON_FLAGS} -O0")
@@ -72,9 +73,11 @@ SET_TARGET_PROPERTIES(taud3-asan PROPERTIES COMPILE_FLAGS "${COMMON_FLAGS} -DDEB
 
 #set(LIBSS "")
 
-target_link_libraries(tau            PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} -L${MARPA_DIST}/.libs -lmarpa)
-target_link_libraries(tau-moderate            PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
-target_link_libraries(tau-moderate0            PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
+target_link_libraries(tau_with_newshit   PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} -L${MARPA_DIST}/.libs -lmarpa)
+
+target_link_libraries(tau    PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} -L${MARPA_DIST}/.libs -lmarpa)
+target_link_libraries(tau-moderate       PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
+target_link_libraries(tau-moderate0     PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
 target_link_libraries(tau3           PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
 target_link_libraries(tau-asan            PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")
 target_link_libraries(tau3-asan           PRIVATE ${Boost_LIBRARIES} ${CMAKE_DL_LIBS} "-L${MARPA_DIST}/.libs -lmarpa")

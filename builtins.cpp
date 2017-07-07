@@ -1,6 +1,107 @@
 
 #ifdef WITH_NEWSHIT
 
+
+/*
+	builtins[bui].push_back(
+		[bu, entry, ht_](Thing *dummy, Thing *x) mutable {
+		setproc(bu);
+		TRACE_ENTRY;
+		dout <<"sssss" << endl;
+		switch(entry){
+		case 0:
+			x = getValue(x);
+			
+			if(is_node(*x))
+			{
+				node n = dict[get_node(*x)];
+				string v = *n.value;
+
+....
+*/
+
+void palette(Thing request, Thing output)
+{
+	
+
+
+}
+
+
+typedef 
+typedef ... Palette;
+... palette(node, 
+
+//#define TEST(nodetype) if (dynamic_cast<nodetype>(node))
+#define TEST(nodetype) if queryOne(node, rdf_type, nodetype)
+
+
+def palette(s, scope, text, parser):
+	"create menu items"
+	TEST(CompoundNodeDef)
+		return {PaletteMenuItem(Compound(s))};
+	TEST(FunctionCallNodecl)
+	{
+		std::vector<nNode> decls  = [x for x in scope if isinstance(x, (FunctionDefinitionBase))]
+		return [PaletteMenuItem(FunctionCall(x)) for x in decls]
+		
+		
+		
+		
+	}
+	elif isinstance(s, FunctionDefinitionBase):
+		return [PaletteMenuItem(tb(), FunctionCall(s))]
+	elif isinstance(s, Definition):
+		return palette(s.ch.type, scope, text, None) + [PaletteMenuItem(tb(), Ref(s), 0)]
+	elif isinstance(s, SyntacticCategory):
+		return [PaletteMenuItem(tb(), Ref(s), 0)]
+	elif isinstance(s, EnumType):
+		r = [PaletteMenuItem(tb(), EnumVal(s, i)) for i in range(len(s.ch.options.items))] + [PaletteMenuItem(tb(), Ref(s))]
+		return r
+	elif isinstance(s, BasicNodecl):
+		i = s.instance_class
+		m = i.match(text)
+		if m:
+			value = i(text)
+			score = 300
+		else:
+			value = i()
+			score = 0
+		return [PaletteMenuItem(tb(), value, {'hardcoded regex-y match':score})]
+	elif isinstance(s, ExpNodecl):
+		nodecls = [x for x in scope if isinstance(x, (Nodecl))]
+		return [PaletteMenuItem(tb(), Exp(x)) for x in nodecls]
+	elif isinstance(s, VarRefNodecl):
+		r = []
+		for x in parser.vardecls_in_scope:
+			assert isinstance(x, (UntypedVar, TypedParameter))
+			r += [PaletteMenuItem(tb(), VarRef(x))]
+		return r
+		"""
+				r = []
+				for x in scope:
+					xc=x.compiled
+					for y in x.vardecls:
+						yc=y.compiled
+						#log("vardecl compiles to: "+str(yc))
+						if isinstance(yc, (UntypedVar, TypedParameter)):
+							#log("vardecl:"+str(yc))
+							r += [PaletteMenuItem(VarRef(yc))]
+				#log (str(scope)+"varrefs:"+str(r))
+				return r
+		"""
+	elif isinstance(s, TypeNodecl):
+		nodecls = [x for x in scope if isinstance(x, (Nodecl))]
+		return [PaletteMenuItem(tb(), Ref(x)) for x in nodecls]
+	elif isinstance(s, Nodecl):
+		return [PaletteMenuItem(tb(), s.instance_class.fresh())]
+	else:
+		return []
+
+
+
+
+
 #include <marpa.h>
 
 string ns("http://www.semanticweb.org/kook/ontologies/2017/3/lemon-rdf#");

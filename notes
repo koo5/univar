@@ -6,3 +6,10 @@ x first_6 a b c d e f
 x rest nil
 in place of internalized lists, for comparable speed?
 
+
+http://www.oldskool.org/pc/lz4_8088
+
+
+
+
+

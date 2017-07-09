@@ -199,7 +199,7 @@ def pred(p, args):
 			generator.__next__()
 			rule.ep_heads.pop()
 			yield "nyan"
-			rule.ep_heads.append(args[:])
+			rule.ep_heads.append(args.copy())
 		except StopIteration:
 			pass
 		rule.ep_heads.pop()

@@ -26,9 +26,9 @@ class Graph(list):
 		return "{" + printify(s, ". ") + "}"
 
 class Locals(dict):
-	last_instance_id = 0
 	def __init__(s, initializer, debug_rule, debug_id = 0):
 		s.debug_id = debug_id
+		s.debug_last_instance_id = 0
 		s.debug_rule = weakref(debug_rule)
 		return super().__init__(initializer)
 
@@ -38,10 +38,9 @@ class Locals(dict):
 			r += ":\n" + printify([str(k) + ": " + str(v) for k, v in s.items()], ", ")
 		return r
 
-
 	def new(s):
-		s.last_instance_id += 1
-		r = Locals(s, s.debug_rule(), s.last_instance_id)
+		s.debug_last_instance_id += 1
+		r = Locals(s, s.debug_rule(), s.debug_last_instance_id)
 		return r
 
 class Rule(object):

@@ -43,6 +43,27 @@ struct Search;
 
 }
 
+static Thing *cppout_getValue (Thing *_x)
+{
+       ASSERT(_x);
+
+       Thing x = *_x;
+
+       // return the value of it's value.
+       if (is_bound(x)) {
+               //get the pointer
+               Thing * thing = get_thing(x);
+               ASSERT(thing);
+               //and recurse
+               return getValue(thing);
+       }
+
+       else
+               return _x;
+}
+               
+       
+
 typedef cppout3Thing void*;
 static Thing *get_value (cppout3Thing x) __attribute__ ((pure));
 static Thing *get_value (cppout3Thing x)
@@ -109,26 +130,7 @@ bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
 #ifdef CPPOUT2
 
 
-static Thing *cppout_getValue (const Thing *_x)
-{
-       ASSERT(_x);
-
-       Thing x = *_x;
-
-       // return the value of it's value.
-       if (is_bound(x)) {
-               //get the pointer
-               Thing * thing = get_thing(x);
-               ASSERT(thing);
-               //and recurse
-               return getValue(thing);
-       }
-
-       else
-               return _x;
-}
-               
-       /*may want to reorder this based on usage statistics*/
+/*may want to reorder this based on usage statistics*/
 
 
 
@@ -703,3 +705,19 @@ void yprover::cppout(qdb &goal)
 
 #endif
 
+
+
+/*
+/allocator thread - facebook folly
+https://github.com/google/dtask
+http://stackoverflow.com/a/31688096
+when we support multi-arg preds, can we use something like
+x first_6 a b c d e f
+x rest nil
+in place of internalized lists, for comparable speed?
+
+
+http://www.oldskool.org/pc/lz4_8088
+
+
+*/

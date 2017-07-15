@@ -1,5 +1,5 @@
-#CXX=clang++
-CXX=g++ 
+CXX=clang++
+#CXX=g++ 
 #-static-libasan
 #-libc++ -stdlib=libc++ 		
 ###NEW= -DNEW
@@ -7,7 +7,7 @@ CXX=g++
 ASAN=    -fsanitize=address -fsanitize=undefined -ggdb -fsanitize-undefined-trap-on-error 
 DEBUG=  -DDEBUG -O0  -fno-omit-frame-pointer -fno-optimize-sibling-calls 
 DBG= $(ASAN) -g -ggdb $(DEBUG)
-CXXFLAGS= -c -O3 $(DBG) $(NEW) -std=c++14 -W -Wall -Wextra -Wpedantic -I/usr/local/include -I/usr/include -I/usr/local/linuxbrew/include  
+CXXFLAGS= -c -O3  -DCPPOUT  $(DBG) $(NEW) -std=c++14 -W -Wall -Wextra -Wpedantic -I/usr/local/include -I/usr/include -I/usr/local/linuxbrew/include  
 MYLD = 
 LDFLAGS=  $(DBG) -L/usr/local/  $(MYLD) #-ldl -pthread -lrt
 OBJECTS= prover.o unifiers.o univar.o tau.o jsonld.o rdf.o misc.o json_object.o jsonld_tau.o nquads.o
@@ -28,7 +28,7 @@ with_marpa: LDFLAGS += -Llibmarpa/dist/.libs -lmarpa  -lboost_regex
 
 
 tau: $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+	$(CXX)$(OBJECTS) -o $@ $(LDFLAGS)
 cppout:  out.o prover.o unifiers.o jsonld.o rdf.o misc.o json_object.o jsonld_tau.o nquads.o univar.o
 	$(CXX)   out.o prover.o unifiers.o jsonld.o rdf.o misc.o json_object.o jsonld_tau.o nquads.o -o $@ $(LDFLAGS)
 

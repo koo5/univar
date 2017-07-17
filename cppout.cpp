@@ -104,7 +104,7 @@ bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
 	ASSERT(!is_bound(*s));
 	ASSERT(!is_bound(*o));
 
-	EPDBG(dout << endl << endl << ep->size() << " ep items." << endl);
+	EPDBG(endl << endl << ep->size() << " ep items." << endl);
 
 	for (auto i: *ep)
 	{
@@ -115,7 +115,7 @@ bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
 		//what about !is_bound
 
 		//TRACE(dout << endl << " epitem " << str(os) << "    VS     " << str(s) << endl << str(oo) << "    VS    " << str(o) << endl;)
-		EPDBG(dout << endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
+		EPDBG(endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
 
 //reorder
 		if (!would_unify(os,s) || !would_unify(oo,o))
@@ -172,7 +172,7 @@ bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
 	ASSERT(!is_bound(*s));
 	ASSERT(!is_bound(*o));
 
-	EPDBG(dout << endl << endl << ep->size() << " ep items." << endl);
+	EPDBG(endl << endl << ep->size() << " ep items." << endl);
 
 	for (auto i: *ep)
 	{
@@ -183,7 +183,7 @@ bool cppout_find_ep(const ep_t *ep, const Thing *s, const Thing *o)
 		//what about !is_bound
 		
 		//TRACE(dout << endl << " epitem " << str(os) << "    VS     " << str(s) << endl << str(oo) << "    VS    " << str(o) << endl;)
-		EPDBG(dout << endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
+		EPDBG(endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
 
 		if (!cppout_would_unify(os,s) || !cppout_would_unify(oo,o))
 		    continue;

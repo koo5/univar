@@ -50,6 +50,7 @@ extern bool in_silent_part;
 #define MSG(x) TRACE(dout << x << std::endl);
 
 extern std::ostream& dout;
+extern std::ofstream *epout;
 extern std::ostream& derr;
 extern bool deref, shorten;
 

@@ -30,3 +30,12 @@ Building: run make. You can also use cmake, but the hand-written Makefile is the
 
 apt-get install -y build-essential autoconf automake libtool libboost-regex-dev clang-3.6 libc++-dev
 CXX="clang++-3.6  -stdlib=libc++ " DEBUG="" make -e
+
+
+
+
+cppout:
+env DBG="-Doneword" make -e
+env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so  ./tau  --silence addrules --silence readcurly --silence N3 --level 100 --cppout 1 --lambdas 0 run  tests/speed/adder
+
+

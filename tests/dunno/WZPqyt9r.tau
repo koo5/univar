@@ -1,0 +1,173 @@
+kb
+A :p B. B :p C. C :p D.
+D :p C. C :p B. B :p A.
+{?z :p ?y. ?y :p ?x} => {?x :p ?z}.
+
+fin.
+query
+
+?what :p A.
+
+fin.
+quit
+
+
+
+
+
+----------------
+
+
+
+
+var cases = {
+  "GND":{
+    ":":"w/e"
+  },
+  "p":[
+    {head:{pred:"p", args:[{pred:":A", args:[]}, {pred:":B", args:[]}]}, body:[]},
+    {head:{pred:"p", args:[{pred:":B", args:[]}, {pred:":C", args:[]}]}, body:[]},
+    {head:{pred:"p", args:[{pred:":C", args:[]}, {pred:":D", args:[]}]}, body:[]},
+
+
+    {head:{pred:"p", args:[{pred:":D", args:[]}, {pred:":C", args:[]}]}, body:[]},
+    {head:{pred:"p", args:[{pred:":C", args:[]}, {pred:":B", args:[]}]}, body:[]},
+    {head:{pred:"p", args:[{pred:":B", args:[]}, {pred:":A", args:[]}]}, body:[]},
+
+
+    {head:{pred:"p", args:[{pred:"?x", args:[]}, {pred:"?z", args:[]}]}, body:[{pred:"p", args:[{pred:"?z", args:[]}, {pred:"?y", args:[]}]},{pred:"p", args: [{pred: "?y", args:[]},{pred: "?x", args:[]}]}]}  
+],
+  "":[
+    {head:{}, body:[{pred:"p", args:[{pred:"?what", args:[]}, {pred:":A", args:[]}]}]}
+  ]
+}
+
+
+
+/*================== START OF TRACE ======================
+
+PROVE
+ {"head":{},
+  "body":[
+     {"pred":"p",
+      "args":[
+         {"pred":"?what","args":[]},
+         {"pred":":A","args":[]}]}]}
+
+===================== END OF TRACE =====================*/
+
+//$Id: euler.js 1295 2007-05-11 16:52:51Z josd $
+
+ {"p":[
+     {"head":{
+        "pred":"p",
+        "args":[
+           {"pred":":B","args":[]},
+           {"pred":":A","args":[]}]},
+      "body":[
+         {"pred":"GND",
+          "args":[
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":":B","args":[]},
+                     {"pred":":A","args":[]}]},"body":[]},
+              "env":{}}]}]},
+     {"head":{
+        "pred":"p",
+        "args":[
+           {"pred":":C","args":[]},
+           {"pred":":A","args":[]}]},
+      "body":[
+         {"pred":"GND",
+          "args":[
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":":A","args":[]},
+                     {"pred":":B","args":[]}]},"body":[]},
+              "env":{}},
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":":B","args":[]},
+                     {"pred":":C","args":[]}]},"body":[]},
+              "env":{}},
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":"?x","args":[]},
+                     {"pred":"?z","args":[]}]},
+                "body":[
+                   {"pred":"p",
+                    "args":[
+                       {"pred":"?z","args":[]},
+                       {"pred":"?y","args":[]}]},
+                   {"pred":"p",
+                    "args":[
+                       {"pred":"?y","args":[]},
+                       {"pred":"?x","args":[]}]}]},
+              "env":{
+                "?z":{
+                  "pred":":A","args":[]},
+                "?y":{
+                  "pred":":B","args":[]},
+                "?x":{
+                  "pred":":C","args":[]}}}]}]},
+     {"head":{
+        "pred":"p",
+        "args":[
+           {"pred":":A","args":[]},
+           {"pred":":A","args":[]}]},
+      "body":[
+         {"pred":"GND",
+          "args":[
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":":A","args":[]},
+                     {"pred":":B","args":[]}]},"body":[]},
+              "env":{}},
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":":B","args":[]},
+                     {"pred":":A","args":[]}]},"body":[]},
+              "env":{}},
+             {"src":{
+                "head":{
+                  "pred":"p",
+                  "args":[
+                     {"pred":"?x","args":[]},
+                     {"pred":"?z","args":[]}]},
+                "body":[
+                   {"pred":"p",
+                    "args":[
+                       {"pred":"?z","args":[]},
+                       {"pred":"?y","args":[]}]},
+                   {"pred":"p",
+                    "args":[
+                       {"pred":"?y","args":[]},
+                       {"pred":"?x","args":[]}]}]},
+              "env":{
+                "?z":{
+                  "pred":":A","args":[]},
+                "?y":{
+                  "pred":":B","args":[]},
+                "?x":{
+                  "pred":":A","args":[]}}}]}]}],
+  "GND":{
+    ":":"w/e"}}
+
+//ENDS [12 steps/4 msec]
+
+
+
+
+where's D p A?

@@ -1256,6 +1256,7 @@ bool would_unify(Thing *this_, Thing *x_)
 
 	const Thing me = *this_;
 	const Thing x = *x_;
+
 	//We're sure it won't be these? in the context of ep-checking, yes
 	//We're asserting these because we assume we've done a getValue() prior to calling
 	//we could just do the getValue() here and then we don't have to worry about doing it
@@ -1267,34 +1268,31 @@ bool would_unify(Thing *this_, Thing *x_)
 	ASSERT(!is_bound(x));
 	
 	if(is_var(me) && is_var(x))
+
+
 /*was:var,is:node => not ep*/
-
 /*so, if i was called with a var and now im being called with a node, its not an ep, its more specific
-i dunno
-
 so, if we consider two cases where in the first one we call a pred with a node (in the subject or object, it doesn't matter), and the second one we call it with a var
 both cases the pred will try to run over all the rules
 the case of var will unify with everything that the case with the node will unify with
 ah, but it might not be able to reach ground unless you let it call it with more specific cases
-right, so your idea is right i guess, at the very at least it still doesn't allow infloops and shouldn't add any incorrect semantics, just perhaps redundancy at worst
-
-*/
-
-	//if (is_unboud(me) && is_unbound(x))
-
-//	if (is_var(me))
-		return true;// we must have been an unbound var
-/*was:var,is:node => ep*/
+right, so your idea is right i guess, at the very at least it still doesn't allow infloops and shouldn't add any incorrect semantics, just perhaps redundancy at worst*/
+//	if (is_unboud(me) && is_unbound(x))
+//	if (is_var(me))// we must have been an unbound var
 
 
+		return true;
+	
+	/*was:var,is:node => ep*/
+	//node would be the same
 
-//node would be the same
+
 	else if (is_node(me))
 		return are_equal(me, x);
+
+
+
 //list would change the way var changed, i.e. vars in the list could only "unify" with vars
-
-
-
 //shouldnt getValue the items here!
 	else if (is_list(me)) {
 		if (is_list(x)) {
@@ -1332,8 +1330,14 @@ right, so your idea is right i guess, at the very at least it still doesn't allo
 //what else can me be anyway?
 //value of anything can be either an unbound var, a node, or list stuff.
 //so this is for example trying to unify a list with a node
+
+
+
 	else if (types_differ(me, x)) // in oneword mode doesnt differentiate between bound and unbound!
 		return false;
+
+
+
 	assert(false);
 	/*maybe we could do this function more functionally like return type_bits(me) &&...*/
 }
@@ -2512,7 +2516,9 @@ are_equivalent(list a, list b) = list_equal(a,b)
 //find_ep(ep,s,o);
 
 //This will be passing these pointers to find_ep which will accept them as pointers
-#define EPDBG(x) 
+
+std::ofstream *epout;
+#define EPDBG(x)  TRACE(dout << x); (*epout) << x; 
 
 bool find_ep(ep_t *ep, /*const*/ Thing *s, /*const*/ Thing *o)
 {
@@ -2531,12 +2537,15 @@ bool find_ep(ep_t *ep, /*const*/ Thing *s, /*const*/ Thing *o)
 	
 	ASSERT(!is_offset(*s));
 	ASSERT(!is_offset(*o));
-	//what about !is_bound
+	//what about !is_bound//it can be bound, what we stored is just a pointer to an actual var that is subsequently used in the body of the rule
 
-	EPDBG(dout << endl << endl << ep->size() << " ep items." << endl);
+
+	EPDBG(endl << endl << "called " << str(s) << " " << str(o);)
+	EPDBG(endl << ep->size() << " ep items." << endl);
 	//thingthingpair
 	for (auto i: *ep)
 	{
+	
 	  //Thing*
 		auto os = i.first;
 		auto oo = i.second;
@@ -2545,8 +2554,11 @@ bool find_ep(ep_t *ep, /*const*/ Thing *s, /*const*/ Thing *o)
 		//what about !is_bound
 		
 		//TRACE(dout << endl << " epitem " << str(os) << "    VS     " << str(s) << endl << str(oo) << "    VS    " << str(o) << endl;)
-		EPDBG(dout << endl << " epcheck " << str(os) << "    VS     " << str(s) << endl << " epcheck " << str(oo) << "    VS    " << str(o) << endl;)
-
+		EPDBG(endl << " epcheck " << str(os) << " " << str(oo);)
+		
+		
+		
+		/*
 		bool rs = false;
 		bool ro = false;
 
@@ -2560,23 +2572,23 @@ bool find_ep(ep_t *ep, /*const*/ Thing *s, /*const*/ Thing *o)
 
 		if (rs && ro)
 		{
-			EPDBG(dout << endl << " epcheck " <<  "EP." << endl;)
+			EPDBG(endl << " epcheck " <<  "EP." << endl;)
 			return true;
 		}
+		*/
 		
 		
-		/*
 		if (would_unify(os,s))
 		{
 			//TRACE(dout << ".." << endl);
 			if(would_unify(oo,o)) {
-				EPDBG(dout << endl << " epcheck " <<  "EP." << endl;)
+				EPDBG(endl << " epcheck " <<  "EP." << endl;)
 				dout << endl << "EP!" << endl;
 				return true;
 			}
 		}
-		*/
-		EPDBG(dout << endl <<  " epcheck " << "---------------------" << endl);
+		
+//		EPDBG(endl <<  " epcheck " << "---------------------" << endl);
 
 	}
 	return false;
@@ -2680,7 +2692,7 @@ i have no idea */
 		setproc("rule");
 		TRC(++call;)
 //		TRACE(dout << op->formatr(r) << endl;)
-		TRACE(dout << "call=" << call << endl;)
+		//TRACE(dout << "call=" << call << endl;)
 		switch (entry) {
 			case 0:
 
@@ -2723,74 +2735,88 @@ i have no idea */
 						
 				//and here i feel like the ep-check should be before
 				//the unifys
-
+				/*
 				if (find_ep(ep, sv, ov)) {
 					goto end;
 				}else{
-					/*
+					/ *
 					if(is_var(*ov)){
 						ot = create_unbound();
 					}else if(is_node(*ov)){
 						ot = create_node(ov->node);
 					}else{ASSERT(false);}
-
+  
 					if(is_var(*sv)){
 						st = create_unbound();
 					}else if(is_node(*sv)){
 						st = create_node(sv->node);
 					}else{ASSERT(false);}
-					*/
+					* /
 					ep->push_back(thingthingpair(sv,ov));	
 				}
+				*/
 				suc = unify(s, &locals[hs]); // try to match head subject
 				while (suc()) {
-					TRACE(dout << "After suc() -- " << endl;)
+					//TRACE(dout << "After suc() -- " << endl;)
 					//TRACE(dout << sprintSrcDst(Ds,s,Do,o) << endl;)
 					ASSERT(call == 1);
 
 					ouc = unify(o, &locals[ho]);
 					while (ouc()) {
-						TRACE(dout << "After ouc() -- " << endl;)
+						//TRACE(dout << "After ouc() -- " << endl;)
 						//TRACE(dout << sprintSrcDst(Ds,s,Do,o) << endl;)
 						ASSERT(call == 1);
 
 						steps++;
 						if (!(steps&0b11111111111111111))
 							dout << steps << " steps." << endl;
+						
+						//TRACE(dout << "has_body:" << has_body << ", ep->size():" << ep->size());
+						if (!has_body || !find_ep(ep, sv, ov))
+						{
+						//TRACE(dout << "has_body:" << has_body << ", ep->size():" << ep->size());
 
+							if (has_body)
+								ep->push_back(thingthingpair(sv,ov));	
+						//TRACE(dout << "has_body:" << has_body << ", ep->size():" << ep->size());
+						
 						j = jg();
 						while (j(sv, ov, locals)) {
-							TRACE(dout << "After c0() -- " << endl;)
+							//TRACE(dout << "After c0() -- " << endl;)
 							//TRACE(dout << sprintSrcDst(Ds,s,Do,o) << endl;)
 
-							ASSERT(ep->size());
-							ep->pop_back();
-					
+							if (has_body)
+							{
+						//TRACE(dout << "has_body:" << has_body << ", ep->size():" << ep->size());
 
-							TRACE(dout << "MATCH." << endl;)
+								ASSERT(ep->size());
+								ep->pop_back();
+								TRACE(dout << "MATCH." << endl;)
+							}
+							else
+								TRACE(dout << "FACT." << endl;)
+
 							entry = LAST;
 							return true;
 
 			case_LAST:;
-							TRACE(dout << "RE-ENTRY" << endl;)
-							ep->push_back(thingthingpair(sv, ov));
+							//TRACE(dout << "RE-ENTRY" << endl;)
+							if (has_body)
+								ep->push_back(thingthingpair(sv, ov));
 						}
-
-				
-			
-				
+						if (has_body)
+						{
+							ASSERT(ep->size());
+							ep->pop_back();
+						}
+						}
 					}
 				}
 
-
-				ASSERT(ep->size());
-				ep->pop_back();
-				
 			end:;
 
 
-
-				TRACE(dout << "DONE." << endl;)
+				//TRACE(dout << "DONE." << endl;)
 				free(locals);
 			END
 		}

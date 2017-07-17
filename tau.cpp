@@ -599,7 +599,7 @@ bool read_option(string s){
 		if(_option == x){ \
 			INPUT->y = std::stoi(token); \
 			dout << z << ":" << INPUT->y << std::endl; \
-			return true; \	
+			return true; \
 		} 
 
 		input_option("cppout", do_cppout, "cppout");
@@ -790,6 +790,10 @@ int main ( int argc, char** argv)
   //This should probably go logically with other initialization stuff.
 	//Initialize the prover strings dictionary with hard-coded nodes.
 	dict.init();
+	
+	epout = new std::ofstream();
+	epout->open("epdbg");
+	
 
 
 	//start by processing program arguments

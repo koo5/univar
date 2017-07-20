@@ -1,12 +1,11 @@
-CXX=clang++
-#CXX=g++ 
-#-static-libasan
+#CXX=clang++
+CXX=g++  -static-libasan
 #-libc++ -stdlib=libc++ 		
 ###NEW= -DNEW
 #-fsanitize=integer -fsanitize=unsigned-integer-overflow 
 ASAN=    -fsanitize=address -fsanitize=undefined -ggdb -fsanitize-undefined-trap-on-error 
 DEBUG=  -DDEBUG -O0  -fno-omit-frame-pointer -fno-optimize-sibling-calls 
-DBG= $(ASAN) -g -ggdb $(DEBUG)
+DBG= $(ASAN) -g -ggdb $(DEBUG) #-Doneword
 CXXFLAGS= -c -O3  -DCPPOUT  $(DBG) $(NEW) -std=c++14 -W -Wall -Wextra -Wpedantic -I/usr/local/include -I/usr/include -I/usr/local/linuxbrew/include  
 MYLD = 
 LDFLAGS=  $(DBG) -L/usr/local/  $(MYLD) #-ldl -pthread -lrt

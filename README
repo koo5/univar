@@ -36,6 +36,5 @@ CXX="clang++-3.6  -stdlib=libc++ " DEBUG="" make -e
 
 cppout:
 env DBG="-Doneword" make -e
-env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so  ./tau  --silence addrules --silence readcurly --silence N3 --level 100 --cppout 1 --lambdas 0 run  tests/speed/adder
-
+env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so ASAN_OPTIONS="symbolize=1,detect_leaks=0,strict_init_order=1,check_initialization_order=1,verbosity=1" ./tau --limit 0 --silence addrules --silence readcurly --silence N3 --level 0  --cppout 1 --lambdas 0 run  tests/speed/adder
 

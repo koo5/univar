@@ -1,4 +1,8 @@
 int main ( int argc, char** argv){
+
+	epout = new std::ofstream();
+	epout->open("epdbg");
+
 	for (int x = 0; x < argc - 1; x++)
 		if (0==strcmp(argv[x+1], "silent"))
 			silent = true;

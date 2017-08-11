@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import rdflib
+from rdflib import Graph
+import sys
+import common_utils
+g = common_utils.parse_input()
+
+
+
+
+
 from weakref import ref as weakref
 
 def printify(iterable, separator):

@@ -527,8 +527,8 @@ out << "	if (are_equal(prev_results[0], *bisx) && are_equal(prev_results[1], *bi
 
 			
 			
-			out << "if (!silent) dout << unifys << \" unifys \"  ;\n";
-			out << "if (!silent) dout << \" RESULT \" << counter << \": \";\n";
+			out << "if (!silent) dout << unifys << \" unifys\\n\"  ;\n";
+			out << "if (!silent) dout << \"RESULT \" << counter << \": \";\n";
 
 			ASSERT(rule.body);
 			

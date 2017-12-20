@@ -1,0 +1,6 @@
+kb
+{:a :b :c} => {:d :e :f}.
+fin.
+query
+:nnen :foo :bar.
+fin.

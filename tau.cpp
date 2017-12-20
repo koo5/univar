@@ -85,6 +85,7 @@ std::vector<qdb> kbs;
 bool done_anything = false;
 
 results_t cppout_results;
+results_t external_results;
 
 
 class Input
@@ -101,6 +102,7 @@ public:
 	bool interactive = false;
 	bool do_reparse = true;
 	bool do_cppout = false;
+	string external;
 	bool do_query = true;
 	bool do_test = true;
 	std::string name;
@@ -121,6 +123,7 @@ public:
 			//these should be inherited from parent input
 			limit = INPUT->limit;
 			do_cppout = INPUT->do_cppout;
+			external = INPUT->external;
 			do_query = INPUT->do_query;
 			do_test = INPUT->do_test;
 		}
@@ -378,6 +381,11 @@ void shouldbe(qdb &sb) {
 		dout << "cppout:";
 		test_result(r);
 	}
+	if (!INPUT->external.empty()) {
+		bool r = _shouldbe(external_results, sb);
+		dout << "external:";
+		test_result(r);
+	}
 }
 
 void thatsall()
@@ -594,18 +602,26 @@ bool read_option(string s){
 		}
 
 
-#define input_option(x, y, z) \
+#define input_option_int(x, y, z) \
 		\
 		if(_option == x){ \
 			INPUT->y = std::stoi(token); \
 			dout << z << ":" << INPUT->y << std::endl; \
 			return true; \
 		} 
+#define input_option_string(x, y, z) \
+		\
+		if(_option == x){ \
+			INPUT->y = token; \
+			dout << z << ":" << INPUT->y << std::endl; \
+			return true; \
+		} 
 
-		input_option("cppout", do_cppout, "cppout");
-		input_option("lambdas", do_query, "lambdas");
-		input_option("test", do_test, "test");
-		input_option("limit", limit, "results limit");
+		input_option_int("cppout", do_cppout, "cppout");
+		input_option_string("external", external, "external");
+		input_option_int("lambdas", do_query, "lambdas");
+		input_option_int("test", do_test, "test");
+		input_option_int("limit", limit, "results limit");
 
 		INPUT->take_back();
 	}
@@ -785,6 +801,18 @@ void passthru(string s)
 
 
 
+void qdb_to_nq(std::ostream &o, const qdb &db)
+{
+	for ( auto x : db.first )
+	{
+		auto graph = x.second;
+		if (graph->size())
+			o << *graph << std::endl;
+	}
+}
+
+
+
 int main ( int argc, char** argv)
 {
   //This should probably go logically with other initialization stuff.
@@ -878,17 +906,12 @@ int main ( int argc, char** argv)
 							do_query(kb);
 						if (INPUT->do_cppout) {
 							cppout_results.clear();	
-						
 							tauProver->cppout(kb);
-
-							std::string line;
-
 							passthru("sleep 1; astyle out.cpp; rm cppout out.o");
 
 							stringstream omg;
 							omg << "  || echo  \"test:cppout:make:" << KRED << "FAIL:" << KNRM;
 							string fff=omg.str();
-
 							stringstream errss;
 							errss << "make -e cppout" << fff << INPUT->name << "\"";
 							passthru(errss.str());
@@ -900,6 +923,7 @@ int main ( int argc, char** argv)
 							cmdss << "./cppout" << fff << INPUT->name << "\"";
 							redi::ipstream p(cmdss.str());
 
+							std::string line;
 							while (getline(p.out(), line)) {
 								dout << line << endl;
 								if (startsWith(line, "RESULT ")) {
@@ -908,6 +932,37 @@ int main ( int argc, char** argv)
 									std::stringstream ss(result);
 									auto pr = parse(cppout, kb2, ss, "cppout output");
 									cppout_results.push_back(cppout);
+								}
+							}
+							p.close();
+							}
+						}
+						if (!INPUT->external.empty()) {
+							external_results.clear();		
+							std::fstream out;
+							out.open("query_for_external.nq", std::fstream::out);
+							qdb_to_nq(out, kb);
+							out.close();
+							out.open("kb_for_external.nq", std::fstream::out);
+							qdb_to_nq(out, merge_qdbs(kbs));
+							out.close();
+							
+							if (INPUT->do_test)
+							{
+
+							stringstream cmdss;
+							cmdss << INPUT->external;
+							redi::ipstream p(cmdss.str());
+
+							std::string line;
+							while (getline(p.out(), line)) {
+								dout << line << endl;
+								if (startsWith(line, "RESULT ")) {
+									string result = line.substr(line.find(":") + 1);
+									qdb kb, kb2, external_output;
+									std::stringstream ss(result);
+									auto pr = parse(external_output, kb2, ss, "external_output");
+									external_results.push_back(external_output);
 								}
 							}
 							p.close();

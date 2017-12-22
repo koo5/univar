@@ -38,7 +38,7 @@ string node::tostring() const {
 	bool isiri = _type == IRI && !((*value).size() && ((*value)[0] == '?')) ;
 
 	if ( isiri ) ss << '<';
-	else if ( _type == BNODE ) ss << '*';
+	//else if ( _type == BNODE ) ss << '*';
 	else if ( _type == LITERAL ) ss << '\"';
 	//else?
 
@@ -46,7 +46,7 @@ string node::tostring() const {
 	ss << *value;
 	
 	if ( isiri ) ss << '>';
-	else if ( _type == BNODE ) ss << '*';
+	//else if ( _type == BNODE ) ss << '*';
 	else if ( _type == LITERAL ) {
 		ss << '\"';
 		if ( datatype && datatype->size() ) ss << "^^" << *datatype;
@@ -127,7 +127,10 @@ pnode mkiri ( pstring iri ) {
 
 	auto it = dict.nodes.find(*iri);
 	if(it != dict.nodes.end())
-		assert(it->second->_type == node::IRI);
+		//assert(it->second->_type == node::IRI);
+		if(it->second->_type != node::IRI)
+			throw std::runtime_error(*iri);
+			
 
 	/// /	TRACE(dout << *iri << endl);
 	node r ( node::IRI );
@@ -394,7 +397,7 @@ string quad::tostring ( ) const {
 	//not really sure why this has to be a lambda
 	bool _shorten = shorten;
 	auto f = [_shorten] ( pnode n ) {
-		if ( n ) {
+		if ( n ) {;
 			string s = n->tostring();
 			if ( !shorten ) return s;
 		

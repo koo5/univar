@@ -673,10 +673,9 @@ public:
 		return *s;
 	}
 
-	N3(prover &prvr_, qdb &kb_, qdb &query_, bool single_file_mode_ = false) : prvr(&prvr_), kb(kb_), query(query_),
-																			   dest(&kb),
-																			   finfin_mode(single_file_mode_)
+	N3(prover &prvr_, qdb &kb_, qdb &query_, bool single_file_mode_ = false) : prvr(&prvr_), kb(kb_), query(query_), dest(&kb), finfin_mode(single_file_mode_)
 	{
+		prefixes[""] = "#";
 		if (!marpa)marpa = new MarpaIris();
 	}
 
@@ -756,7 +755,8 @@ public:
 					v = prefixes[pref] + rest;
 				}
 			}
-			else {
+			pos = v.find(":");
+			if (pos == string::npos) {
 				v = base + v;
 			}
 			return mkiri(pstr(v));
@@ -776,7 +776,7 @@ public:
 	pnode add_formulacontent(termid x)
 	{
 	
-		auto evil_dummy = pstr("dont use this name");
+		auto evil_dummy = pstr("_:dont use this bnode name");
 
 		auto dummy = mkbnode(evil_dummy);
 		add_statements(x, *dummy->value);
@@ -787,7 +787,7 @@ public:
 		std::hash<std::string> fn;
 		size_t h = fn(ss.str());
 		stringstream sss;
-		sss << /*std::showbase << std::uppercase << std::hex <<*/ h;
+		sss << "_:" << /*std::showbase << std::uppercase << std::hex <<*/ h;
 		
 		auto graph = mkbnode(pstr(sss.str()));
 		add_statements(x, *graph->value);

@@ -455,6 +455,7 @@ string fmt_from_ext(string fn){
 }
 
 ParsingResult parse(qdb &kb, qdb &query, std::istream &f, string fn) {
+	base = "file://"+fn;
 	string fmt = format;
 	if (fmt == "")
 		fmt = fmt_from_ext(fn);

@@ -770,6 +770,10 @@ public:
 		assert(v);
 		string s = *dict[v].value;
 		//s[0] = '?';//workaround
+		size_t pos = s.find(":");
+		if (pos == string::npos) {
+			s = base + s;
+		}
 		return mkiri(pstr(s));
 	}
 

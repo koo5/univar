@@ -1,6 +1,8 @@
 kb
-{:a :b <http://www>} => {:d :e :f}.
+{?a :b :c. :lit :b :c. :a :d :c} <= {:d :e ?a. :g :h :i}.
+:d :e :d.
+:g :h :i.
 fin.
 query
-:nnen :foo :bar.
+:d :b :c.
 fin.

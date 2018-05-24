@@ -38,3 +38,7 @@ cppout:
 env DBG="-Doneword" make -e
 env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so ASAN_OPTIONS="symbolize=1,detect_leaks=0,strict_init_order=1,check_initialization_order=1,verbosity=1" ./tau --limit 0 --silence addrules --silence readcurly --silence N3 --level 0  --cppout 1 --lambdas 0 run  tests/speed/adder
 
+
+
+./run.sh   --lambdas 0   --external ./pyin_runner.sh  run tests/simple/1
+

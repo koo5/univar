@@ -1,5 +1,5 @@
 kb
-:baz :foo :bar.
+:baz :foo "bar".
 fin.
 
 query
@@ -7,6 +7,6 @@ query
 fin.
 
 shouldbe
-:baz :foo :bar.
+:baz :foo "bar".
 fin.
 thatsall

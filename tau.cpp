@@ -927,7 +927,7 @@ int main ( int argc, char** argv)
 							std::string line;
 							while (getline(p.out(), line)) {
 								dout << line << endl;
-								if (startsWith(line, "RESULT ")) {
+								if (startsWith(line, "#RESULT ")) {
 									string result = line.substr(line.find(":") + 1);
 									qdb kb, kb2, cppout;
 									std::stringstream ss(result);

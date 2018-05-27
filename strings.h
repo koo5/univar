@@ -33,18 +33,6 @@ pstring pstr ( const string& s );
 #define CL(x)
 #endif
 
-
-
-class runtime_error : public std::exception {
-	string msg;
-public:
-	using std::exception::exception;
-	runtime_error(string s) : msg(s){}
-	virtual const char* what() const noexcept {
-		return std::string(msg.begin(), msg.end()).c_str();
-	}
-};
-
 const string tab = "\t";
 const string str_default = "@default";
 #ifdef JSON
@@ -173,7 +161,7 @@ const pstring pimplication = pstr(implication);
 
 template<typename T> inline bool is ( const T& s, const std::vector<T>& v, const string& exception = string() ) {
 	bool rc = std::find ( v.begin(), v.end(), s ) != v.end();
-	if ( exception.size() && !rc ) throw runtime_error ( exception );
+	if ( exception.size() && !rc ) throw std::runtime_error ( exception );
 	return rc;
 }
 

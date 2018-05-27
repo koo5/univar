@@ -231,7 +231,7 @@ struct Marpa {
 			// mustBeOneSequence is a list of lists
 			std::vector<nodeid> lll = prvr2->get_list(bind);
 			if (!bind)
-				throw runtime_error("mustBeOneSequence empty");
+				throw std::runtime_error("mustBeOneSequence empty");
 
 			for (auto l:lll) {
 				syms rhs;
@@ -254,7 +254,7 @@ struct Marpa {
 		}
 		else if (thingv == "http://www.w3.org/2000/10/swap/grammar/bnf#eof") { }//so what?
 		else
-			throw runtime_error("whats " + thingv + "?");
+			throw std::runtime_error("whats " + thingv + "?");
 
 		TRACE(dout << "added sym " << symbol << std::endl);
 		return symbol;

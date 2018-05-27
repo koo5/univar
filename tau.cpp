@@ -355,6 +355,7 @@ bool _shouldbe(results_t &results, qdb &sb) {
 	if (sb.first.empty() && sb.second.empty()) {
 		return results.empty();
 	}
+	dout << "results.size()" << results.size() << endl;
 	if(!results.size())
 		return false;
 	auto r = results.front();
@@ -927,7 +928,7 @@ int main ( int argc, char** argv)
 							std::string line;
 							while (getline(p.out(), line)) {
 								dout << line << endl;
-								if (startsWith(line, "#RESULT ")) {
+								if (startsWith(line, " RESULT ")) {
 									string result = line.substr(line.find(":") + 1);
 									qdb kb, kb2, cppout;
 									std::stringstream ss(result);
@@ -958,7 +959,8 @@ int main ( int argc, char** argv)
 							std::string line;
 							while (getline(p.out(), line)) {
 								dout << line << endl;
-								if (startsWith(line, "RESULT ")) {
+								if (startsWith(line, " RESULT ")) {
+									dout << "result detected" << endl;
 									string result = line.substr(line.find(":") + 1);
 									qdb kb, kb2, external_output;
 									std::stringstream ss(result);

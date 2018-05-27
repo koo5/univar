@@ -1,2 +1,2 @@
-<file://tests/simple/1#baz> <file://tests/simple/1#foo> "bar"^^http://www.w3.org/2001/XMLSchema#string .
+<file://tests/simple/1#baz> <file://tests/simple/1#foo> "bar"^^<http://www.w3.org/2001/XMLSchema#string> .
 

@@ -49,7 +49,7 @@ string node::tostring() const {
 	//else if ( _type == BNODE ) ss << '*';
 	else if ( _type == LITERAL ) {
 		ss << '\"';
-		if ( datatype && datatype->size() ) ss << "^^" << *datatype;
+		if ( datatype && datatype->size() ) ss << "^^<" << *datatype << ">";
 		if ( lang && lang->size() ) ss << '@' << *lang;
 	}
 	//is _type guaranteed to be filled?
@@ -457,10 +457,21 @@ bool qdbs_equal(qdb &a, qdb &b) {
 
 	BnodesDict bnodes;
 
-  //qlist
-	auto a_default = *a.first["@default"];
-	auto b_default = *b.first["@default"];
+	auto a_p = a.first["@default"];
+	auto b_p = b.first["@default"];
+
+
+	if (!a_p && !b_p) 
+		return true;
 	
+
+	if ((a_p && !b_p) || (b_p && !a_p))
+		return false;
+	
+	//qlist
+	auto a_default = *a_p;
+	auto b_default = *b_p;
+			
 	if (a_default.size() != b_default.size())
 		return false;
 	

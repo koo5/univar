@@ -161,7 +161,7 @@ numericliteral cfg:mustBeOneSequence (
 rational cfg:mustBeOneSequence (( integer "/" unsignedint)).
 
 
-literal cfg:mustBeOneSequence(( string )).#dtlang)).
+literal cfg:mustBeOneSequence((string dtlang)).
 
 dtlang cfg:mustBeOneSequence(  ()  ("@" langcode)  ("^^" symbol)).
 

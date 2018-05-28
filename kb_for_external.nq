@@ -1,2 +1,9 @@
-<file://tests/simple/1#baz> <file://tests/simple/1#foo> "bar"^^<http://www.w3.org/2001/XMLSchema#string> .
+<file://tests/simple/superman.tau#socrates> <file://tests/simple/superman.tau#a> <file://tests/simple/superman.tau#man> .
+<file://tests/simple/superman.tau#socrates> <file://tests/simple/superman.tau#not_a> <file://tests/simple/superman.tau#superman> .
+_:1029482102820771461 <http://www.w3.org/2000/10/swap/log#implies> _:9495151457459900483 .
+
+<file://tests/simple/superman.tau?x> <file://tests/simple/superman.tau#a> <file://tests/simple/superman.tau#man> _:1029482102820771461 .
+<file://tests/simple/superman.tau?x> <file://tests/simple/superman.tau#not_a> <file://tests/simple/superman.tau#superman> _:1029482102820771461 .
+
+<file://tests/simple/superman.tau?x> <file://tests/simple/superman.tau#a> <file://tests/simple/superman.tau#mortal> _:9495151457459900483 .
 

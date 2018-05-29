@@ -16,28 +16,33 @@ def query_from_files(kb, goal):
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 
 	from ordered_rdflib_store import OrderedStore
-	kb_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier='@default')
+	store = OrderedStore()
+	kb_graph = rdflib.Graph(store=store, identifier='@default')
+	kb_conjunctive = rdflib.ConjunctiveGraph(store=store)
 	kb_graph.parse(kb_stream, format='nquads')
 	#exit()
 	rules = []
 
-	for s,p,o in kb_graph.triples((None, None, None, '@default')):
-		print (s,p,o)
-	exit()
-	if False:
+	for s,p,o in kb_graph.triples((None, None, None)):
+
+	#	print (s,p,o)
+	#exit()
+	#if False:
+
 		if p != implies:
 			rules.append(Rule(Triple((p), [(s), (o)]), Graph()))
 		else:
-			for head_triple in kb_graph.get_context(o):
+			for head_triple in kb_conjunctive.triples((None, None, None), o):
 				#print()
 				#print(head_triple, "<=")
 				body = Graph()
-				for body_triple in kb_graph.get_context(s):
+				for body_triple in kb_conjunctive.triples((None, None, None), s):
 					#print(body_triple)
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
 				rules.append(Rule(Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 
 	goal_rdflib_graph = rdflib.Graph(store=OrderedStore())
+
 	goal_rdflib_graph.parse(goal_stream, format='nquads')
 
 	goal = Graph()

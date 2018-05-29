@@ -47,8 +47,8 @@ class OrderedStore(Store):
             if context == self:  # hmm...does this really ever happen?
                 context = None
         s1,p1,o1 = triplein
-        for spo2,c2,q2 in self.quads:
+        for spo2,c2,_q2 in self.quads:
             s2,p2,o2 = spo2
-            if (s1 == None or s1 == s2) and (p1 == None or p1 == p2) and (o1 == None or o1 == o2) or (c1 == None or c1 == c2):
+            if ((s1 == None) or (s1 == s2)) and ((p1 == None) or (p1 == p2)) and ((o1 == None) or (o1 == o2)) and (context == c2):
                 yield (s2,p2,o2),c2
 

@@ -47,15 +47,6 @@ kbdbg("@prefix : <file:///#> ")
 print(33)
 
 
-# In[6]:
-
-
-
-
-
-
-# In[1]:
-
 
 def printify(iterable, separator):
 	r = ""

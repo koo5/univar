@@ -172,7 +172,7 @@ class Rule(Kbdbgable):
 		head_uri = ":"+s.kbdbg_name + "Head"
 		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 		kbdbg(":"+head_uri + ' kbdbg:has_text ' + str(s.head))
-
+d
 
 	def __str__(s):
 		return "{" + str(s.head) + "} <= " + str(s.body)

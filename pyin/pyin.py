@@ -1,9 +1,4 @@
 
-# coding: utf-8
-
-# In[4]:
-
-
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
@@ -18,8 +13,6 @@ from collections import defaultdict
 # lines starting with "#" are n3 comments. 
 # "#RESULT:" lines are for univar fronted/runner/tester ("tau")
 # the rest of the comment lines are random noise
-
-# In[5]:
 
 
 def init_logging():
@@ -161,7 +154,7 @@ def tell_if_is_last_element(x):
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
-	def __init__(s, head, body=Graph()):
+	def __init_0(s, head, body=Graph()):
 		super().__init__()
 		s.head = head
 		s.body = body
@@ -172,7 +165,7 @@ class Rule(Kbdbgable):
 		head_uri = ":"+s.kbdbg_name + "Head"
 		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 		kbdbg(":"+head_uri + ' kbdbg:has_text ' + str(s.head))
-d
+
 
 	def __str__(s):
 		return "{" + str(s.head) + "} <= " + str(s.body)
@@ -335,25 +328,5 @@ def query(input_rules, input_query):
 	for nyan in Rule(None, input_query).match():
 		yield nyan
 
-"""
-def test1():
-	input_rules = [
-		Rule(Triple('a', ['?X', 'mortal']),
-		Graph([Triple('a', ['?X', 'man']), Triple('not', ['?X', 'superman'])])),
-		Rule(Triple('a', ['socrates', 'man'])),
-		Rule(Triple('a', ['koo', 'man'])),
-		Rule(Triple('not', ['?nobody', 'superman']))]
-	input_query = Graph([Triple('a', ['socrates', 'mortal'])])
-	for nyan in query(input_rules, input_query):
-		print ("#he's mortal, and he's dead")
-	print ("#who is mortal?")
-	#for nyan in pred('a', [v, 'mortal']):
-	#v = Var('?who who')
-	w = '?who'
-	input_query = Graph([Triple('a', [w, 'mortal'])])
-	for nyan in query(input_rules, input_query):
-		print ('#'+str(nyan[w]) + " is mortal, and he's dead")
-"""
 
 
-# jupyter nbconvert --to python pyin.ipynb 

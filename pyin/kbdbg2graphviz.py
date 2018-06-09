@@ -23,8 +23,16 @@ logger.setLevel(logging.DEBUG)
 logger.debug("hi")
 log=logger.debug
 
+
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
 	return g.value(subject, predicate, object, default, any)
+
+def gv_escape(string):
+	return urllib.parse.quote(string)
+
+
+
+
 
 def process_input(lines):
 	g = Graph()
@@ -49,8 +57,8 @@ def process_input(lines):
 	for binding in g.subjects(RDF.type, kbdbg.binding):
 		if g.value(binding, kbdbg.was_unbound):
 			continue
-		source = Dotdict()
-		target = Dotdict()
+		source = object()
+		target = object()
 		source.thing = g.value(binding, kbdbg.has_source)
 		source.string = g.value(source.thing, kbdbg.has_string)
 		source.frame = g.value(source.thing, kbdbg.belongs_to_frame)
@@ -70,14 +78,8 @@ def process_input(lines):
 
 
 
-
-
-
 	gv("}")
 
-
-def gv_escape(string):
-	return urllib.parse.quote(string)
 
 def get_frame_gv(frame):
 	return gv_escape(frame) + "[" + get_rule_html_label(frame) + "]"
@@ -137,3 +139,4 @@ if __name__ == '__main__':
 	while True:
 		lines.append(input_file.readline())
 		process_input(lines)
+

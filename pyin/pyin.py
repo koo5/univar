@@ -161,9 +161,6 @@ class Locals(dict):
 		log("result: " + str(r))
 		return r
 
-def tell_if_is_last_element(x):
-	for i, j in enumerate(x):
-		yield j, (i == (len(x) - 1))
 
 def emit_term(t, uri):
 	kbdbg(uri + " a kbdbg:term")
@@ -204,22 +201,22 @@ class Rule(Kbdbgable):
 		s.ep_heads = []
 
 		kbdbg(":"+s.kbdbg_name + ' a ' + 'kbdbg:rule')
-		head_uri = ":"+s.kbdbg_name + "Head"
-		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-		kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(s.head)) + '"')
-		body_uri = s.kbdbg_name + "Body"
-		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body :' + body_uri)
-		for i in s.body:
-			body_term = ":" + rdflib.BNode()
-			emit_term(i, body_term)
-			kbdbg(":"+body_uri + " rdf:first " + body_term)
-			body_uri2 = body_uri + "X"
-			kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
-			body_uri = body_uri2
-		kbdbg(":"+body_uri + " rdf:rest rdf:nil")
-
-
-
+		if s.head:
+			head_uri = ":"+s.kbdbg_name + "Head"
+			kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
+			kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(s.head)) + '"')
+			emit_term(s.head, head_uri)
+		if s.body:
+			body_uri = s.kbdbg_name + "Body"
+			kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body :' + body_uri)
+			for i in s.body:
+				body_term_uri = ":" + rdflib.BNode()
+				emit_term(i, body_term_uri)
+				kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
+				body_uri2 = body_uri + "X"
+				kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
+				body_uri = body_uri2
+			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
 
 	def __str__(s):
 		return "{" + str(s.head) + "} <= " + str(s.body)
@@ -239,19 +236,21 @@ class Rule(Kbdbgable):
 	def unify(s, args):
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
-
 		depth = 0
 		generators = []
 		max_depth = len(args) + len(s.body) - 1
 		kbdbg_name = s.kbdbg_name + "Frame"+str(frame_id)
 		locals = s.locals_template.new(kbdbg_name)
+
+		kbdbg(":"+kbdbg_name + " rdf:type kbdbg:frame")
+
 		def desc():
 			return ("\n#vvv\n#" + str(s) + "\n" +
 			"#args:" + str(args) + "\n" +
 			"#locals:" + str(locals) + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+
 			        "\n#^^^")
-		kbdbg(":"+kbdbg_name + " kbdbg:is_for_rule :rule" + str(s.debug_id))
+		kbdbg(":"+kbdbg_name + " kbdbg:is_for_rule :"+s.kbdbg_name)
 		log ("entering " + desc())
 		while True:
 			if len(generators) <= depth:

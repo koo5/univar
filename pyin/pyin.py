@@ -43,6 +43,8 @@ log, kbdbg = init_logging()
 
 kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
 kbdbg("@prefix : <file:///#> ")
+kbdbg("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
+
 print("#this should be first line of merged stdout+stderr, use PYTHONUNBUFFERED=1")
 
 
@@ -165,7 +167,7 @@ def tell_if_is_last_element(x):
 
 def emit_term(t, uri):
 	kbdbg(uri + " a kbdbg:term")
-	kbdbg(uri + " kbdbg:has_pred " + urllib.parse.quote_plus(t.pred))
+	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
 	kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
 
 def pr(x):
@@ -204,9 +206,9 @@ class Rule(Kbdbgable):
 		kbdbg(":"+s.kbdbg_name + ' a ' + 'kbdbg:rule')
 		head_uri = ":"+s.kbdbg_name + "Head"
 		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-		kbdbg(":"+head_uri + ' kbdbg:has_text ' + str(s.head))
+		kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(s.head)) + '"')
 		body_uri = s.kbdbg_name + "Body"
-		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body ' + body_uri)
+		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body :' + body_uri)
 		for i in s.body:
 			body_term = ":" + rdflib.BNode()
 			emit_term(i, body_term)

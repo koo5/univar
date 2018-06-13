@@ -77,3 +77,11 @@ def query_from_files(kb, goal):
 
 if __name__ == "__main__":
 	query_from_files()
+	"""
+	try:
+		query_from_files()
+	except:
+		import kbdbg2graphviz
+		kbdbg2graphviz.run()
+		raise
+	"""

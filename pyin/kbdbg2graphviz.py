@@ -36,12 +36,12 @@ def gv_escape(string):
 
 def process_input(lines):
 	g = Graph()
-	i = "\n".join(lines)
+	i = "".join(lines)
 	#					print("i:", i)
-	g.parse(data=i, format='turtle')
+	g.parse(data=i, format='n3')
 
-	if g.value(RDF.nil, kbdbg.has_started, RDF.nil) == None:
-		return
+	#if list(g.subjects(RDF.type, kbdbg.binding)) == []:
+	#	return
 
 	step = len(lines)
 
@@ -132,11 +132,17 @@ def emit_term(rule_uri, is_in_head, term_idx, term):#port_idx,
 	html += '<td>). '
 
 
-
-if __name__ == '__main__':
-	input_file = open("kbdbg.turtle")
+def run():
+	input_file = open("kbdbg.n3")
 	lines = []
 	while True:
-		lines.append(input_file.readline())
+		l = input_file.readline()
+		if l == "":
+			break
+		lines.append(l)
 		process_input(lines)
 
+
+
+if __name__ == '__main__':
+	run()

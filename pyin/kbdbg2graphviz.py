@@ -28,7 +28,7 @@ def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999
 	return g.value(subject, predicate, object, default, any)
 
 def gv_escape(string):
-	return urllib.parse.quote(string)
+	return urllib.parse.quote_plus(string)
 
 
 

@@ -3,10 +3,11 @@ from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
 import sys
+import os
 import logging
 import urllib.parse
 from collections import defaultdict
-
+from ordered_rdflib_store import OrderedStore
 
 # #OUTPUT:
 # into kbdbg.nt, we should output a valid n3 file with kbdbg2 schema (which is to be defined). 
@@ -23,13 +24,18 @@ def init_logging():
 	logger1=logging.getLogger()
 	logger1.addHandler(console_debug_out)
 	logger1.setLevel(logging.DEBUG)
-	
-	kbdbg_out = logging.FileHandler('kbdbg.nt')
+
+	kbdbg_file_name = 'kbdbg.n3'
+	try:
+		os.unlink(kbdbg_file_name)
+	except FileNotFoundError:
+		pass
+	kbdbg_out = logging.FileHandler(kbdbg_file_name)
 	kbdbg_out.setLevel(logging.DEBUG)
 	kbdbg_out.setFormatter(logging.Formatter('%(message)s.'))
 	logger2=logging.getLogger("kbdbg")
 	logger2.addHandler(kbdbg_out)
-	
+
 	return logger1.debug, logger2.info
 
 
@@ -37,8 +43,13 @@ log, kbdbg = init_logging()
 
 kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
 kbdbg("@prefix : <file:///#> ")
-print(33)
+print("#this should be first line of merged stdout+stderr, use PYTHONUNBUFFERED=1")
 
+
+
+#having this one, global, instance will hopefully let us avoid accidentally creating identical bnodes in the output
+kbdbg_output_store = OrderedStore()
+kbdbg_output_graph = rdflib.Graph(kbdbg_output_store)
 
 
 def printify(iterable, separator):
@@ -152,9 +163,38 @@ def tell_if_is_last_element(x):
 	for i, j in enumerate(x):
 		yield j, (i == (len(x) - 1))
 
+def emit_term(t, uri):
+	kbdbg(uri + " a kbdbg:term")
+	kbdbg(uri + " kbdbg:has_pred " + urllib.parse.quote_plus(t.pred))
+	kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
+
+def pr(x):
+	print(x.__class__, x.context, x.triple)
+
+for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
+	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)
+
+def emit_args(args):
+	c=rdflib.collection.Collection(kbdbg_output_graph, rdflib.BNode())
+	for i in args:
+		c.append(i)
+	print("i have", kbdbg_output_graph.store.quads)
+	return c.n3()
+
+"""
+	Col
+	uri = BNode()
+	for i in args:
+			kbdbg(uri + " rdf:first " + i)
+			body_uri2 = body_uri + "X"
+			kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
+			body_uri = body_uri2
+		kbdbg(":"+body_uri + " rdf:rest rdf:nil")
+"""
+
 class Rule(Kbdbgable):
 	last_frame_id = 0
-	def __init_0(s, head, body=Graph()):
+	def __init__(s, head, body=Graph()):
 		super().__init__()
 		s.head = head
 		s.body = body
@@ -165,6 +205,18 @@ class Rule(Kbdbgable):
 		head_uri = ":"+s.kbdbg_name + "Head"
 		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 		kbdbg(":"+head_uri + ' kbdbg:has_text ' + str(s.head))
+		body_uri = s.kbdbg_name + "Body"
+		kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body ' + body_uri)
+		for i in s.body:
+			body_term = ":" + rdflib.BNode()
+			emit_term(i, body_term)
+			kbdbg(":"+body_uri + " rdf:first " + body_term)
+			body_uri2 = body_uri + "X"
+			kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
+			body_uri = body_uri2
+		kbdbg(":"+body_uri + " rdf:rest rdf:nil")
+
+
 
 
 	def __str__(s):
@@ -330,3 +382,17 @@ def query(input_rules, input_query):
 
 
 
+
+
+"""
+issues:
+
+the various uris generated, such as :Rule4Frame1_file%3A%2F%2Ftests%2Fsimple%2Fbob2%3FWHO ,
+could colide, in case of unlucky names. I should switch to bnodes everywhere.
+
+BNode() doesnt check for prior existence of that uri within the graph.
+
+
+"""
+
+#print(emit_args([URIRef("http://banana.cz"), URIRef("http://banana.cz")]), "http://banana.cz")

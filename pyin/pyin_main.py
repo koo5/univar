@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import rdflib
+from ordered_rdflib_store import OrderedStore
 
 from pyin import *
 
@@ -15,7 +16,6 @@ def query_from_files(kb, goal):
 
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 
-	from ordered_rdflib_store import OrderedStore
 	store = OrderedStore()
 	kb_graph = rdflib.Graph(store=store, identifier='@default')
 	kb_conjunctive = rdflib.ConjunctiveGraph(store=store)
@@ -30,7 +30,9 @@ def query_from_files(kb, goal):
 	#if False:
 
 		if p != implies:
-			rules.append(Rule(Triple((p), [(s), (o)]), Graph()))
+			_g = Graph()
+			_t = Triple((p), [(s), (o)])
+			rules.append(Rule(_t, _g))
 		else:
 			for head_triple in kb_conjunctive.triples((None, None, None), o):
 				#print()

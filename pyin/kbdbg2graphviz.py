@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import html as html_module
+import os
 import sys
 import logging
 import urllib.parse
@@ -11,15 +12,28 @@ from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
 from rdflib.collection import Collection
 from ordered_rdflib_store import OrderedStore
+import yattag
 
 kbdbg = Namespace('http://kbd.bg/#')
 
 gv_handler = logging.StreamHandler(sys.stdout)
 gv_handler.setLevel(logging.DEBUG)
 gv_handler.setFormatter(logging.Formatter('%(message)s.'))
+
+gv_output_file_name = 'kbdbg.gv'
+try:
+	os.unlink(gv_output_file_name)
+except FileNotFoundError:
+	pass
+gv_handler2 = logging.FileHandler(gv_output_file_name)
+gv_handler2.setLevel(logging.DEBUG)
+gv_handler2.setFormatter(logging.Formatter('%(message)s'))
+
 logger=logging.getLogger("kbdbg")
 logger.addHandler(gv_handler)
 gv=logger.info
+
+logger.addHandler(gv_handler2)
 
 logger=logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -59,8 +73,8 @@ def process_input(lines):
 	#	emit_rule(rule)
 
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
-	for frame in rrr:#g.subjects(RDF.type, kbdbg.frame):
-		gv(get_frame_gv(g, frame))
+	for i, frame in enumerate(rrr):#g.subjects(RDF.type, kbdbg.frame):
+		gv(get_frame_gv(i, g, frame))
 
 	for binding in g.subjects(RDF.type, kbdbg.binding):
 		if g.value(binding, kbdbg.was_unbound):
@@ -89,41 +103,44 @@ def process_input(lines):
 	gv("}")
 
 
-def get_frame_gv(g, frame):
-	return gv_escape(frame) + "[" + get_frame_html_label(g, frame) + "]"
-
+def get_frame_gv(i, g, frame):
+	return gv_escape(frame) + " [label=<" + get_frame_html_label(g, frame) + ">];"
+#gv_escape(frame) +
+#"frame" + str(i)
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
-		html = '<<html><table><tr><td>{'
-		if head:
-			html += emit_term(g, rule, True, 0, head)
-		html += '}'
-		body_items_list_name = g.value(rule, kbdbg.has_body)
-		#from IPython import embed;embed()
-		if body_items_list_name:
-			html += ' <= {'
-			body_items_collection = Collection(g, body_items_list_name)
-			term_idx = 0
-			for body_item in body_items_collection:
-				emit_term(g, rule, False, term_idx, body_item)
-				term_idx += 1
-			html += '}'
-		html += '</tr>'
-		html += "<tr></tr>"
-		html += "<tr>"
+		doc, tag, text = yattag.Doc().tagtext()
+		with tag("table"):
+			with tag("tr"):
+				with tag("td"):
+					text("{")
+				if head:
+					emit_term(tag, text, g, rule, True, 0, head)
+				with tag("td"):
+					text("} <= {")
+
+				body_items_list_name = g.value(rule, kbdbg.has_body)
+				#from IPython import embed;embed()
+				if body_items_list_name:
+					body_items_collection = Collection(g, body_items_list_name)
+					term_idx = 0
+					for body_item in body_items_collection:
+						emit_term(tag, text, g, rule, False, term_idx, body_item)
+						term_idx += 1
+				with tag("td"):
+					text('}')
 
 		#here i want to print a table of variables
 
-		html += "</tr>"
-		html += "</table></html>>"
-		return html
+		return doc.getvalue()
 
 
-def emit_term(g, rule_uri, is_in_head, term_idx, term):#port_idx,
+def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):#port_idx,
 	pred = g.value(term, kbdbg.has_pred)
-	html = html_module.escape(pred.n3()) + '(</td>'
+	with tag("td"):
+		text(pred.n3() + '(')
 	arg_idx = 0
 	for arg, is_last in tell_if_is_last_element(Collection(g, g.value(term, kbdbg.has_args))):
 		port_name = (
@@ -131,13 +148,15 @@ def emit_term(g, rule_uri, is_in_head, term_idx, term):#port_idx,
 				str(term_idx) + "arg" +
 				str(arg_idx)
 					)
-		html += '<td port="' + port_name + '">' + html_module.escape(arg.n3()) + '</td>'
+		with tag('td', port=port_name):
+			text(arg.n3())
 		arg_idx += 1
 		#port_idx += 1
 		if not is_last:
-			html += '<td>, </td>'
-	html += '<td>). '
-	return html
+			with tag("td"):
+				text(', ')
+	with tag("td"):
+		text('). ')
 
 def run():
 	input_file = open("kbdbg.n3")

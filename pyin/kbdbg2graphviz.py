@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import html as html_module
 import sys
 import logging
 import urllib.parse
@@ -9,6 +10,7 @@ from rdflib import Graph
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
 from rdflib.collection import Collection
+from ordered_rdflib_store import OrderedStore
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -29,7 +31,8 @@ def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999
 	return g.value(subject, predicate, object, default, any)
 
 def gv_escape(string):
-	return urllib.parse.quote_plus(string)
+	return '"%s"' % string.replace('"', '\\"')
+	#return urllib.parse.quote_plus(string)
 
 
 def tell_if_is_last_element(x):
@@ -39,7 +42,7 @@ def tell_if_is_last_element(x):
 
 
 def process_input(lines):
-	g = Graph()
+	g = Graph(OrderedStore())
 	i = "".join(lines)
 	#					print("i:", i)
 	g.parse(data=i, format='n3')
@@ -55,7 +58,8 @@ def process_input(lines):
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
 	#	emit_rule(rule)
 
-	for frame in g.subjects(RDF.type, kbdbg.frame):
+	rrr = list(g.subjects(RDF.type, kbdbg.frame))
+	for frame in rrr:#g.subjects(RDF.type, kbdbg.frame):
 		gv(get_frame_gv(g, frame))
 
 	for binding in g.subjects(RDF.type, kbdbg.binding):
@@ -86,18 +90,18 @@ def process_input(lines):
 
 
 def get_frame_gv(g, frame):
-	return gv_escape(frame) + "[" + get_rule_html_label(g, frame) + "]"
+	return gv_escape(frame) + "[" + get_frame_html_label(g, frame) + "]"
 
 
-def get_rule_html_label(g, frame):
+def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
-		body_items_list_name = g.value(rule, kbdbg.has_body)
-		#from IPython import embed;embed()
 		html = '<<html><table><tr><td>{'
 		if head:
 			html += emit_term(g, rule, True, 0, head)
 		html += '}'
+		body_items_list_name = g.value(rule, kbdbg.has_body)
+		#from IPython import embed;embed()
 		if body_items_list_name:
 			html += ' <= {'
 			body_items_collection = Collection(g, body_items_list_name)
@@ -119,15 +123,15 @@ def get_rule_html_label(g, frame):
 
 def emit_term(g, rule_uri, is_in_head, term_idx, term):#port_idx,
 	pred = g.value(term, kbdbg.has_pred)
-	html = pred + '(</td>'
+	html = html_module.escape(pred.n3()) + '(</td>'
 	arg_idx = 0
 	for arg, is_last in tell_if_is_last_element(Collection(g, g.value(term, kbdbg.has_args))):
 		port_name = (
-				('H' if is_in_head else 'B') +
-				str(term_idx) +
+				('head' if is_in_head else 'body') + "term" +
+				str(term_idx) + "arg" +
 				str(arg_idx)
 					)
-		html += '<td port="' + port_name + '">' + arg + '</td>'
+		html += '<td port="' + port_name + '">' + html_module.escape(arg.n3()) + '</td>'
 		arg_idx += 1
 		#port_idx += 1
 		if not is_last:

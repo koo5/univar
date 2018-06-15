@@ -76,8 +76,9 @@ def process_input(lines):
 	for i, frame in enumerate(rrr):#g.subjects(RDF.type, kbdbg.frame):
 		gv(get_frame_gv(i, g, frame))
 
-	for binding in g.subjects(RDF.type, kbdbg.binding):
-		if g.value(binding, kbdbg.was_unbound):
+	rrr = list(g.subject_objects(kbdbg.was_bound_to))
+	for s,o in rrr:
+		if g.value(s, kbdbg.was_unbound_from, o):
 			continue
 		source = object()
 		target = object()

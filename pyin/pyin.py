@@ -89,6 +89,9 @@ class AtomVar(Kbdbgable):
 		if debug_locals != None:
 			s.kbdbg_name = debug_locals.kbdbg_frame
 		s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
+#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
+#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_term " + ":"+)
+
 
 	def __short__str__(s):
 		return get_value(s).___short__str__()
@@ -120,12 +123,12 @@ class Var(AtomVar):
 	def _bind_to(x, y):
 		assert x.bound_to == None
 		x.bound_to = y
-		kbdbg(":"+x.kbdbg_name + " kbdbg:is_bound_to " + ":"+y.kbdbg_name)
+		kbdbg(":"+x.kbdbg_name + " kbdbg:was_bound_to " + ":"+y.kbdbg_name)
 		msg = "bound " + str(x) + " to " + str(y)
 		log(msg)
 		yield msg
 		x.bound_to = None
-		kbdbg(":"+x.kbdbg_name + " kbdbg:is_unbound_from " + ":"+y.kbdbg_name)
+		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
 
 	def bind_to(x, y):
 		for i in x._bind_to(y):
@@ -144,6 +147,7 @@ class Locals(dict):
 		s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
 			s[k] = v.__class__(v.debug_name, s)
+			#kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
 
 	def __str__(s):
 		r = ("locals " + str(s.debug_id) + " of " + str(s.debug_rule()))
@@ -259,7 +263,8 @@ class Rule(Kbdbgable):
 				if depth < len(args):
 					arg_index = depth
 					head_thing = get_value(locals[s.head.args[arg_index]])
-					generator = unify(get_value(args[arg_index]), head_thing)
+					args_thing = get_value(args[arg_index])
+					generator = unify(args_thing, head_thing)
 				else:
 					body_item_index = depth - len(args)
 					triple = s.body[body_item_index]
@@ -368,7 +373,8 @@ def pred(p, args):
 		asst(i)
 		assert get_value(i) == i
 	for rule in preds[p]:
-		if(rule.find_ep(args)): continue
+		if(rule.find_ep(args)):
+			continue
 		for i in rule.match(args):
 			yield i
 

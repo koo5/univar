@@ -91,8 +91,10 @@ class AtomVar(Kbdbgable):
 		s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
 #		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
 #		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_term " + ":"+)
-
-
+	def recursive_clone(s):
+		r = s.__class__(s.debug_name, s.debug_locals)
+		r.kbdbg_name = s.kbdbg_name
+		return r
 	def __short__str__(s):
 		return get_value(s).___short__str__()
 
@@ -106,6 +108,9 @@ class Atom(AtomVar):
 		return '("'+str(s.value)+'")'
 	def rdf_str(s):
 		return '"'+str(s.value)+'")'
+	def recursive_clone(s):
+		r = super().recursive_clone()
+		r.value = copy(value)
 
 class Var(AtomVar):
 	def __init__(s, debug_name, debug_locals=None):
@@ -119,24 +124,43 @@ class Var(AtomVar):
 			return ' = ' + (s.bound_to.__short__str__())
 		else:
 			return '(free)'
-
-	def _bind_to(x, y):
+	def recursive_clone(s):
+		r = super().recursive_clone()
+		r.bound_to = s.bound_to.recursive_clone()
+	def _bind_to(binding, x, y):
 		assert x.bound_to == None
+
 		x.bound_to = y
+
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_bound_to " + ":"+y.kbdbg_name)
 		msg = "bound " + str(x) + " to " + str(y)
 		log(msg)
+		kbdbg(":"+binding + " kbdbg:was_bound ()")
+
 		yield msg
+
 		x.bound_to = None
+		kbdbg(":"+binding + " kbdbg:was_unbound ()")
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
 
-	def bind_to(x, y):
-		for i in x._bind_to(y):
+	def bind_to(binding, x, y):
+		for i in x._bind_to(binding, y):
 			yield i
 		if type(y) == Var:
 			log("and reverse?")
-			for i in y._bind_to(x):
+			for i in y._bind_to(binding, x):
 				yield i
+
+class Arg:
+	def __init__(s, uri, thing, term_idx, arg_idx):
+		s.uri = uri
+		assert(isinstance(uri, rdflib.Identifier))
+		s.thing = thing
+		assert(isinstance(thing, AtomVar))
+		s.term_idx = term_idx
+		assert(isinstance(term_idx, int))
+		s.arg_idx = arg_idx
+		assert(isinstance(arg_idx, int))
 
 class Locals(dict):
 	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
@@ -237,7 +261,7 @@ class Rule(Kbdbgable):
 				locals[a] = x
 		return locals
 
-	def unify(s, args):
+	def rule_unify(s, args):
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
 		depth = 0
@@ -262,17 +286,19 @@ class Rule(Kbdbgable):
 
 				if depth < len(args):
 					arg_index = depth
-					head_thing = get_value(locals[s.head.args[arg_index]])
-					args_thing = get_value(args[arg_index])
-					generator = unify(args_thing, head_thing)
+					head_uriref = s.head.args[arg_index]]
+					head_thing = locals[head_uriref]
+					generator = unify(args[arg_index], Arg(head_uriref, head_thing, 0, arg_index))
+
 				else:
 					body_item_index = depth - len(args)
 					triple = s.body[body_item_index]
 					
 					bi_args = []
-					for i in triple.args:
-						a = get_value(locals[i])
-						bi_args.append(a)
+					for arg_idx, i in enumerate(triple.args):
+						thing = get_value(locals[uri])
+						bi_args.append(Arg(uri, thing, body_item_index, arg_idx))
+
 					generator = pred(triple.pred, bi_args)
 				generators.append(generator)
 				log("generators:%s", generators)
@@ -304,19 +330,25 @@ class Rule(Kbdbgable):
 		log ("..no match")
 
 	def match(s, args=[]):
-		s.ep_heads.append(args)#.copy())
-		for i in s.unify(args):
+		ep_item = []
+		for arg in args:
+			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.term_idx, arg.arg_idx))
+
+		s.ep_heads.append(ep_item)
+		for i in s.rule_unify(args):
 			s.ep_heads.pop()
 			yield i
-			s.ep_heads.append(args.copy())
+			s.ep_heads.append(ep_item)
 		s.ep_heads.pop()
 
-def ep_match(a, b):
-	assert len(a) == len(b)
-	for i, j in enumerate(a):
-		if type(j) != type(b[i]):
+def ep_match(args_a, args_b):
+	assert len(args_a) == len(args_b)
+	for i in len(args_a):
+		a = args_a[i].thing
+		b = args_b[i].thing
+		if type(a) != type(b):
 			return
-		if type(j) == str and b[i] != j:
+		if type(a) == Atom and b.value != a.value:
 			return
 	kbdbg("EP!")
 	return True
@@ -329,12 +361,15 @@ def asst(x):
 		assert type(x) in [Var, Atom]
 
 def unify(x, y):
+	assert(isinstance(x, Arg))
+	assert(isinstance(y, Arg))
 	asst((x, y))
+	get_value
 	log("unify " + str(x) + " with " + str(y))
 	if type(x) == Var:
-		return x.bind_to(y)
+		return x.bind_to(binding, y)
 	elif type(y) == Var:
-		return y.bind_to(x)
+		return y.bind_to(binding, x)
 	elif x.value == y.value:
 		msg = "equal consts:"+str(x)
 		log(msg)
@@ -369,9 +404,11 @@ def get_value(x):
 		return x
 
 def pred(p, args):
-	for i in args:
-		asst(i)
-		assert get_value(i) == i
+	for a in args:
+		assert(isinstance(a, Arg))
+		assert(isinstance(a.thing, AtomVar))
+		assert get_value(a.thing) == a.thing
+
 	for rule in preds[p]:
 		if(rule.find_ep(args)):
 			continue

@@ -25,13 +25,9 @@ def query_from_files(kb, goal):
 
 	for s,p,o in kb_graph.triples((None, None, None)):
 
-	#	print (s,p,o)
-	#exit()
-	#if False:
-
 		if p != implies:
 			_g = Graph()
-			_t = Triple((p), [(s), (o)])
+			_t = Triple(p, [s, o])
 			rules.append(Rule(_t, _g))
 		else:
 			for head_triple in kb_conjunctive.triples((None, None, None), o):

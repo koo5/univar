@@ -81,6 +81,19 @@ class Graph(list):
 	def __str__(s):
 		return "{" + printify(s, ". ") + "}"
 
+class Arg:
+	def __init__(s, uri, thing, term_idx, arg_idx, is_in_head):
+		s.uri = uri
+		assert(isinstance(uri, rdflib.term.Identifier))
+		s.thing = thing
+		assert(isinstance(thing, AtomVar))
+		s.term_idx = term_idx
+		assert(isinstance(term_idx, int))
+		s.arg_idx = arg_idx
+		assert(isinstance(arg_idx, int))
+		s.is_in_head = is_in_head
+		assert(isinstance(is_in_head, bool))
+
 class Kbdbgable():
 	last_instance_debug_id = 0
 	def __init__(s):
@@ -92,6 +105,8 @@ class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
 		super().__init__()
 		s.debug_name = debug_name
+		if type(debug_locals) == weakref:
+			debug_locals = debug_locals()
 		s.debug_locals = weakref(debug_locals) if debug_locals != None else None
 		if debug_locals != None:
 			s.kbdbg_name = debug_locals.kbdbg_frame
@@ -117,7 +132,8 @@ class Atom(AtomVar):
 		return '"'+str(s.value)+'")'
 	def recursive_clone(s):
 		r = super().recursive_clone()
-		r.value = copy(value)
+		r.value = s.value
+		return r
 
 class Var(AtomVar):
 	def __init__(s, debug_name, debug_locals=None):
@@ -134,6 +150,7 @@ class Var(AtomVar):
 	def recursive_clone(s):
 		r = super().recursive_clone()
 		r.bound_to = s.bound_to.recursive_clone()
+		return r
 	def bind_to(x, y, _x, _y):
 		for i in x._bind_to(y, _x, _y):
 			yield i
@@ -160,7 +177,17 @@ class Var(AtomVar):
 		kbdbg(uri + " kbdbg:was_unbound true;")
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
 
+def arg_text(x):
+	r = "[ kbdbg:frame " + x.thing.kbdbg_name + "; "
+	if x.is_in_head:
+		r += "kbdbg:is_in_head true; "
+	else:
+		r += "kbdbg:term_idx " + str(x.term_idx) + "; "
+	r += "kbdbg:arg_idx " + str(x.arg_idx) + "; "
+	return r + "]"
+
 def success(msg, _x, _y):
+	uri = bnode()
 	kbdbg(uri + " a kbdbg:binding; " +
 	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
 	yield msg
@@ -169,7 +196,8 @@ def success(msg, _x, _y):
 def fail(_x, _y):
 	uri = bnode()
 	kbdbg(uri + " a kbdbg:binding; " +
-	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+	      "has_source " +
+	      "; has_target " + arg_text(_y))
 	while False:
 		yield
 	kbdbg(uri + " kbdbg:failed true;")
@@ -178,7 +206,7 @@ def unify(_x, _y):
 	assert(isinstance(_x, Arg))
 	assert(isinstance(_y, Arg))
 	x = get_value(_x.thing)
-	x = get_value(_y.thing)
+	y = get_value(_y.thing)
 	log("unify " + str(x) + " with " + str(y))
 	if type(x) == Var:
 		return x.bind_to(y, _x, _y)
@@ -208,17 +236,6 @@ def is_var(x):
 		raise "this still happens?"
 		return True
 	return False
-
-class Arg:
-	def __init__(s, uri, thing, term_idx, arg_idx):
-		s.uri = uri
-		assert(isinstance(uri, rdflib.term.Identifier))
-		s.thing = thing
-		assert(isinstance(thing, AtomVar))
-		s.term_idx = term_idx
-		assert(isinstance(term_idx, int))
-		s.arg_idx = arg_idx
-		assert(isinstance(arg_idx, int))
 
 class Locals(dict):
 	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
@@ -335,7 +352,7 @@ class Rule(Kbdbgable):
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
-					generator = unify(args[arg_index], Arg(head_uriref, head_thing, 0, arg_index))
+					generator = unify(args[arg_index], Arg(head_uriref, head_thing, 0, arg_index, True))
 
 				else:
 					body_item_index = depth - len(args)
@@ -344,7 +361,7 @@ class Rule(Kbdbgable):
 					bi_args = []
 					for arg_idx, uri in enumerate(triple.args):
 						thing = get_value(locals[uri])
-						bi_args.append(Arg(uri, thing, body_item_index, arg_idx))
+						bi_args.append(Arg(uri, thing, body_item_index, arg_idx, False))
 
 					generator = pred(triple.pred, bi_args)
 				generators.append(generator)
@@ -379,7 +396,7 @@ class Rule(Kbdbgable):
 	def match(s, args=[]):
 		ep_item = []
 		for arg in args:
-			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.term_idx, arg.arg_idx))
+			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.term_idx, arg.arg_idx, arg.is_in_head))
 
 		s.ep_heads.append(ep_item)
 		for i in s.rule_unify(args):

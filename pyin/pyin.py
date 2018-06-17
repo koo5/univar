@@ -1,4 +1,3 @@
-
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
@@ -39,13 +38,21 @@ def init_logging():
 	return logger1.debug, logger2.info
 
 
+bnode_counter = 0
+def bnode():
+	global bnode_counter
+	bnode_counter += 1
+	return "_:bn" + str(bnode_counter)
+
+
 log, kbdbg = init_logging()
+
 
 kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
 kbdbg("@prefix : <file:///#> ")
 kbdbg("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
 
-print("#this should be first line of merged stdout+stderr, use PYTHONUNBUFFERED=1")
+print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
 
@@ -127,34 +134,85 @@ class Var(AtomVar):
 	def recursive_clone(s):
 		r = super().recursive_clone()
 		r.bound_to = s.bound_to.recursive_clone()
-	def _bind_to(binding, x, y):
-		assert x.bound_to == None
+	def bind_to(x, y, _x, _y):
+		for i in x._bind_to(y, _x, _y):
+			yield i
+		if type(y) == Var:
+			log("and reverse?")
+			for i in y._bind_to(x, _y, _x):
+				yield i
 
+	def _bind_to(x, y, _x, _y):
+		assert x.bound_to == None
 		x.bound_to = y
 
+		uri = bnode()
+		kbdbg(uri + " a kbdbg:binding; " +
+	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_bound_to " + ":"+y.kbdbg_name)
+
 		msg = "bound " + str(x) + " to " + str(y)
 		log(msg)
-		kbdbg(":"+binding + " kbdbg:was_bound ()")
 
 		yield msg
 
 		x.bound_to = None
-		kbdbg(":"+binding + " kbdbg:was_unbound ()")
+		kbdbg(uri + " kbdbg:was_unbound true;")
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
 
-	def bind_to(binding, x, y):
-		for i in x._bind_to(binding, y):
-			yield i
-		if type(y) == Var:
-			log("and reverse?")
-			for i in y._bind_to(binding, x):
-				yield i
+def success(msg, _x, _y):
+	kbdbg(uri + " a kbdbg:binding; " +
+	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+	yield msg
+	kbdbg(uri + " kbdbg:was_unbound true;")
+
+def fail(_x, _y):
+	uri = bnode()
+	kbdbg(uri + " a kbdbg:binding; " +
+	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+	while False:
+		yield
+	kbdbg(uri + " kbdbg:failed true;")
+
+def unify(_x, _y):
+	assert(isinstance(_x, Arg))
+	assert(isinstance(_y, Arg))
+	x = get_value(_x.thing)
+	x = get_value(_y.thing)
+	log("unify " + str(x) + " with " + str(y))
+	if type(x) == Var:
+		return x.bind_to(y, _x, _y)
+	elif type(y) == Var:
+		return y.bind_to(x, _x, _y)
+	elif x.value == y.value:
+		return success("same consts", _x, _y)
+	else:
+		return fail(_x, _y)
+
+def get_value(x):
+	asst(x)
+	if type(x) == Atom:
+		return x
+	v = x.bound_to
+	if v:
+		return get_value(v)
+	else:
+		return x
+
+def is_var(x):
+	#return x.startswith('?')
+	#from IPython import embed; embed()
+	if type(x) == rdflib.URIRef and str(x).startswith('?'):
+		return True
+	if type(x) == str and '?' in x:
+		raise "this still happens?"
+		return True
+	return False
 
 class Arg:
 	def __init__(s, uri, thing, term_idx, arg_idx):
 		s.uri = uri
-		assert(isinstance(uri, rdflib.Identifier))
+		assert(isinstance(uri, rdflib.term.Identifier))
 		s.thing = thing
 		assert(isinstance(thing, AtomVar))
 		s.term_idx = term_idx
@@ -207,17 +265,6 @@ def emit_args(args):
 		c.append(i)
 	print("i have", kbdbg_output_graph.store.quads)
 	return c.n3()
-
-"""
-	Col
-	uri = BNode()
-	for i in args:
-			kbdbg(uri + " rdf:first " + i)
-			body_uri2 = body_uri + "X"
-			kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
-			body_uri = body_uri2
-		kbdbg(":"+body_uri + " rdf:rest rdf:nil")
-"""
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
@@ -286,7 +333,7 @@ class Rule(Kbdbgable):
 
 				if depth < len(args):
 					arg_index = depth
-					head_uriref = s.head.args[arg_index]]
+					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, 0, arg_index))
 
@@ -295,7 +342,7 @@ class Rule(Kbdbgable):
 					triple = s.body[body_item_index]
 					
 					bi_args = []
-					for arg_idx, i in enumerate(triple.args):
+					for arg_idx, uri in enumerate(triple.args):
 						thing = get_value(locals[uri])
 						bi_args.append(Arg(uri, thing, body_item_index, arg_idx))
 
@@ -360,49 +407,6 @@ def asst(x):
 	else:
 		assert type(x) in [Var, Atom]
 
-def unify(x, y):
-	assert(isinstance(x, Arg))
-	assert(isinstance(y, Arg))
-	asst((x, y))
-	get_value
-	log("unify " + str(x) + " with " + str(y))
-	if type(x) == Var:
-		return x.bind_to(binding, y)
-	elif type(y) == Var:
-		return y.bind_to(binding, x)
-	elif x.value == y.value:
-		msg = "equal consts:"+str(x)
-		log(msg)
-		return success(msg)
-	else:
-		return fail()
-
-def fail():
-	while False:
-		yield
-
-def success(msg):
-	yield msg
-
-def is_var(x):
-	#return x.startswith('?')
-	#from IPython import embed; embed()
-	if type(x) == rdflib.URIRef and '?' in str(x):
-		return True
-	if type(x) == str and '?' in x:
-		return True
-	return False
-
-def get_value(x):
-	asst(x)
-	if type(x) == Atom:
-		return x
-	v = x.bound_to
-	if v:
-		return get_value(v)
-	else:
-		return x
-
 def pred(p, args):
 	for a in args:
 		assert(isinstance(a, Arg))
@@ -432,11 +436,7 @@ def query(input_rules, input_query):
 issues:
 
 the various uris generated, such as :Rule4Frame1_file%3A%2F%2Ftests%2Fsimple%2Fbob2%3FWHO ,
-could colide, in case of unlucky names. I should switch to bnodes everywhere.
-
-BNode() doesnt check for prior existence of that uri within the graph.
-
+could colide, in case of unlucky names. I should switch to bnode() everywhere.
 
 """
 
-#print(emit_args([URIRef("http://banana.cz"), URIRef("http://banana.cz")]), "http://banana.cz")

@@ -1,4 +1,6 @@
 from weakref import ref as weakref
+
+from pip._vendor.packaging.requirements import URI
 from rdflib import URIRef
 import rdflib
 import sys
@@ -149,7 +151,8 @@ class Var(AtomVar):
 			return '(free)'
 	def recursive_clone(s):
 		r = super().recursive_clone()
-		r.bound_to = s.bound_to.recursive_clone()
+		if s.bound_to:
+			r.bound_to = s.bound_to.recursive_clone()
 		return r
 	def bind_to(x, y, _x, _y):
 		for i in x._bind_to(y, _x, _y):
@@ -163,9 +166,8 @@ class Var(AtomVar):
 		assert x.bound_to == None
 		x.bound_to = y
 
-		uri = bnode()
-		kbdbg(uri + " a kbdbg:binding; " +
-	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+		uri = emit_binding(_x, _y)
+
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_bound_to " + ":"+y.kbdbg_name)
 
 		msg = "bound " + str(x) + " to " + str(y)
@@ -177,8 +179,25 @@ class Var(AtomVar):
 		kbdbg(uri + " kbdbg:was_unbound true;")
 		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
 
+def success(msg, _x, _y):
+	uri = emit_binding(_x, _y)
+	yield msg
+	kbdbg(uri + " kbdbg:was_unbound true;")
+
+def fail(_x, _y):
+	uri = emit_binding(_x, _y)
+	while False:
+		yield
+	kbdbg(uri + " kbdbg:failed true;")
+
+def emit_binding(_x, _y):
+	uri = bnode()
+	kbdbg(uri + " a kbdbg:binding; " +
+	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+	return uri
+
 def arg_text(x):
-	r = "[ kbdbg:frame " + x.thing.kbdbg_name + "; "
+	r = "[ kbdbg:frame " + x.thing.debug_locals().kbdbg_frame + "; "
 	if x.is_in_head:
 		r += "kbdbg:is_in_head true; "
 	else:
@@ -186,28 +205,14 @@ def arg_text(x):
 	r += "kbdbg:arg_idx " + str(x.arg_idx) + "; "
 	return r + "]"
 
-def success(msg, _x, _y):
-	uri = bnode()
-	kbdbg(uri + " a kbdbg:binding; " +
-	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
-	yield msg
-	kbdbg(uri + " kbdbg:was_unbound true;")
-
-def fail(_x, _y):
-	uri = bnode()
-	kbdbg(uri + " a kbdbg:binding; " +
-	      "has_source " +
-	      "; has_target " + arg_text(_y))
-	while False:
-		yield
-	kbdbg(uri + " kbdbg:failed true;")
-
 def unify(_x, _y):
 	assert(isinstance(_x, Arg))
 	assert(isinstance(_y, Arg))
 	x = get_value(_x.thing)
 	y = get_value(_y.thing)
 	log("unify " + str(x) + " with " + str(y))
+	if x == y:
+		return success("same vars", _x, _y)
 	if type(x) == Var:
 		return x.bind_to(y, _x, _y)
 	elif type(y) == Var:
@@ -230,7 +235,7 @@ def get_value(x):
 def is_var(x):
 	#return x.startswith('?')
 	#from IPython import embed; embed()
-	if type(x) == rdflib.URIRef and str(x).startswith('?'):
+	if type(x) == rdflib.URIRef and '?' in str(x): #str(x).startswith('?'):
 		return True
 	if type(x) == str and '?' in x:
 		raise "this still happens?"
@@ -277,7 +282,7 @@ for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
 	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)
 
 def emit_args(args):
-	c=rdflib.collection.Collection(kbdbg_output_graph, rdflib.BNode())
+	c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))
 	for i in args:
 		c.append(i)
 	print("i have", kbdbg_output_graph.store.quads)
@@ -302,7 +307,7 @@ class Rule(Kbdbgable):
 			body_uri = s.kbdbg_name + "Body"
 			kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body :' + body_uri)
 			for i in s.body:
-				body_term_uri = ":" + rdflib.BNode()
+				body_term_uri = ":" + bnode()
 				emit_term(i, body_term_uri)
 				kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
 				body_uri2 = body_uri + "X"

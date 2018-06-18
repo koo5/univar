@@ -18,28 +18,19 @@ kbdbg = Namespace('http://kbd.bg/#')
 
 gv_handler = logging.StreamHandler(sys.stdout)
 gv_handler.setLevel(logging.DEBUG)
-gv_handler.setFormatter(logging.Formatter('%(message)s.'))
-
-gv_output_file_name = 'kbdbg.gv'
-try:
-	os.unlink(gv_output_file_name)
-except FileNotFoundError:
-	pass
-gv_handler2 = logging.FileHandler(gv_output_file_name)
-gv_handler2.setLevel(logging.DEBUG)
-gv_handler2.setFormatter(logging.Formatter('%(message)s'))
+gv_handler.setFormatter(logging.Formatter('%(message)s'))
 
 logger=logging.getLogger("kbdbg")
 logger.addHandler(gv_handler)
-gv=logger.info
-
-logger.addHandler(gv_handler2)
 
 logger=logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.debug("hi")
 log=logger.debug
 
+def gv(text):
+	logging.getLogger("kbdbg").info(text)
+	gv_output_file.write(text + '\n')
 
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
 	return g.value(subject, predicate, object, default, any)
@@ -55,18 +46,7 @@ def tell_if_is_last_element(x):
 
 
 
-def process_input(lines):
-	g = Graph(OrderedStore())
-	i = "".join(lines)
-	#					print("i:", i)
-	g.parse(data=i, format='n3')
-
-	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		return
-
-	step = len(lines)
-
-	#					now query g and generate one graphviz image
+def generate_gv_image(g, step):
 	gv("digraph frame"+str(step) + "{")
 
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
@@ -76,38 +56,23 @@ def process_input(lines):
 	for i, frame in enumerate(rrr):#g.subjects(RDF.type, kbdbg.frame):
 		gv(get_frame_gv(i, g, frame))
 
-	rrr = list(g.subject_objects(kbdbg.was_bound_to))
-	for s,o in rrr:
-		if g.value(s, kbdbg.was_unbound_from, o):
+	for binding in g.subjects(RDF.type, kbdbg.binding):
+		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 			continue
-		source = object()
-		target = object()
-		source.thing = g.value(binding, kbdbg.has_source)
-		source.string = g.value(source.thing, kbdbg.has_string)
-		source.frame = g.value(source.thing, kbdbg.belongs_to_frame)
-		source.rule = g.value(source.frame, kbdbg.belongs_to_rule)
-		target.thing = g.value(binding, kbdbg.has_target)
-		target.string = g.value(target.thing, kbdbg.has_string)
-		target.frame = g.value(target.thing, kbdbg.belongs_to_frame)
-		target.rule = g.value(target.frame, kbdbg.belongs_to_rule)
-
-
-
-
-		#for source_port in g.values(source.rule, kbdbg.has_body_port):
-		#	for target_port in g.values(target.rule, kbdbg.has_head_port):
-		#			if target.string == g.value(target.port, kbdbg.belongs_to_thing_string)
-		#				gv(source.frame + ":" + source.port + " -> " + target.frame + ":" + target.port)
-
-
-
+		source_uri = g.value(binding, kbdbg.has_source)
+		target_uri = g.value(binding, kbdbg.has_target)
+		gv(gv_endpoint(g, source_uri) + "->" + gv_endpoint(g, target_uri))
 	gv("}")
 
+def gv_endpoint(g, uri):
+	x = g.value(uri, kbdbg.is_in_head, default=False)
+	is_in_head = (x == rdflib.Literal(True))
+	term_idx = g.value(uri, kbdbg.term_idx, default=0)
+	arg_idx  = g.value(uri, kbdbg.arg_idx)
+	return str(g.value(uri, kbdbg.has_frame)) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
-	return gv_escape(frame) + " [label=<" + get_frame_html_label(g, frame) + ">];"
-#gv_escape(frame) +
-#"frame" + str(i)
+	return gv_escape(frame) + " [label=<" + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
@@ -138,18 +103,21 @@ def get_frame_html_label(g, frame):
 		return doc.getvalue()
 
 
+def port_name(is_in_head, term_idx, arg_idx):
+	return (
+			('head' if is_in_head else 'body') + "term" +
+			str(term_idx) + "arg" +
+			str(arg_idx)
+			)
+
+
 def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):#port_idx,
 	pred = g.value(term, kbdbg.has_pred)
 	with tag("td"):
 		text(pred.n3() + '(')
 	arg_idx = 0
 	for arg, is_last in tell_if_is_last_element(Collection(g, g.value(term, kbdbg.has_args))):
-		port_name = (
-				('head' if is_in_head else 'body') + "term" +
-				str(term_idx) + "arg" +
-				str(arg_idx)
-					)
-		with tag('td', port=port_name):
+		with tag('td', port=port_name(is_in_head, term_idx, arg_idx)):
 			text(arg.n3())
 		arg_idx += 1
 		#port_idx += 1
@@ -159,17 +127,37 @@ def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):#port_idx,
 	with tag("td"):
 		text('). ')
 
+
+gv_output_file = None
+
 def run():
+	global gv_output_file
 	input_file = open("kbdbg.n3")
 	lines = []
+	frame = 0
 	while True:
 		l = input_file.readline()
 		if l == "":
-			process_input(lines)
 			break
 		lines.append(l)
 
+		g = Graph(OrderedStore())
+		i = "".join(lines)
+		g.parse(data=i, format='n3')
+		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
+			continue
+		step = len(lines)
 
+		gv_output_file_name = 'kbdbg' + str(frame).zfill(9) + '.gv'
+		try:
+			os.unlink(gv_output_file_name)
+		except FileNotFoundError:
+			pass
+		gv_output_file = open(gv_output_file_name, 'w')
+		generate_gv_image(g, step)
+		gv_output_file.close()
+		frame += 1
+		os.system("dot "+gv_output_file_name+" -Tpng > "+gv_output_file_name+".png")
 
 
 if __name__ == '__main__':

@@ -199,7 +199,7 @@ def emit_binding(_x, _y):
 	return uri
 
 def arg_text(x):
-	r = "[ kbdbg:frame :" + x.thing.debug_locals().kbdbg_frame + "; "
+	r = "[ kbdbg:has_frame " + x.thing.debug_locals().kbdbg_frame + "; "
 	if x.is_in_head:
 		r += "kbdbg:is_in_head true; "
 	else:
@@ -330,15 +330,6 @@ class Rule(Kbdbgable):
 		return locals
 
 	def rule_unify(s, args):
-		Rule.last_frame_id += 1
-		frame_id = Rule.last_frame_id
-		depth = 0
-		generators = []
-		max_depth = len(args) + len(s.body) - 1
-		kbdbg_name = s.kbdbg_name + "Frame"+str(frame_id)
-		locals = s.locals_template.new(kbdbg_name)
-
-		kbdbg(":"+kbdbg_name + " rdf:type kbdbg:frame")
 
 		def desc():
 			return ("\n#vvv\n#" + str(s) + "\n" +
@@ -346,7 +337,16 @@ class Rule(Kbdbgable):
 			"#locals:" + str(locals) + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+
 			        "\n#^^^")
-		kbdbg(":"+kbdbg_name + " kbdbg:is_for_rule :"+s.kbdbg_name)
+
+		Rule.last_frame_id += 1
+		frame_id = Rule.last_frame_id
+		depth = 0
+		generators = []
+		max_depth = len(args) + len(s.body) - 1
+		kbdbg_name = rdflib.Literal(s.kbdbg_name + "Frame"+str(frame_id)).n3()
+		locals = s.locals_template.new(kbdbg_name)
+
+		kbdbg(kbdbg_name + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
 		log ("entering " + desc())
 		while True:
 			if len(generators) <= depth:

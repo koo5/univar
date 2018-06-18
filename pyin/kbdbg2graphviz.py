@@ -72,19 +72,19 @@ def gv_endpoint(g, uri):
 	return str(g.value(uri, kbdbg.has_frame)) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
-	return gv_escape(frame) + " [label=<" + get_frame_html_label(g, frame) + ">]"
+	return gv_escape(frame) + " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
-		with tag("table"):
+		with tag("table", border=2):
 			with tag("tr"):
-				with tag("td"):
+				with tag("td", border=0):
 					text("{")
 				if head:
 					emit_term(tag, text, g, rule, True, 0, head)
-				with tag("td"):
+				with tag("td", border=0):
 					text("} <= {")
 
 				body_items_list_name = g.value(rule, kbdbg.has_body)
@@ -95,7 +95,7 @@ def get_frame_html_label(g, frame):
 					for body_item in body_items_collection:
 						emit_term(tag, text, g, rule, False, term_idx, body_item)
 						term_idx += 1
-				with tag("td"):
+				with tag("td", border=0):
 					text('}')
 
 		#here i want to print a table of variables
@@ -113,18 +113,18 @@ def port_name(is_in_head, term_idx, arg_idx):
 
 def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):#port_idx,
 	pred = g.value(term, kbdbg.has_pred)
-	with tag("td"):
+	with tag("td", border=0):
 		text(pred.n3() + '(')
 	arg_idx = 0
 	for arg, is_last in tell_if_is_last_element(Collection(g, g.value(term, kbdbg.has_args))):
-		with tag('td', port=port_name(is_in_head, term_idx, arg_idx)):
+		with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=0):
 			text(arg.n3())
 		arg_idx += 1
 		#port_idx += 1
 		if not is_last:
-			with tag("td"):
+			with tag("td", border=0):
 				text(', ')
-	with tag("td"):
+	with tag("td", border=0):
 		text('). ')
 
 
@@ -157,7 +157,8 @@ def run():
 		generate_gv_image(g, step)
 		gv_output_file.close()
 		frame += 1
-		os.system("dot "+gv_output_file_name+" -Tpng > "+gv_output_file_name+".png")
+		os.system("osage "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg")
+		os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")
 
 
 if __name__ == '__main__':

@@ -86,11 +86,13 @@ class Graph(list):
 		return "{" + printify(s, ". ") + "}"
 
 class Arg:
-	def __init__(s, uri, thing, term_idx, arg_idx, is_in_head):
+	def __init__(s, uri, thing, frame, term_idx, arg_idx, is_in_head):
 		s.uri = uri
 		assert(isinstance(uri, rdflib.term.Identifier))
 		s.thing = thing
 		assert(isinstance(thing, AtomVar))
+		s.frame = frame
+		assert(type(frame) == str)
 		s.term_idx = term_idx
 		assert(isinstance(term_idx, int))
 		s.arg_idx = arg_idx
@@ -170,7 +172,7 @@ class Var(AtomVar):
 
 		uri = emit_binding(_x, _y)
 
-		kbdbg(":"+x.kbdbg_name + " kbdbg:was_bound_to " + ":"+y.kbdbg_name)
+		#kbdbg(x.kbdbg_name + " kbdbg:was_bound_to " + y.kbdbg_name)
 
 		msg = "bound " + str(x) + " to " + str(y)
 		log(msg)
@@ -179,7 +181,7 @@ class Var(AtomVar):
 
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true;")
-		kbdbg(":"+x.kbdbg_name + " kbdbg:was_unbound_from " + ":"+y.kbdbg_name)
+		#kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
 
 def success(msg, _x, _y):
 	uri = emit_binding(_x, _y)
@@ -194,12 +196,14 @@ def fail(_x, _y):
 
 def emit_binding(_x, _y):
 	uri = bnode()
+	if uri == "_:bn16":
+		print("STTTTTTTTTTTT")
 	kbdbg(uri + " a kbdbg:binding; " +
 	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y))
 	return uri
 
 def arg_text(x):
-	r = "[ kbdbg:has_frame " + x.thing.debug_locals().kbdbg_frame + "; "
+	r = "[ kbdbg:has_frame " + x.frame + "; "
 	if x.is_in_head:
 		r += "kbdbg:is_in_head true; "
 	else:
@@ -218,7 +222,7 @@ def unify(_x, _y):
 	if type(x) == Var:
 		return x.bind_to(y, _x, _y)
 	elif type(y) == Var:
-		return y.bind_to(x, _x, _y)
+		return y.bind_to(x, _y, _x)
 	elif x.value == y.value:
 		return success("same consts", _x, _y)
 	else:
@@ -351,21 +355,21 @@ class Rule(Kbdbgable):
 		while True:
 			if len(generators) <= depth:
 				generator = None
-
 				if depth < len(args):
+
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
-					generator = unify(args[arg_index], Arg(head_uriref, head_thing, 0, arg_index, True))
+					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame, 0, arg_index, True))
 
 				else:
 					body_item_index = depth - len(args)
 					triple = s.body[body_item_index]
-					
+
 					bi_args = []
 					for arg_idx, uri in enumerate(triple.args):
-						thing = get_value(locals[uri])
-						bi_args.append(Arg(uri, thing, body_item_index, arg_idx, False))
+						thing = locals[uri]
+						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame, body_item_index, arg_idx, False))
 
 					generator = pred(triple.pred, bi_args)
 				generators.append(generator)
@@ -400,7 +404,7 @@ class Rule(Kbdbgable):
 	def match(s, args=[]):
 		ep_item = []
 		for arg in args:
-			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.term_idx, arg.arg_idx, arg.is_in_head))
+			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
 
 		s.ep_heads.append(ep_item)
 		for i in s.rule_unify(args):

@@ -16,6 +16,8 @@ from ordered_rdflib_store import OrderedStore
 # "#RESULT:" lines are for univar fronted/runner/tester ("tau")
 # the rest of the comment lines are random noise
 
+#for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
+#	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)
 
 def init_logging():
 	formatter = logging.Formatter('#%(message)s')
@@ -182,27 +184,27 @@ class Var(AtomVar):
 def success(msg, _x, _y):
 	uri = emit_binding(_x, _y)
 	yield msg
-	kbdbg(uri + " kbdbg:was_unbound true;")
+	kbdbg(uri + " kbdbg:was_unbound true")
 
 def fail(_x, _y):
 	uri = emit_binding(_x, _y)
 	while False:
 		yield
-	kbdbg(uri + " kbdbg:failed true;")
+	kbdbg(uri + " kbdbg:failed true")
 
 def emit_binding(_x, _y):
 	uri = bnode()
 	kbdbg(uri + " a kbdbg:binding; " +
-	      "has_source " + arg_text(_x) + "; has_target " + arg_text(_y))
+	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y))
 	return uri
 
 def arg_text(x):
-	r = "[ kbdbg:frame " + x.thing.debug_locals().kbdbg_frame + "; "
+	r = "[ kbdbg:frame :" + x.thing.debug_locals().kbdbg_frame + "; "
 	if x.is_in_head:
 		r += "kbdbg:is_in_head true; "
 	else:
 		r += "kbdbg:term_idx " + str(x.term_idx) + "; "
-	r += "kbdbg:arg_idx " + str(x.arg_idx) + "; "
+	r += "kbdbg:arg_idx " + str(x.arg_idx)
 	return r + "]"
 
 def unify(_x, _y):
@@ -277,9 +279,6 @@ def emit_term(t, uri):
 
 def pr(x):
 	print(x.__class__, x.context, x.triple)
-
-for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
-	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)
 
 def emit_args(args):
 	c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))

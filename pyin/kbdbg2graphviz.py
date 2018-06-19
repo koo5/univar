@@ -55,7 +55,7 @@ def generate_gv_image(g, step):
 	#	emit_rule(rule)
 
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
-	for i, frame in enumerate(rrr):#g.subjects(RDF.type, kbdbg.frame):
+	for i, frame in enumerate(rrr):
 		gv(get_frame_gv(i, g, frame))
 
 	for binding in g.subjects(RDF.type, kbdbg.binding):
@@ -80,7 +80,7 @@ def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
-		with tag("table", border=2, cellborder=2, cellpadding=0, cellspacing=0):
+		with tag("table", border=0, cellborder=2, cellpadding=0, cellspacing=0):
 			with tag("tr"):
 				with tag("td", border=xt):
 					text("{")

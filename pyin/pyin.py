@@ -415,7 +415,7 @@ class Rule(Kbdbgable):
 
 def ep_match(args_a, args_b):
 	assert len(args_a) == len(args_b)
-	for i in len(args_a):
+	for i in range(len(args_a)):
 		a = args_a[i].thing
 		b = args_b[i].thing
 		if type(a) != type(b):
@@ -451,6 +451,7 @@ def query(input_rules, input_query):
 	for r in input_rules:
 		preds[r.head.pred].append(r)
 	for nyan in Rule(None, input_query).match():
+		gv("kbdbg:query kbdbg:result
 		yield nyan
 
 

@@ -1,9 +1,0 @@
-<file://tests/simple/bob2Bob> <file://tests/simple/bob2#a> <file://tests/simple/bob2Person> .
-<file://tests/simple/bob2Bob> <file://tests/simple/bob2#self> <file://tests/simple/bob2Bob> .
-_:17796746043483756813 <http://www.w3.org/2000/10/swap/log#implies> _:11632454452366574377 .
-
-<file://tests/simple/bob2?x> <file://tests/simple/bob2#is> <file://tests/simple/bob2?x> _:11632454452366574377 .
-
-<file://tests/simple/bob2?x> <file://tests/simple/bob2#a> <file://tests/simple/bob2Person> _:17796746043483756813 .
-<file://tests/simple/bob2?x> <file://tests/simple/bob2#self> <file://tests/simple/bob2?x> _:17796746043483756813 .
-

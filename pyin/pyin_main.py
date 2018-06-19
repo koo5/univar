@@ -62,7 +62,7 @@ def query_from_files(kb, goal):
 		o = ' RESULT : '
 		for triple in goal:
 			o += substitute(triple.args[0], i).n3() + " " + substitute((triple.pred), i).n3() + " " + substitute(triple.args[1], i).n3() + "."
-			print(o)
+		print(o)
 		print (i.__short__str__())
 		print ()
 

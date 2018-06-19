@@ -61,9 +61,6 @@ def query_from_files(kb, goal):
 	for i in query(rules, goal):
 		o = ' RESULT : '
 		for triple in goal:
-			#from IPython import embed; embed()
-			#n1 = substitute(triple.args[0], i)
-			#from IPython import embed; embed()
 			o += substitute(triple.args[0], i).n3() + " " + substitute((triple.pred), i).n3() + " " + substitute(triple.args[1], i).n3() + "."
 			print(o)
 		print (i.__short__str__())
@@ -81,3 +78,6 @@ if __name__ == "__main__":
 		kbdbg2graphviz.run()
 		raise
 	"""
+
+
+#from IPython import embed; embed()

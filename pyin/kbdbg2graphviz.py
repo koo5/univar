@@ -28,6 +28,8 @@ logger.setLevel(logging.DEBUG)
 logger.debug("hi")
 log=logger.debug
 
+xt = 1#border_width
+
 def gv(text):
 	logging.getLogger("kbdbg").info(text)
 	gv_output_file.write(text + '\n')
@@ -78,13 +80,13 @@ def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
-		with tag("table", border=2):
+		with tag("table", border=2, cellborder=2, cellpadding=0, cellspacing=0):
 			with tag("tr"):
-				with tag("td", border=0):
+				with tag("td", border=xt):
 					text("{")
 				if head:
 					emit_term(tag, text, g, rule, True, 0, head)
-				with tag("td", border=0):
+				with tag("td", border=xt):
 					text("} <= {")
 
 				body_items_list_name = g.value(rule, kbdbg.has_body)
@@ -95,7 +97,7 @@ def get_frame_html_label(g, frame):
 					for body_item in body_items_collection:
 						emit_term(tag, text, g, rule, False, term_idx, body_item)
 						term_idx += 1
-				with tag("td", border=0):
+				with tag("td", border=xt):
 					text('}')
 
 		#here i want to print a table of variables
@@ -110,22 +112,45 @@ def port_name(is_in_head, term_idx, arg_idx):
 			str(arg_idx)
 			)
 
+shortenings = {}
+def shorten(term):
+	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst
+	s = str(term)
+	for i in '/:#?':
+		p = s.rfind(i)
+		if p != -1:
+			s = s[p:]
+	if s in shortenings and shortenings[s] != term:
+		return str(term)
+	shortenings[s] = term
+	return s
 
-def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):#port_idx,
+def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):
 	pred = g.value(term, kbdbg.has_pred)
-	with tag("td", border=0):
-		text(pred.n3() + '(')
-	arg_idx = 0
-	for arg, is_last in tell_if_is_last_element(Collection(g, g.value(term, kbdbg.has_args))):
-		with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=0):
-			text(arg.n3())
-		arg_idx += 1
-		#port_idx += 1
-		if not is_last:
-			with tag("td", border=0):
-				text(', ')
-	with tag("td", border=0):
-		text('). ')
+	args_collection = Collection(g, g.value(term, kbdbg.has_args))
+	if len(args_collection) == 2:
+		def arrrr(arg_idx):
+			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=xt):
+				text(shorten(args_collection[arg_idx]))
+		arrrr(0)
+		with tag("td", border=xt):
+			text(shorten(pred))
+		arrrr(1)
+		with tag("td", border=xt):
+			text('.')
+	else:
+		with tag("td", border=xt):
+			text(shorten(pred) + '( ')
+		arg_idx = 0
+		for arg, is_last in tell_if_is_last_element(args_collection):
+			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=xt):
+				text(shorten(arg))
+			arg_idx += 1
+			if not is_last:
+				with tag("td", border=xt):
+					text(', ')
+		with tag("td", border=xt):
+			text(').')
 
 
 gv_output_file = None
@@ -157,7 +182,7 @@ def run():
 		generate_gv_image(g, step)
 		gv_output_file.close()
 		frame += 1
-		os.system("osage "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg")
+		os.system("dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg")
 		os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")
 
 

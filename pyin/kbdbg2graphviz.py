@@ -29,6 +29,8 @@ logger.debug("hi")
 log=logger.debug
 
 xt = 1#border_width
+arrow_width = 1
+gv_output_file = None
 
 def gv(text):
 	logging.getLogger("kbdbg").info(text)
@@ -49,21 +51,39 @@ def tell_if_is_last_element(x):
 
 
 def generate_gv_image(g, step):
+	global arrow_width
+
 	gv("digraph frame"+str(step) + "{")
 
+	#print rules somewhere on the side?
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
 	#	emit_rule(rule)
 
+	current_result = None
+	for result_uri in g.subjects(RDF.type, kbdbg.result):
+		result_node = gv_escape(result_uri)
+		r = result_node + ' [label="'
+		r += g.value(result_uri, kbdbg.has_text)
+		r += '"]'
+		gv(r)
+		false = rdflib.Literal(False)
+		if g.value(result_uri, kbdbg.was_unbound, default = false) == false:
+			current_result = result_node
+			arrow_width = 2
+
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
 	for i, frame in enumerate(rrr):
-		gv(get_frame_gv(i, g, frame))
+		f, text = get_frame_gv(i, g, frame)
+		gv(f + text)
+		if i == 0 and current_result:
+			arrow(result_node, f)
 
 	for binding in g.subjects(RDF.type, kbdbg.binding):
 		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 			continue
 		source_uri = g.value(binding, kbdbg.has_source)
 		target_uri = g.value(binding, kbdbg.has_target)
-		gv(gv_endpoint(g, source_uri) + "->" + gv_endpoint(g, target_uri))
+		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))
 	gv("}")
 
 def gv_endpoint(g, uri):
@@ -74,7 +94,7 @@ def gv_endpoint(g, uri):
 	return str(g.value(uri, kbdbg.has_frame)) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
-	return gv_escape(frame) + " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"
+	return gv_escape(frame), " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
@@ -90,7 +110,7 @@ def get_frame_html_label(g, frame):
 					text("} <= {")
 
 				body_items_list_name = g.value(rule, kbdbg.has_body)
-				#from IPython import embed;embed()
+
 				if body_items_list_name:
 					body_items_collection = Collection(g, body_items_list_name)
 					term_idx = 0
@@ -100,7 +120,7 @@ def get_frame_html_label(g, frame):
 				with tag("td", border=xt):
 					text('}')
 
-		#here i want to print a table of variables
+		#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
 
 		return doc.getvalue()
 
@@ -153,7 +173,12 @@ def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):
 			text(').')
 
 
-gv_output_file = None
+def arrow(x,y):
+	r = x + '->' + y
+	if arrow_width != 1:
+		r += ' [penwidth = ' + str(arrow_width) + ', arrowhead = ' + str(arrow_width) + ']'
+	gv(r)
+
 
 def run():
 	global gv_output_file
@@ -188,3 +213,7 @@ def run():
 
 if __name__ == '__main__':
 	run()
+
+
+
+#from IPython import embed;embed()

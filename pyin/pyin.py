@@ -79,6 +79,8 @@ class Triple():
 		s.pred = pred
 		s.args = args
 	def __str__(s):
+		if len(s.args) == 2:
+			return s.args[0].n3() + " " + s.pred.n3() + " " + s.args[1].n3() + "."
 		return str(s.pred) + "(" + printify(s.args, ", ") + ")"
 
 class Graph(list):
@@ -275,11 +277,17 @@ class Locals(dict):
 		log("result: " + str(r))
 		return r
 
+def emit_terms(terms):
+	c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))
+	for i in terms:
+		c.append(rdflib.URIRef(emit_term(i, bnode())))
+	return c
 
 def emit_term(t, uri):
 	kbdbg(uri + " a kbdbg:term")
 	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
 	kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
+	return uri
 
 def pr(x):
 	print(x.__class__, x.context, x.triple)
@@ -288,7 +296,6 @@ def emit_args(args):
 	c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))
 	for i in args:
 		c.append(i)
-	print("i have", kbdbg_output_graph.store.quads)
 	return c.n3()
 
 class Rule(Kbdbgable):
@@ -444,16 +451,35 @@ def pred(p, args):
 		for i in rule.match(args):
 			yield i
 
-
 def query(input_rules, input_query):
 	global preds
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	for nyan in Rule(None, input_query).match():
-		gv("kbdbg:query kbdbg:result
-		yield nyan
+	for i, locals in enumerate(Rule(None, input_query).match()):
+		uri = ":result" + str(i)
+		terms = [substitute_term(term, locals) for term in input_query]
+		kbdbg(uri + " a kbdbg:result; rdf:value " + emit_terms(terms).n3())
+		kbdbg(uri + " rdf:was_unbound true")
+		yield terms
 
+def substitute_term(term, locals):
+	return Triple(term.pred, [substitute(x, locals) for x in term.args])
+
+def substitute(node, locals):
+	assert(isinstance(node, rdflib.term.Identifier))
+	if node in locals:
+		v = get_value(locals[node])
+		if type(v) == Var:
+			r = node
+		elif type(v) == Atom:
+			r = v.value
+		else:
+			assert False
+	else:
+		r = node
+	assert(isinstance(r, rdflib.term.Identifier))
+	return r
 
 
 

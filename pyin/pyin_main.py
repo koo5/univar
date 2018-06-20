@@ -47,23 +47,10 @@ def query_from_files(kb, goal):
 	for s,p,o in goal_rdflib_graph.triples((None, None, None)):
 		goal.append(Triple((p), [(s), (o)]))
 
-	def substitute(node, locals):
-		if node in locals:
-			v = get_value(locals[node])
-			if type(v) == Var:
-				return node
-			elif type(v) == Atom:
-				return v.value
-			else:
-				666
-		return node
-
-	for i in query(rules, goal):
-		o = ' RESULT : '
-		for triple in goal:
-			o += substitute(triple.args[0], i).n3() + " " + substitute((triple.pred), i).n3() + " " + substitute(triple.args[1], i).n3() + "."
-		print(o)
-		print (i.__short__str__())
+	for result in query(rules, goal):
+		print ()
+		for triple in result:
+			print(' RESULT : '+str(triple))
 		print ()
 
 

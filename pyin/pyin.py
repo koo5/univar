@@ -109,6 +109,12 @@ class Kbdbgable():
 		s.debug_id = s.__class__.last_instance_debug_id
 		s.kbdbg_name = s.__class__.__name__ + str(s.debug_id)
 
+class EpHead(Kbdbgable):
+	def __init__(s, items):
+		super().__init__()
+		s.kbdbg_name = ':' + s.kbdbg_name
+		s.items = items
+
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
 		super().__init__()
@@ -399,15 +405,6 @@ class Rule(Kbdbgable):
 					log ("rule done")
 					break#if it's tried all the possibilities for finishing a rule
 
-	def find_ep(s, args):
-		log ("ep check: %s vs..", args)
-		for former_args in s.ep_heads:
-			log(former_args)
-			if ep_match(args, former_args):
-				log("..hit")
-				return True
-		log ("..no match")
-
 	def match(s, args=[]):
 		ep_item = []
 		for arg in args:
@@ -419,6 +416,15 @@ class Rule(Kbdbgable):
 			yield i
 			s.ep_heads.append(ep_item)
 		s.ep_heads.pop()
+
+	def find_ep(s, args):
+		log ("ep check: %s vs..", args)
+		for head in s.ep_heads:
+			if ep_match(args, head.items):
+				kbdbg(bnode() + ' a kbdbg:ep_match;
+				log("..hit")
+				return True
+		log ("..no match")
 
 def ep_match(args_a, args_b):
 	assert len(args_a) == len(args_b)
@@ -460,7 +466,7 @@ def query(input_rules, input_query):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
 		kbdbg(uri + " a kbdbg:result; rdf:value " + emit_terms(terms).n3())
-		kbdbg(uri + " rdf:was_unbound true")
+		kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
 
 def substitute_term(term, locals):

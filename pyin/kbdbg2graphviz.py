@@ -28,8 +28,8 @@ logger.setLevel(logging.DEBUG)
 logger.debug("hi")
 log=logger.debug
 
-xt = 1#border_width
 arrow_width = 1
+border_width = 1
 gv_output_file = None
 
 def gv(text):
@@ -60,16 +60,23 @@ def generate_gv_image(g, step):
 	#	emit_rule(rule)
 
 	current_result = None
-	for result_uri in g.subjects(RDF.type, kbdbg.result):
+	for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
 		result_node = gv_escape(result_uri)
-		r = result_node + ' [label="'
-		r += g.value(result_uri, kbdbg.has_text)
-		r += '"]'
+		r = result_node + ' [label=<'
+		(doc, tag, text) = yattag.Doc().tagtext()
+		with tag("table"):
+			with tag('tr'):
+				with tag("td"):
+					text('RESULT'+str(i) +': ')
+				emit_terms(tag, text, g, g.value(result_uri, RDF.value))
+		r += doc.getvalue()+ '>]'
 		gv(r)
 		false = rdflib.Literal(False)
 		if g.value(result_uri, kbdbg.was_unbound, default = false) == false:
 			current_result = result_node
 			arrow_width = 2
+		else:
+			arrow_width = 1
 
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
 	for i, frame in enumerate(rrr):
@@ -102,27 +109,31 @@ def get_frame_html_label(g, frame):
 		doc, tag, text = yattag.Doc().tagtext()
 		with tag("table", border=0, cellborder=2, cellpadding=0, cellspacing=0):
 			with tag("tr"):
-				with tag("td", border=xt):
+				with tag("td", border=border_width):
 					text("{")
 				if head:
-					emit_term(tag, text, g, rule, True, 0, head)
-				with tag("td", border=xt):
+					emit_term(tag, text, g, True, 0, head)
+				with tag("td", border=border_width):
 					text("} <= {")
 
 				body_items_list_name = g.value(rule, kbdbg.has_body)
-
 				if body_items_list_name:
 					body_items_collection = Collection(g, body_items_list_name)
 					term_idx = 0
 					for body_item in body_items_collection:
-						emit_term(tag, text, g, rule, False, term_idx, body_item)
+						emit_term(tag, text, g, False, term_idx, body_item)
 						term_idx += 1
-				with tag("td", border=xt):
+				with tag("td", border=border_width):
 					text('}')
 
 		#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
 
 		return doc.getvalue()
+
+def emit_terms(tag, text, g, uri):
+	body_items_collection = Collection(g, uri)
+	for term_idx, body_item in enumerate(body_items_collection):
+		emit_term(tag, text, g, False, term_idx, body_item)
 
 
 def port_name(is_in_head, term_idx, arg_idx):
@@ -145,38 +156,38 @@ def shorten(term):
 	shortenings[s] = term
 	return s
 
-def emit_term(tag, text, g, rule_uri, is_in_head, term_idx, term):
+def emit_term(tag, text, g, is_in_head, term_idx, term):
 	pred = g.value(term, kbdbg.has_pred)
 	args_collection = Collection(g, g.value(term, kbdbg.has_args))
 	if len(args_collection) == 2:
 		def arrrr(arg_idx):
-			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=xt):
+			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
 				text(shorten(args_collection[arg_idx]))
 		arrrr(0)
-		with tag("td", border=xt):
+		with tag("td", border=border_width):
 			text(shorten(pred))
 		arrrr(1)
-		with tag("td", border=xt):
+		with tag("td", border=border_width):
 			text('.')
 	else:
-		with tag("td", border=xt):
+		with tag("td", border=border_width):
 			text(shorten(pred) + '( ')
 		arg_idx = 0
 		for arg, is_last in tell_if_is_last_element(args_collection):
-			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=xt):
+			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
 				text(shorten(arg))
 			arg_idx += 1
 			if not is_last:
-				with tag("td", border=xt):
+				with tag("td", border=border_width):
 					text(', ')
-		with tag("td", border=xt):
+		with tag("td", border=border_width):
 			text(').')
 
 
 def arrow(x,y):
 	r = x + '->' + y
 	if arrow_width != 1:
-		r += ' [penwidth = ' + str(arrow_width) + ', arrowhead = ' + str(arrow_width) + ']'
+		r += ' [penwidth = ' + str(arrow_width) + ']'# + ', arrowhead = ' + str(arrow_width)
 	gv(r)
 
 

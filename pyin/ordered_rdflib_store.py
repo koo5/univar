@@ -47,7 +47,7 @@ class OrderedStore(Store):
     def remove(self, xxx_todo_changeme1, context=None):
 	#todo: figure out why the Memory store doesnt check the context
         s1,p1,o1 = xxx_todo_changeme1
-        quads = self.quads # self.quads may be modified during the following iteration
+        quads = self.quads[:] # self.quads may be modified during the following iteration
         for quad in quads:
             if quad not in self.quads: continue
             spo2,c2,_q2 = quad
@@ -62,7 +62,7 @@ class OrderedStore(Store):
             if context == self:  # hmm...does this really ever happen?
                 context = None
         s1,p1,o1 = triplein
-        quads = self.quads # self.quads may be modified during the following iteration
+        quads = self.quads[:] # self.quads may be modified during the following iteration
         for spo2,c2,_q2 in quads:
             #print("trying", spo2,c2,_q2)
             s2,p2,o2 = spo2

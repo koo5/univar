@@ -42,6 +42,14 @@ def init_logging():
 	return logger1.debug, logger2.info
 
 
+global_step_counter = 0
+def step():
+	global global_step_counter
+	kbdbg("#step"+str(global_step_counter) + " a kbdbg:step")
+	global_step_counter += 1
+	if global_step_counter == 18:
+		print(55)
+
 bnode_counter = 0
 def bnode():
 	global bnode_counter
@@ -110,10 +118,10 @@ class Kbdbgable():
 		s.kbdbg_name = s.__class__.__name__ + str(s.debug_id)
 
 class EpHead(Kbdbgable):
-	def __init__(s, items):
+	def __init__(s):
 		super().__init__()
 		s.kbdbg_name = ':' + s.kbdbg_name
-		s.items = items
+		s.items = []
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
@@ -169,10 +177,10 @@ class Var(AtomVar):
 	def bind_to(x, y, _x, _y):
 		for i in x._bind_to(y, _x, _y):
 			yield i
-		if type(y) == Var:
-			log("and reverse?")
-			for i in y._bind_to(x, _y, _x):
-				yield i
+		#if type(y) == Var:
+		#	log("and reverse?")
+		#	for i in y._bind_to(x, _y, _x):
+		#		yield i
 
 	def _bind_to(x, y, _x, _y):
 		assert x.bound_to == None
@@ -189,25 +197,28 @@ class Var(AtomVar):
 
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true;")
+		step()
 		#kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
 
 def success(msg, _x, _y):
 	uri = emit_binding(_x, _y)
 	yield msg
 	kbdbg(uri + " kbdbg:was_unbound true")
+	step()
 
 def fail(_x, _y):
-	uri = emit_binding(_x, _y)
+	uri = emit_binding(_x, _y, True)
 	while False:
 		yield
 	kbdbg(uri + " kbdbg:failed true")
+	step()
 
-def emit_binding(_x, _y):
+def emit_binding(_x, _y, is_failed = False):
 	uri = bnode()
-	if uri == "_:bn16":
-		print("STTTTTTTTTTTT")
 	kbdbg(uri + " a kbdbg:binding; " +
-	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y))
+	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y) +
+	      (";kbdbg:is_failed true" if is_failed else ""))
+	step()
 	return uri
 
 def arg_text(x):
@@ -369,7 +380,6 @@ class Rule(Kbdbgable):
 			if len(generators) <= depth:
 				generator = None
 				if depth < len(args):
-
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
@@ -400,29 +410,28 @@ class Rule(Kbdbgable):
 			except StopIteration:
 				if (depth > 0):
 					log ("back")
+					generators.pop()
 					depth-=1
 				else:
 					log ("rule done")
 					break#if it's tried all the possibilities for finishing a rule
 
 	def match(s, args=[]):
-		ep_item = []
+		head = EpHead()
 		for arg in args:
-			ep_item.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
-
-		s.ep_heads.append(ep_item)
+			head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
+		s.ep_heads.append(head)
 		for i in s.rule_unify(args):
 			s.ep_heads.pop()
 			yield i
-			s.ep_heads.append(ep_item)
+			s.ep_heads.append(head)
 		s.ep_heads.pop()
 
 	def find_ep(s, args):
 		log ("ep check: %s vs..", args)
 		for head in s.ep_heads:
 			if ep_match(args, head.items):
-				kbdbg(bnode() + ' a kbdbg:ep_match;
-				log("..hit")
+				kbdbg(bnode() + ' a kbdbg:ep_match')
 				return True
 		log ("..no match")
 
@@ -462,6 +471,7 @@ def query(input_rules, input_query):
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
+	step()
 	for i, locals in enumerate(Rule(None, input_query).match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]

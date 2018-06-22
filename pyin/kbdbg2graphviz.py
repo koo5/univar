@@ -195,21 +195,26 @@ def run():
 	global gv_output_file
 	input_file = open("kbdbg.n3")
 	lines = []
-	frame = 0
+	os.system("rm kbdbg*gv")
+	os.system("rm aaakbdbg*png")
+	os.system("rm kbdbg*svg")
 	while True:
 		l = input_file.readline()
 		if l == "":
 			break
-		lines.append(l)
+		if l.startswith("#step"):
+			step = int(l[5:l.find(' ')])
+		else:
+			lines.append(l)
+			continue
 
 		g = Graph(OrderedStore())
 		i = "".join(lines)
 		g.parse(data=i, format='n3')
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
-		step = len(lines)
 
-		gv_output_file_name = 'kbdbg' + str(frame).zfill(9) + '.gv'
+		gv_output_file_name = 'kbdbg' + str(step).zfill(9) + '.gv'
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:
@@ -217,9 +222,9 @@ def run():
 		gv_output_file = open(gv_output_file_name, 'w')
 		generate_gv_image(g, step)
 		gv_output_file.close()
-		frame += 1
-		os.system("dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg")
-		os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")
+		import threading#dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg;
+		threading.Thread(target=lambda:
+			os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
 
 
 if __name__ == '__main__':

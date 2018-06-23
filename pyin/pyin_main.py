@@ -49,9 +49,10 @@ def query_from_files(kb, goal):
 
 	for result in query(rules, goal):
 		print ()
+		o = ' RESULT : '
 		for triple in result:
-			print(' RESULT : '+str(triple))
-		print ()
+			o += str(triple)
+		print (o)
 
 
 

@@ -130,8 +130,8 @@ class EpHead(Kbdbgable):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
-		super().__init__()
 		if dbg:
+			super().__init__()
 			s.debug_name = debug_name
 			if type(debug_locals) == weakref:
 				s.debug_locals = debug_locals
@@ -150,18 +150,20 @@ class AtomVar(Kbdbgable):
 		else:
 			assert type(s) == Var
 			r = Var(s.debug_name if dbg else None, s.debug_locals if dbg else None)
-		r.kbdbg_name = s.kbdbg_name
+		if dbg:
+			r.kbdbg_name = s.kbdbg_name
 		return r
 	def __short__str__(s):
 		return get_value(s).___short__str__()
 
 class Atom(AtomVar):
 	def __init__(s, value, debug_locals=None):
-		super().__init__(value, debug_locals)
+		if dbg:
+			super().__init__(value, debug_locals)
 		assert(isinstance(value, rdflib.term.Identifier))
 		s.value = value
 	def __str__(s):
-		return s.kbdbg_name + s.___short__str__()
+		return (s.kbdbg_name if dbg else '') + s.___short__str__()
 	def ___short__str__(s):
 		return '("'+str(s.value)+'")'
 	def rdf_str(s):
@@ -173,10 +175,11 @@ class Atom(AtomVar):
 
 class Var(AtomVar):
 	def __init__(s, debug_name=None, debug_locals=None):
-		super().__init__(debug_name, debug_locals)
+		if dbg:
+			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
 	def __str__(s):
-		return s.kbdbg_name + s.___short__str__()
+		return (s.kbdbg_name if dbg else '') + s.___short__str__()
 		# + " in " + str(s.debug_locals())
 	def ___short__str__(s):
 		if s.bound_to:
@@ -283,11 +286,12 @@ def is_var(x):
 
 class Locals(dict):
 	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
-		super().__init__()
-		s.debug_id = debug_id
-		s.debug_last_instance_id = 0
-		s.debug_rule = weakref(debug_rule)
-		s.kbdbg_frame = kbdbg_frame
+		if dbg:
+			super().__init__()
+			s.debug_id = debug_id
+			s.debug_last_instance_id = 0
+			s.debug_rule = weakref(debug_rule)
+			s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
 			if type(v) == Var:
 				s[k] = Var()
@@ -306,8 +310,9 @@ class Locals(dict):
 
 	def new(s, kbdbg_frame):
 		nolog or log("cloning " + str(s))
-		s.debug_last_instance_id += 1
-		r = Locals(s, s.debug_rule(), s.debug_last_instance_id, kbdbg_frame)
+		if dbg:
+			s.debug_last_instance_id += 1
+		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
 		nolog or log("result: " + str(r))
 		return r
 

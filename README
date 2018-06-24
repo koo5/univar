@@ -42,3 +42,4 @@ env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so ASAN_OPTIONS="sy
 
 ./run.sh   --lambdas 0   --external ./pyin_runner.sh  run tests/simple/1
 
+./run.sh   --lambdas 0   --external ./pyin_runner.sh  run tests/simple/*  2>&1 | tee x | grep test

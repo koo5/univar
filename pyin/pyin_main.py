@@ -12,6 +12,9 @@ import click
 @click.argument('kb', type=click.File('rb'))
 @click.argument('goal', type=click.File('rb'))
 def query_from_files(kb, goal):
+#	kb=  open('kb_for_external.nq', 'rb')
+#	goal=open('query_for_external.nq', 'rb')
+
 	kb_stream, goal_stream = kb, goal
 
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")

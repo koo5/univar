@@ -403,6 +403,8 @@ class Rule(Kbdbgable):
 
 		nokbdbg or kbdbg(kbdbg_name + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
 		nolog or log ("entering " + desc())
+
+
 		while True:
 			if len(generators) <= depth:
 				generator = None
@@ -432,6 +434,12 @@ class Rule(Kbdbgable):
 					depth+=1
 				else:
 					#print ("#NYAN")
+
+
+					"""generate blank nodes:
+					go through all variables"""
+
+
 					yield locals#this is when it finishes a rule
 					nolog or log ("re-entering " + desc() + " for more results")
 			except StopIteration:
@@ -442,6 +450,29 @@ class Rule(Kbdbgable):
 				else:
 					nolog or log ("rule done")
 					break#if it's tried all the possibilities for finishing a rule
+
+	def get_triples_stringification(s, triples):
+		emit_terms(triples).n3()
+
+	def generate_blank_nodes(s):
+		for i in s.get_existentials():
+			uid = "_:b" + "".join([str(ord(x)).rjust(8) for x in stringification])
+
+	def get_existentials(s):
+		vars = []
+		for i in s.head.args:
+			if is_var(i):
+				vars.append(i)
+		for i in s.body:
+			for j in i.args:
+				if is_var(j):
+					vars.remove(j)
+
+	def get_triples_that_existential_figures_in(s, e):
+		for i in s.haed.`
+
+
+
 
 	def match(s, args=[]):
 		#ttt = time.clock()
@@ -541,3 +572,6 @@ could colide, in case of unlucky names. I should switch to bnode() everywhere.
 
 """
 
+"""
+def iteritems(x):
+	"""

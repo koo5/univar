@@ -26,19 +26,29 @@ def query_from_files(kb, goal):
 	#exit()
 	rules = []
 
-	for s,p,o in kb_graph.triples((None, None, None)):
+	"""
+	--------
+	kb:
+	?x y ?z. 
+	query:
+	...
+	--------
+	--------
+	?x y ?z. 
+	?z w a.
+	--------
+	
+	
+	"""
 
-		if p != implies:
-			_g = Graph()
-			_t = Triple(p, [s, o])
-			rules.append(Rule(_t, _g))
-		else:
-			for head_triple in kb_conjunctive.triples((None, None, None), o):
-				#print()
-				#print(head_triple, "<=")
+	for s,p,o in kb_graph.triples((None, None, None)):
+		_t = Triple(p, [s, o])
+		rules.append(Rule(_t, Graph()))
+		if p == implies:
+			head_triples = kb_conjunctive.triples((None, None, None), o)
+			for head_triple in head_triples:
 				body = Graph()
 				for body_triple in kb_conjunctive.triples((None, None, None), s):
-					#print(body_triple)
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
 				rules.append(Rule(Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import click
 import rdflib
 from ordered_rdflib_store import OrderedStore
-
-from pyin import *
-
-import click
+import sandal
 
 @click.command()
 @click.argument('kb', type=click.File('rb'))

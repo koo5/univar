@@ -1,0 +1,5 @@
+doesn't this question go away if we just always eval cyclic subgoals in a body first?
+22:45
+it contradicts my "be as intuitive as possible" thing, but... all well? heh
+22:45
+in any case we still need the answer wrt how datalog would cut on this, imo

@@ -9,9 +9,9 @@ import urllib.parse
 from collections import defaultdict
 from ordered_rdflib_store import OrderedStore
 
-dbg = 666
-nolog = 666
-nokbdbg = 666
+dbg = True
+nolog = False
+nokbdbg = False
 
 # #OUTPUT:
 # into kbdbg.nt, we should output a valid n3 file with kbdbg2 schema (which is to be defined). 
@@ -57,7 +57,7 @@ bnode_counter = 0
 def bnode():
 	global bnode_counter
 	bnode_counter += 1
-	return "_:bn" + str(bnode_counter)
+	return  '_:bn' + str(bnode_counter)
 
 
 log, kbdbg = init_logging()
@@ -137,8 +137,8 @@ class AtomVar(Kbdbgable):
 				s.debug_locals = None
 			else:
 				s.debug_locals = weakref(debug_locals)
-			if debug_locals != None:
-				s.kbdbg_name = debug_locals.kbdbg_frame
+			if s.debug_locals != None:
+				s.kbdbg_name = s.debug_locals().kbdbg_frame
 			assert(debug_name)
 			s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
 	#		nokbdbg or kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
@@ -293,9 +293,9 @@ class Locals(dict):
 			s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
 			if type(v) == Var:
-				s[k] = Var(v.debug_name + "_clone")
+				s[k] = Var(v.debug_name + "_clone", s)
 			else:
-				s[k] = Atom(v.value)
+				s[k] = Atom(v.value, s)
 			#nokbdbg or kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
 
 	def __str__(s):
@@ -328,9 +328,9 @@ def new_bnode(locals, idx):
 		r[k] = get_value(v).recursive_clone()#not really recursive
 
 def emit_terms(terms):
-	c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))
+	c=[]
 	for i in terms:
-		c.append(rdflib.URIRef(emit_term(i, bnode())))
+		c.append(emit_term(i, bnode()))
 	return c
 
 def emit_term(t, uri):
@@ -552,7 +552,7 @@ def query(input_rules, input_query):
 	for i, locals in enumerate(Rule([], None, input_query).match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
-		nokbdbg or kbdbg(uri + " a kbdbg:result; rdf:value " + emit_terms(terms).n3())
+		nokbdbg or kbdbg(uri + " a kbdbg:result; rdf:value (" + " ".join(emit_terms(terms)) + ')')
 		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
 

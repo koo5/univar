@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-Semantic Autonomic Natural Deduction ALgorith
+Semantic AutoNomic Deduction ALgorith
 """
 
 import click
 import rdflib
 from ordered_rdflib_store import OrderedStore
 
-eden = 666
+from bg import *
 
 @click.command()
 @click.argument('kb', type=click.File('rb'))
 @click.argument('goal', type=click.File('rb'))
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
-def query_from_files(kb, goal, nokbdbg, nolog):
+def init_from_files(kb, goal, nokbdbg, nolog):
 	global eden
 	kb_stream, goal_stream = kb, goal
 
@@ -29,41 +29,23 @@ $
 
 	kb_input_graph.parse(kb_stream, format='nquads')
 
-	eden = rdflib.Graph(store=store, identifier='eden')
-	bg.eden = eden
-	bg = Background()
+	#eden = rdflib.Graph(store=store, identifier='eden')
+	bg = Background(store)
 
-	for s,p,o in kb_input_graph.triples((None, None, None)):
-		tr = bg.add_triple()
-		ru = bg.add_rule(tr, None)
+	bg.kb = rdflib.collection.Collection(bg.eden, ed.kb)
 
+	#first we add a fact for every triple. lets try treating them all as one rule with a big head
+	bg.kb.add(bg.add_rule([(s,p,o) in kb_input_graph.triples((None, None, None))], None))
 
-
-		rules.append(Rule(kb_input_graph, _t, Graph()))
+		for s,p,o in kb_input_graph.triples((None, None, None))
 		if p == implies:
 			head_triples = kb_conjunctive.triples((None, None, None), o)
-			for head_triple in head_triples:
-				body = Graph()
-				for body_triple in kb_conjunctive.triples((None, None, None), s):
-					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
-				rules.append(Rule(head_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
+			body_triples = kb_conjunctive.triples((None, None, None), s)
+			bg.kb.add(bg.add_rule(head_triples, body_triples))
 
 	goal_rdflib_graph = rdflib.Graph(store=OrderedStore())
-
 	goal_rdflib_graph.parse(goal_stream, format='nquads')
-
-	goal = Graph()
-	for s,p,o in goal_rdflib_graph.triples((None, None, None)):
-		goal.append(Triple((p), [(s), (o)]))
-
-	for result in query(rules, goal):
-		print ()
-		o = ' RESULT : '
-		for triple in result:
-			o += str(triple)
-		print (o)
-
-
+	bg.goal = bg.add_rule(None, [(s,p,o) in goal_rdflib_graph.triples((None, None, None))])
 
 
 
@@ -459,7 +441,8 @@ class Rule(Kbdbgable):
 				locals[a] = x
 		return locals
 
-	def rule_unify(s, args):
+
+def match_rule(rule, args):
 
 		def desc():
 			return ("\n#vvv\n#" + str(s) + "\n" +
@@ -605,19 +588,29 @@ def pred(p, args):
 		for i in rule.match(args):
 			yield i
 
+
+
 def query(input_rules, input_query):
 	global preds, dbg
 	dbg = not nolog or not nokbdbg
-	preds = defaultdict(list)
-	for r in input_rules:
-		preds[r.head.pred].append(r)
 	step()
-	for i, locals in enumerate(Rule([], None, input_query).match()):
+
+	match_rule(kb.goal, None)
+
+
+	#for i, locals in enumerate(Rule([], None, input_query).match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
 		nokbdbg or kbdbg(uri + " a kbdbg:result; rdf:value " + emit_terms(terms).n3())
 		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
-		yield terms
+		print ()
+		o = ' RESULT : '
+		for triple in result:
+			o += str(triple)
+		print (o)
+
+
+#c=rdflib.collection.Collection(bg.eden, URIRef(bg.kb))
 
 def substitute_term(term, locals):
 	return Triple(term.pred, [substitute(x, locals) for x in term.args])

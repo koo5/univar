@@ -128,6 +128,7 @@ class EpHead(Kbdbgable):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
+		s.has_locals = lambda : None
 		if dbg:
 			super().__init__()
 			s.debug_name = debug_name
@@ -478,7 +479,7 @@ class Rule(Kbdbgable):
 						                  0, 0, 'bnode'))
 					bnode_contents[e].is_a_bnode_from_rule = s.original_head
 
-					nokbdbg or kbdbg(bnode_contents.kbdbg_frame + " rdf:type " + URIRef("bnode").n3())
+					nokbdbg or kbdbg(bnode_contents.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode").n3())
 
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
@@ -492,7 +493,7 @@ class Rule(Kbdbgable):
 					#print ("#NYAN")
 
 					for e in existentials:
-						bnodes_locals = locals[e].has_locals()
+						bnodes_locals = get_value(locals[e]).has_locals()
 						for k,v in locals.items():
 							if k not in existentials:
 								vv = get_value(v)
@@ -500,7 +501,7 @@ class Rule(Kbdbgable):
 								uri = bnode()
 								nokbdbg or kbdbg(bnode_contents.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
 								nokbdbg or kbdbg(uri + " kbdbg:has_name " + k.n3())
-								nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(l.__short__str__()))
+								nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bnodes_locals[k].__short__str__()))
 
 					yield locals#this is when it finishes a rule
 					nolog or log ("re-entering " + desc() + " for more results")

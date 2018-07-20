@@ -111,7 +111,7 @@ class Arg:
 		s.arg_idx = arg_idx
 		assert(isinstance(arg_idx, int))
 		s.is_in_head = is_in_head
-		assert(isinstance(is_in_head, bool))
+		assert(isinstance(is_in_head, (bool, str)))
 
 class Kbdbgable():
 	last_instance_debug_id = 0
@@ -247,11 +247,14 @@ def emit_binding(_x, _y, is_failed = False):
 
 def arg_text(x):
 	r = "[ kbdbg:has_frame " + x.frame.n3() + "; "
-	if x.is_in_head:
-		r += "kbdbg:is_in_head true; "
+	if type(x.is_in_head) == bool:
+		if x.is_in_head:
+			r += "kbdbg:is_in_head true; "
+		else:
+			r += "kbdbg:term_idx " + str(x.term_idx) + "; "
+		r += "kbdbg:arg_idx " + str(x.arg_idx)
 	else:
 		r += "kbdbg:term_idx " + str(x.term_idx) + "; "
-	r += "kbdbg:arg_idx " + str(x.arg_idx)
 	return r + "]"
 
 def unify(_x, _y):
@@ -331,7 +334,6 @@ class Locals(dict):
 		return r
 
 	def new_bnode(s, idx):
-		xxxxx = s.kbdbg_frame + ("_bnode" + str(idx))
 		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx)
 		for k,v in s.items():
 			r[k] = get_value(v).recursive_clone()#not really recursive
@@ -417,9 +419,15 @@ class Rule(Kbdbgable):
 
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
+		existentials = []
+		for i in s.get_existentials():
+			if i in existentials:
+				continue
+			existentials.append(i)
+
 		depth = 0
 		generators = []
-		max_depth = len(args) + len(s.body) - 1
+		max_depth = len(args) + len(s.body) + len(existentials)- 1
 		kbdbg_name = rdflib.URIRef(s.kbdbg_name + "Frame"+str(frame_id),base=URIRef('http://kbd.bg/#'))
 		locals = s.locals_template.new(kbdbg_name)
 
@@ -427,16 +435,19 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 
+
 		while True:
 			if len(generators) <= depth:
 				generator = None
+
 				if depth < len(args):
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
+					head_thing.arg_index = arg_index
 
-				else:
+				elif depth < len(args) + len(s.body):
 					body_item_index = depth - len(args)
 					triple = s.body[body_item_index]
 
@@ -446,6 +457,29 @@ class Rule(Kbdbgable):
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
 
 					generator = pred(triple.pred, bi_args)
+				else:
+					"""generate blank nodes:
+					go through all variables"""
+					ex_idx = depth - len(args) - len(s.body)
+					e = existentials[ex_idx]
+
+					bnode_contents = Locals({}, s)
+					bnode_contents.kbdbg_frame = URIRef(s.kbdbg_name + ("_bnode" + str(ex_idx)))
+					bnode_contents[e] = Atom(rdflib.URIRef(bnode()))
+					bnode_contents[e].has_locals = weakref(bnode_contents)
+					generator = unify(Arg(
+										e, locals[e],
+										locals.kbdbg_frame if dbg else None,
+										0, locals[e].arg_index, 'bnode'),
+					                  Arg(
+						                  e,
+						                  bnode_contents[e],
+						                  bnode_contents.kbdbg_frame if dbg else None,
+						                  0, 0, 'bnode'))
+					bnode_contents[e].is_a_bnode_from_rule = s.original_head
+
+					nokbdbg or kbdbg(bnode_contents.kbdbg_frame + " rdf:type " + URIRef("bnode").n3())
+
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -457,28 +491,16 @@ class Rule(Kbdbgable):
 				else:
 					#print ("#NYAN")
 
-
-
-
-					"""generate blank nodes:
-					go through all variables"""
-					for j,i in enumerate(set(s.get_existentials())):
-						#v = locals[i]
-
-						bnode_for_i = locals.new_bnode(j)
-						bnode_for_i.is_a_bnode_from_rule = s.original_head
-						nokbdbg or kbdbg(bnode_for_i.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode").n3())
-
-						for k,l in bnode_for_i.items():
-							uri = bnode()
-							nokbdbg or kbdbg(bnode_for_i.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
-							nokbdbg or kbdbg(uri + " kbdbg:has_name " + k.n3())
-							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(l.__short__str__()))
-
-
-
-
-
+					for e in existentials:
+						bnodes_locals = locals[e].has_locals()
+						for k,v in locals.items():
+							if k not in existentials:
+								vv = get_value(v)
+								bnodes_locals[k] = vv.recursive_clone()
+								uri = bnode()
+								nokbdbg or kbdbg(bnode_contents.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
+								nokbdbg or kbdbg(uri + " kbdbg:has_name " + k.n3())
+								nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(l.__short__str__()))
 
 					yield locals#this is when it finishes a rule
 					nolog or log ("re-entering " + desc() + " for more results")

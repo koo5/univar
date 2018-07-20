@@ -105,7 +105,7 @@ class Arg:
 		s.thing = thing
 		assert(isinstance(thing, AtomVar))
 		s.frame = frame
-		assert(not dbg or (type(frame) == str))
+		assert(not dbg or (type(frame) == str) or (type(frame) == URIRef))
 		s.term_idx = term_idx
 		assert(isinstance(term_idx, int))
 		s.arg_idx = arg_idx
@@ -162,7 +162,11 @@ class Atom(AtomVar):
 		assert(isinstance(value, rdflib.term.Identifier))
 		s.value = value
 	def __str__(s):
-		return (s.kbdbg_name if dbg else '') + s.___short__str__()
+		if type(s.kbdbg_name) == URIRef:
+			xxx = s.kbdbg_name.n3()
+		else:
+			xxx= s.kbdbg_name
+		return (xxx if dbg else '') + s.___short__str__()
 	def ___short__str__(s):
 		return '("'+str(s.value)+'")'
 	def rdf_str(s):
@@ -178,7 +182,11 @@ class Var(AtomVar):
 			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
 	def __str__(s):
-		return (s.kbdbg_name if dbg else '') + s.___short__str__()
+		if type(s.kbdbg_name) == URIRef:
+			xxx = s.kbdbg_name.n3()
+		else:
+			xxx= s.kbdbg_name
+		return (xxx if dbg else '') + s.___short__str__()
 		# + " in " + str(s.debug_locals())
 	def ___short__str__(s):
 		if s.bound_to:
@@ -238,7 +246,7 @@ def emit_binding(_x, _y, is_failed = False):
 	return uri
 
 def arg_text(x):
-	r = "[ kbdbg:has_frame " + x.frame + "; "
+	r = "[ kbdbg:has_frame " + x.frame.n3() + "; "
 	if x.is_in_head:
 		r += "kbdbg:is_in_head true; "
 	else:
@@ -301,7 +309,7 @@ class Locals(dict):
 	def __str__(s):
 		r = ("locals " + str(s.debug_id) + " of " + str(s.debug_rule()))
 		if len(s):
-			r += ":\n#" + printify([str(k) + ": " + str(v) for k, v in s.items()], ", ")
+			r += ":\n#" + printify([k.n3() + ": " + str(v) for k, v in s.items()], ", ")
 		return r
 
 	def emit(s):
@@ -322,10 +330,12 @@ class Locals(dict):
 		nolog or log("result: " + str(r))
 		return r
 
-def new_bnode(locals, idx):
-	r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, "bnode" + str(idx) + "_" + locals.kbdbg_name)
-	for k,v in s.iteritems():
-		r[k] = get_value(v).recursive_clone()#not really recursive
+	def new_bnode(s, idx):
+		xxxxx = s.kbdbg_frame + ("_bnode" + str(idx))
+		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx)
+		for k,v in s.items():
+			r[k] = get_value(v).recursive_clone()#not really recursive
+		return r
 
 def emit_terms(terms):
 	c=[]
@@ -410,10 +420,10 @@ class Rule(Kbdbgable):
 		depth = 0
 		generators = []
 		max_depth = len(args) + len(s.body) - 1
-		kbdbg_name = rdflib.Literal(s.kbdbg_name + "Frame"+str(frame_id)).n3()
+		kbdbg_name = rdflib.URIRef(s.kbdbg_name + "Frame"+str(frame_id),base=URIRef('http://kbd.bg/#'))
 		locals = s.locals_template.new(kbdbg_name)
 
-		nokbdbg or kbdbg(kbdbg_name + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
+		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
 		nolog or log ("entering " + desc())
 
 
@@ -452,11 +462,19 @@ class Rule(Kbdbgable):
 
 					"""generate blank nodes:
 					go through all variables"""
-					for j,i in enumerate(s.get_existentials()):
-						v = locals[i]
-						v.is_a_bnode_from_rule = s.original_head
-						v.bnode_locals = new_bnode(locals)
-						nokbdbg or kbdbg(i.kbdbg_name + " kbdbg:has_existential_locals " + v.bnode_locals)
+					for j,i in enumerate(set(s.get_existentials())):
+						#v = locals[i]
+
+						bnode_for_i = locals.new_bnode(j)
+						bnode_for_i.is_a_bnode_from_rule = s.original_head
+						nokbdbg or kbdbg(bnode_for_i.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode").n3())
+
+						for k,l in bnode_for_i.items():
+							uri = bnode()
+							nokbdbg or kbdbg(bnode_for_i.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
+							nokbdbg or kbdbg(uri + " kbdbg:has_name " + k.n3())
+							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(l.__short__str__()))
+
 
 
 
@@ -484,6 +502,7 @@ class Rule(Kbdbgable):
 					if is_var(j):
 						if j in vars:
 							vars.remove(j)
+		print ("VARS", vars)
 		return vars
 
 	def match(s, args=[]):

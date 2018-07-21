@@ -46,9 +46,11 @@ def query_from_files(kb, goal, nokbdbg, nolog):
 	
 	"""
 
-	for s,p,o in kb_graph.triples((None, None, None)):
+	kb_graph_triples = kb_graph.triples((None, None, None))
+	facts = [Triple(x[1],[x[0],[2]]) for x in kb_graph_triples]
+	for s,p,o in kb_graph_triples:
 		_t = Triple(p, [s, o])
-		rules.append(Rule(kb_graph, _t, Graph()))
+		rules.append(Rule(facts, _t, Graph()))
 		if p == implies:
 			head_triples = kb_conjunctive.triples((None, None, None), o)
 			for head_triple in head_triples:

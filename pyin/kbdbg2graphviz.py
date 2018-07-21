@@ -91,6 +91,18 @@ def generate_gv_image(g, step):
 		source_uri = g.value(binding, kbdbg.has_source)
 		target_uri = g.value(binding, kbdbg.has_target)
 		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))
+
+	"""
+	for bnode in g.subjects(RDF.type, kbdbg.bnode):
+		r = result_node + gv_escape(bnode) + ' [label=<'
+		(doc, tag, text) = yattag.Doc().tagtext()
+		with tag("table"):
+			for i in Collection(bnode):
+				g.object(i, kbdbg.has_name)
+				with tag('tr'):
+					with tag("td"):
+	"""
+
 	gv("}")
 
 def gv_endpoint(g, uri):

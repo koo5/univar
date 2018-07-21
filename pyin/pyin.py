@@ -484,19 +484,13 @@ class Rule(Kbdbgable):
 
 					generator = pred(triple.pred, bi_args)
 				else:
-					"""generate blank nodes:
-					go through all variables"""
+					"""generate blank node:"""
 					ex_idx = depth - len(args) - len(s.body)
 					e = existentials[ex_idx]
-
 					bn = Locals({}, s)
 					bn.kbdbg_frame = URIRef(s.kbdbg_name + ("_bnode" + str(ex_idx)))
 					bn.is_a_bnode_from_rule = s.original_head
-					#bn.is_from_name = e.name_in_head_args
-					bn.is_from_triple_idx = idx_in_original_head
-					#bn.is_from_arg_idx = e.position_in_head_args
-
-
+					#bn.is_from_name = e.name_in_head_args	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
 					for triple in s.original_head:
 						for arg in triple:
 							if arg in existentials:
@@ -504,12 +498,11 @@ class Rule(Kbdbgable):
 							else:
 								x = get_value(locals[arg]).recursive_clone()
 							x.has_locals = weakref(bn)
-
+							bn[arg] = x
 							uri = bnode()
 							nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
 							nokbdbg or kbdbg(uri + " kbdbg:has_name " + x.n3())
 							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()))
-
 					generator = unify(
 									Arg(
 										e, locals[e],

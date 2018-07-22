@@ -107,7 +107,7 @@ class Arg:
 		s.frame = frame
 		assert(not dbg or (type(frame) == str) or (type(frame) == URIRef))
 		s.term_idx = term_idx
-		assert(isinstance(term_idx, int))
+		assert(isinstance(term_idx, (str, int)))
 		s.arg_idx = arg_idx
 		assert(isinstance(arg_idx, int))
 		s.is_in_head = is_in_head
@@ -128,7 +128,7 @@ class EpHead(Kbdbgable):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
-		s.has_locals = lambda : None
+		s.is_part_of_bnode = lambda : None
 		if dbg:
 			super().__init__()
 			s.debug_name = debug_name
@@ -188,12 +188,17 @@ class Var(AtomVar):
 		else:
 			xxx= s.kbdbg_name
 
-		bn = s.has_locals()
+		bn = s.is_part_of_bnode()
 		if bn and ('is_a_bnode_from_rule' in bn.__dict__):
 			xxx += '['
 			for k,v in bn.items():
 				if v != s:
-					xxx += str(k) + ' --->>> ' + str(v)
+					xxx += str(k) + ' --->>> '
+					if (type(v) == Var) and (v.is_part_of_bnode()) and (s in v.is_part_of_bnode().values()):
+						xxx += '[recursive]'
+					else:
+					    xxx += str(v)
+					xxx += '\n'
 				else:
 					xxx + "ggg"
 			xxx += ']'
@@ -276,11 +281,11 @@ def unify(_x, _y):
 	nolog or log("unify " + str(x) + " with " + str(y))
 	if x == y:
 		return success("same vars", _x, _y)
-	if type(x) == Var:
+	if type(x) == Var and not (x.is_part_of_bnode()):
 		return x.bind_to(y, _x, _y)
-	elif type(y) == Var:
+	elif type(y) == Var and not (x.is_part_of_bnode()):
 		return y.bind_to(x, _y, _x)
-	elif x.value == y.value:
+	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
 		return success("same consts", _x, _y)
 	else:
 		return fail(_x, _y)
@@ -430,24 +435,24 @@ class Rule(Kbdbgable):
 		existential_bindings = []
 		existentials = s.get_existentials()
 		for arg_idx, arg in enumerate(args):
-			bn = arg.thing.has_locals()
+			bn = arg.thing.is_part_of_bnode()
 			if not bn: continue
 			if not ('is_a_bnode_from_rule' in bn.__dict__): continue
 			if bn.is_a_bnode_from_rule == s.original_head:
 				if bn.is_from_name in existentials:
-					if s.head[arg_idx] == bn.is_from_name:
+					if s.head.args[arg_idx] == bn.is_from_name:
 						for k,v in bn.items():
 							for head_arg_idx, head_arg in enumerate(s.head.args):
 								existential_bindings.append((
-										Arg(
-											head_arg, locals[head_arg],
-											locals.kbdbg_frame if dbg else None,
-											0, locals[head_arg].arg_index, True),
-										Arg(
-											k,
-											bn[head_arg],
-											bn.kbdbg_frame if dbg else None,
-											head_arg, 0, 'bnode'))
+									Arg(
+										head_arg, locals[head_arg],
+										locals.kbdbg_frame if dbg else None,
+										0, head_arg_idx, True),
+									Arg(
+										k,
+										bn[head_arg],
+										bn.kbdbg_frame if dbg else None,
+										head_arg, 0, 'bnode'))
 								)
 
 		if len(existential_bindings):
@@ -467,6 +472,8 @@ class Rule(Kbdbgable):
 			if len(existential_bindings):
 				generator = unify(existential_bindings[depth][0],
 				                  existential_bindings[depth][1])
+				generators.append(generator)
+				nolog or log("generators:%s", generators)
 			elif len(generators) <= depth:
 				generator = None
 				if depth < len(args):
@@ -493,7 +500,7 @@ class Rule(Kbdbgable):
 					bn = Locals({}, s)
 					bn.kbdbg_frame = URIRef(s.kbdbg_name + ("_bnode" + str(ex_idx)))
 					bn.is_a_bnode_from_rule = s.original_head
-					#bn.is_from_name = e.name_in_head_args	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
+					bn.is_from_name = e	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
 					for triple in s.original_head:
 						for arg in triple.args:
 							if arg in bn:
@@ -502,7 +509,8 @@ class Rule(Kbdbgable):
 								x = Var("this is a var in a bnode")
 							else:
 								x = get_value(locals[arg]).recursive_clone()
-							x.has_locals = weakref(bn)
+							x.is_part_of_bnode = weakref(bn)
+							x.debug_locals = weakref(bn)
 							bn[arg] = x
 							uri = bnode()
 							nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
@@ -549,7 +557,6 @@ class Rule(Kbdbgable):
 					if i not in vars:
 						vars.append(i)
 						#i.position_in_head_args = i_idx
-						#i.name_in_head_args = i
 			for i in s.body:
 				for j in i.args:
 					if is_var(j):
@@ -630,7 +637,7 @@ def query(input_rules, input_query):
 
 def print_bnode(v):
 	r = ''
-	bn = v.has_locals()
+	bn = v.is_part_of_bnode()
 	if bn and ('is_a_bnode_from_rule' in bn.__dict__):
 		r += '['
 		for k,vv in bn.items():

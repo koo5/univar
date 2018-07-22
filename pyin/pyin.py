@@ -187,6 +187,16 @@ class Var(AtomVar):
 			xxx = s.kbdbg_name.n3()
 		else:
 			xxx= s.kbdbg_name
+
+		bn = s.has_locals()
+		if bn and ('is_a_bnode_from_rule' in bn.__dict__):
+			xxx += '['
+			for k,v in bn.items():
+				if v != s:
+					xxx += str(k) + ' --->>> ' + str(v)
+				else:
+					xxx + "ggg"
+			xxx += ']'
 		return (xxx if dbg else '') + s.___short__str__()
 		# + " in " + str(s.debug_locals())
 	def ___short__str__(s):
@@ -410,7 +420,6 @@ class Rule(Kbdbgable):
 		return locals
 
 	def rule_unify(s, args):
-
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
 		depth = 0
@@ -418,8 +427,6 @@ class Rule(Kbdbgable):
 		kbdbg_name = rdflib.URIRef(s.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
 		locals = s.locals_template.new(kbdbg_name)
 		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
-
-
 		existential_bindings = []
 		existentials = s.get_existentials()
 		for arg_idx, arg in enumerate(args):
@@ -444,17 +451,15 @@ class Rule(Kbdbgable):
 								)
 
 		if len(existential_bindings):
-			max_depth = len(existential_bindings)
+			max_depth = len(existential_bindings) - 1
 		else:
-			max_depth = len(args) + len(s.body) + len(existentials)- 1
-
+			max_depth = (len(args) + len(s.body) + len(existentials)) - 1
 
 		def desc():
 			return ("\n#vvv\n#" + str(s) + "\n" +
 			"#args:" + str(args) + "\n" +
 			"#locals:" + str(locals) + "\n" +
-			"#depth:"+ str(depth) + "/" + str(max_depth)+
-			        "\n#^^^")
+			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#^^^")
 
 		nolog or log ("entering " + desc())
 
@@ -462,10 +467,8 @@ class Rule(Kbdbgable):
 			if len(existential_bindings):
 				generator = unify(existential_bindings[depth][0],
 				                  existential_bindings[depth][1])
-
 			elif len(generators) <= depth:
 				generator = None
-
 				if depth < len(args):
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
@@ -492,16 +495,18 @@ class Rule(Kbdbgable):
 					bn.is_a_bnode_from_rule = s.original_head
 					#bn.is_from_name = e.name_in_head_args	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
 					for triple in s.original_head:
-						for arg in triple:
+						for arg in triple.args:
+							if arg in bn:
+								continue
 							if arg in existentials:
-								x = Var()
+								x = Var("this is a var in a bnode")
 							else:
 								x = get_value(locals[arg]).recursive_clone()
 							x.has_locals = weakref(bn)
 							bn[arg] = x
 							uri = bnode()
 							nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
-							nokbdbg or kbdbg(uri + " kbdbg:has_name " + x.n3())
+							nokbdbg or kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(arg))
 							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()))
 					generator = unify(
 									Arg(
@@ -514,12 +519,7 @@ class Rule(Kbdbgable):
 										bn.kbdbg_frame if dbg else None,
 										0, 0, 'bnode'))
 
-					nokbdbg or kbdbg(bnode_contents.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode",base=kbdbg_prefix).n3())
-
-
-
-
-
+					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode",base=kbdbg_prefix).n3())
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -628,6 +628,17 @@ def query(input_rules, input_query):
 		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
 
+def print_bnode(v):
+	r = ''
+	bn = v.has_locals()
+	if bn and ('is_a_bnode_from_rule' in bn.__dict__):
+		r += '['
+		for k,vv in bn.items():
+			if v != vv:
+				r += str(k) + ' --->>> ' + str(vv)
+		r += ']'
+	return r
+
 def substitute_term(term, locals):
 	return Triple(term.pred, [substitute(x, locals) for x in term.args])
 
@@ -635,6 +646,7 @@ def substitute(node, locals):
 	assert(isinstance(node, rdflib.term.Identifier))
 	if node in locals:
 		v = get_value(locals[node])
+		print(print_bnode(v))
 		if type(v) == Var:
 			r = node
 		elif type(v) == Atom:

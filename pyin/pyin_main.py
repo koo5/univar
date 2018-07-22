@@ -46,18 +46,19 @@ def query_from_files(kb, goal, nokbdbg, nolog):
 	
 	"""
 
-	kb_graph_triples = kb_graph.triples((None, None, None))
-	facts = [Triple(x[1],[x[0],[2]]) for x in kb_graph_triples]
+	kb_graph_triples = list(kb_graph.triples((None, None, None)))
+	facts = [Triple(x[1],[x[0],x[2]]) for x in kb_graph_triples]
 	for s,p,o in kb_graph_triples:
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, _t, Graph()))
 		if p == implies:
-			head_triples = kb_conjunctive.triples((None, None, None), o)
+			head_triples = list(kb_conjunctive.triples((None, None, None), o))
+			head_triples_triples = [Triple(x[1],[x[0],x[2]]) for x in head_triples]
 			for head_triple in head_triples:
 				body = Graph()
 				for body_triple in kb_conjunctive.triples((None, None, None), s):
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
-				rules.append(Rule(head_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
+				rules.append(Rule(head_triples_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 
 	goal_rdflib_graph = rdflib.Graph(store=OrderedStore())
 

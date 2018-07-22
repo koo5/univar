@@ -67,7 +67,7 @@ def generate_gv_image(g, step):
 		with tag("table"):
 			with tag('tr'):
 				with tag("td"):
-					text('RESULT'+str(i) +': ')
+					text('RESULT'+str(i) +' ')
 				emit_terms(tag, text, g, g.value(result_uri, RDF.value))
 		r += doc.getvalue()+ '>]'
 		gv(r)
@@ -110,7 +110,7 @@ def gv_endpoint(g, uri):
 	is_in_head = (x == rdflib.Literal(True))
 	term_idx = g.value(uri, kbdbg.term_idx, default=0)
 	arg_idx  = g.value(uri, kbdbg.arg_idx)
-	return str(g.value(uri, kbdbg.has_frame)) + ":" + port_name(is_in_head, term_idx, arg_idx)
+	return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
 	return gv_escape(frame), " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"

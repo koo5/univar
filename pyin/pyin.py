@@ -50,8 +50,8 @@ def step():
 	global global_step_counter
 	nokbdbg or kbdbg("#step"+str(global_step_counter) + " a kbdbg:step")
 	global_step_counter += 1
-	if global_step_counter == 18:
-		print(55)
+	if global_step_counter == 14:
+		print('hi')
 
 bnode_counter = 0
 def bnode():
@@ -265,21 +265,16 @@ def arg_text(x):
 	if type(x.is_in_head) == bool:
 		if x.is_in_head:
 			r += "kbdbg:is_in_head true; "
-		else:
-			r += "kbdbg:term_idx "
-			if type(x.term_idx) == int:
-				r += str(x.term_idx)
-			else:
-				r += rdflib.Literal(x.term_idx).n3()
-			r += "; "
-		r += "kbdbg:arg_idx " + str(x.arg_idx)
 	else:
-		r += "kbdbg:term_idx "
-		if type(x.term_idx) == int:
-			r += str(x.term_idx)
-		else:
-			r += rdflib.Literal(x.term_idx).n3()
-		r += "; "
+		r += 'kbdbg:is_bnode true; '
+	r += "kbdbg:term_idx "
+	if type(x.term_idx) == int:
+		r += str(x.term_idx)
+	else:
+		r += rdflib.Literal(x.term_idx).n3()
+	r += "; "
+	r += "kbdbg:arg_idx " + str(x.arg_idx)
+	r += "; "
 	return r + "]"
 
 def unify(_x, _y):
@@ -290,7 +285,7 @@ def unify(_x, _y):
 	nolog or log("unify " + str(x) + " with " + str(y))
 	if x == y:
 		return success("same vars", _x, _y)
-	if type(x) == Var and not (x.is_part_of_bnode()):
+	if type(x) == Var:# and not (x.is_part_of_bnode()):
 		return x.bind_to(y, _x, _y)
 	#elif type(y) == Var and not (x.is_part_of_bnode()):
 	#	return y.bind_to(x, _y, _x)
@@ -452,20 +447,23 @@ class Rule(Kbdbgable):
 					if s.head.args[arg_idx] == bn.is_from_name:
 						for k,v in bn.items():
 							for head_arg_idx, head_arg in enumerate(s.head.args):
-								existential_bindings.append((
-									Arg(
-										head_arg, locals[head_arg],
-										locals.kbdbg_frame if dbg else None,
-										0, head_arg_idx, True),
-									Arg(
-										k,
-										bn[head_arg],
-										bn.kbdbg_frame if dbg else None,
-										head_arg, 0, 'bnode'))
-								)
+								a0 = Arg(
+									head_arg, locals[head_arg],
+									locals.kbdbg_frame if dbg else None,
+									0, head_arg_idx, True)
+								a1 = Arg(
+									k,
+									bn[head_arg],
+									bn.kbdbg_frame if dbg else None,
+									head_arg, 0, 'bnode')
+								if head_arg in [exbi[0].uri for exbi in existential_bindings]:
+									continue
+								existential_bindings.append((a0,a1))
+								print ('gonna unroll', arg_text(a0), " into ", arg_text(a1))
+
 
 		if len(existential_bindings):
-			max_depth = len(existential_bindings) - 1
+			max_depth = len(args) + len(existential_bindings) - 1
 		else:
 			max_depth = (len(args) + len(s.body) + len(existentials)) - 1
 
@@ -478,29 +476,25 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 		while True:
-			if len(existential_bindings):
-				generator = unify(existential_bindings[depth][0],
-				                  existential_bindings[depth][1])
-				generators.append(generator)
-				nolog or log("generators:%s", generators)
-			elif len(generators) <= depth:
-				generator = None
+			if len(generators) <= depth:
 				if depth < len(args):
 					arg_index = depth
 					head_uriref = s.head.args[arg_index]
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
 					head_thing.arg_index = arg_index
-
-				elif depth < len(args) + len(s.body):
+				elif len(existential_bindings):
+					eee = existential_bindings[depth-len(args)]
+					print ('unrolling', arg_text(eee[0]), " into ", eee[1])
+					generator = unify(eee[0],eee[1])
+					print("existential generator", generator)
+				elif (depth < len(args) + len(s.body)):
 					body_item_index = depth - len(args)
 					triple = s.body[body_item_index]
-
 					bi_args = []
 					for arg_idx, uri in enumerate(triple.args):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
-
 					generator = pred(triple.pred, bi_args)
 				else:
 					"""generate blank node:"""
@@ -526,17 +520,16 @@ class Rule(Kbdbgable):
 							nokbdbg or kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(arg).n3())
 							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
 					generator = unify(
-									Arg(
-										e, locals[e],
-										locals.kbdbg_frame if dbg else None,
-										0, locals[e].arg_index, 'bnode'),
-									Arg(
-										e,
-										bn[e],
-										bn.kbdbg_frame if dbg else None,
-										0, 0, 'bnode'))
-
-					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " rdf:type " + URIRef("bnode",base=kbdbg_prefix).n3())
+						Arg(
+							e, locals[e],
+							locals.kbdbg_frame if dbg else None,
+							0, locals[e].arg_index, True),
+						Arg(
+							e,
+							bn[e],
+							bn.kbdbg_frame if dbg else None,
+							e, 0, 'bnode'))
+					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " rdf:type kbdbg:bnode")
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:

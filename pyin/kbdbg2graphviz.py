@@ -40,8 +40,14 @@ def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999
 	return g.value(subject, predicate, object, default, any)
 
 def gv_escape(string):
-	return '"%s"' % string.replace('"', '\\"')
-	#return urllib.parse.quote_plus(string)
+	#string = string.replace('"', '\\"')
+	r = ""
+	for i in string:
+		r += str(ord(i)).zfill(4)
+	return "gv"+r
+	return "<"+urllib.parse.quote_plus(string)+">"
+	return '"%s"' % string
+
 
 
 def tell_if_is_last_element(x):
@@ -60,9 +66,39 @@ def generate_gv_image(g, step):
 	#	emit_rule(rule)
 
 	current_result = None
+	rrr = list(g.subjects(RDF.type, kbdbg.frame))
+	for i, frame in enumerate(rrr):
+		f, text = get_frame_gv(i, g, frame)
+		gv(f + text)
+		if i == 0 and current_result:
+			arrow(result_node, f)
+
+	for bnode in g.subjects(RDF.type, kbdbg.bnode):
+		(doc, tag, text) = yattag.Doc().tagtext()
+		with tag("table"):
+			#for i in Collection(g, bnode):
+			for i in g.objects(bnode, kbdbg.has_item):
+				with tag('tr'):
+					name = g.value(i, kbdbg.has_name)
+					with tag("td", port=gv_escape(name)):
+						text(shorten(name))
+					with tag("td"):
+						text(shorten(g.value(i, kbdbg.has_value)))
+		gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
+
+
+	for binding in g.subjects(RDF.type, kbdbg.binding):
+		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
+			continue
+		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
+			continue
+		source_uri = g.value(binding, kbdbg.has_source)
+		target_uri = g.value(binding, kbdbg.has_target)
+		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))
+
 	for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
 		result_node = gv_escape(result_uri)
-		r = result_node + ' [label=<'
+		r = result_node + ' [cellborder=2, shape=none, label=<'
 		(doc, tag, text) = yattag.Doc().tagtext()
 		with tag("table"):
 			with tag('tr'):
@@ -78,41 +114,20 @@ def generate_gv_image(g, step):
 		else:
 			arrow_width = 1
 
-	rrr = list(g.subjects(RDF.type, kbdbg.frame))
-	for i, frame in enumerate(rrr):
-		f, text = get_frame_gv(i, g, frame)
-		gv(f + text)
-		if i == 0 and current_result:
-			arrow(result_node, f)
 
-	for binding in g.subjects(RDF.type, kbdbg.binding):
-		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
-			continue
-		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
-			continue
-		source_uri = g.value(binding, kbdbg.has_source)
-		target_uri = g.value(binding, kbdbg.has_target)
-		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))
-
-	"""
-	for bnode in g.subjects(RDF.type, kbdbg.bnode):
-		r = result_node + gv_escape(bnode) + ' [label=<'
-		(doc, tag, text) = yattag.Doc().tagtext()
-		with tag("table"):
-			for i in Collection(bnode):
-				g.object(i, kbdbg.has_name)
-				with tag('tr'):
-					with tag("td"):
-	"""
 
 	gv("}")
 
 def gv_endpoint(g, uri):
-	x = g.value(uri, kbdbg.is_in_head, default=False)
-	is_in_head = (x == rdflib.Literal(True))
-	term_idx = g.value(uri, kbdbg.term_idx, default=0)
-	arg_idx  = g.value(uri, kbdbg.arg_idx)
-	return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port_name(is_in_head, term_idx, arg_idx)
+	if(g.value(uri, kbdbg.is_bnode, default=False)):
+		term_idx = g.value(uri, kbdbg.term_idx, default=' $\=st #-* -')
+		return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + gv_escape(term_idx)
+	else:
+		x = g.value(uri, kbdbg.is_in_head, default=False)
+		is_in_head = (x == rdflib.Literal(True))
+		term_idx = g.value(uri, kbdbg.term_idx, default=0)
+		arg_idx  = g.value(uri, kbdbg.arg_idx)
+		return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
 	return gv_escape(frame), " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"

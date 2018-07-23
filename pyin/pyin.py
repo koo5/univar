@@ -256,9 +256,8 @@ def fail(_x, _y):
 def emit_binding(_x, _y, is_failed = False):
 	uri = bnode()
 	nokbdbg or kbdbg(uri + " a kbdbg:binding; " +
-	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y) +
-	      (";kbdbg:is_failed true" if is_failed else ""))
-	step()
+	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y) )
+	step()#+    (";kbdbg:is_failed true" if is_failed else "")
 	return uri
 
 def arg_text(x):
@@ -267,10 +266,20 @@ def arg_text(x):
 		if x.is_in_head:
 			r += "kbdbg:is_in_head true; "
 		else:
-			r += "kbdbg:term_idx " + str(x.term_idx) + "; "
+			r += "kbdbg:term_idx "
+			if type(x.term_idx) == int:
+				r += str(x.term_idx)
+			else:
+				r += rdflib.Literal(x.term_idx).n3()
+			r += "; "
 		r += "kbdbg:arg_idx " + str(x.arg_idx)
 	else:
-		r += "kbdbg:term_idx " + str(x.term_idx) + "; "
+		r += "kbdbg:term_idx "
+		if type(x.term_idx) == int:
+			r += str(x.term_idx)
+		else:
+			r += rdflib.Literal(x.term_idx).n3()
+		r += "; "
 	return r + "]"
 
 def unify(_x, _y):
@@ -283,8 +292,8 @@ def unify(_x, _y):
 		return success("same vars", _x, _y)
 	if type(x) == Var and not (x.is_part_of_bnode()):
 		return x.bind_to(y, _x, _y)
-	elif type(y) == Var and not (x.is_part_of_bnode()):
-		return y.bind_to(x, _y, _x)
+	#elif type(y) == Var and not (x.is_part_of_bnode()):
+	#	return y.bind_to(x, _y, _x)
 	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
 		return success("same consts", _x, _y)
 	else:
@@ -514,8 +523,8 @@ class Rule(Kbdbgable):
 							bn[arg] = x
 							uri = bnode()
 							nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
-							nokbdbg or kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(arg))
-							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()))
+							nokbdbg or kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(arg).n3())
+							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
 					generator = unify(
 									Arg(
 										e, locals[e],

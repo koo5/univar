@@ -88,6 +88,8 @@ def generate_gv_image(g, step):
 	for binding in g.subjects(RDF.type, kbdbg.binding):
 		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 			continue
+		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
+			continue
 		source_uri = g.value(binding, kbdbg.has_source)
 		target_uri = g.value(binding, kbdbg.has_target)
 		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))

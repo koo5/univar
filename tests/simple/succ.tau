@@ -24,3 +24,7 @@ shouldbe
 ?what :a :Nat. :zero :succ ?what.
 fin.
 
+query
+:zero :succ ?what. ?what :succ :zero.
+fin.
+thatsall

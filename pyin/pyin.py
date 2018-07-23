@@ -57,7 +57,7 @@ bnode_counter = 0
 def bnode():
 	global bnode_counter
 	bnode_counter += 1
-	return  '_:bn' + str(bnode_counter)
+	return  ':bn' + str(bnode_counter)
 
 
 log, kbdbg = init_logging()
@@ -285,10 +285,10 @@ def unify(_x, _y):
 	nolog or log("unify " + str(x) + " with " + str(y))
 	if x == y:
 		return success("same vars", _x, _y)
-	if type(x) == Var:# and not (x.is_part_of_bnode()):
+	if type(x) == Var and not x.is_part_of_bnode():
 		return x.bind_to(y, _x, _y)
-	#elif type(y) == Var and not (x.is_part_of_bnode()):
-	#	return y.bind_to(x, _y, _x)
+	elif type(y) == Var and not y.is_part_of_bnode():
+		return y.bind_to(x, _y, _x)
 	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
 		return success("same consts", _x, _y)
 	else:
@@ -428,14 +428,17 @@ class Rule(Kbdbgable):
 				locals[a] = x
 		return locals
 
-	def rule_unify(s, args):
+	def rule_unify(s, parent, args):
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
 		depth = 0
 		generators = []
 		kbdbg_name = rdflib.URIRef(s.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
+		s.kbdbg_name2 = kbdbg_name
 		locals = s.locals_template.new(kbdbg_name)
 		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
+		if parent:
+			nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:has_parent " + parent.kbdbg_name2.n3())
 		existential_bindings = []
 		existentials = s.get_existentials()
 		for arg_idx, arg in enumerate(args):
@@ -495,13 +498,13 @@ class Rule(Kbdbgable):
 					for arg_idx, uri in enumerate(triple.args):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
-					generator = pred(triple.pred, bi_args)
+					generator = pred(triple.pred, s, bi_args)
 				else:
 					"""generate blank node:"""
 					ex_idx = depth - len(args) - len(s.body)
 					e = existentials[ex_idx]
 					bn = Locals({}, s)
-					bn.kbdbg_frame = URIRef(s.kbdbg_name + ("_bnode" + str(ex_idx)))
+					bn.kbdbg_frame = URIRef(s.kbdbg_name2 + ("_bnode" + str(ex_idx)))
 					bn.is_a_bnode_from_rule = s.original_head
 					bn.is_from_name = e	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
 					for triple in s.original_head:
@@ -530,6 +533,7 @@ class Rule(Kbdbgable):
 							bn.kbdbg_frame if dbg else None,
 							e, 0, 'bnode'))
 					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " rdf:type kbdbg:bnode")
+					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_parent " + s.kbdbg_name2.n3())
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -540,7 +544,7 @@ class Rule(Kbdbgable):
 					depth+=1
 				else:
 					#print ("#NYAN")
-					yield locals#this is when it finishes a rule
+					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
 			except StopIteration:
 				if (depth > 0):
@@ -549,6 +553,8 @@ class Rule(Kbdbgable):
 					depth-=1
 				else:
 					nolog or log ("rule done")
+					step()
+					nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
 					break#if it's tried all the possibilities for finishing a rule
 
 	def get_existentials(s):
@@ -567,7 +573,7 @@ class Rule(Kbdbgable):
 		print ("existentials:", vars)
 		return vars
 
-	def match(s, args=[]):
+	def match(s, parent = None, args=[]):
 		#ttt = time.clock()
 		#print ("TTT", ttt)
 		#if ttt > 1:
@@ -578,7 +584,7 @@ class Rule(Kbdbgable):
 		for arg in args:
 			head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame if dbg else None, arg.term_idx, arg.arg_idx, arg.is_in_head))
 		s.ep_heads.append(head)
-		for i in s.rule_unify(args):
+		for i in s.rule_unify(parent, args):
 			s.ep_heads.pop()
 			yield i
 			s.ep_heads.append(head)
@@ -611,7 +617,7 @@ def asst(x):
 	else:
 		assert type(x) in [Var, Atom]
 
-def pred(p, args):
+def pred(p, parent, args):
 	for a in args:
 		assert(isinstance(a, Arg))
 		assert(isinstance(a.thing, AtomVar))
@@ -620,7 +626,7 @@ def pred(p, args):
 	for rule in preds[p]:
 		if(rule.find_ep(args)):
 			continue
-		for i in rule.match(args):
+		for i in rule.match(parent, args):
 			yield i
 
 def query(input_rules, input_query):

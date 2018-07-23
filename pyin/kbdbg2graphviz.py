@@ -55,9 +55,10 @@ def tell_if_is_last_element(x):
 		yield j, (i == (len(x) - 1))
 
 
+last_bindings = []
 
 def generate_gv_image(g, step):
-	global arrow_width
+	global arrow_width, last_bindings
 
 	gv("digraph frame"+str(step) + "{")
 
@@ -67,13 +68,24 @@ def generate_gv_image(g, step):
 
 	current_result = None
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
+	last_frame = None
 	for i, frame in enumerate(rrr):
+		if g.value(frame, kbdbg.is_finished, default=False):
+			continue
 		f, text = get_frame_gv(i, g, frame)
 		gv(f + text)
-		if i == 0 and current_result:
-			arrow(result_node, f)
+		#if last_frame:
+		#	arrow(last_frame, f, color='yellow', weight=100)
+		parent = g.value(frame, kbdbg.has_parent)
+		if parent:
+			arrow(gv_escape(parent), f, color='yellow', weight=100)
+		last_frame = f
+		#if i == 0 and current_result:
+		#	arrow(result_node, f)
 
 	for bnode in g.subjects(RDF.type, kbdbg.bnode):
+		if g.value(g.value(bnode, kbdbg.has_parent), kbdbg.is_finished, default=False):
+			continue
 		(doc, tag, text) = yattag.Doc().tagtext()
 		with tag("table"):
 			#for i in Collection(g, bnode):
@@ -85,16 +97,28 @@ def generate_gv_image(g, step):
 					with tag("td"):
 						text(shorten(g.value(i, kbdbg.has_value)))
 		gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
+		arrow(gv_escape(g.value(bnode, kbdbg.has_parent)), gv_escape(bnode), color='yellow', weight=100)
 
 
+	new_last_bindings = []
 	for binding in g.subjects(RDF.type, kbdbg.binding):
-		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
-			continue
-		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
-			continue
 		source_uri = g.value(binding, kbdbg.has_source)
 		target_uri = g.value(binding, kbdbg.has_target)
-		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri))
+
+		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
+			if (binding.n3() in last_bindings):
+				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='orange')
+			continue
+		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
+			if (binding.n3() in last_bindings):
+				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='red')
+			continue
+		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri),
+		      color=('black' if (binding.n3() in last_bindings) else 'purple' ))
+		new_last_bindings.append(binding)
+	last_bindings.clear()
+	for i in new_last_bindings:
+		last_bindings.append(i.n3())
 
 	for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
 		result_node = gv_escape(result_uri)
@@ -154,9 +178,7 @@ def get_frame_html_label(g, frame):
 						term_idx += 1
 				with tag("td", border=border_width):
 					text('}')
-
 		#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
-
 		return doc.getvalue()
 
 def emit_terms(tag, text, g, uri):
@@ -213,10 +235,10 @@ def emit_term(tag, text, g, is_in_head, term_idx, term):
 			text(').')
 
 
-def arrow(x,y):
+def arrow(x,y,color='black',weight=1):
 	r = x + '->' + y
-	if arrow_width != 1:
-		r += ' [penwidth = ' + str(arrow_width) + ']'# + ', arrowhead = ' + str(arrow_width)
+	#if arrow_width != 1:
+	r += ' [weight="'+str(weight)+'"color="'+color+'" penwidth = ' + str(arrow_width) + ']'# + ', arrowhead = ' + str(arrow_width)
 	gv(r)
 
 

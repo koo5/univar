@@ -501,6 +501,8 @@ class Rule(Kbdbgable):
 					bn.is_from_name = e
 					for triple in singleton.original_head:
 						for arg in triple.args:
+							if type(arg) == rdflib.Literal or not is_var(arg):
+								continue
 							if arg in bn:
 								continue
 							if arg in existentials:

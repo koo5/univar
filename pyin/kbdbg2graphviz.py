@@ -260,9 +260,10 @@ def arrow(x,y,color='black',weight=1, binding=False):
 
 def run():
 	global gv_output_file
-	input_file = open(sys.args[1])
+	fn = sys.argv[1]
+	input_file = open(fn)
 	lines = []
-	os.system("rm -f kbdbg"+input_file+'\\.*')
+	os.system("rm -f kbdbg"+fn+'\\.*')
 
 	import multiprocessing
 	pool=multiprocessing.Pool(1)
@@ -283,7 +284,7 @@ def run():
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
 
-		gv_output_file_name = fn + str(step).zfill(5) + '.gv'
+		gv_output_file_name = fn + '_' + str(step).zfill(5) + '.gv'
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:

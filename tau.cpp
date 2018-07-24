@@ -960,7 +960,7 @@ int main ( int argc, char** argv)
 							stringstream cmdss;
 							cmdss << INPUT->external;
 							cmdss << "  --identification ";
-							cmdss << current_file_name << query_counter;
+							cmdss << current_file_name << "_" << query_counter;
 							redi::ipstream p(cmdss.str());
 
 							std::string line;

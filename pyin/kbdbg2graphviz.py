@@ -69,7 +69,7 @@ def generate_gv_image(g, step):
 	#print rules somewhere on the side?
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
 	#	emit_rule(rule)
-
+	root_frame = None
 	current_result = None
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
 	last_frame = None
@@ -82,7 +82,9 @@ def generate_gv_image(g, step):
 		#	arrow(last_frame, f, color='yellow', weight=100)
 		parent = g.value(frame, kbdbg.has_parent)
 		if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
-			arrow(gv_escape(parent), f, color='yellow', weight=100)
+			arrow(gv_escape(parent), f, color='yellow', weight=10000000)
+		else:
+			root_frame = f
 		last_frame = f
 		#if i == 0 and current_result:
 		#	arrow(result_node, f)
@@ -128,6 +130,7 @@ def generate_gv_image(g, step):
 	for i in new_last_bindings:
 		last_bindings.append(i.n3())
 
+	last_result = root_frame
 	for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
 		result_node = gv_escape(result_uri)
 		r = result_node + ' [cellborder=2, shape=none, label=<'
@@ -145,7 +148,9 @@ def generate_gv_image(g, step):
 			arrow_width = 2
 		else:
 			arrow_width = 1
-
+		if last_result:
+			arrow(last_result, result_node, color='yellow', weight=100)
+		last_result = result_node
 
 
 	gv("}")
@@ -163,11 +168,13 @@ def gv_endpoint(g, uri):
 
 def get_frame_gv(i, g, frame):
 	r = ' [shape=none, margin=0, '
+	isroot = False
 	if not g.value(frame, kbdbg.has_parent):
 		r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
-	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame) + ">]"
+		isroot = True
+	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame, isroot) + ">]"
 
-def get_frame_html_label(g, frame):
+def get_frame_html_label(g, frame, isroot):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
@@ -175,6 +182,8 @@ def get_frame_html_label(g, frame):
 		with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 			with tag("tr"):
 				with tag('td', border=border_width):
+					if isroot:
+						text('QUERY:')
 					text((shorten(frame.n3())))
 				with tag("td", border=border_width):
 					text("{")
@@ -260,7 +269,10 @@ def arrow(x,y,color='black',weight=1, binding=False):
 
 def run():
 	global gv_output_file
-	fn = sys.argv[1]
+	if len(sys.argv) == 2:
+		fn = sys.argv[1]
+	else:
+		fn = 'kbdbg.n3'
 	input_file = open(fn)
 	lines = []
 	os.system("rm -f kbdbg"+fn+'\\.*')

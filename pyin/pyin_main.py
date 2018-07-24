@@ -14,7 +14,7 @@ import click
 @click.argument('goal', type=click.File('rb'))
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
-@click.option('--visualize', default=True)
+@click.option('--visualize', default=False)
 @click.option('--identification', default="")
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 	identification = "".join([ch if ch.isalnum() else "_" for ch in identification])

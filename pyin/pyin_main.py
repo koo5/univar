@@ -84,7 +84,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 		print (o)
 
 	if visualize:
-		os.system('pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
+		os.system('python3 -O pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
 
 
 if __name__ == "__main__":

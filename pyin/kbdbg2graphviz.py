@@ -58,7 +58,22 @@ def gv_escape(string):
 	return "<"+urllib.parse.quote_plus(string)+">"
 	return '"%s"' % string
 
-
+"""
+import memoized
+gv_escape_counter = 0
+@memoized.memoized
+def gv_escape(node, port=None):
+	global gv_escape_counter
+	if port:
+		return gv_escape(node) + ":" + gv_escape(port)
+	gv_escape_counter += 1
+	r = "gv" + str(gv_escape_counter)
+	r += '_'
+	for i in node:
+		if i.isalnum():
+			r += i
+	return r
+"""
 
 def tell_if_is_last_element(x):
 	for i, j in enumerate(x):
@@ -181,8 +196,19 @@ def get_frame_gv(i, g, frame):
 		isroot = True
 	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame, isroot) + ">]"
 
+
+frame_name_template_var_name = '%frame_name_template_var_name%'
 def get_frame_html_label(g, frame, isroot):
-		rule = g.value(frame, kbdbg.is_for_rule)
+	rule = g.value(frame, kbdbg.is_for_rule)
+	return _get_frame_html_label(
+		g, rule, isroot
+	).replace(
+		frame_name_template_var_name,html_module.escape(shorten(frame.n3()))
+	)
+
+import memoized
+@memoized.memoized
+def _get_frame_html_label(g, rule, isroot):
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
 
@@ -191,7 +217,7 @@ def get_frame_html_label(g, frame, isroot):
 				with tag('td', border=border_width):
 					if isroot:
 						text('QUERY:')
-					text((shorten(frame.n3())))
+					text(frame_name_template_var_name)
 				with tag("td", border=border_width):
 					text("{")
 				if head:
@@ -285,21 +311,26 @@ def run():
 	os.system("rm -f kbdbg"+fn+'\\.*')
 
 	import multiprocessing
-	pool=multiprocessing.Pool(1)
+	pool=multiprocessing.Pool(4)
 
+	g = Graph(OrderedStore())
+	prefixes = []
 	while True:
 		l = input_file.readline()
 		if l == "":
 			break
 		if l.startswith("#step"):
 			step = int(l[5:l.find(' ')])
+		elif l.startswith('@prefix'):
+			prefixes.append(l)
+			continue
 		else:
 			lines.append(l)
 			continue
 
-		g = Graph(OrderedStore())
-		i = "".join(lines)
+		i = "".join(prefixes+lines)
 		g.parse(data=i, format='n3')
+		lines = []
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
 

@@ -1,0 +1,18 @@
+kb
+@prefix : <#>.
+{?a :listform ?l. ?l :a :set}<={?a :a :set}.
+{:nil :a ?a}<={?a :listform ?l}.
+{?r :first ?x. ?r :rest ?xs. ?r :a ?l} <= {?a :listform ?l. ?x :a ?a. ?xs :a ?l}.
+:bool :a :set. :true :a :bool. :false :a :bool.
+fin.
+
+query
+@prefix : <#>.
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?l. ?l0 :a ?l.
+fin.
+
+shouldbe
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?l. ?l0 :a ?l.
+fin.
+
+thatsall

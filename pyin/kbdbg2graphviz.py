@@ -39,11 +39,18 @@ def gv(text):
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
 	return g.value(subject, predicate, object, default, any)
 
+#import memoized
+#gv_escape_counter = 0
+#@memoized.memoized
 def gv_escape(string):
+	#global gv_escape_counter
+	#gv_escape_counter += 1
 	#string = string.replace('"', '\\"')
 	r = ""
 	for i in string:
 		r += str(ord(i)).zfill(4)
+	#r += str(gv_escape_counter)
+	r += '_'
 	for i in string:
 		if i.isalnum():
 			r += i

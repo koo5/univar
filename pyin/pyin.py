@@ -432,7 +432,7 @@ class Rule(Kbdbgable):
 		for arg_idx, arg in enumerate(args):
 			bn = arg.thing.is_part_of_bnode()
 			if not bn: continue
-			if not ('is_a_bnode_from_rule' in bn.__dict__): continue
+			if not ('is_a_bnode_from_original_rule' in bn.__dict__): continue
 			if bn.is_a_bnode_from_original_rule == singleton.original_head:
 				if bn.is_from_name in existentials:
 					if singleton.head.args[arg_idx] == bn.is_from_name:

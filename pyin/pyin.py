@@ -13,16 +13,15 @@ dbg = True
 nolog = False
 nokbdbg = False
 
+kbdbg_prefix = URIRef('http://kbd.bg/#')
+
 # #OUTPUT:
-# into kbdbg.nt, we should output a valid n3 file with kbdbg2 schema (which is to be defined). 
-# lines starting with "#" are n3 comments. 
+# lines starting with "#" are n3 comments.
 # "#RESULT:" lines are for univar fronted/runner/tester ("tau")
 # the rest of the comment lines are random noise
 
-#for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
-#	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)
-
 def init_logging():
+	global log, kbdbg
 	formatter = logging.Formatter('#%(message)s')
 	console_debug_out = logging.StreamHandler()
 	console_debug_out.setFormatter(formatter)
@@ -31,7 +30,6 @@ def init_logging():
 	logger1.addHandler(console_debug_out)
 	logger1.setLevel(logging.DEBUG)
 
-	kbdbg_file_name = 'kbdbg.n3'
 	try:
 		os.unlink(kbdbg_file_name)
 	except FileNotFoundError:
@@ -42,7 +40,12 @@ def init_logging():
 	logger2=logging.getLogger("kbdbg")
 	logger2.addHandler(kbdbg_out)
 
-	return logger1.debug, logger2.info
+	log, kbdbg = logger1.debug, logger2.info
+
+	nokbdbg or kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
+	nokbdbg or kbdbg("@prefix : <file:///#> ")
+	nokbdbg or kbdbg("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
+	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
 global_step_counter = 0
@@ -59,21 +62,7 @@ def bnode():
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
 
-
-log, kbdbg = init_logging()
-
-kbdbg_prefix = URIRef('http://kbd.bg/#')
-nokbdbg or kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
-nokbdbg or kbdbg("@prefix : <file:///#> ")
-nokbdbg or kbdbg("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
-
-print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
-
-
-
-#having this one, global, instance will hopefully let us avoid accidentally creating identical bnodes in the output
-kbdbg_output_store = OrderedStore()
-kbdbg_output_graph = rdflib.Graph(kbdbg_output_store)
+log, kbdbg = 666,666
 
 
 def printify(iterable, separator):
@@ -690,3 +679,6 @@ could colide, in case of unlucky names. I should switch to bnode() everywhere.
 """
 def iteritems(x):
 	"""
+
+#for i in (rdflib.store.TripleRemovedEvent, rdflib.store.TripleAddedEvent):
+#	kbdbg_output_graph.store.dispatcher.subscribe(i, pr)

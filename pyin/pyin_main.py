@@ -4,6 +4,7 @@
 import rdflib
 from ordered_rdflib_store import OrderedStore
 
+import pyin
 from pyin import *
 
 import click
@@ -13,11 +14,17 @@ import click
 @click.argument('goal', type=click.File('rb'))
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
-@click.option('--visualize', default=False)
-def query_from_files(kb, goal, nokbdbg, nolog, visualize):
-	import pyin
+@click.option('--visualize', default=True)
+@click.option('--identification', default="")
+def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
+	identification = "".join([ch if ch.isalnum() else "_" for ch in identification])
+	pyin.kbdbg_file_name = 'kbdbg'+identification+'.n3'
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
+	pyin.init_logging()
+	if identification != "":
+		pyin.kbdbg(": kbdbg:has_run_identification " + rdflib.Literal(identification).n3())
+
 #	kb=  open('kb_for_external.nq', 'rb')
 #	goal=open('query_for_external.nq', 'rb')
 
@@ -77,7 +84,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize):
 		print (o)
 
 	if visualize:
-		os.system('pyin/kbdbg2graphviz.py')
+		os.system('pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
 
 
 if __name__ == "__main__":

@@ -27,6 +27,9 @@
 #define CLI_TRACE(x)
 #endif
 
+int query_counter;
+
+string current_file_name;
 
 // to hold a kb/query string
 string qdb_text;
@@ -658,6 +661,7 @@ void do_query(qdb &q_in)
 	result_limit = INPUT->limit;
 	tauProver->query(q_in);
 	done_anything = true;
+	query_counter += 1;
 }
 
 
@@ -665,6 +669,7 @@ void cmd_query(){
 	if(kbs.size() == 0){
 		dout << "No kb; cannot query." << endl;
 	}else{
+		query_counter++;
 		if(INPUT->end()){
 			set_mode(QUERY);
 		}else{
@@ -954,6 +959,8 @@ int main ( int argc, char** argv)
 
 							stringstream cmdss;
 							cmdss << INPUT->external;
+							cmdss << "  --identification ";
+							cmdss << current_file_name << query_counter;
 							redi::ipstream p(cmdss.str());
 
 							std::string line;
@@ -984,11 +991,12 @@ int main ( int argc, char** argv)
 			}
 		}
 		else if (INPUT->mode == RUN) {
-			string fn = INPUT->pop_long();
-			if (fn == "-")
+			current_file_name = INPUT->pop_long();
+			query_counter = 0;
+			if (current_file_name == "-")
 				emplace_stdin();
 			else
-				do_run(fn);
+				do_run(current_file_name);
 		}
 		else {
 			assert(INPUT->mode == OLD);

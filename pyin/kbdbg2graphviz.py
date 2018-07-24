@@ -260,11 +260,9 @@ def arrow(x,y,color='black',weight=1, binding=False):
 
 def run():
 	global gv_output_file
-	input_file = open("kbdbg.n3")
+	input_file = open(sys.args[1])
 	lines = []
-	os.system("rm -f kbdbg*gv")
-	os.system("rm -f aaakbdbg*png")
-	os.system("rm -f kbdbg*svg")
+	os.system("rm -f kbdbg"+input_file+'\\.*')
 
 	import multiprocessing
 	pool=multiprocessing.Pool(1)
@@ -285,7 +283,7 @@ def run():
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
 
-		gv_output_file_name = 'kbdbg' + str(step).zfill(9) + '.gv'
+		gv_output_file_name = fn + str(step).zfill(5) + '.gv'
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:
@@ -297,7 +295,7 @@ def run():
 		#threading.Thread(target=lambda:
 		#	os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
 
-		pool.apply_async(os.system, ("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png",))
+		pool.apply_async(os.system, ("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white "+gv_output_file_name+".png",))
 
 
 

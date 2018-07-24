@@ -450,6 +450,8 @@ class Rule(Kbdbgable):
 					if s.head.args[arg_idx] == bn.is_from_name:
 						for k,v in bn.items():
 							for head_arg_idx, head_arg in enumerate(s.head.args):
+								if type(locals[head_arg]) == Atom:
+									continue
 								a0 = Arg(
 									head_arg, locals[head_arg],
 									locals.kbdbg_frame if dbg else None,
@@ -463,7 +465,7 @@ class Rule(Kbdbgable):
 									continue
 								existential_bindings.append((a0,a1))
 								print ('gonna unroll', arg_text(a0), " into ", arg_text(a1))
-
+		total_bnode_counter = 0
 
 		if len(existential_bindings):
 			max_depth = len(args) + len(existential_bindings) - 1
@@ -504,7 +506,8 @@ class Rule(Kbdbgable):
 					ex_idx = depth - len(args) - len(s.body)
 					e = existentials[ex_idx]
 					bn = Locals({}, s)
-					bn.kbdbg_frame = URIRef(s.kbdbg_name2 + ("_bnode" + str(ex_idx)))
+					bn.kbdbg_frame = URIRef(s.kbdbg_name2 + ("_bnode" + str(total_bnode_counter)))
+					total_bnode_counter += 1
 					bn.is_a_bnode_from_rule = s.original_head
 					bn.is_from_name = e	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
 					for triple in s.original_head:
@@ -556,6 +559,7 @@ class Rule(Kbdbgable):
 					step()
 					nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
 					break#if it's tried all the possibilities for finishing a rule
+		nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
 
 	def get_existentials(s):
 		vars = []

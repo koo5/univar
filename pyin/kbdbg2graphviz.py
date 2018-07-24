@@ -61,6 +61,8 @@ def generate_gv_image(g, step):
 	global arrow_width, last_bindings
 
 	gv("digraph frame"+str(step) + "{")
+	gv("pack=true")
+	gv('layout="neato"')
 
 	#print rules somewhere on the side?
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
@@ -77,7 +79,7 @@ def generate_gv_image(g, step):
 		#if last_frame:
 		#	arrow(last_frame, f, color='yellow', weight=100)
 		parent = g.value(frame, kbdbg.has_parent)
-		if parent:
+		if parent and not g.value(parent, kbdbg.is_finished, default=False):
 			arrow(gv_escape(parent), f, color='yellow', weight=100)
 		last_frame = f
 		#if i == 0 and current_result:
@@ -89,6 +91,9 @@ def generate_gv_image(g, step):
 		(doc, tag, text) = yattag.Doc().tagtext()
 		with tag("table"):
 			#for i in Collection(g, bnode):
+			with tag('tr'):
+				with tag('td'):
+					text((shorten(bnode.n3())))
 			for i in g.objects(bnode, kbdbg.has_item):
 				with tag('tr'):
 					name = g.value(i, kbdbg.has_name)
@@ -104,17 +109,16 @@ def generate_gv_image(g, step):
 	for binding in g.subjects(RDF.type, kbdbg.binding):
 		source_uri = g.value(binding, kbdbg.has_source)
 		target_uri = g.value(binding, kbdbg.has_target)
-
 		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 			if (binding.n3() in last_bindings):
-				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='orange')
+				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='orange', binding=True)
 			continue
 		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
 			if (binding.n3() in last_bindings):
-				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='red')
+				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='red', binding=True)
 			continue
 		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri),
-		      color=('black' if (binding.n3() in last_bindings) else 'purple' ))
+		      color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
 		new_last_bindings.append(binding)
 	last_bindings.clear()
 	for i in new_last_bindings:
@@ -154,7 +158,10 @@ def gv_endpoint(g, uri):
 		return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port_name(is_in_head, term_idx, arg_idx)
 
 def get_frame_gv(i, g, frame):
-	return gv_escape(frame), " [shape=none, margin=0, label=<" + get_frame_html_label(g, frame) + ">]"
+	r = ' [shape=none, margin=0, '
+	if not g.value(frame, kbdbg.has_parent):
+		r += 'pin=true, pos="1000,100!", '
+	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
@@ -162,6 +169,8 @@ def get_frame_html_label(g, frame):
 		doc, tag, text = yattag.Doc().tagtext()
 		with tag("table", border=0, cellborder=2, cellpadding=0, cellspacing=0):
 			with tag("tr"):
+				with tag('td'):
+					text((shorten(frame.n3())))
 				with tag("td", border=border_width):
 					text("{")
 				if head:
@@ -234,11 +243,13 @@ def emit_term(tag, text, g, is_in_head, term_idx, term):
 		with tag("td", border=border_width):
 			text(').')
 
-
-def arrow(x,y,color='black',weight=1):
+def arrow(x,y,color='black',weight=1, binding=False):
 	r = x + '->' + y
 	#if arrow_width != 1:
-	r += ' [weight="'+str(weight)+'"color="'+color+'" penwidth = ' + str(arrow_width) + ']'# + ', arrowhead = ' + str(arrow_width)
+	r += ' [weight="'+str(weight)+'"color="'+color+'" penwidth = ' + str(arrow_width) + ' '
+	if binding:
+		r += 'constraint=false'
+	r += ']'# + ', arrowhead = ' + str(arrow_width)
 	gv(r)
 
 

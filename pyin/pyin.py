@@ -557,7 +557,6 @@ class Rule(Kbdbgable):
 				else:
 					nolog or log ("rule done")
 					step()
-					nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
 					break#if it's tried all the possibilities for finishing a rule
 		nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
 

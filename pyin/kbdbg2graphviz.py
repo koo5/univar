@@ -61,8 +61,7 @@ def generate_gv_image(g, step):
 	global arrow_width, last_bindings
 
 	gv("digraph frame"+str(step) + "{")
-	gv("pack=true")
-	gv('layout="neato"')
+	#gv("pack=true")
 
 	#print rules somewhere on the side?
 	#for rule in g.subjects(RDF.type, kbdbg.rule):
@@ -79,7 +78,7 @@ def generate_gv_image(g, step):
 		#if last_frame:
 		#	arrow(last_frame, f, color='yellow', weight=100)
 		parent = g.value(frame, kbdbg.has_parent)
-		if parent and not g.value(parent, kbdbg.is_finished, default=False):
+		if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
 			arrow(gv_escape(parent), f, color='yellow', weight=100)
 		last_frame = f
 		#if i == 0 and current_result:
@@ -160,7 +159,7 @@ def gv_endpoint(g, uri):
 def get_frame_gv(i, g, frame):
 	r = ' [shape=none, margin=0, '
 	if not g.value(frame, kbdbg.has_parent):
-		r += 'pin=true, pos="1000,100!", '
+		r += 'pin=true, pos="1000,100!", margin="10,0.055" , '#40
 	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
@@ -257,9 +256,13 @@ def run():
 	global gv_output_file
 	input_file = open("kbdbg.n3")
 	lines = []
-	os.system("rm kbdbg*gv")
-	os.system("rm aaakbdbg*png")
-	os.system("rm kbdbg*svg")
+	os.system("rm -f kbdbg*gv")
+	os.system("rm -f aaakbdbg*png")
+	os.system("rm -f kbdbg*svg")
+
+	import multiprocessing
+	pool=multiprocessing.Pool(1)
+
 	while True:
 		l = input_file.readline()
 		if l == "":
@@ -284,9 +287,13 @@ def run():
 		gv_output_file = open(gv_output_file_name, 'w')
 		generate_gv_image(g, step)
 		gv_output_file.close()
-		import threading#dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg;
-		threading.Thread(target=lambda:
-			os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
+		#import threading#dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg;
+		#threading.Thread(target=lambda:
+		#	os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
+
+		pool.apply_async(os.system, ("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png",))
+
+
 
 
 if __name__ == '__main__':

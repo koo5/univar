@@ -29,7 +29,7 @@ logger.debug("hi")
 log=logger.debug
 
 arrow_width = 1
-border_width = 1
+border_width = 0
 gv_output_file = None
 
 def gv(text):
@@ -44,6 +44,9 @@ def gv_escape(string):
 	r = ""
 	for i in string:
 		r += str(ord(i)).zfill(4)
+	for i in string:
+		if i.isalnum():
+			r += i
 	return "gv"+r
 	return "<"+urllib.parse.quote_plus(string)+">"
 	return '"%s"' % string
@@ -88,18 +91,20 @@ def generate_gv_image(g, step):
 		if g.value(g.value(bnode, kbdbg.has_parent), kbdbg.is_finished, default=False):
 			continue
 		(doc, tag, text) = yattag.Doc().tagtext()
-		with tag("table"):
+		with tag("table", border=0, cellspacing=0):
 			#for i in Collection(g, bnode):
 			with tag('tr'):
-				with tag('td'):
+				with tag('td', border=1):
 					text((shorten(bnode.n3())))
 			for i in g.objects(bnode, kbdbg.has_item):
 				with tag('tr'):
 					name = g.value(i, kbdbg.has_name)
-					with tag("td", port=gv_escape(name)):
+					with tag("td", border=1, port=gv_escape(name)):
 						text(shorten(name))
-					with tag("td"):
+						text(' = ')
 						text(shorten(g.value(i, kbdbg.has_value)))
+					#with tag("td", border=1):
+					#	text(shorten(g.value(i, kbdbg.has_value)))
 		gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
 		arrow(gv_escape(g.value(bnode, kbdbg.has_parent)), gv_escape(bnode), color='yellow', weight=100)
 
@@ -159,16 +164,17 @@ def gv_endpoint(g, uri):
 def get_frame_gv(i, g, frame):
 	r = ' [shape=none, margin=0, '
 	if not g.value(frame, kbdbg.has_parent):
-		r += 'pin=true, pos="1000,100!", margin="10,0.055" , '#40
+		r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
 	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame) + ">]"
 
 def get_frame_html_label(g, frame):
 		rule = g.value(frame, kbdbg.is_for_rule)
 		head = g.value(rule, kbdbg.has_head)
 		doc, tag, text = yattag.Doc().tagtext()
-		with tag("table", border=0, cellborder=2, cellpadding=0, cellspacing=0):
+
+		with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 			with tag("tr"):
-				with tag('td'):
+				with tag('td', border=border_width):
 					text((shorten(frame.n3())))
 				with tag("td", border=border_width):
 					text("{")

@@ -13,7 +13,8 @@ import click
 @click.argument('goal', type=click.File('rb'))
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
-def query_from_files(kb, goal, nokbdbg, nolog):
+@click.option('--visualize', default=False)
+def query_from_files(kb, goal, nokbdbg, nolog, visualize):
 	import pyin
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
@@ -75,6 +76,8 @@ def query_from_files(kb, goal, nokbdbg, nolog):
 			o += str(triple)
 		print (o)
 
+	if visualize:
+		os.system('pyin/kbdbg2graphviz.py')
 
 
 if __name__ == "__main__":

@@ -387,24 +387,24 @@ def emit_args(args):
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
-	def __init__(s, original_head, head, body=Graph()):
+	def __init__(singleton, original_head, head, body=Graph()):
 		super().__init__()
-		s.head = head
-		s.body = body
-		s.original_head = original_head
-		s.locals_template = s.make_locals(head, body, s.kbdbg_name)
-		s.ep_heads = []
+		singleton.head = head
+		singleton.body = body
+		singleton.original_head = original_head
+		singleton.locals_template = singleton.make_locals(head, body, singleton.kbdbg_name)
+		singleton.ep_heads = []
 
-		nokbdbg or kbdbg(":"+s.kbdbg_name + ' a ' + 'kbdbg:rule')
-		if s.head:
-			head_uri = ":"+s.kbdbg_name + "Head"
-			nokbdbg or kbdbg(":"+s.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-			nokbdbg or kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(s.head)) + '"')
-			emit_term(s.head, head_uri)
-		if s.body:
-			body_uri = s.kbdbg_name + "Body"
-			nokbdbg or kbdbg(":"+s.kbdbg_name + ' kbdbg:has_body :' + body_uri)
-			for i in s.body:
+		nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' a ' + 'kbdbg:rule')
+		if singleton.head:
+			head_uri = ":"+singleton.kbdbg_name + "Head"
+			nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
+			nokbdbg or kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(singleton.head)) + '"')
+			emit_term(singleton.head, head_uri)
+		if singleton.body:
+			body_uri = singleton.kbdbg_name + "Body"
+			nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
+			for i in singleton.body:
 				body_term_uri = ":" + bnode()
 				emit_term(i, body_term_uri)
 				nokbdbg or kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
@@ -413,11 +413,11 @@ class Rule(Kbdbgable):
 				body_uri = body_uri2
 			nokbdbg or kbdbg(":"+body_uri + " rdf:rest rdf:nil")
 
-	def __str__(s):
-		return "{" + str(s.head) + "} <= " + str(s.body)
+	def __str__(singleton):
+		return "{" + str(singleton.head) + "} <= " + str(singleton.body)
 
-	def make_locals(s, head, body, kbdbg_rule):
-		locals = Locals({}, s)
+	def make_locals(singleton, head, body, kbdbg_rule):
+		locals = Locals({}, singleton)
 		locals.kbdbg_frame = "locals_template_for_" + kbdbg_rule
 		for triple in ([head] if head else []) + body:
 			for a in triple.args:
@@ -428,28 +428,27 @@ class Rule(Kbdbgable):
 				locals[a] = x
 		return locals
 
-	def rule_unify(s, parent, args):
+	def rule_unify(singleton, parent, args):
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
 		depth = 0
 		generators = []
-		kbdbg_name = rdflib.URIRef(s.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
-		s.kbdbg_name2 = kbdbg_name
-		locals = s.locals_template.new(kbdbg_name)
-		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+s.kbdbg_name)
+		kbdbg_name = rdflib.URIRef(singleton.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
+		locals = singleton.locals_template.new(kbdbg_name)
+		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+singleton.kbdbg_name)
 		if parent:
-			nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:has_parent " + parent.kbdbg_name2.n3())
+			nokbdbg or kbdbg(kbdbg_name.n3() + " kbdbg:has_parent " + parent.n3())
 		existential_bindings = []
-		existentials = s.get_existentials()
+		existentials = singleton.get_existentials()
 		for arg_idx, arg in enumerate(args):
 			bn = arg.thing.is_part_of_bnode()
 			if not bn: continue
 			if not ('is_a_bnode_from_rule' in bn.__dict__): continue
-			if bn.is_a_bnode_from_rule == s.original_head:
+			if bn.is_a_bnode_from_original_rule == singleton.original_head:
 				if bn.is_from_name in existentials:
-					if s.head.args[arg_idx] == bn.is_from_name:
+					if singleton.head.args[arg_idx] == bn.is_from_name:
 						for k,v in bn.items():
-							for head_arg_idx, head_arg in enumerate(s.head.args):
+							for head_arg_idx, head_arg in enumerate(singleton.head.args):
 								if type(locals[head_arg]) == Atom:
 									continue
 								a0 = Arg(
@@ -459,7 +458,7 @@ class Rule(Kbdbgable):
 								a1 = Arg(
 									k,
 									bn[head_arg],
-									bn.kbdbg_frame if dbg else None,
+									bn.kbdbg_name if dbg else None,
 									head_arg, 0, 'bnode')
 								if head_arg in [exbi[0].uri for exbi in existential_bindings]:
 									continue
@@ -470,10 +469,10 @@ class Rule(Kbdbgable):
 		if len(existential_bindings):
 			max_depth = len(args) + len(existential_bindings) - 1
 		else:
-			max_depth = (len(args) + len(s.body) + len(existentials)) - 1
+			max_depth = (len(args) + len(singleton.body) + len(existentials)) - 1
 
 		def desc():
-			return ("\n#vvv\n#" + str(s) + "\n" +
+			return ("\n#vvv\n#" + #str(singleton) + "\n" +
 			"#args:" + str(args) + "\n" +
 			"#locals:" + str(locals) + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#^^^")
@@ -484,7 +483,7 @@ class Rule(Kbdbgable):
 			if len(generators) <= depth:
 				if depth < len(args):
 					arg_index = depth
-					head_uriref = s.head.args[arg_index]
+					head_uriref = singleton.head.args[arg_index]
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
 					head_thing.arg_index = arg_index
@@ -493,24 +492,25 @@ class Rule(Kbdbgable):
 					print ('unrolling', arg_text(eee[0]), " into ", eee[1])
 					generator = unify(eee[0],eee[1])
 					print("existential generator", generator)
-				elif (depth < len(args) + len(s.body)):
+				elif (depth < len(args) + len(singleton.body)):
 					body_item_index = depth - len(args)
-					triple = s.body[body_item_index]
+					triple = singleton.body[body_item_index]
 					bi_args = []
 					for arg_idx, uri in enumerate(triple.args):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
-					generator = pred(triple.pred, s, bi_args)
+					generator = pred(triple.pred, kbdbg_name, bi_args)
 				else:
 					"""generate blank node:"""
-					ex_idx = depth - len(args) - len(s.body)
+					ex_idx = depth - len(args) - len(singleton.body)
 					e = existentials[ex_idx]
-					bn = Locals({}, s)
-					bn.kbdbg_frame = URIRef(s.kbdbg_name2 + ("_bnode" + str(total_bnode_counter)))
+					bn = Locals({}, singleton, total_bnode_counter, kbdbg_name)
 					total_bnode_counter += 1
-					bn.is_a_bnode_from_rule = s.original_head
-					bn.is_from_name = e	#bn.is_from_triple_idx = idx_in_original_head #bn.is_from_arg_idx = e.position_in_head_args
-					for triple in s.original_head:
+					bn.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
+					total_bnode_counter += 1
+					bn.is_a_bnode_from_original_rule = singleton.original_head
+					bn.is_from_name = e
+					for triple in singleton.original_head:
 						for arg in triple.args:
 							if arg in bn:
 								continue
@@ -522,8 +522,8 @@ class Rule(Kbdbgable):
 							x.debug_locals = weakref(bn)
 							bn[arg] = x
 							uri = bnode()
-							nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_item " + uri)
-							nokbdbg or kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(arg).n3())
+							nokbdbg or kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_item " + uri)
+							nokbdbg or kbdbg(uri + " kbdbg:has_name " + arg.n3())
 							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
 					generator = unify(
 						Arg(
@@ -533,10 +533,11 @@ class Rule(Kbdbgable):
 						Arg(
 							e,
 							bn[e],
-							bn.kbdbg_frame if dbg else None,
+							bn.kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
-					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " rdf:type kbdbg:bnode")
-					nokbdbg or kbdbg(bn.kbdbg_frame.n3() + " kbdbg:has_parent " + s.kbdbg_name2.n3())
+					nokbdbg or kbdbg(bn.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
+					#todo name
+					nokbdbg or kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -546,7 +547,6 @@ class Rule(Kbdbgable):
 					nolog or log ("down")
 					depth+=1
 				else:
-					#print ("#NYAN")
 					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
 			except StopIteration:
@@ -557,8 +557,8 @@ class Rule(Kbdbgable):
 				else:
 					nolog or log ("rule done")
 					step()
-					break#if it's tried all the possibilities for finishing a rule
-		nokbdbg or kbdbg(s.kbdbg_name2.n3() + " kbdbg:is_finished true")
+					break
+		nokbdbg or kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
 	def get_existentials(s):
 		vars = []

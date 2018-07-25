@@ -346,7 +346,7 @@ def run():
 		#threading.Thread(target=lambda:
 		#	os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
 
-		pool.apply_async(os.system, ("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white "+gv_output_file_name+".png",))
+		pool.apply_async(os.system, ("convert  -extent 6000x3000  "+gv_output_file_name+" -gravity NorthWest  -background white "+gv_output_file_name+".png",))
 
 
 

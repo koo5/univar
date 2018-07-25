@@ -278,10 +278,44 @@ def unify(_x, _y):
 		return x.bind_to(y, _x, _y)
 	elif type(y) == Var and not y.is_part_of_bnode():
 		return y.bind_to(x, _y, _x)
+	elif type(x) == Var and type(y) == Var and are_same_bnodes(x,y):
+		return success("same bnodes", _x, _y)
 	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
 		return success("same consts", _x, _y)
 	else:
 		return fail(_x, _y)
+
+def are_same_bnodes(x,y):
+	assert(x.bound_to == None)
+	assert(y.bound_to == None)
+	xbn = x.is_part_of_bnode()
+	ybn = y.is_part_of_bnode()
+	if not xbn or not ybn:
+	    return False
+	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
+		return False
+	assert len(xbn) == len(ybn)
+	for k,xv in xbn.items():
+		if k not in ybn:
+			return False
+		yv = ybn[k]
+		if type(xv) != type(yv):
+			return False
+		if type(xv) != Var:
+			if xv.value != yv.value:
+				return False
+		else:
+			assert(xv.bound_to == None)
+			assert(yv.bound_to == None)
+			xvbn = xv.is_part_of_bnode()
+			yvbn = yv.is_part_of_bnode()
+			if (xvbn and not yvbn) or (yvbn and not xvbn):
+				return False
+			if xvbn:
+				if not are_same_bnodes(xvbn,yvbn):
+					return False
+	return True
+
 
 def get_value(x):
 	asst(x)

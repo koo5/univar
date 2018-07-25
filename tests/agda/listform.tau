@@ -1,7 +1,7 @@
 kb
 @prefix : <#>.
 {?a :listform ?l. ?l :a :set}<={?a :a :set}.
-{:nil :a ?a}<={?a :listform ?l}.
+{:nil :a ?l}<={?a :listform ?l}.
 {?r :first ?x. ?r :rest ?xs. ?r :a ?l} <= {?a :listform ?l. ?x :a ?a. ?xs :a ?l}.
 :bool :a :set. :true :a :bool. :false :a :bool.
 fin.

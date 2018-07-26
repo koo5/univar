@@ -1,0 +1,21 @@
+@prefix log: <http://www.w3.org/2000/10/swap/log#>.    
+@prefix kbdbg: <http://kbd.bg/#> .
+@prefix : <file:///#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+@forAll :x,:y,:f,:r.
+{<file:///home/koom/univar/kbdbg.n3> log:semantics ?kbdbg .
+?kbdbg log:includes {
+		:f a kbdbg:frame.
+		:f kbdbg:is_for_rule :r.
+#		?b a kbdbg:binding. ?b kbdbg:has_source [kbdbg:has_frame ?y].
+#		?b kbdbg:has_target ?t.
+#		?t kbdbg:has_frame ?tf. 
+}.
+?kbdbg log:notIncludes {
+:f kbdbg:is_finished true.
+}
+} => {:this :result (:x :y :f :r).}.
+
+
+

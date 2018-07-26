@@ -286,13 +286,18 @@ def unify(_x, _y):
 		return fail(_x, _y)
 
 def are_same_bnodes(x,y):
+	kbdbg_uri = bnode()
+	nokbdbg or kbdbg(kbdbg_uri + " a kbdbg:are_same_bnodes_check")
 	assert(x.bound_to == None)
 	assert(y.bound_to == None)
 	xbn = x.is_part_of_bnode()
 	ybn = y.is_part_of_bnode()
 	if not xbn or not ybn:
 	    return False
+	for id, i in (('x', xbn),('y', ybn)):
+		nokbdbg or kbdbg(kbdbg_uri + " kbdbg:has_" + id + "(" + " ".join(emit_terms(i.is_a_bnode_from_original_rule)) + ')')
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
+		nokbdbg or kbdbg(kbdbg_uri + " a kbdbg:fail")
 		return False
 	assert len(xbn) == len(ybn)
 	for k,xv in xbn.items():
@@ -404,7 +409,7 @@ def emit_args(args):
 	#return c.n3()
 	r = '('
 	for i in args:
-		r += i.n3()
+		r += i.n3() + ' '
 	r += ')'
 	return r
 
@@ -428,7 +433,7 @@ class Rule(Kbdbgable):
 			body_uri = singleton.kbdbg_name + "Body"
 			nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
 			for i in singleton.body:
-				body_term_uri = ":" + bnode()
+				body_term_uri = bnode()
 				emit_term(i, body_term_uri)
 				nokbdbg or kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
 				body_uri2 = body_uri + "X"

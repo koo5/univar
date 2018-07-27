@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time
 import subprocess
 import re
 import os
@@ -19,15 +20,54 @@ kbdbg = Namespace('http://kbd.bg/#')
 def run():
 	os.system('rm -rf filter/*')
 
+
+
+	q1 = """
+	?kbdbg log:includes {:f a kbdbg:frame.}.
+	?kbdbg log:notIncludes {:f kbdbg:is_finished true.}.
+	?kbdbg log:includes {:f kbdbg:is_for_rule :r.}.
+	?kbdbg log:includes {?b a kbdbg:binding. ?b kbdbg:has_source [kbdbg:has_frame ?y].}.
+	?kbdbg log:includes {?b kbdbg:has_target ?t.}.
+	?kbdbg log:includes {?t kbdbg:has_frame ?tf.}. 
+	"""
+	full_q_lines = q1.strip().splitlines()
+
+	filters = []
+
+	for i in range(len(full_q_lines), 0, -1):
+		lines = full_q_lines[:i]
+		qqq = '\n'.join(lines)
+		vars = re.findall(".:[a-zA-Z0-9_]*", qqq)
+		vars = set([x[1:] for x in filter(lambda x: not x[0].isalnum() and not (x[0] in '_'), vars)])
+		q0 = """
+@prefix log: <http://www.w3.org/2000/10/swap/log#>.    
+@prefix kbdbg: <http://kbd.bg/#> .
+@prefix : <file:///#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@forAll """ + ','.join(vars) + """.
+{<file:///home/koom/univar/kbdbg.n3> log:semantics ?kbdbg .
+	
+	
+	"""
+		q2 = "\n\n\n} => {("
+		q2 += ' '.join(vars)
+		q2 += ') a :result}.'
+
+		qf_name = 'filter/query'+str(i)+'.n3'
+		qf = open(qf_name,'w')
+		qf.write(q0+qqq+q2)
+		qf.close()
+		filters.append((i, qf_name))
+
+
+
 	if len(sys.argv) == 2:
 		fn = sys.argv[1]
 	else:
 		fn = 'kbdbg.n3'
 	input_file = open(fn)
-	lines = []
-	#os.system("rm -f kbdbg"+fn+'\\.*')
 
-	g = Graph(OrderedStore())
+	lines = []
 	prefixes = []
 	steps = []
 	while True:
@@ -56,57 +96,31 @@ def run():
 		output_file.close()
 		steps.append(output_file_name)
 
-
-	q1 = """
-?kbdbg log:includes {:f a kbdbg:frame.}.
-?kbdbg log:notIncludes {:f kbdbg:is_finished true.}
-?kbdbg log:includes {:f kbdbg:is_for_rule :r.}.
-?kbdbg log:includes {?b a kbdbg:binding. ?b kbdbg:has_source [kbdbg:has_frame ?y].}.
-?kbdbg log:includes {?b kbdbg:has_target ?t.}.
-?kbdbg log:includes {?t kbdbg:has_frame ?tf.}. 
-"""
-	full_q_lines = q1.splitlines()
-
-	filters = []
-
-	for i in range(len(full_q_lines), 1, -1):
-		lines = full_q_lines[:i]
-
-		vars = re.findall("\\?[azAZ09_]", q1)
-		q0 = """
-@prefix log: <http://www.w3.org/2000/10/swap/log#>.    
-@prefix kbdbg: <http://kbd.bg/#> .
-@prefix : <file:///#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-{
-@forAll """ + ','.join(vars) + """.
-{<file:///home/koom/univar/kbdbg.n3> log:semantics ?kbdbg .
-	"""
-		q2 = "} => {("
-		q2 += ' '.join(vars)
-		q2 += ') a :result}.'
-
-		qf_name = 'filter/query'+str(i)+'.n3'
-		qf = open(qf_name,'w')
-		qf.write(q0+'\n'.join(lines)+q2)
-		qf.close()
-		filters.append(qf_name)
-
+	sys.stdout.write('[ ]')
 	try:
-		best = 0
+		best = None
+		best_score = 0
 		for step in steps:
-			for filter in filters:
-				print('best', best, 'step', step, 'filter', filter)
-				o = subprocess.check_output(['/home/koom/sw/swap/cwm.py', step, '--filter=' + filter])
+			start = time.time()
+			for i, query in filters:
+				if i <= best_score:
+					break
+				print('best_score', best_score, 'best', best, 'step', step, 'filter', query)
+				cmd = ['/home/koom/sw/swap/cwm.py', step, '--filter=' + query]
+				o = subprocess.check_output(cmd)
 				succ = (len(o.splitlines()) > 3)
 				if succ:
-					print('best', best, 'step', step, 'filter', filter)
-					if best < i:
-						best = i
+					sys.stdout.write('[s]')
+					if best_score < i:
+						best = query
+						best_score = i
 					break
+				else:
+					sys.stdout.write('[f]')
+			print(str(time.time() - start) + 's')
 	except subprocess.CalledProcessError as e:
 		print(e.output)
-
+	print('kthxbye')
 
 if __name__ == '__main__':
 	run()

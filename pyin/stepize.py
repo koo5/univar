@@ -17,7 +17,8 @@ from ordered_rdflib_store import OrderedStore
 kbdbg = Namespace('http://kbd.bg/#')
 
 def run():
-	global gv_output_file
+	os.system('rm -rf filter/*')
+
 	if len(sys.argv) == 2:
 		fn = sys.argv[1]
 	else:
@@ -43,9 +44,8 @@ def run():
 			continue
 
 		i = "".join(prefixes+lines)
-		g.parse(data=i, format='n3')
 
-		output_file_name = fn + '_' + str(step).zfill(5) + '.n3'
+		output_file_name = 'filter/'+fn + '_' + str(step).zfill(5) + '.n3'
 		try:
 			os.unlink(output_file_name)
 		except FileNotFoundError:
@@ -65,11 +65,13 @@ def run():
 ?kbdbg log:includes {?b kbdbg:has_target ?t.}.
 ?kbdbg log:includes {?t kbdbg:has_frame ?tf.}. 
 """
-	full_q_lines = q1.splitlines(q1)
+	full_q_lines = q1.splitlines()
 
 	longest = len(full_q_lines) + 1
 
-	for i in range(1, longest):
+	filters = []
+
+	for i in range(longest, 1, -1):
 		lines = full_q_lines[:i]
 
 		vars = re.findall("\\?[azAZ09_]", q1)
@@ -84,24 +86,28 @@ def run():
 	"""
 		q2 = "} => {("
 		q2 += ' '.join(vars)
-		q2 += ') a :result}.
+		q2 += ') a :result}.'
 
-		qf_name = 'query'+str(i)+'.n3'
+		qf_name = 'filter/query'+str(i)+'.n3'
 		qf = open(qf_name,'w')
 		qf.write(q0+'\n'.join(lines)+q2)
 		qf.close()
+		filters.append(qf_name)
 
-	best = 0
-	for step in steps:
-		for i in range(1, longest, -1):
-			o = subprocess.check_output(['~/sw/swap/cwm.py', output_file_name, '--filter=' + filter_file_name])
-			succ = (len(o.splitlines()) > 3)
-			if succ:
-				print('step ', step, 'q ', i)
-				if best < i:
-					best = i
-				break
-	print ('best', best)
+	try:
+		best = 0
+		for step in steps:
+			for filter in filters:
+				print('best', best, 'step', step, 'filter', filter)
+				o = subprocess.check_output(['/home/koom/sw/swap/cwm.py', step, '--filter=' + filter])
+				succ = (len(o.splitlines()) > 3)
+				if succ:
+					print('best', best, 'step', step, 'filter', filter)
+					if best < i:
+						best = i
+					break
+	except subprocess.CalledProcessError as e:
+		print(e.output)
 
 
 if __name__ == '__main__':

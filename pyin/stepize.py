@@ -67,11 +67,9 @@ def run():
 """
 	full_q_lines = q1.splitlines()
 
-	longest = len(full_q_lines) + 1
-
 	filters = []
 
-	for i in range(longest, 1, -1):
+	for i in range(len(full_q_lines), 1, -1):
 		lines = full_q_lines[:i]
 
 		vars = re.findall("\\?[azAZ09_]", q1)

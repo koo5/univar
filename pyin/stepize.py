@@ -96,28 +96,32 @@ def run():
 		output_file.close()
 		steps.append(output_file_name)
 
+	filters = list(reversed(filters))
+
 	sys.stdout.write('[ ]')
 	try:
 		best = None
 		best_score = 0
 		for step in steps:
-			start = time.time()
+
 			for i, query in filters:
-				if i <= best_score:
-					break
+				start = time.time()
+				if i < best_score:
+					continue
 				print('best_score', best_score, 'best', best, 'step', step, 'filter', query)
 				cmd = ['/home/koom/sw/swap/cwm.py', step, '--filter=' + query]
 				o = subprocess.check_output(cmd)
+				sys.stdout.write('('+str(time.time() - start).ljust(20,'0') + 's)')
 				succ = (len(o.splitlines()) > 3)
 				if succ:
 					sys.stdout.write('[s]')
 					if best_score < i:
 						best = query
 						best_score = i
-					break
 				else:
 					sys.stdout.write('[f]')
-			print(str(time.time() - start) + 's')
+					break
+
 	except subprocess.CalledProcessError as e:
 		print(e.output)
 	print('kthxbye')

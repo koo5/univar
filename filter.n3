@@ -7,9 +7,9 @@
 {<file:///home/koom/univar/kbdbg.n3> log:semantics ?kbdbg .
 ?kbdbg log:includes {
 		:f a kbdbg:frame.
-		:f kbdbg:is_for_rule :r.
+		:f kbdbg:is_for_rrrrrrrrrrule :r.
 #		?b a kbdbg:binding. ?b kbdbg:has_source [kbdbg:has_frame ?y].
-#		?b kbdbg:has_target ?t.
+#		?b kbdbg:has_tarrrrrrrrrrget ?t.
 #		?t kbdbg:has_frame ?tf. 
 }.
 ?kbdbg log:notIncludes {

@@ -90,6 +90,7 @@ def run():
 
 	#filters = list(reversed(filters))
 	#with multiprocessing.Pool(8) as p:
+	#https://stackoverflow.com/questions/3033952/threading-pool-similar-to-the-multiprocessing-pool
 
 	random_order_steps = steps[:]
 	import random

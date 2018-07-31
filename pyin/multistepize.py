@@ -92,6 +92,9 @@ def run():
 	#with multiprocessing.Pool(8) as p:
 	#https://stackoverflow.com/questions/3033952/threading-pool-similar-to-the-multiprocessing-pool
 
+	#from concurrent.futures import ThreadPoolExecutor
+	#pool = ThreadPoolExecutor(max_workers = 4)
+
 	random_order_steps = steps[:]
 	import random
 	random.shuffle(random_order_steps)

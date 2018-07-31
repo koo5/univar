@@ -310,8 +310,8 @@ def run():
 	lines = []
 	os.system("rm -f kbdbg"+fn+'\\.*')
 
-	import multiprocessing
-	pool=multiprocessing.Pool(4)
+	from concurrent.futures import ThreadPoolExecutor
+	pool = ThreadPoolExecutor(max_workers = 4)
 
 	g = Graph(OrderedStore())
 	prefixes = []
@@ -342,12 +342,9 @@ def run():
 		gv_output_file = open(gv_output_file_name, 'w')
 		generate_gv_image(g, step)
 		gv_output_file.close()
-		#import threading#dot "+gv_output_file_name+" -Tsvg > "+gv_output_file_name+".svg;
-		#threading.Thread(target=lambda:
-		#	os.system("convert  -extent 8000x1000  "+gv_output_file_name+" -gravity NorthWest  -background white aaa"+gv_output_file_name+".png")).start()
+		pool.submit(os.system, ("convert  -extent 6000x3000 "+gv_output_file_name+" -gravity NorthWest  -background white " + gv_output_file_name+".png"))
 
-		pool.apply_async(os.system, ("convert  -extent 6000x3000  "+gv_output_file_name+" -gravity NorthWest  -background white visualizations/"+gv_output_file_name+".png",))
-
+	pool.shutdown()
 
 
 

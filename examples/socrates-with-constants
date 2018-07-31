@@ -3,6 +3,6 @@ kb
 { ?x :a :mortal } <= { ?x :a :man }  .
 fin.
 query
-?who :a ?what .
+:socrates :a :mortal .
 fin.
 

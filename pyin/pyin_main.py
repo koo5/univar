@@ -18,7 +18,10 @@ import click
 @click.option('--identification', default="")
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 	identification = "".join([ch if ch.isalnum() else "_" for ch in identification])
-	pyin.kbdbg_file_name = 'kbdbg'+identification+'.n3'
+	fn = 'kbdbg'+identification+'.n3'
+	outpath = 'visualizations/'+fn+ '/'
+	pyin.kbdbg_file_name = outpath + fn
+	os.system('mkdir -p '+outpath)
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
 	pyin.init_logging()

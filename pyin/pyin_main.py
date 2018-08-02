@@ -1,6 +1,50 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from pymantic import sparql
+
+server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
+
+server.update("""CLEAR GRAPHS""")
+
+
+server.update("""
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+INSERT DATA
+{ 
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix kbdbg: <http://kbd.bg/#> .
+@prefix : <file:///#> .
+_:x rdf:type rdf:Statement .
+_:x rdf:subject :Tolkien .
+_:x rdf:predicate :wrote .
+_:x rdf:object :LordOfTheRings .
+_:x <http://kbd.bg/#has_step> 1.
+}
+""")
+
+server.update("""
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+INSERT DATA
+{ 
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix kbdbg: <http://kbd.bg/#> .
+@prefix : <file:///#> .
+_:x rdf:type rdf:Statement .
+_:x rdf:subject :Tolkien .
+_:x rdf:predicate :wrote .
+_:x rdf:object :LordOfTheRings .
+_:x <http://kbd.bg/#has_step> 1.
+}
+""")
+
+
+
+
+result = server.query('select * where { ?s ?p ?o }')
+for b in result['results']['bindings']:
+    print ("%s %s %s"% (b['s']['value'], b['p']['value'], b['o']['value']))
+
 import rdflib
 from ordered_rdflib_store import OrderedStore
 

@@ -8,29 +8,6 @@ server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
 server.update("""CLEAR GRAPHS""")
 
 
-server.update("""
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
-PREFIX : <file:///#> 
-INSERT 
-{
-	Graph :step1
-	{ 
-		:Tolkien :wrote :LordOfTheRings. 
-	}.
-	Graph :step2
-	{ 
-		:LordOfTheRings :is :boring. 
-	}.
-	Graph :step3
-	{ 
-		:LordOfTheRings :is :exciting. 
-	}.
-	
-} WHERE {}
-""")
-
 result = server.query("""
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

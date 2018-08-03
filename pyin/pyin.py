@@ -40,12 +40,39 @@ def init_logging():
 	logger2=logging.getLogger("kbdbg")
 	logger2.addHandler(kbdbg_out)
 
-	log, kbdbg = logger1.debug, logger2.info
+	log, kbdbg_text = logger1.debug, logger2.info
 
-	nokbdbg or kbdbg("@prefix kbdbg: <http://kbd.bg/#> ")
-	nokbdbg or kbdbg("@prefix : <file:///#> ")
-	nokbdbg or kbdbg("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
+	nokbdbg or kbdbg_text("@prefix kbdbg: <http://kbd.bg/#> ")
+	nokbdbg or kbdbg_text("@prefix : <file:///#> ")
+	nokbdbg or kbdbg_text("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
 	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
+
+
+def kbdbg(s,p,o):
+	kbdbg_text(" ".join((s,p,o)))
+
+server.update("""
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+PREFIX : <file:///#> 
+INSERT 
+{
+	Graph :step1
+	{ 
+		:Tolkien :wrote :LordOfTheRings. 
+	}.
+	Graph :step2
+	{ 
+		:LordOfTheRings :is :boring. 
+	}.
+	Graph :step3
+	{ 
+		:LordOfTheRings :is :exciting. 
+	}.
+	
+} WHERE {}
+""")
 
 
 global_step_counter = 0

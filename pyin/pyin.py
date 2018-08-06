@@ -20,8 +20,10 @@ kbdbg_prefix = URIRef('http://kbd.bg/#')
 # "#RESULT:" lines are for univar fronted/runner/tester ("tau")
 # the rest of the comment lines are random noise
 
+log, kbdbg_text = 666,666
+
 def init_logging():
-	global log, kbdbg
+	global log, kbdbg_text
 	formatter = logging.Formatter('#%(message)s')
 	console_debug_out = logging.StreamHandler()
 	console_debug_out.setFormatter(formatter)
@@ -48,37 +50,41 @@ def init_logging():
 	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
-def kbdbg(s,p,o):
-	kbdbg_text(" ".join((s,p,o)))
+#def kbdbg(s,p,o):
+#	spo = (s,p,o)
+#	kbdbg_text(" ".join(spo))
+#	server.update("""
+#PREFIX dc: <http://purl.org/dc/elements/1.1/>
+#PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#PREFIX kbdbg: <http://kbd.bg/#>
+#PREFIX : <file:///#>
+#INSERT
+#{
+#	Graph http://kbd.bg/#step""" + str(global_step_counter) + """
+#	{
+#		""" + " ".join(x.n3() for x in spo) + """.
+#	}.
+#} WHERE {}""")
 
-server.update("""
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
+def kbdbg(text):
+	kbdbg_text(text)
+	server.update("""
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
 INSERT 
 {
-	Graph :step1
+	Graph http://kbd.bg/#step""" + str(global_step_counter) + """
 	{ 
-		:Tolkien :wrote :LordOfTheRings. 
+		""" + text + """. 
 	}.
-	Graph :step2
-	{ 
-		:LordOfTheRings :is :boring. 
-	}.
-	Graph :step3
-	{ 
-		:LordOfTheRings :is :exciting. 
-	}.
-	
-} WHERE {}
-""")
+} WHERE {}""")
 
 
 global_step_counter = 0
 def step():
 	global global_step_counter
-	nokbdbg or kbdbg("#step"+str(global_step_counter) + " a kbdbg:step")
+	nokbdbg or kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
 	global_step_counter += 1
 	if global_step_counter == 14:
 		print('hi')
@@ -88,8 +94,6 @@ def bnode():
 	global bnode_counter
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
-
-log, kbdbg = 666,666
 
 
 def printify(iterable, separator):
@@ -140,6 +144,7 @@ class EpHead(Kbdbgable):
 	def __init__(s):
 		super().__init__()
 		s.kbdbg_name = ':' + s.kbdbg_name
+		s.kbdbg_name = URIRef
 		s.items = []
 
 class AtomVar(Kbdbgable):
@@ -252,7 +257,7 @@ class Var(AtomVar):
 		yield msg
 
 		x.bound_to = None
-		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true;")
+		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
 		step()
 		#nokbdbg or kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
 
@@ -269,18 +274,19 @@ def fail(_x, _y):
 	nokbdbg or kbdbg(uri + " kbdbg:failed true")
 	step()
 
-def emit_binding(_x, _y, is_failed = False):
+def emit_binding(_x, _y):
 	uri = bnode()
-	nokbdbg or kbdbg(uri + " a kbdbg:binding; " +
-	      "kbdbg:has_source " + arg_text(_x) + "; kbdbg:has_target " + arg_text(_y) )
-	step()#+    (";kbdbg:is_failed true" if is_failed else "")
+	nokbdbg or kbdbg(uri + " rdf:type kbdbg:binding")
+	nokbdbg or kbdbg(uri + " kbdbg:has_source " + arg_text(_x))
+	nokbdbg or kbdbg(uri + " kbdbg:has_target " + arg_text(_y))
 	return uri
 
 def arg_text(x):
-	r = "[ kbdbg:has_frame " + x.frame.n3() + "; "
+	r = bnode()
+	nokbdbg or kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if type(x.is_in_head) == bool:
 		if x.is_in_head:
-			r += "kbdbg:is_in_head true; "
+			nokbdbg or kbdbg(r + " kbdbg:is_in_head true")
 	else:
 		r += 'kbdbg:is_bnode true; '
 	r += "kbdbg:term_idx "

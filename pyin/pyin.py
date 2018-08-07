@@ -66,28 +66,33 @@ def init_logging():
 #	}.
 #} WHERE {}""")
 
-def kbdbg(text):
+def kbdbg(text, default = False):
 	kbdbg_text(text)
 	server.update("""
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
-INSERT 
-{
-	Graph http://kbd.bg/#step""" + str(global_step_counter) + """
-	{ 
-		""" + text + """. 
-	}.
-} WHERE {}""")
+INSERT {""" + ("Graph " + step_graph_name(global_step_counter) + "{" if not default else "") +
+	text + "." +
+	("}." if not default else "") +
+	"} WHERE {}")
 
+def step_graph_name(idx):
+	return this + '_' + str(idx)
+
+def step_list_item(idx):
+	return step_graph_name(idx) + "_list_item"
+
+def kbdbg_graph_first():
+	kbdbg(step_list_item(global_step_counter) + " rdf:first " + step_graph_name(global_step_counter))
 
 global_step_counter = 0
 def step():
 	global global_step_counter
 	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
+	kbdbg(step_list_item(global_step_counter) + " rdf:rest " + step_list_item(global_step_counter + 1))
 	global_step_counter += 1
-	if global_step_counter == 14:
-		print('hi')
+	kbdbg_graph_first()
 
 bnode_counter = 0
 def bnode():#todo:rename to bn
@@ -702,6 +707,8 @@ def pred(p, parent, args):
 def query(input_rules, input_query):
 	global preds, dbg
 	dbg = not nolog or not nokbdbg
+	kbdbg(this + " rdf:value " + step_list_item(0))
+	kbdbg_graph_first()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)

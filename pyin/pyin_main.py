@@ -1,59 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import pyin
+from pyin import *
+
 from pymantic import sparql
 
 server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
 
-server.update("""CLEAR GRAPHS""")
-
-
-result = server.query("""
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX kbdbg: <http://kbd.bg/#>
-PREFIX : <file:///#>
-SELECT * 
-FROM :step1
-FROM :step2
-WHERE
-{
-	:Tolkien :wrote ?what. ?what :is ?rating.
-}
-""")#?what :is ?rating.
-print ('yo')
-print(result)
+#server.update("""CLEAR GRAPHS""")
+import datetime
+this = ":"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
+pyin.this = this
+pyin.server = server
 server.update("""
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
-INSERT 
-{
-	:step1 rdf:a :result. :step2 rdf:a :result.
-} WHERE {}
-""")
+DELETE {kbdbg:latest kbdbg:is ?x} 
+INSERT {kbdbg:latest kbdbg:is """ + this + """
+} WHERE {kbdbg:latest kbdbg:is ?x}""")
 
-result = server.query("""
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX kbdbg: <http://kbd.bg/#>
-PREFIX : <file:///#>
-SELECT * 
-FROM ?result
-WHERE
-{
-	?result rdf:a :result. :Tolkien :wrote ?what. ?what :is ?rating.
-}
-""")#?what :is ?rating.
-print ('yo')
-print(result)
-exit()
 import rdflib
 from ordered_rdflib_store import OrderedStore
 
-import pyin
-from pyin import *
 
 import click
 

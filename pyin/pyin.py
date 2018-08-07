@@ -84,13 +84,13 @@ INSERT
 global_step_counter = 0
 def step():
 	global global_step_counter
-	nokbdbg or kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
+	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
 	global_step_counter += 1
 	if global_step_counter == 14:
 		print('hi')
 
 bnode_counter = 0
-def bnode():
+def bnode():#todo:rename to bn
 	global bnode_counter
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
@@ -163,8 +163,8 @@ class AtomVar(Kbdbgable):
 				s.kbdbg_name = s.debug_locals().kbdbg_frame
 			assert(debug_name)
 			s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
-	#		nokbdbg or kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
-	#		nokbdbg or kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_term " + ":"+)
+	#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
+	#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_term " + ":"+)
 	def recursive_clone(s):
 		if type(s) == Atom:
 			r = Atom(s.value, s.debug_locals if dbg else None)
@@ -249,7 +249,7 @@ class Var(AtomVar):
 
 		uri = emit_binding(_x, _y)
 
-		#nokbdbg or kbdbg(x.kbdbg_name + " kbdbg:was_bound_to " + y.kbdbg_name)
+		#kbdbg(x.kbdbg_name + " kbdbg:was_bound_to " + y.kbdbg_name)
 
 		msg = "bound " + str(x) + " to " + str(y)
 		nolog or log(msg)
@@ -257,47 +257,45 @@ class Var(AtomVar):
 		yield msg
 
 		x.bound_to = None
-		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
+		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
-		#nokbdbg or kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
+		#kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
 
 def success(msg, _x, _y):
 	uri = emit_binding(_x, _y)
 	yield msg
-	nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
+	kbdbg(uri + " kbdbg:was_unbound true")
 	step()
 
 def fail(_x, _y):
 	uri = emit_binding(_x, _y, True)
 	while False:
 		yield
-	nokbdbg or kbdbg(uri + " kbdbg:failed true")
+	kbdbg(uri + " kbdbg:failed true")
 	step()
 
 def emit_binding(_x, _y):
 	uri = bnode()
-	nokbdbg or kbdbg(uri + " rdf:type kbdbg:binding")
-	nokbdbg or kbdbg(uri + " kbdbg:has_source " + arg_text(_x))
-	nokbdbg or kbdbg(uri + " kbdbg:has_target " + arg_text(_y))
+	kbdbg(uri + " rdf:type kbdbg:binding")
+	kbdbg(uri + " kbdbg:has_source " + arg_text(_x))
+	kbdbg(uri + " kbdbg:has_target " + arg_text(_y))
 	return uri
 
 def arg_text(x):
 	r = bnode()
-	nokbdbg or kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
+	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if type(x.is_in_head) == bool:
 		if x.is_in_head:
-			nokbdbg or kbdbg(r + " kbdbg:is_in_head true")
+			kbdbg(r + " kbdbg:is_in_head true")
 	else:
-		r += 'kbdbg:is_bnode true; '
-	r += "kbdbg:term_idx "
-	if type(x.term_idx) == int:
-		r += str(x.term_idx)
-	else:
-		r += rdflib.Literal(x.term_idx).n3()
-	r += "; "
-	r += "kbdbg:arg_idx " + str(x.arg_idx)
-	r += "; "
-	return r + "]"
+		kbdbg(r + ' kbdbg:is_bnode true')
+	kbdbg(r + ' kbdbg:term_idx ' + (
+	                     str(x.term_idx)
+	                     if type(x.term_idx) == int
+	                     else rdflib.Literal(x.term_idx).n3()))
+
+	kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
+	return r
 
 def unify(_x, _y):
 	assert(isinstance(_x, Arg))
@@ -320,7 +318,7 @@ def unify(_x, _y):
 
 def are_same_bnodes(x,y):
 	kbdbg_uri = bnode()
-	nokbdbg or kbdbg(kbdbg_uri + " a kbdbg:are_same_bnodes_check")
+	kbdbg(kbdbg_uri + " rdf:type kbdbg:are_same_bnodes_check")
 	assert(x.bound_to == None)
 	assert(y.bound_to == None)
 	xbn = x.is_part_of_bnode()
@@ -328,9 +326,9 @@ def are_same_bnodes(x,y):
 	if not xbn or not ybn:
 	    return False
 	for id, i in (('x', xbn),('y', ybn)):
-		nokbdbg or kbdbg(kbdbg_uri + " kbdbg:has_" + id + "(" + " ".join(emit_terms(i.is_a_bnode_from_original_rule)) + ')')
+		kbdbg(kbdbg_uri + " kbdbg:has_" + id + "(" + " ".join(emit_terms(i.is_a_bnode_from_original_rule)) + ')')
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
-		nokbdbg or kbdbg(kbdbg_uri + " a kbdbg:fail")
+		kbdbg(kbdbg_uri + " rdf:type kbdbg:fail")
 		return False
 	assert len(xbn) == len(ybn)
 	for k,xv in xbn.items():
@@ -388,7 +386,7 @@ class Locals(dict):
 				s[k] = Var(v.debug_name + "_clone", s)
 			else:
 				s[k] = Atom(v.value, s)
-			#nokbdbg or kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
+			#kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
 
 	def __str__(s):
 		r = ("locals " + str(s.debug_id) + " of " + str(s.debug_rule()))
@@ -397,11 +395,15 @@ class Locals(dict):
 		return r
 
 	def emit(s):
+		assert False
 		kbdbg(s.kbdbg_name + " rdf:type kbdbg:locals")
 		kbdbg(s.kbdbg_name + " kbdbg:has_frame " + s.kbdbg_frame)
 		for k, v in s.items():
-			kbdbg(s.kbdbg_name + " kbdbg:has_var [kbdbg:has_name " + rdflib.Literal(k) +
-			      " kdbdb:has_value " + v.kbdg_name)
+			assert False
+			var = bnode()
+			kbdbg(s.kbdbg_name + " kbdbg:has_var " + var)
+			kbdbg(var + ' kbdbg:has_name ' + rdflib.Literal(k))
+			kbdbg(var + " kdbdb:has_value " + v.kbdg_name)
 
 	def __short__str__(s):
 		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")
@@ -427,9 +429,9 @@ def emit_terms(terms):
 	return c
 
 def emit_term(t, uri):
-	nokbdbg or kbdbg(uri + " a kbdbg:term")
-	nokbdbg or kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
-	nokbdbg or kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
+	kbdbg(uri + " rdf:term kbdbg:term")
+	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
+	kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
 	return uri
 
 def pr(x):
@@ -456,23 +458,23 @@ class Rule(Kbdbgable):
 		singleton.locals_template = singleton.make_locals(head, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 
-		nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' a ' + 'kbdbg:rule')
+		kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
 		if singleton.head:
 			head_uri = ":"+singleton.kbdbg_name + "Head"
-			nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-			nokbdbg or kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(singleton.head)) + '"')
+			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
+			kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(singleton.head)) + '"')
 			emit_term(singleton.head, head_uri)
 		if singleton.body:
 			body_uri = singleton.kbdbg_name + "Body"
-			nokbdbg or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
+			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
 			for i in singleton.body:
 				body_term_uri = bnode()
 				emit_term(i, body_term_uri)
-				nokbdbg or kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
+				kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
 				body_uri2 = body_uri + "X"
-				nokbdbg or kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
+				kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
 				body_uri = body_uri2
-			nokbdbg or kbdbg(":"+body_uri + " rdf:rest rdf:nil")
+			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
 
 	def __str__(singleton):
 		return "{" + str(singleton.head) + "} <= " + str(singleton.body)
@@ -496,9 +498,11 @@ class Rule(Kbdbgable):
 		generators = []
 		kbdbg_name = rdflib.URIRef(singleton.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
 		locals = singleton.locals_template.new(kbdbg_name)
-		nokbdbg or kbdbg(kbdbg_name.n3() + " rdf:type kbdbg:frame; kbdbg:is_for_rule :"+singleton.kbdbg_name)
+		uuu = kbdbg_name.n3()
+		kbdbg(uuu + " rdf:type kbdbg:frame")
+		kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
 		if parent:
-			nokbdbg or kbdbg(kbdbg_name.n3() + " kbdbg:has_parent " + parent.n3())
+			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 		existential_bindings = []
 		existentials = singleton.get_existentials()
 		for arg_idx, arg in enumerate(args):
@@ -585,9 +589,9 @@ class Rule(Kbdbgable):
 							x.debug_locals = weakref(bn)
 							bn[arg] = x
 							uri = bnode()
-							nokbdbg or kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_item " + uri)
-							nokbdbg or kbdbg(uri + " kbdbg:has_name " + arg.n3())
-							nokbdbg or kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
+							kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_item " + uri)
+							kbdbg(uri + " kbdbg:has_name " + arg.n3())
+							kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
 					generator = unify(
 						Arg(
 							e, locals[e],
@@ -598,9 +602,9 @@ class Rule(Kbdbgable):
 							bn[e],
 							bn.kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
-					nokbdbg or kbdbg(bn.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
+					kbdbg(bn.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
 					#todo name
-					nokbdbg or kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
+					kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -621,7 +625,7 @@ class Rule(Kbdbgable):
 					nolog or log ("rule done")
 					step()
 					break
-		nokbdbg or kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
+		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
 	def get_existentials(s):
 		vars = []
@@ -660,7 +664,7 @@ class Rule(Kbdbgable):
 		nolog or log ("ep check: %s vs..", args)
 		for head in s.ep_heads:
 			if ep_match(args, head.items):
-				nokbdbg or kbdbg(bnode() + ' a kbdbg:ep_match')
+				kbdbg(bnode() + ' rdf:type kbdbg:ep_match')
 				return True
 		nolog or log ("..no match")
 
@@ -705,9 +709,22 @@ def query(input_rules, input_query):
 	for i, locals in enumerate(Rule([], None, input_query).match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
-		nokbdbg or kbdbg(uri + " a kbdbg:result; rdf:value (" + " ".join(emit_terms(terms)) + ')')
-		nokbdbg or kbdbg(uri + " kbdbg:was_unbound true")
+		kbdbg(uri + " rdf:type kbdbg:result")
+		result_terms_uri = emit_list(emit_terms(terms))
+		kbdbg(uri + " rdf:value " + result_terms_uri)
+		kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
+
+def emit_list(l):
+	list_uri = bnode()
+	for i in l:
+		uri = bnode()
+		emit_term(i, uri)
+		kbdbg(":" + list_uri + " rdf:first " + uri)
+		uri2 = uri + "X"
+		kbdbg(":"+uri + " rdf:rest :" + uri2)
+		uri = uri2
+	kbdbg(":"+uri + " rdf:rest rdf:nil")
 
 def print_bnode(v):
 	r = ''

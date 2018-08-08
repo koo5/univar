@@ -273,7 +273,7 @@ def success(msg, _x, _y):
 	step()
 
 def fail(_x, _y):
-	uri = emit_binding(_x, _y, True)
+	uri = emit_binding(_x, _y)
 	while False:
 		yield
 	kbdbg(uri + " kbdbg:failed true")
@@ -434,24 +434,13 @@ def emit_terms(terms):
 	return c
 
 def emit_term(t, uri):
-	kbdbg(uri + " rdf:term kbdbg:term")
+	kbdbg(uri + " rdf:type kbdbg:term")
 	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
-	kbdbg(uri + " kbdbg:has_args " + emit_args(t.args))
+	kbdbg(uri + " kbdbg:has_args " + emit_list(t.args))
 	return uri
 
 def pr(x):
 	print(x.__class__, x.context, x.triple)
-
-def emit_args(args):
-	#c=rdflib.collection.Collection(kbdbg_output_graph, URIRef(bnode()))
-	#for i in args:
-	#	c.append(i)
-	#return c.n3()
-	r = '('
-	for i in args:
-		r += i.n3() + ' '
-	r += ')'
-	return r
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
@@ -722,16 +711,18 @@ def query(input_rules, input_query):
 		kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
 
+
 def emit_list(l):
-	list_uri = bnode()
-	for i in l:
-		uri = bnode()
-		emit_term(i, uri)
-		kbdbg(":" + list_uri + " rdf:first " + uri)
-		uri2 = uri + "X"
+	r = uri = bnode()
+	for idx, i in enumerate(l):
+		kbdbg(uri + " rdf:first " + (i if type(i) == str else i.n3()))
+		if idx != len(l) - 1:
+			uri2 = uri + "X"
+		else:
+			uri2 = 'rdf:nil'
 		kbdbg(":"+uri + " rdf:rest :" + uri2)
 		uri = uri2
-	kbdbg(":"+uri + " rdf:rest rdf:nil")
+	return r
 
 def print_bnode(v):
 	r = ''

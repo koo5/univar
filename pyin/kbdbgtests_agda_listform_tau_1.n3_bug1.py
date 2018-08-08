@@ -1,12 +1,35 @@
-from query_kbdbg_with_pyin import *
+from pymantic import sparql
 
-query(
-term(Var(), rdf.type, kbdbg.frame, ),
-term(dummy quickndirty.notIncludes :f kbdbg:is_finished true.}.
-		:kbdbg log:includes {:f kbdbg:is_for_rule :r.}.
-		:kbdbg log:includes {:b a kbdbg:binding. :b kbdbg:has_source [kbdbg:has_frame :y].}.
-		:kbdbg log:includes {:b kbdbg:has_target :t.}.
-		:kbdbg log:includes {:t kbdbg:has_frame :tf.}.
+server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
+
+r = server.query("""
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+PREFIX : <file:///#> 
+SELECT ?this WHERE {kbdbg:latest kbdbg:is ?this}""")
+r=(r['results']['bindings'])
+if not len(r):
+	print("no kbdbg:latest")
+latest = r[0]['this']['value']
+list_item = latest
+steps = []
+
+while True:
+	graph = server.query("""
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+PREFIX : <file:///#> 
+SELECT ?this WHERE {kbdbg:latest kbdbg:is ?this}""")
+r=(r['results']['bindings'])
+
+exit()
+#query(
+#term(Var(), rdf.type, kbdbg.frame, ),
+#term(dummy quickndirty.notIncludes :f kbdbg:is_finished true.}.
+#		:kbdbg log:includes {:f kbdbg:is_for_rule :r.}.
+#		:kbdbg log:includes {:b a kbdbg:binding. :b kbdbg:has_source [kbdbg:has_frame :y].}.
+#		:kbdbg log:includes {:b kbdbg:has_target :t.}.
+#		:kbdbg log:includes {:t kbdbg:has_frame :tf.}.
 
 
 result = server.query("""

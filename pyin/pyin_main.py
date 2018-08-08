@@ -1,25 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from pymantic import sparql
 
 import pyin
 from pyin import *
 
-from pymantic import sparql
-
 server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
 
-#server.update("""CLEAR GRAPHS""")
+server.update("""CLEAR GRAPHS""")
 import datetime
 this = ":"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 pyin.this = this
 pyin.server = server
-server.update("""
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
-PREFIX : <file:///#> 
-DELETE {kbdbg:latest kbdbg:is ?x} 
-INSERT {kbdbg:latest kbdbg:is """ + this + """
-} WHERE {kbdbg:latest kbdbg:is ?x}""")
 
 import rdflib
 from ordered_rdflib_store import OrderedStore
@@ -43,6 +35,20 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
 	pyin.init_logging()
+
+	server.update("""
+	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+	PREFIX kbdbg: <http://kbd.bg/#> 
+	PREFIX : <file:///#> 
+	DELETE {kbdbg:latest kbdbg:is ?x} 
+	WHERE {kbdbg:latest kbdbg:is ?x}""")
+
+	server.update("""
+	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+	PREFIX kbdbg: <http://kbd.bg/#> 
+	PREFIX : <file:///#> 
+ 	INSERT {kbdbg:latest kbdbg:is """ + this + "} WHERE {}""")
+
 	if identification != "":
 		pyin.kbdbg(": kbdbg:has_run_identification " + rdflib.Literal(identification).n3())
 

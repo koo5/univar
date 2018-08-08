@@ -72,7 +72,7 @@ def kbdbg(text, default = False):
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
-INSERT {""" + ("Graph " + step_graph_name(global_step_counter) + "{" if not default else "") +
+INSERT {""" + ("Graph " + (step_graph_name(global_step_counter) + "{") if not default else "") +
 	text + "." +
 	("}." if not default else "") +
 	"} WHERE {}")
@@ -331,7 +331,7 @@ def are_same_bnodes(x,y):
 	if not xbn or not ybn:
 	    return False
 	for id, i in (('x', xbn),('y', ybn)):
-		kbdbg(kbdbg_uri + " kbdbg:has_" + id + "(" + " ".join(emit_terms(i.is_a_bnode_from_original_rule)) + ')')
+		kbdbg(kbdbg_uri + " kbdbg:has_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
 		kbdbg(kbdbg_uri + " rdf:type kbdbg:fail")
 		return False

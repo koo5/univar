@@ -1,18 +1,18 @@
 kb
 @prefix : <#>.
-{?a :listform ?l. ?l :a :set}<={?a :a :set}.
-{:nil :a ?l}<={?a :listform ?l}.
-{?r :first ?x. ?r :rest ?xs. ?r :a ?l} <= {?a :listform ?l. ?x :a ?a. ?xs :a ?l}.
+{?elem_type :listform ?list_type. ?list_type :a :set}<={?elem_type :a :set}.
+{:nil :a ?list_type}<={?elem_type :listform ?list_type}.
+{?list :first ?x. ?list :rest ?xs. ?list :a ?list_type} <= {?elem_type :listform ?list_type. ?x :a ?elem_type. ?xs :a ?list_type}.
 :bool :a :set. :true :a :bool. :false :a :bool.
 fin.
 
 query
 @prefix : <#>.
-?l0 :first :true. ?l0 :rest :nil. :bool :listform ?l. ?l0 :a ?l.
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
 fin.
 
 shouldbe
-?l0 :first :true. ?l0 :rest :nil. :bool :listform ?l. ?l0 :a ?l.
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
 fin.
 
 thatsall

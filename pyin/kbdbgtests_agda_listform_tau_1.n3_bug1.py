@@ -7,9 +7,7 @@ from rdflib.plugins.stores.sparqlstore import SPARQLStore
 from rdflib.collection import Collection
 
 query_lines = """
-?f rdf:type kbdbg:frame.
-MINUS {?f kbdbg:is_finished true}.
-?f kbdbg:is_for_rule ?r.
+?f rdf:type kbdbg:frame. MINUS {?f kbdbg:is_finished true}. ?f kbdbg:is_for_rule ?r.
 ?b rdf:type kbdbg:binding. ?b kbdbg:has_source ?st. ?st kbdbg:has_frame ?y.
 ?b kbdbg:has_target ?t.
 ?t kbdbg:has_frame ?tf. 

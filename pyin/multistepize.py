@@ -63,7 +63,7 @@ def run():
 		filters = []
 
 		for i in range(len(full_q_lines), 0, -1):
-			q_lines = full_q_lines[:i]
+		q_lines = full_q_lines[:i]
 			qqq = '\n'.join(q_lines)
 			vars = re.findall(".:[a-zA-Z0-9_]*", qqq)
 			vars = set([x[1:] for x in filter(lambda x: not x[0].isalnum() and not (x[0] in '_'), vars)])

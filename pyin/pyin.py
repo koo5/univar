@@ -24,13 +24,16 @@ log, kbdbg_text = 666,666
 
 def init_logging():
 	global log, kbdbg_text
+
+	logging.getLogger('pymantic.sparql').setLevel(logging.INFO)
+
 	formatter = logging.Formatter('#%(message)s')
 	console_debug_out = logging.StreamHandler()
 	console_debug_out.setFormatter(formatter)
 	
 	logger1=logging.getLogger()
 	logger1.addHandler(console_debug_out)
-	logger1.setLevel(logging.INFO)#DEBUG)
+	logger1.setLevel(logging.DEBUG)#INFO)#
 
 	try:
 		os.unlink(kbdbg_file_name)
@@ -406,7 +409,7 @@ class Locals(dict):
 		if dbg:
 			s.debug_last_instance_id += 1
 		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
-		nolog or log("result: " + str(r))
+		#nolog or log("result: " + str(r))
 		return r
 
 	def new_bnode(s, idx):
@@ -520,6 +523,7 @@ class Rule(Kbdbgable):
 
 		def desc():
 			return ("\n#vvv\n#" + #str(singleton) + "\n" +
+			kbdbg_name.n3() + '\n' +
 			"#args:" + str(args) + "\n" +
 			"#locals:" + str(locals) + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#^^^")

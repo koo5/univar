@@ -109,4 +109,5 @@ for idx in random_order_idxs:
 			break
 		level += 1
 print ('best score: ' + str(best_score))
+best.sort()
 print ('best levels: ' + str(best))

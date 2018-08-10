@@ -30,7 +30,7 @@ def init_logging():
 	
 	logger1=logging.getLogger()
 	logger1.addHandler(console_debug_out)
-	logger1.setLevel(logging.DEBUG)
+	logger1.setLevel(logging.INFO)#DEBUG)
 
 	try:
 		os.unlink(kbdbg_file_name)
@@ -50,25 +50,12 @@ def init_logging():
 	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
-#def kbdbg(s,p,o):
-#	spo = (s,p,o)
-#	kbdbg_text(" ".join(spo))
-#	server.update("""
-#PREFIX dc: <http://purl.org/dc/elements/1.1/>
-#PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#PREFIX kbdbg: <http://kbd.bg/#>
-#PREFIX : <file:///#>
-#INSERT
-#{
-#	Graph http://kbd.bg/#step""" + str(global_step_counter) + """
-#	{
-#		""" + " ".join(x.n3() for x in spo) + """.
-#	}.
-#} WHERE {}""")
+from concurrent.futures import ThreadPoolExecutor
+pool = ThreadPoolExecutor(max_workers = 8, thread_name_prefix='sparql_updater')
 
 def kbdbg(text, default = False):
 	kbdbg_text(text)
-	server.update("""
+	pool.submit(server.update, """
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
@@ -258,7 +245,7 @@ class Var(AtomVar):
 
 		msg = "bound " + str(x) + " to " + str(y)
 		nolog or log(msg)
-
+		step()
 		yield msg
 
 		x.bound_to = None
@@ -268,6 +255,7 @@ class Var(AtomVar):
 
 def success(msg, _x, _y):
 	uri = emit_binding(_x, _y)
+	step()
 	yield msg
 	kbdbg(uri + " kbdbg:was_unbound true")
 	step()
@@ -701,7 +689,6 @@ def query(input_rules, input_query):
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	step()
 	for i, locals in enumerate(Rule([], None, input_query).match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
@@ -711,7 +698,6 @@ def query(input_rules, input_query):
 		kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
 
-
 def emit_list(l):
 	r = uri = bnode()
 	for idx, i in enumerate(l):
@@ -720,7 +706,7 @@ def emit_list(l):
 			uri2 = uri + "X"
 		else:
 			uri2 = 'rdf:nil'
-		kbdbg(":"+uri + " rdf:rest :" + uri2)
+		kbdbg(uri + " rdf:rest " + uri2)
 		uri = uri2
 	return r
 

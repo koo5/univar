@@ -110,9 +110,16 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 			o += str(triple)
 		print (o)
 
+	server.update("""
+	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+	PREFIX kbdbg: <http://kbd.bg/#> 
+	PREFIX : <file:///#> 
+ 	INSERT {""" + this + " kbdbg:is kbdbg:done} WHERE {}""")
+
 	if visualize:
 		os.system('python3 -O pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
 
+	pyin.pool.shutdown()
 
 if __name__ == "__main__":
 	query_from_files()

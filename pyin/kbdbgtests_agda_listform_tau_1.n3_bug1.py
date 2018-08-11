@@ -17,13 +17,18 @@ logging.getLogger().setLevel(logging.INFO)
 
 query_lines = """
 
-?b0 rdf:type kbdbg:binding. 
-?b0 kbdbg:has_source ?s0. 
-?s0 kbdbg:has_frame ?f0. 
-?f0 kbdbg:is_for_rule :Rule2. 
-?b0 kbdbg:has_target ?t0. 
-?t0 kbdbg:has_frame ?f1. 
-?f1 kbdbg:is_for_rule :Rule10.
+?b0 rdf:type kbdbg:binding. MINUS {?b0 kbdbg:failed true}. MINUS {?b0 kbdbg:was_unbound true}.  
+?b0 kbdbg:has_source ?s0. ?s0 kbdbg:has_frame ?f0. ?f0 kbdbg:is_for_rule :Rule13. 
+?b0 kbdbg:has_target ?t0. ?t0 kbdbg:has_frame ?f1. ?f1 kbdbg:is_for_rule :Rule7.
+?b1 rdf:type kbdbg:binding. MINUS {?b1 kbdbg:failed true}. MINUS {?b1 kbdbg:was_unbound true}.
+?b1 kbdbg:has_source ?s1. ?s1 kbdbg:has_frame ?f1. 
+?b1 kbdbg:has_target ?t1. ?t1 kbdbg:has_frame ?f2. ?f2 kbdbg:is_for_rule :Rule2.
+?b2 rdf:type kbdbg:binding. MINUS {?b2 kbdbg:failed true}. MINUS {?b2 kbdbg:was_unbound true}.
+?b2 kbdbg:has_source ?s2. ?s2 kbdbg:has_frame ?f2. 
+?b2 kbdbg:has_target ?t2. ?t2 kbdbg:has_frame ?f3. ?f3 kbdbg:is_for_rule :Rule10.
+?b3 rdf:type kbdbg:binding. MINUS {?b3 kbdbg:failed true}. MINUS {?b3 kbdbg:was_unbound true}.
+?b3 kbdbg:has_source ?s3. ?s3 kbdbg:has_frame ?f1. 
+?b3 kbdbg:has_target ?t3. ?t3 kbdbg:has_frame ?f4. ?f4 kbdbg:is_for_rule :Rule5.
 
 """.strip().splitlines()
 

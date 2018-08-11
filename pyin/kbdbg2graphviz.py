@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from common import shorten
 import html as html_module
 import os
 import sys
@@ -79,7 +80,6 @@ def tell_if_is_last_element(x):
 	for i, j in enumerate(x):
 		yield j, (i == (len(x) - 1))
 
-
 last_bindings = []
 
 def generate_gv_image(g, step):
@@ -88,9 +88,6 @@ def generate_gv_image(g, step):
 	gv("digraph frame"+str(step) + "{")
 	#gv("pack=true")
 
-	#print rules somewhere on the side?
-	#for rule in g.subjects(RDF.type, kbdbg.rule):
-	#	emit_rule(rule)
 	root_frame = None
 	current_result = None
 	rrr = list(g.subjects(RDF.type, kbdbg.frame))
@@ -250,19 +247,6 @@ def port_name(is_in_head, term_idx, arg_idx):
 			str(arg_idx)
 			)
 
-shortenings = {}
-def shorten(term):
-	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst
-	s = str(term)
-	for i in '/:#?':
-		p = s.rfind(i)
-		if p != -1:
-			s = s[p:]
-	if s in shortenings and shortenings[s] != term:
-		return str(term)
-	shortenings[s] = term
-	return s
-
 def emit_term(tag, text, g, is_in_head, term_idx, term):
 	pred = g.value(term, kbdbg.has_pred)
 	args_collection = Collection(g, g.value(term, kbdbg.has_args))
@@ -331,6 +315,10 @@ def run():
 		i = "".join(prefixes+lines)
 		g.parse(data=i, format='n3')
 		lines = []
+
+		#if s == 0:
+		#	make_rules_file(g)
+
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
 

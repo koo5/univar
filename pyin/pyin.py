@@ -8,6 +8,7 @@ import logging
 import urllib.parse
 from collections import defaultdict
 from ordered_rdflib_store import OrderedStore
+from common import shorten
 
 dbg = True
 nolog = False
@@ -91,11 +92,14 @@ def bnode():#todo:rename to bn
 	return  ':bn' + str(bnode_counter)
 
 
-def printify(iterable, separator):
+def printify(iterable, separator, shortener = lambda x:x):
 	r = ""
 	last = len(iterable) - 1
 	for i, x in enumerate(iterable):
-		r += str(x)
+		if type(x) == str:
+			r += shortener(x)
+		else:
+			r += x.str(shortener)
 		if i != last:
 			r += separator
 	return r
@@ -104,14 +108,14 @@ class Triple():
 	def __init__(s, pred, args):
 		s.pred = pred
 		s.args = args
-	def __str__(s):
+	def str(s, shortener = lambda x:x):
 		if len(s.args) == 2:
-			return s.args[0].n3() + " " + s.pred.n3() + " " + s.args[1].n3() + "."
-		return str(s.pred) + "(" + printify(s.args, ", ") + ")"
+			return shortener(s.args[0].n3()) + " " + shortener(s.pred.n3()) + " " + shortener(s.args[1].n3()) + "."
+		return shortener(str(s.pred)) + "(" + printify(s.args, ", ", shortener) + ")"
 
 class Graph(list):
-	def __str__(s):
-		return "{" + printify(s, ". ") + "}"
+	def str(s, shortener = lambda x:x):
+		return "{" + printify(s, ". ", shortener) + "}"
 
 class Arg:
 	def __init__(s, uri, thing, frame, term_idx, arg_idx, is_in_head):
@@ -178,12 +182,12 @@ class Atom(AtomVar):
 			super().__init__(value, debug_locals)
 		assert(isinstance(value, rdflib.term.Identifier))
 		s.value = value
-	def __str__(s):
+	def str(s, shortener = lambda x:x):
 		if type(s.kbdbg_name) == URIRef:
 			xxx = s.kbdbg_name.n3()
 		else:
 			xxx= s.kbdbg_name
-		return (xxx if dbg else '') + s.___short__str__()
+		return (shortener(xxx) if dbg else '') + s.___short__str__()
 	def ___short__str__(s):
 		return '("'+str(s.value)+'")'
 	def rdf_str(s):
@@ -198,25 +202,22 @@ class Var(AtomVar):
 		if dbg:
 			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
-	def __str__(s):
+	def str(s, shortener = lambda x:x):
 		if type(s.kbdbg_name) == URIRef:
-			xxx = s.kbdbg_name.n3()
+			xxx = shortener(s.kbdbg_name.n3())
 		else:
-			xxx= s.kbdbg_name
-
+			xxx = shortener(s.kbdbg_name)
 		bn = s.is_part_of_bnode()
 		if bn and ('is_a_bnode_from_rule' in bn.__dict__):
 			xxx += '['
 			for k,v in bn.items():
 				if v != s:
-					xxx += str(k) + ' --->>> '
+					xxx += str(shortener(k)) + ' --->>> '
 					if (type(v) == Var) and (v.is_part_of_bnode()) and (s in v.is_part_of_bnode().values()):
 						xxx += '[recursive]'
 					else:
-					    xxx += str(v)
+					    xxx += shortener(str(v))
 					xxx += '\n'
-				else:
-					xxx + "ggg"
 			xxx += ']'
 		return (xxx if dbg else '') + s.___short__str__()
 		# + " in " + str(s.debug_locals())
@@ -443,11 +444,13 @@ class Rule(Kbdbgable):
 		singleton.locals_template = singleton.make_locals(head, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 
+		with open(_rules_file_name, 'a') as ru:
+			ru.write(singleton.kbdbg_name + ":"+ singleton.__str__(shorten) + '\n')
+
 		kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
 		if singleton.head:
 			head_uri = ":"+singleton.kbdbg_name + "Head"
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-			kbdbg(head_uri + ' kbdbg:has_text "' + urllib.parse.quote_plus(str(singleton.head)) + '"')
 			emit_term(singleton.head, head_uri)
 		if singleton.body:
 			body_uri = singleton.kbdbg_name + "Body"
@@ -461,8 +464,8 @@ class Rule(Kbdbgable):
 				body_uri = body_uri2
 			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
 
-	def __str__(singleton):
-		return "{" + str(singleton.head) + "} <= " + str(singleton.body)
+	def __str__(singleton, shortener = lambda x:x):
+		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
 
 	def make_locals(singleton, head, body, kbdbg_rule):
 		locals = Locals({}, singleton)
@@ -686,7 +689,7 @@ def pred(p, parent, args):
 			yield i
 
 def query(input_rules, input_query):
-	global preds, dbg
+	global preds, dbg, kbdbg_file_name_rules
 	dbg = not nolog or not nokbdbg
 	kbdbg(this + " rdf:value " + step_list_item(0))
 	kbdbg_graph_first()

@@ -30,6 +30,14 @@ query_lines = """
 ?b3 kbdbg:has_source ?s3. ?s3 kbdbg:has_frame ?f1. 
 ?b3 kbdbg:has_target ?t3. ?t3 kbdbg:has_frame ?f4. ?f4 kbdbg:is_for_rule :Rule5.
 
+?b4 rdf:type kbdbg:binding. MINUS {?b4 kbdbg:failed true}. MINUS {?b4 kbdbg:was_unbound true}.  
+?b4 kbdbg:has_source ?s4. ?s4 kbdbg:has_frame ?f5. ?f5 kbdbg:is_for_rule :Rule8. 
+?b4 kbdbg:has_target ?t4. ?t4 kbdbg:has_frame ?f0.
+?b5 rdf:type kbdbg:binding. MINUS {?b5 kbdbg:failed true}. MINUS {?b5 kbdbg:was_unbound true}.  
+?b5 kbdbg:has_source ?s5. ?s5 kbdbg:has_frame ?f0. 
+?b5 kbdbg:has_target ?t5. ?t5 kbdbg:has_frame ?f6. ?f6 kbdbg:is_for_rule :Rule2.
+
+
 """.strip().splitlines()
 
 sp = 'http://192.168.122.108:9999/blazegraph/sparql'

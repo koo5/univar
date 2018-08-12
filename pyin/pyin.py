@@ -86,7 +86,7 @@ def step():
 	kbdbg_graph_first()
 
 bnode_counter = 0
-def bn():#todo:rename to bn
+def bn():
 	global bnode_counter
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
@@ -207,10 +207,10 @@ class Var(AtomVar):
 			xxx = shortener(s.kbdbg_name.n3())
 		else:
 			xxx = shortener(s.kbdbg_name)
-		bn = s.is_part_of_bnode()
-		if bn and ('is_a_bnode_from_rule' in bn.__dict__):
+		bnode = s.is_part_of_bnode()
+		if bnode and ('is_a_bnode_from_rule' in bnode.__dict__):
 			xxx += '['
-			for k,v in bn.items():
+			for k,v in bnode.items():
 				if v != s:
 					xxx += str(shortener(k)) + ' --->>> '
 					if (type(v) == Var) and (v.is_part_of_bnode()) and (s in v.is_part_of_bnode().values()):
@@ -231,57 +231,43 @@ class Var(AtomVar):
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
 		return r
-	def bind_to(x, y, _x, _y):
-		for i in x._bind_to(y, _x, _y):
-			yield i
-		#if type(y) == Var:
-		#	log("and reverse?")
-		#	for i in y._bind_to(x, _y, _x):
-		#		yield i
 
-	def _bind_to(x, y, _x_y):
-		_x, _y = _x_y
+	def bind_to(x, y, uri):
 		assert x.bound_to == None
 		x.bound_to = y
-
-		uri = emit_binding(_x, _y)
-
-		#kbdbg(x.kbdbg_name + " kbdbg:was_bound_to " + y.kbdbg_name)
-
 		msg = "bound " + str(x) + " to " + str(y)
 		nolog or log(msg)
 		step()
 		yield msg
-
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
 
-def success(msg, _x_y):
-	_x, _y = _x_y
-	uri = emit_binding(_x, _y)
+def success(msg, uri):
 	step()
+	kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 	yield msg
 	kbdbg(uri + " kbdbg:was_unbound true")
 	step()
 
-def fail(_x_y):
-	_x, _y = _x_y
-	uri = emit_binding(_x, _y)
-	while False:
-		yield
+def fail(msg, uri):
 	kbdbg(uri + " kbdbg:failed true")
+	while False:
+		yield msg
+	kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 	step()
 
-def emit_binding(_x, _y):
+def emit_binding(_x_y):
+	_x, _y = _x_y
 	uri = bn()
 	kbdbg(uri + " rdf:type kbdbg:binding")
-	kbdbg(uri + " kbdbg:has_source " + arg_text(_x))
-	kbdbg(uri + " kbdbg:has_target " + arg_text(_y))
+	kbdbg(uri + " kbdbg:has_source " + emit_arg(_x))
+	kbdbg(uri + " kbdbg:has_target " + emit_arg(_y))
 	return uri
 
-def arg_text(x):
+def emit_arg(x):
 	r = bn()
+	kbdbg(r + " rdf:type kbdbg:arg")
 	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if type(x.is_in_head) == bool:
 		if x.is_in_head:
@@ -304,29 +290,36 @@ def unify(_x, _y):
 	y = get_value(_y.thing)
 	nolog or log("unify " + str(x) + " with " + str(y))
 	if x == y:
-		return success("same things", orig)
+		return success("same things", emit_binding(orig))
 	elif type(x) == Var and not x.is_part_of_bnode():
-		return x.bind_to(y, orig)
+		return x.bind_to(y, emit_binding(orig))
 	elif type(y) == Var and not y.is_part_of_bnode():
-		return y.bind_to(x, (_y, _x))
-	elif type(x) == Var and type(y) == Var and are_same_bnodes(x,y):
-		return success("same bnodes", orig)
+		return y.bind_to(x, emit_binding((_y, _x)))
+	elif type(x) == Var and type(y) == Var:
+		uri = emit_binding(orig)
+		if are_same_bnodes(x,y,uri):
+			return success("same bnodes", uri)
+		else:
+			return fail("different bnodes", uri)
 	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
-		return success("same consts", orig)
+		return success("same consts", emit_binding(orig))
 	else:
-		return fail(orig)
+		return fail("different things", emit_binding(orig))
 
-def are_same_bnodes(x,y):
+def are_same_bnodes(x,y,binding_uri):
 	kbdbg_uri = bn()
 	kbdbg(kbdbg_uri + " rdf:type kbdbg:are_same_bnodes_check")
+	kbdbg(kbdbg_uri + " kbdbg:belongs_to_binding " + binding_uri)
 	assert(x.bound_to == None)
 	assert(y.bound_to == None)
 	xbn = x.is_part_of_bnode()
 	ybn = y.is_part_of_bnode()
-	if not xbn or not ybn:
+	if not xbn: kbdbg(kbdbg_uri + ' kbdbg:fail_reason "x is not a bnode"')
+	if not ybn: kbdbg(kbdbg_uri + ' kbdbg:fail_reason "y is not a bnode"')
+	if not (xbn and ybn):
 	    return False
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
-		kbdbg(kbdbg_uri + " kbdbg:failed true")
+		kbdbg(kbdbg_uri + ' kbdbg:fail_reason "different original rules"')
 		return False
 	for id, i in (('x', xbn),('y', ybn)):
 		kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
@@ -497,13 +490,13 @@ class Rule(Kbdbgable):
 		existential_bindings = []
 		existentials = singleton.get_existentials()
 		for arg_idx, arg in enumerate(args):
-			bn = arg.thing.is_part_of_bnode()
-			if not bn: continue
-			if not ('is_a_bnode_from_original_rule' in bn.__dict__): continue
-			if bn.is_a_bnode_from_original_rule == singleton.original_head:
-				if bn.is_from_name in existentials:
-					if singleton.head.args[arg_idx] == bn.is_from_name:
-						for k,v in bn.items():
+			bnode = arg.thing.is_part_of_bnode()
+			if not bnode: continue
+			if not ('is_a_bnode_from_original_rule' in bnode.__dict__): continue
+			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
+				if bnode.is_from_name in existentials:
+					if singleton.head.args[arg_idx] == bnode.is_from_name:
+						for k,v in bnode.items():
 							for head_arg_idx, head_arg in enumerate(singleton.head.args):
 								if type(locals[head_arg]) == Atom:
 									continue
@@ -513,13 +506,13 @@ class Rule(Kbdbgable):
 									0, head_arg_idx, True)
 								a1 = Arg(
 									k,
-									bn[head_arg],
-									bn.kbdbg_name if dbg else None,
+									bnode[head_arg],
+									bnode.kbdbg_name if dbg else None,
 									head_arg, 0, 'bnode')
 								if head_arg in [exbi[0].uri for exbi in existential_bindings]:
 									continue
 								existential_bindings.append((a0,a1))
-								print ('gonna unroll', arg_text(a0), " into ", arg_text(a1))
+								print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
 		total_bnode_counter = 0
 
 		if len(existential_bindings):
@@ -546,7 +539,7 @@ class Rule(Kbdbgable):
 					head_thing.arg_index = arg_index
 				elif len(existential_bindings):
 					eee = existential_bindings[depth-len(args)]
-					print ('unrolling', arg_text(eee[0]), " into ", eee[1])
+					print ('unrolling', emit_arg(eee[0]), " into ", eee[1])
 					generator = unify(eee[0],eee[1])
 					print("existential generator", generator)
 				elif (depth < len(args) + len(singleton.body)):
@@ -561,29 +554,29 @@ class Rule(Kbdbgable):
 					"""generate blank node:"""
 					ex_idx = depth - len(args) - len(singleton.body)
 					e = existentials[ex_idx]
-					bn = Locals({}, singleton, total_bnode_counter, kbdbg_name)
+					bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name)
 					total_bnode_counter += 1
-					bn.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
+					bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 					total_bnode_counter += 1
-					bn.is_a_bnode_from_original_rule = singleton.original_head
-					bn.is_from_name = e
+					bnode.is_a_bnode_from_original_rule = singleton.original_head
+					bnode.is_from_name = e
 					for triple in singleton.original_head:
 						for arg in triple.args:
 							if type(arg) == rdflib.Literal or not is_var(arg):
 								continue
-							if arg in bn:
+							if arg in bnode:
 								continue
 							if arg in existentials:
 								x = Var("this is a var in a bnode")
 							else:
 								x = get_value(locals[arg]).recursive_clone()
-							x.is_part_of_bnode = weakref(bn)
-							x.debug_locals = weakref(bn)
-							bn[arg] = x
+							x.is_part_of_bnode = weakref(bnode)
+							x.debug_locals = weakref(bnode)
+							bnode[arg] = x
 							uri = bn()
-							kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_item " + uri)
+							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_item " + uri)
 							kbdbg(uri + " kbdbg:has_name " + arg.n3())
-							kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
+							kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bnode[arg].__short__str__()).n3())
 					generator = unify(
 						Arg(
 							e, locals[e],
@@ -591,12 +584,12 @@ class Rule(Kbdbgable):
 							0, locals[e].arg_index, True),
 						Arg(
 							e,
-							bn[e],
-							bn.kbdbg_name if dbg else None,
+							bnode[e],
+							bnode.kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
-					kbdbg(bn.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
+					kbdbg(bnode.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
 					#todo name
-					kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
+					kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -722,10 +715,10 @@ def emit_list(l):
 
 def print_bnode(v):
 	r = ''
-	bn = v.is_part_of_bnode()
-	if bn and ('is_a_bnode_from_rule' in bn.__dict__):
+	bnode = v.is_part_of_bnode()
+	if bnode and ('is_a_bnode_from_rule' in bnode.__dict__):
 		r += '['
-		for k,vv in bn.items():
+		for k,vv in bnode.items():
 			if v != vv:
 				r += str(k) + ' --->>> ' + str(vv)
 		r += ']'

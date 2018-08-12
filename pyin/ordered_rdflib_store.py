@@ -73,7 +73,11 @@ class OrderedStore(Store):
         #print (self.__class__.stats)
         quads = self.quads[:] # self.quads may be modified during the following iteration
         if (s1 != None) and (p1 != None) and (o1 == None) and (context != None):
-            return filter(lambda x: (s1 == x[0][0]) and (p1 == x[0][1]) and (context == x[1]), quads)
+	        def filter_func(x):
+		        (s2,p2,o2),c2 = x
+		        return (s1 == s2) and (p1 == p2) and (context == c2)
+	        return filter(filter_func, quads)
+            #return filter(lambda x: (s1 == x[0][0]) and (p1 == x[0][1]) and (context == x[1]), quads)
         else:
             return self.general_triple_helper(s1,p1,o1,context,quads)
 

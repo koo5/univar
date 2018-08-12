@@ -34,7 +34,7 @@ border_width = 0
 gv_output_file = None
 
 def gv(text):
-	logging.getLogger("kbdbg").info(text)
+	#logging.getLogger("kbdbg").info(text)
 	gv_output_file.write(text + '\n')
 
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
@@ -295,7 +295,7 @@ def run():
 	os.system("rm -f kbdbg"+fn+'\\.*')
 
 	from concurrent.futures import ThreadPoolExecutor
-	pool = ThreadPoolExecutor(max_workers = 4)
+	pool = ThreadPoolExecutor(max_workers = 8)
 
 	g = Graph(OrderedStore())
 	prefixes = []
@@ -305,6 +305,7 @@ def run():
 			break
 		if l.startswith("#step"):
 			step = int(l[5:l.find(' ')])
+			print(step)
 		elif l.startswith('@prefix'):
 			prefixes.append(l)
 			continue
@@ -316,8 +317,7 @@ def run():
 		g.parse(data=i, format='n3')
 		lines = []
 
-		#if s == 0:
-		#	make_rules_file(g)
+		#print(g.store.triples((rdflib.term.URIRef('file:///#Rule1'), rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), None), g))
 
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue

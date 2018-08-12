@@ -26,7 +26,8 @@ class OrderedStore(Store):
 
     def add(self, xxx_todo_changeme, context, quoted=False):
         Store.add(self, xxx_todo_changeme, context, quoted)
-        self.quads.append((xxx_todo_changeme, context, quoted))
+        s1,p1,o1 = xxx_todo_changeme
+        self.quads.append((s1,p1,o1, context, quoted))
 
     """
     def bind(self, prefix, namespace):
@@ -50,8 +51,7 @@ class OrderedStore(Store):
         quads = self.quads[:] # self.quads may be modified during the following iteration
         for quad in quads:
             if quad not in self.quads: continue
-            spo2,c2,_q2 = quad
-            s2,p2,o2 = spo2
+            s2,p2,o2,c2,_q2 = quad
             if ((s1 == None) or (s1 == s2)) and ((p1 == None) or (p1 == p2)) and ((o1 == None) or (o1 == o2)) and (context == c2):
                 self.quads.remove(quad)
                 self.remove(xxx_todo_changeme1, context)
@@ -68,12 +68,15 @@ class OrderedStore(Store):
         #self.__class__.stats["".join([('0' if (x == None) else '1') for x in (s1,p1,o1,context)])] += 1
         quads = self.quads[:] # self.quads may be modified during the following iteration
         if (s1 != None) and (p1 != None) and (o1 == None) and (context != None):
-            return (((s1,p1,x[0][2]),x[1]) for x in filter(lambda x: (s1 == x[0][0]) and (p1 == x[0][1]) and (context == x[1]), quads))
-            #    for (s2,p2,o2),c2,_q2 in quads:
-            #        if (s1 == s2) and (p1 == p2) and (context == c2):
-            #            yield (s2,p2,o2),c2
+            return (((s1,p1,x[2]),x[3]) for x in filter(lambda x: (s1 == x[0]) and (p1 == x[1]) and (context == x[3]), quads))
         else:
             return self.general_triple_helper(s1,p1,o1,context,quads)
+
+     #    for (s2,p2,o2),c2,_q2 in quads:
+     #        if (s1 == s2) and (p1 == p2) and (context == c2):
+     #            yield (s2,p2,o2),c2
+
+
 
     def general_triple_helper(self, s1,p1,o1,context,quads):
         for spo2,c2,_q2 in quads:

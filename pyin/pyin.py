@@ -86,7 +86,7 @@ def step():
 	kbdbg_graph_first()
 
 bnode_counter = 0
-def bnode():#todo:rename to bn
+def bn():#todo:rename to bn
 	global bnode_counter
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
@@ -239,7 +239,8 @@ class Var(AtomVar):
 		#	for i in y._bind_to(x, _y, _x):
 		#		yield i
 
-	def _bind_to(x, y, _x, _y):
+	def _bind_to(x, y, _x_y):
+		_x, _y = _x_y
 		assert x.bound_to == None
 		x.bound_to = y
 
@@ -255,16 +256,17 @@ class Var(AtomVar):
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
-		#kbdbg(x.kbdbg_name + " kbdbg:was_unbound_from " + y.kbdbg_name)
 
-def success(msg, _x, _y):
+def success(msg, _x_y):
+	_x, _y = _x_y
 	uri = emit_binding(_x, _y)
 	step()
 	yield msg
 	kbdbg(uri + " kbdbg:was_unbound true")
 	step()
 
-def fail(_x, _y):
+def fail(_x_y):
+	_x, _y = _x_y
 	uri = emit_binding(_x, _y)
 	while False:
 		yield
@@ -272,14 +274,14 @@ def fail(_x, _y):
 	step()
 
 def emit_binding(_x, _y):
-	uri = bnode()
+	uri = bn()
 	kbdbg(uri + " rdf:type kbdbg:binding")
 	kbdbg(uri + " kbdbg:has_source " + arg_text(_x))
 	kbdbg(uri + " kbdbg:has_target " + arg_text(_y))
 	return uri
 
 def arg_text(x):
-	r = bnode()
+	r = bn()
 	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if type(x.is_in_head) == bool:
 		if x.is_in_head:
@@ -295,26 +297,27 @@ def arg_text(x):
 	return r
 
 def unify(_x, _y):
+	orig = (_x, _y)
 	assert(isinstance(_x, Arg))
 	assert(isinstance(_y, Arg))
 	x = get_value(_x.thing)
 	y = get_value(_y.thing)
 	nolog or log("unify " + str(x) + " with " + str(y))
 	if x == y:
-		return success("same vars", _x, _y)
-	if type(x) == Var and not x.is_part_of_bnode():
-		return x.bind_to(y, _x, _y)
+		return success("same things", orig)
+	elif type(x) == Var and not x.is_part_of_bnode():
+		return x.bind_to(y, orig)
 	elif type(y) == Var and not y.is_part_of_bnode():
-		return y.bind_to(x, _y, _x)
+		return y.bind_to(x, (_y, _x))
 	elif type(x) == Var and type(y) == Var and are_same_bnodes(x,y):
-		return success("same bnodes", _x, _y)
+		return success("same bnodes", orig)
 	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
-		return success("same consts", _x, _y)
+		return success("same consts", orig)
 	else:
-		return fail(_x, _y)
+		return fail(orig)
 
 def are_same_bnodes(x,y):
-	kbdbg_uri = bnode()
+	kbdbg_uri = bn()
 	kbdbg(kbdbg_uri + " rdf:type kbdbg:are_same_bnodes_check")
 	assert(x.bound_to == None)
 	assert(y.bound_to == None)
@@ -322,11 +325,11 @@ def are_same_bnodes(x,y):
 	ybn = y.is_part_of_bnode()
 	if not xbn or not ybn:
 	    return False
-	for id, i in (('x', xbn),('y', ybn)):
-		kbdbg(kbdbg_uri + " kbdbg:has_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
-		kbdbg(kbdbg_uri + " rdf:type kbdbg:fail")
+		kbdbg(kbdbg_uri + " kbdbg:failed true")
 		return False
+	for id, i in (('x', xbn),('y', ybn)):
+		kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
 	assert len(xbn) == len(ybn)
 	for k,xv in xbn.items():
 		if k not in ybn:
@@ -397,7 +400,7 @@ class Locals(dict):
 		kbdbg(s.kbdbg_name + " kbdbg:has_frame " + s.kbdbg_frame)
 		for k, v in s.items():
 			assert False
-			var = bnode()
+			var = bn()
 			kbdbg(s.kbdbg_name + " kbdbg:has_var " + var)
 			kbdbg(var + ' kbdbg:has_name ' + rdflib.Literal(k))
 			kbdbg(var + " kdbdb:has_value " + v.kbdg_name)
@@ -422,7 +425,7 @@ class Locals(dict):
 def emit_terms(terms):
 	c=[]
 	for i in terms:
-		c.append(emit_term(i, bnode()))
+		c.append(emit_term(i, bn()))
 	return c
 
 def emit_term(t, uri):
@@ -456,7 +459,7 @@ class Rule(Kbdbgable):
 			body_uri = singleton.kbdbg_name + "Body"
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
 			for i in singleton.body:
-				body_term_uri = bnode()
+				body_term_uri = bn()
 				emit_term(i, body_term_uri)
 				kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
 				body_uri2 = body_uri + "X"
@@ -577,7 +580,7 @@ class Rule(Kbdbgable):
 							x.is_part_of_bnode = weakref(bn)
 							x.debug_locals = weakref(bn)
 							bn[arg] = x
-							uri = bnode()
+							uri = bn()
 							kbdbg(bn.kbdbg_name.n3() + " kbdbg:has_item " + uri)
 							kbdbg(uri + " kbdbg:has_name " + arg.n3())
 							kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bn[arg].__short__str__()).n3())
@@ -653,7 +656,7 @@ class Rule(Kbdbgable):
 		nolog or log ("ep check: %s vs..", args)
 		for head in s.ep_heads:
 			if ep_match(args, head.items):
-				kbdbg(bnode() + ' rdf:type kbdbg:ep_match')
+				kbdbg(bn() + ' rdf:type kbdbg:ep_match')
 				return True
 		nolog or log ("..no match")
 
@@ -706,7 +709,7 @@ def query(input_rules, input_query):
 		yield terms
 
 def emit_list(l):
-	r = uri = bnode()
+	r = uri = bn()
 	for idx, i in enumerate(l):
 		kbdbg(uri + " rdf:first " + (i if type(i) == str else i.n3()))
 		if idx != len(l) - 1:

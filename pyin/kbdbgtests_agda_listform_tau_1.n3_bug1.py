@@ -37,6 +37,10 @@ query_lines = """
 ?b5 kbdbg:has_source ?s5. ?s5 kbdbg:has_frame ?f0. 
 ?b5 kbdbg:has_target ?t5. ?t5 kbdbg:has_frame ?f6. ?f6 kbdbg:is_for_rule :Rule2.
 
+?b6 rdf:type kbdbg:binding. MINUS {?b6 kbdbg:failed true}. MINUS {?b6 kbdbg:was_unbound true}.  
+?b6 kbdbg:has_source ?s6. ?s5 kbdbg:has_frame ?f6. 
+?b6 kbdbg:has_target ?t6. ?t5 kbdbg:has_frame ?f7. ?f7 kbdbg:is_for_rule :Rule10.
+
 
 """.strip().splitlines()
 

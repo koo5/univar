@@ -343,7 +343,7 @@ def are_same_bnodes(x,y,binding_uri):
 			if (xvbn and not yvbn) or (yvbn and not xvbn):
 				return False
 			if xvbn:
-				if not are_same_bnodes(xvbn,yvbn):
+				if not are_same_bnodes(xv,yv,kbdbg_uri):
 					return False
 	return True
 

@@ -1016,7 +1016,7 @@ nodeid prover::force_one_n(nodeids r) {
         ss << "well, this is weird, more than one match:";
         for (auto xx: r)
             ss << xx << " ";
-        throw runtime_error(ss.str());
+        throw std::runtime_error(ss.str());
     }
      #endif*/
     if (r.size() == 0)

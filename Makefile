@@ -1,5 +1,5 @@
 #CXX=clang++
-CXX=g++  #-static-libasan
+CXX=g++-8  #-static-libasan
 #-libc++ -stdlib=libc++ 		
 ###NEW= -DNEW
 #-fsanitize=integer -fsanitize=unsigned-integer-overflow 

@@ -21,7 +21,7 @@ pobj load_json ( std::istream &is ) {
 	json_spirit::mValue v;
 	json_spirit::read_stream_or_throw( is, v );
 	pobj r =  ::convert ( v );
-	if ( !r ) throw runtime_error ( "Couldn't make sense of input." );
+	if ( !r ) throw std::runtime_error ( "Couldn't make sense of input." );
 	return r;
 }
 
@@ -31,13 +31,13 @@ qdb toquads ( pobj o ) {
 	auto nodeMap = o;
 	std::map<string, pnode> lists;
 	if (!nodeMap->MAP())
-		throw runtime_error ( "Expected an object at top level i guess?" );
+		throw std::runtime_error ( "Expected an object at top level i guess?" );
 	for ( auto g : *nodeMap->MAP() ) {
 		dout << g.first << std::endl;
 		if ( is_rel_iri ( g.first ) ) continue;
 		if ( !g.second )
-			throw runtime_error ( "key without value?" );
-		if ( !g.second->MAP() ) throw runtime_error ( "Expected map in nodemap, got "+g.second->type_str() );
+			throw std::runtime_error ( "key without value?" );
+		if ( !g.second->MAP() ) throw std::runtime_error ( "Expected map in nodemap, got "+g.second->type_str() );
 		r.graph_to_rdf ( g.first, *g.second->MAP() );
 	}
 	return r;
@@ -55,7 +55,7 @@ ParsingResult parse_jsonld(qdb &kb, std::istream &f)
 		load_jsonld(kb, f);
 		return COMPLETE;
 	}
-	catch (runtime_error ex) { derr << "[json]" << ex.what() << std::endl; }
+	catch (std::runtime_error ex) { derr << "[json]" << ex.what() << std::endl; }
 	catch (json_spirit::Error_position ex) { derr << "[json]" << ex.reason_ << std::endl; }
 	catch (...) { derr << "[jsonld]Unknown exception" << std::endl; }
 	return FAIL;

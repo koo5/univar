@@ -28,16 +28,16 @@
 				//			pstring s1 = p1 ? p1->STR() : 0;
 				//			string uri = resolve ( s1, *s );
 				//			if ( std::find ( remoteContexts.begin(), remoteContexts.end(), uri ) != remoteContexts.end() )
-				//				throw runtime_error ( RECURSIVE_CONTEXT_INCLUSION + tab + uri );
+				//				throw std::runtime_error ( RECURSIVE_CONTEXT_INCLUSION + tab + uri );
 				//			remoteContexts.push_back ( uri );
 				//			pobj remoteContext = fromURL ( uri );
 				//			if ( remoteContext && !remoteContext->map_and_has ( str_context ) )
-				//				throw runtime_error ( INVALID_REMOTE_CONTEXT + tab + context->toString() );
+				//				throw std::runtime_error ( INVALID_REMOTE_CONTEXT + tab + context->toString() );
 				//			context = remoteContext ? ( *remoteContext->MAP() ) [str_context] : 0;
 				//			result = *result.parse ( context, remoteContexts );
 				//			continue;
 			}
-			if (!context->MAP()) throw runtime_error(INVALID_LOCAL_CONTEXT + string("\r\n") + context->toString());
+			if (!context->MAP()) throw std::runtime_error(INVALID_LOCAL_CONTEXT + string("\r\n") + context->toString());
 			somap &cm = *context->MAP();
 			auto it = cm.find("@base");
 			if (!remoteContexts.size() && it != cm.end()) {
@@ -48,7 +48,7 @@
 					else {
 						pstring baseUri = (*result.MAP())["@base"]->STR();
 						if (!is_abs_iri(*baseUri))
-							throw runtime_error(INVALID_BASE_IRI + tab + (baseUri ? *baseUri : string("")));
+							throw std::runtime_error(INVALID_BASE_IRI + tab + (baseUri ? *baseUri : string("")));
 						(*result.MAP())["@base"] = make_shared<string_obj>(resolve(baseUri, *s));
 					}
 				} else throw Ex9;
@@ -66,7 +66,7 @@
 				pobj value = it->second;
 				if (value->Null()) result.MAP()->erase(it);
 				else if (pstring s = value->STR()) getlang(result) = make_shared<string_obj>(lower(*s));
-				else throw runtime_error(INVALID_DEFAULT_LANGUAGE + tab + value->toString());
+				else throw std::runtime_error(INVALID_DEFAULT_LANGUAGE + tab + value->toString());
 			}
 			for (auto it : cm) {
 				if (is(it.first, {str_base, str_vocab, str_lang})) continue;
@@ -82,10 +82,10 @@
 		auto dit = defined.find(term);
 		if (dit != defined.end()) {
 			if (dit->second) return;
-			throw runtime_error(CYCLIC_IRI_MAPPING + tab + term);
+			throw std::runtime_error(CYCLIC_IRI_MAPPING + tab + term);
 		}
 		defined[term] = false;
-		if (keyword(term)) throw runtime_error(KEYWORD_REDEFINITION + tab + term);
+		if (keyword(term)) throw std::runtime_error(KEYWORD_REDEFINITION + tab + term);
 		term_defs->erase(term); // 4
 		auto it = context->find(term);
 		psomap m;
@@ -97,13 +97,13 @@
 		somap value;
 		if (it->second->STR()) value = *newMap(str_id, it->second)->MAP();
 		else if (auto x = it->second->MAP()) value = *x;
-		else throw runtime_error(INVALID_TERM_DEFINITION);
+		else throw std::runtime_error(INVALID_TERM_DEFINITION);
 		somap defn;//, &val = *value->MAP();
 		if ((it = value.find(str_type)) != value.end()) { // 10
-			if (!it->second->STR()) throw runtime_error(INVALID_TYPE_MAPPING);
+			if (!it->second->STR()) throw std::runtime_error(INVALID_TYPE_MAPPING);
 			string type(*expand_iri(it->second->STR(), false, true, context, pdefined));
 			if (type != str_id && type != str_vocab && !is_abs_iri(type))
-				throw runtime_error(INVALID_TYPE_MAPPING + tab + type);
+				throw std::runtime_error(INVALID_TYPE_MAPPING + tab + type);
 			defn[str_type] = make_shared<string_obj>(type);
 		}
 		// 11
@@ -111,7 +111,7 @@
 			if (throw_if_not_contains(value, str_id, INVALID_REVERSE_PROPERTY) && !it->second->STR()) throw Ex5;
 			string reverse = *expand_iri(value.at(str_reverse)->STR(), false, true, context, pdefined);
 			if (!is_abs_iri(reverse))
-				throw runtime_error(INVALID_IRI_MAPPING + string("Non-absolute @reverse IRI: ") + reverse);
+				throw std::runtime_error(INVALID_IRI_MAPPING + string("Non-absolute @reverse IRI: ") + reverse);
 			defn[str_id] = make_shared<string_obj>(reverse);
 			if ((it = value.find("@container")) != value.end() &&
 				is(*it->second->STR(), {string(str_set), str_index}, Ex6))
@@ -185,7 +185,7 @@
 				auto base = get(MAP(), str_base);
 				return pstr(resolve(base ? base->STR() : 0, *value));
 			} else if (context && is_rel_iri(*value))
-				throw runtime_error(INVALID_IRI_MAPPING + string("not an absolute IRI: ") + *value);
+				throw std::runtime_error(INVALID_IRI_MAPPING + string("not an absolute IRI: ") + *value);
 		}
 		return value;
 	}
@@ -369,7 +369,7 @@
 				if (keyword(*exp_prop)) {
 					if (act_prop && *act_prop == str_reverse) throw Ex12;
 					if (has(result, exp_prop))
-						throw runtime_error(
+						throw std::runtime_error(
 								COLLIDING_KEYWORDS + tab + *exp_prop + string(" already exists in result"));
 					if (*exp_prop == str_id) {
 						if (!value->STR()) throw Ex13;
@@ -391,7 +391,7 @@
 					} else if (*exp_prop == str_graph) exp_val = expand(act_ctx, pstr(str_graph), value);
 					else if (*exp_prop == str_value) {
 						if (value && (value->MAP() || value->LIST()))
-							throw runtime_error(INVALID_VALUE_OBJECT_VALUE + tab + string("value of ") + *exp_prop +
+							throw std::runtime_error(INVALID_VALUE_OBJECT_VALUE + tab + string("value of ") + *exp_prop +
 												 string(" must be a scalar or null"));
 						if (!(exp_val = value)) {
 							(*result->MAP())[str_value] = 0;
@@ -399,7 +399,7 @@
 						}
 					} else if (*exp_prop == str_lang) {
 						if (!value->STR())
-							throw runtime_error(
+							throw std::runtime_error(
 									INVALID_LANGUAGE_TAGGED_STRING + tab
 									+ string("Value of ") + *exp_prop
 									+ string(" must be a string"));
@@ -407,7 +407,7 @@
 						>(lower(*value->STR()));
 					} else if (*exp_prop == str_index) {
 						if (!value->STR())
-							throw runtime_error(
+							throw std::runtime_error(
 									INVALID_INDEX_VALUE + tab
 									+ string("Value of ") + *exp_prop
 									+ string(" must be a string"));
@@ -452,7 +452,7 @@
 								for (pobj item : *items) {
 									if (has(item->MAP(), str_value)
 										|| has(item->MAP(), str_list))
-										throw runtime_error(
+										throw std::runtime_error(
 												INVALID_REVERSE_PROPERTY_VALUE);
 									if (!has(reverseMap, property))
 										(*reverseMap)[property] =
@@ -482,7 +482,7 @@
 									olist(1, languageValue));
 						for (pobj item : *languageValue->LIST()) {
 							if (!item->STR())
-								throw runtime_error(
+								throw std::runtime_error(
 										INVALID_LANGUAGE_MAP_VALUE + tab
 										+ string("Expected ")
 										+ item->toString()
@@ -555,14 +555,14 @@
 				if (typeremoved)
 					ks.erase(str_type);
 				if ((langremoved && typeremoved) || ks.size())
-					throw runtime_error(
+					throw std::runtime_error(
 							INVALID_VALUE_OBJECT + tab
 							+ string("value object has unknown keys"));
 				pobj rval = getvalue(result);
 				if (!rval)
 					result = 0;
 				else if (!rval->STR() && haslang(result))
-					throw runtime_error(
+					throw std::runtime_error(
 							INVALID_LANGUAGE_TAGGED_VALUE + tab
 							+ string(
 									"when @language is used, @value must be a string"));
@@ -570,7 +570,7 @@
 											  || startsWith(*gettype(result)->STR(), "_:")
 											  || gettype(result)->STR()->find(":")
 												 == string::npos)
-					throw runtime_error(
+					throw std::runtime_error(
 							INVALID_TYPED_VALUE + tab
 							+ string(
 									"value of @type must be an IRI"));
@@ -580,7 +580,7 @@
 					(*result->MAP())[str_type] = mk_olist_obj(olist(1, rtype));
 			} else if (hasset(result) || haslist(result)) {
 				if (result->MAP()->size() > (hasindex(result) ? 2 : 1))
-					throw runtime_error(
+					throw std::runtime_error(
 							INVALID_SET_OR_LIST_OBJECT + tab
 							+ string(
 									"@set or @list may only contain @index"));
@@ -816,7 +816,7 @@
 	//	try {
 	//		doc.document = fromURL ( url );
 	//	} catch ( ... ) {
-	//		throw runtime_error ( LOADING_REMOTE_CONTEXT_FAILED + tab + url );
+	//		throw std::runtime_error ( LOADING_REMOTE_CONTEXT_FAILED + tab + url );
 	//	}
 	//	return doc;
 	//}

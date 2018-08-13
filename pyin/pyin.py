@@ -54,12 +54,12 @@ def init_logging():
 	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
-from concurrent.futures import ThreadPoolExecutor
-pool = ThreadPoolExecutor(max_workers = 8, thread_name_prefix='sparql_updater')
+pool = None
 
 def kbdbg(text, default = False):
 	kbdbg_text(text)
-	pool.submit(server.update, """
+	if pool:
+		pool.submit(server.update, """
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
@@ -326,10 +326,18 @@ def are_same_bnodes(x,y,binding_uri):
 	for id, i in (('x', xbn),('y', ybn)):
 		kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
 	assert len(xbn) == len(ybn)
+	kbdbg(kbdbg_uri + " kbdbg:has_x " + rdflib.Literal(str(x)).n3())
+	kbdbg(kbdbg_uri + " kbdbg:has_y " + rdflib.Literal(str(y)).n3())
 	for k,xv in xbn.items():
 		if k not in ybn:
 			return False
 		yv = ybn[k]
+		kbdbg(kbdbg_uri + " kbdbg:has_xv " + rdflib.Literal(str(xv)).n3())
+		kbdbg(kbdbg_uri + " kbdbg:has_yv " + rdflib.Literal(str(yv)).n3())
+		if xv == x:
+			continue
+		if yv == y:
+			continue
 		if type(xv) != type(yv):
 			return False
 		if type(xv) != Var:
@@ -461,7 +469,7 @@ class Rule(Kbdbgable):
 				kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
 				body_uri = body_uri2
 			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
-		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head :' + rdflib.Literal(str(singleton.original_head)).n3())
+		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + rdflib.Literal(str(singleton.original_head)).n3())
 
 	def __str__(singleton, shortener = lambda x:x):
 		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')

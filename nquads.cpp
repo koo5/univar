@@ -114,7 +114,7 @@ pnode nqparser::readlist(qdb& kb) {
 		//Attempt to readany(true) into pn. If we fail, throw an error.
 		if (!(pn = readany(kb, true)))
 			//or literal apparently?
-			throw runtime_error(string("expected iri or bnode or list in list: ") + string(s,0,48));
+			throw std::runtime_error(string("expected iri or bnode or list in list: ") + string(s,0,48));
 		
 		//**needs comments**
 		pnode cons = mkbnode(pstr(list_bnode_name(lpos)));
@@ -146,7 +146,7 @@ pnode nqparser::readlist(qdb& kb) {
 
 		//If the next character is '}', then throw a run-time error.
 		//**needs comments**
-		if (*s == '}') throw runtime_error(string("expected { inside list: ") + string(s,0,48));
+		if (*s == '}') throw std::runtime_error(string("expected { inside list: ") + string(s,0,48));
 
 	}
 	//Can we encounter an infinite loop here? Let's find out.
@@ -312,7 +312,7 @@ void nqparser::readprefix() {
 	//not, then the appearance of '@' is apparently syntactically incorrect
 	//because we're throwing an error about it.
 	if (memcmp(s, "@prefix ", 8*sizeof(*s)))
-			throw runtime_error(string("\"@prefix \" expected: ") + string(s,0,48));
+			throw std::runtime_error(string("\"@prefix \" expected: ") + string(s,0,48));
 
 	//We didn't throw a run-time error, so the 8 characters must have matched "@prefix ".
 	//Advance the string-pointer by 8, i.e. past the "@prefix ".
@@ -323,14 +323,14 @@ void nqparser::readprefix() {
 	//what about white-space		
 	while (*s != ':' && *s!= 0 && *s!='\n') t[pos++] = *s++;
 	if (!(*s!= 0 && *s!='\n'))
-		throw runtime_error("hm");
+		throw std::runtime_error("hm");
 	
 	//Advance past the ':'
 	t[pos++] = *s++;
 	t[pos] = 0; pos = 0;
 	
         if (!(*s!= 0 && *s!='\n'))
-                throw runtime_error("hm");
+                throw std::runtime_error("hm");
 
 	//Trim the resulting string
 	pstring tt = wstrim(t);
@@ -368,7 +368,7 @@ pnode nqparser::readvar() {
 	//Copy characters from s into t until reaching either a whitespace character
 	//or one of the special characters ",;.}{)".
 	while (!iswspace(*s) && *s != '?' && *s != ',' && *s != ';' && *s != '.' && *s != '}' && *s != '{' && *s != ')') t[pos++] = *s++;
-	if(*s == '?') throw runtime_error(string("bad variable name") + string(s,0,48));
+	if(*s == '?') throw std::runtime_error(string("bad variable name") + string(s,0,48));
 
 	t[pos] = 0; pos = 0;
 
@@ -437,7 +437,7 @@ pnode nqparser::readlit() {
 		}
 
 		//Otherwise we didn't receive either a langtag or an iri, so throw an error:
-		else throw runtime_error(string("expected langtag or iri:") + string(s,0,48));
+		else throw std::runtime_error(string("expected langtag or iri:") + string(s,0,48));
 	}
 	//Append a null character to t and set pos back to 0.
 	t[pos] = 0; pos = 0;
@@ -520,7 +520,7 @@ void nqparser::_parse(qdb& kb, string ctx){
 		//Try to read any node except a literal into subject. RDF subjects can only
 		//be IRIs or blank-nodes. If we fail to read a node, then throw an error.
 		if (!(subject = readany(kb, false)))
-			throw runtime_error(string("expected iri or bnode subject:") + string(s,0,48));
+			throw std::runtime_error(string("expected iri or bnode subject:") + string(s,0,48));
 
 		//This is expecting to be looping over the predicate-object pairs given for this subject,
 		//separated by ';' i.e. like "subject pred1 obj1; pred2 obj2;" or
@@ -547,7 +547,7 @@ void nqparser::_parse(qdb& kb, string ctx){
 				pos1 = preds.rbegin();
 			}
 			//If both readiri() and readcurly() fail, then throw an error.
-			else throw runtime_error(string("expected iri predicate:") + string(s,0,48));
+			else throw std::runtime_error(string("expected iri predicate:") + string(s,0,48));
 
 			//This loop is over the objects for each predicate, and you can see
 			//in the do-condition that it iterates on ending up at a ','.
@@ -570,7 +570,7 @@ void nqparser::_parse(qdb& kb, string ctx){
 				}
 
 				//If we can't read a node using readany(true), then throw an error.
-				else throw runtime_error(string("expected iri or bnode or literal object:") + string(s,0,48));
+				else throw std::runtime_error(string("expected iri or bnode or literal object:") + string(s,0,48));
 				//Skip any more white-space following this.
 				while (iswspace(*s)) ++s;
 
@@ -597,7 +597,7 @@ void nqparser::_parse(qdb& kb, string ctx){
 			//or an IRI node into pn. We're attempting to read a context label. If that 
 			//fails, we throw an error, otherwise we copy the value of this node into 'graph'.
 			if (!(pn = readbnode()) && !(pn = readiri()))
-				throw runtime_error(string("expected iri or bnode graph:") + string(s,0,48));
+				throw std::runtime_error(string("expected iri or bnode graph:") + string(s,0,48));
 
 			graph = *pn->value;
 		} else
@@ -635,7 +635,7 @@ void nqparser::_parse(qdb& kb, string ctx){
 		//Okay we're past the white-space and the '.', 
 		//return here?
 		if (*s == '}') { ++s; /*rr = { r, qlists };*/ }
-		if (*s == ')') throw runtime_error(string("expected ) outside list: ") + string(s,0,48));
+		if (*s == ')') throw std::runtime_error(string("expected ) outside list: ") + string(s,0,48));
 	}
 	}
 }

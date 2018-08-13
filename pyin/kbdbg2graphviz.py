@@ -85,7 +85,7 @@ last_bindings = []
 def generate_gv_image(g, step):
 	global arrow_width, last_bindings
 
-	gv("digraph frame"+str(step) + "{")
+	gv("digraph frame"+str(step) + "{  ")#splines=ortho;
 	#gv("pack=true")
 
 	root_frame = None

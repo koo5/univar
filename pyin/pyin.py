@@ -501,6 +501,8 @@ class Rule(Kbdbgable):
 					if singleton.head.args[arg_idx] == bnode.is_from_name:
 						for k,v in bnode.items():
 							for head_arg_idx, head_arg in enumerate(singleton.head.args):
+								if bnode[head_arg] != head_arg:
+									continue
 								if type(locals[head_arg]) == Atom:
 									continue
 								a0 = Arg(

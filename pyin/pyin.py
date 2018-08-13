@@ -318,6 +318,8 @@ def are_same_bnodes(x,y,binding_uri):
 	if not ybn: kbdbg(kbdbg_uri + ' kbdbg:fail_reason "y is not a bnode"')
 	if not (xbn and ybn):
 	    return False
+	kbdbg(kbdbg_uri + ' kbdbg:has_original_rule_x ' + rdflib.Literal(str(xbn.is_a_bnode_from_original_rule)).n3())
+	kbdbg(kbdbg_uri + ' kbdbg:has_original_rule_y ' + rdflib.Literal(str(ybn.is_a_bnode_from_original_rule)).n3())
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
 		kbdbg(kbdbg_uri + ' kbdbg:fail_reason "different original rules"')
 		return False
@@ -459,6 +461,7 @@ class Rule(Kbdbgable):
 				kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
 				body_uri = body_uri2
 			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
+		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head :' + rdflib.Literal(str(singleton.original_head)).n3())
 
 	def __str__(singleton, shortener = lambda x:x):
 		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
@@ -513,6 +516,7 @@ class Rule(Kbdbgable):
 									continue
 								existential_bindings.append((a0,a1))
 								print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
+			del bnode
 		total_bnode_counter = 0
 
 		if len(existential_bindings):

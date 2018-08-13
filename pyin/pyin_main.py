@@ -33,7 +33,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, identification):
 	outpath = 'visualizations/'+fn+ '/'
 	pyin.kbdbg_file_name = outpath + fn
 	pyin._rules_file_name = pyin.kbdbg_file_name + '_rules'
-	subprocess.check_output(['rm', pyin._rules_file_name])
+	subprocess.call(['rm', pyin._rules_file_name])
 	os.system('mkdir -p '+outpath)
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg

@@ -296,7 +296,7 @@ def run():
 	os.system("rm -f kbdbg"+fn+'\\.*')
 
 	from concurrent.futures import ThreadPoolExecutor
-	pool = ThreadPoolExecutor(max_workers = 8)
+	pool = ThreadPoolExecutor(max_workers = 1)
 
 	g = Graph(OrderedStore())
 	prefixes = []

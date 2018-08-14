@@ -377,19 +377,21 @@ def is_var(x):
 	return False
 
 class Locals(dict):
-	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
+	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None, is_bnode = False):
+		s.is_bnode = is_bnode
 		if dbg:
 			super().__init__()
 			s.debug_id = debug_id
 			s.debug_last_instance_id = 0
 			s.debug_rule = weakref(debug_rule)
 			s.kbdbg_frame = kbdbg_frame
+			if s.kbdbg_frame:
+				s.kbdbg_name = rdflib.URIRef(s.kbdbg_frame)
 		for k,v in initializer.items():
 			if type(v) == Var:
 				s[k] = Var(v.debug_name + "_clone", s)
 			else:
 				s[k] = Atom(v.value, s)
-			#kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
 
 	def __str__(s):
 		r = ("locals " + str(s.debug_id) + " of " + str(s.debug_rule()))
@@ -398,15 +400,14 @@ class Locals(dict):
 		return r
 
 	def emit(s):
-		assert False
-		kbdbg(s.kbdbg_name + " rdf:type kbdbg:locals")
-		kbdbg(s.kbdbg_name + " kbdbg:has_frame " + s.kbdbg_frame)
+		kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " rdf:type kbdbg:" + ("bnode" if s.is_bnode else "locals"))
+		kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
 		for k, v in s.items():
-			assert False
-			var = bn()
-			kbdbg(s.kbdbg_name + " kbdbg:has_var " + var)
-			kbdbg(var + ' kbdbg:has_name ' + rdflib.Literal(k))
-			kbdbg(var + " kdbdb:has_value " + v.kbdg_name)
+			uri = bn()
+			kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " kbdbg:has_item " + uri)
+			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(k).n3())
+			kbdbg(uri + " kbdbg:has_value " + rdflib.URIRef(v.kbdbg_name).n3())
+			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.__short__str__()).n3())
 
 	def __short__str__(s):
 		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")
@@ -416,13 +417,14 @@ class Locals(dict):
 		if dbg:
 			s.debug_last_instance_id += 1
 		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
-		#nolog or log("result: " + str(r))
+		s.emit()
 		return r
 
 	def new_bnode(s, idx):
-		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx)
+		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx, is_bnode = True)
 		for k,v in s.items():
 			r[k] = get_value(v).recursive_clone()#not really recursive
+		s.emit()
 		return r
 
 def emit_terms(terms):
@@ -568,7 +570,7 @@ class Rule(Kbdbgable):
 					"""generate blank node:"""
 					ex_idx = depth - len(args) - len(singleton.body)
 					e = existentials[ex_idx]
-					bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name)
+					bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
 					total_bnode_counter += 1
 					bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 					total_bnode_counter += 1
@@ -587,10 +589,7 @@ class Rule(Kbdbgable):
 							x.is_part_of_bnode = weakref(bnode)
 							x.debug_locals = weakref(bnode)
 							bnode[arg] = x
-							uri = bn()
-							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_item " + uri)
-							kbdbg(uri + " kbdbg:has_name " + arg.n3())
-							kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(bnode[arg].__short__str__()).n3())
+					bnode.emit()
 					generator = unify(
 						Arg(
 							e, locals[e],
@@ -601,9 +600,8 @@ class Rule(Kbdbgable):
 							bnode[e],
 							bnode.kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
-					kbdbg(bnode.kbdbg_name.n3() + " rdf:type kbdbg:bnode")
-					#todo name
 					kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
+					bnode.emit()
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:

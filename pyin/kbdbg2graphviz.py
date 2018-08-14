@@ -7,6 +7,7 @@ import os
 import sys
 import logging
 import urllib.parse
+import subprocess
 import rdflib
 from rdflib import Graph
 from rdflib.namespace import Namespace
@@ -330,7 +331,13 @@ def run():
 		gv_output_file = open(gv_output_file_name, 'w')
 		generate_gv_image(g, step)
 		gv_output_file.close()
-		pool.submit(os.system, ("convert  -extent 6000x3000 "+gv_output_file_name+" -gravity NorthWest  -background white " + gv_output_file_name+".png"))
+		cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
+		if True:
+			r = cmd(args, stderr=subprocess.STDOUT)
+			if r != b"":
+				raise RuntimeError("")
+		else:
+			pool.submit(cmd, args)
 
 	pool.shutdown()
 

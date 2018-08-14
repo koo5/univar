@@ -385,8 +385,8 @@ class Locals(dict):
 			s.debug_last_instance_id = 0
 			s.debug_rule = weakref(debug_rule)
 			s.kbdbg_frame = kbdbg_frame
-			if s.kbdbg_frame:
-				s.kbdbg_name = rdflib.URIRef(s.kbdbg_frame)
+			#if s.kbdbg_frame:
+			#	s.kbdbg_name = rdflib.URIRef(s.kbdbg_frame)
 		for k,v in initializer.items():
 			if type(v) == Var:
 				s[k] = Var(v.debug_name + "_clone", s)
@@ -400,11 +400,11 @@ class Locals(dict):
 		return r
 
 	def emit(s):
-		kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " rdf:type kbdbg:" + ("bnode" if s.is_bnode else "locals"))
-		kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " rdf:type kbdbg:" + ("bnode" if s.is_bnode else "locals"))
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
 		for k, v in s.items():
 			uri = bn()
-			kbdbg(rdflib.URIRef(s.kbdbg_frame).n3() + " kbdbg:has_item " + uri)
+			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_item " + uri)
 			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(k).n3())
 			kbdbg(uri + " kbdbg:has_value " + rdflib.URIRef(v.kbdbg_name).n3())
 			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.__short__str__()).n3())
@@ -417,14 +417,14 @@ class Locals(dict):
 		if dbg:
 			s.debug_last_instance_id += 1
 		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
-		s.emit()
+		#s.emit()
 		return r
 
 	def new_bnode(s, idx):
 		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx, is_bnode = True)
 		for k,v in s.items():
 			r[k] = get_value(v).recursive_clone()#not really recursive
-		s.emit()
+		#s.emit()
 		return r
 
 def emit_terms(terms):
@@ -717,6 +717,8 @@ def emit_list(l):
 	r = uri = bn()
 	for idx, i in enumerate(l):
 		kbdbg(uri + " rdf:first " + (i if type(i) == str else i.n3()))
+		if type(i) == rdflib.BNode:
+			kbdbg(i.n3() + ' kbdbg:comment "thats a bnode from the kb input graph, a subj or an obj of an implication. fixme."')
 		if idx != len(l) - 1:
 			uri2 = uri + "X"
 		else:

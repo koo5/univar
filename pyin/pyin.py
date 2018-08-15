@@ -224,6 +224,8 @@ class Var(AtomVar):
 	def ___short__str__(s):
 		if s.bound_to:
 			return ' = ' + (s.bound_to.__short__str__())
+		elif s.is_part_of_bnode():
+			return '[bnode]'
 		else:
 			return '(free)'
 	def recursive_clone(s):
@@ -402,12 +404,14 @@ class Locals(dict):
 	def emit(s):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " rdf:type kbdbg:" + ("bnode" if s.is_bnode else "locals"))
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
+		items = []
 		for k, v in s.items():
 			uri = bn()
-			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_item " + uri)
-			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(k).n3())
-			kbdbg(uri + " kbdbg:has_value " + rdflib.URIRef(v.kbdbg_name).n3())
-			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.__short__str__()).n3())
+			items.append(uri)
+			kbdbg(uri + ' kbdbg:has_name ' + rdflib.URIRef(k).n3())
+			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
+			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
+			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
 		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")

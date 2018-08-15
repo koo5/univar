@@ -118,7 +118,12 @@ def generate_gv_image(g, step):
 			with tag('tr'):
 				with tag('td', border=1):
 					text((shorten(bnode.n3())))
-			for i in g.objects(bnode, kbdbg.has_item):
+			items = None
+			for i in g.objects(bnode, kbdbg.has_items):
+				items = i # find the latest ones
+			if not items:
+				continue
+			for i in Collection(g,items):
 				with tag('tr'):
 					name = g.value(i, kbdbg.has_name)
 					with tag("td", border=1, port=gv_escape(name)):
@@ -335,7 +340,7 @@ def run():
 		if True:
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
-				raise RuntimeError("")
+				raise RuntimeError(r)
 		else:
 			pool.submit(cmd, args)
 

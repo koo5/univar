@@ -16,7 +16,7 @@ from rdflib.namespace import RDF
 from rdflib.collection import Collection
 from ordered_rdflib_store import OrderedStore
 import yattag
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -34,7 +34,6 @@ log=logger.debug
 
 arrow_width = 1
 border_width = 0
-gv_output_file = None
 
 def gv(text):
 	#logging.getLogger("kbdbg").info(text)
@@ -296,33 +295,7 @@ def arrow(x,y,color='black',weight=1, binding=False):
 def available_cpus():
 	return len(os.sched_getaffinity(0))
 
-
-
-def work(g, input_file_name, step, no_parallel, graphviz_pool):
-	print('banana')
-	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		return
-	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
-	try:
-		os.unlink(gv_output_file_name)
-	except FileNotFoundError:
-		pass
-	gv_output_file = open(gv_output_file_name, 'w')
-	generate_gv_image(g, step)
-	gv_output_file.close()
-	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
-	if no_parallel:
-		r = cmd(args, stderr=subprocess.STDOUT)
-		if r != b"":
-			raise RuntimeError(r)
-	else:
-		def do_or_die(args):
-			r = cmd(args, stderr=subprocess.STDOUT)
-			if r != b"":
-				exit()
-		graphviz_pool.submit(do_or_die, args)
-
-
+futures = []
 
 @click.command()
 @click.option('--start', type=click.IntRange(0, None), default=0)
@@ -379,17 +352,52 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		if no_parallel:
 			g2 = g
 		else:
-			g2 = Graph(g.store.copy())
+			g2 = Graph(g.store.copy(), identifier = g.identifier)
 
-		args = (g2, input_file_name, step)
+		args = (g2, input_file_name, step, no_parallel, graphviz_pool)
 		if no_parallel:
-			work(**args)
+			work(*args)
 		else:
-			worker_pool.submit(work, args)
+			futures.append(worker_pool.submit(work, *args))
 			print ('submitted ' + str(args))
+			check_futures()
 
 	worker_pool.shutdown()
 	graphviz_pool.shutdown()
+	check_futures()
+
+def check_futures():
+	for f in as_completed(futures):
+		futures.remove(f)
+		f.result()
+
+def work(g, input_file_name, step, no_parallel, graphviz_pool):
+	print('banana')
+	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
+		print('no frames.')
+		return
+	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+	try:
+		os.unlink(gv_output_file_name)
+	except FileNotFoundError:
+		pass
+	gv_output_file = open(gv_output_file_name, 'w')
+	generate_gv_image(g, step)
+	gv_output_file.close()
+	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
+	if no_parallel:
+		r = cmd(args, stderr=subprocess.STDOUT)
+		if r != b"":
+			raise RuntimeError(r)
+	else:
+		def do_or_die(args):
+			r = cmd(args, stderr=subprocess.STDOUT)
+			if r != b"":
+				print(r)
+				raise RuntimeError(r)
+				#exit()
+		futures.append(graphviz_pool.submit(do_or_die, args))
+
 
 if __name__ == '__main__':
 	run()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import click
 from common import shorten
 import html as html_module
 import os
@@ -290,18 +291,35 @@ def arrow(x,y,color='black',weight=1, binding=False):
 	gv(r)
 
 
-def run():
+
+def available_cpus():
+	return len(os.sched_getaffinity(0))
+
+
+@click.command()
+@click.option('--start', type=click.IntRange(0, None), default=0)
+@click.option('--end', type=click.IntRange(-1, None), default=-1)
+@click.option('--no-parallel', default=False)
+@click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
+@click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
+
+def run(start, end, no_parallel, graphviz_workers, input_file_name):
 	global gv_output_file
-	if len(sys.argv) == 2:
-		fn = sys.argv[1]
-	else:
-		fn = 'kbdbg.n3'
-	input_file = open(fn)
+	input_file = open(input_file_name)
 	lines = []
-	os.system("rm -f kbdbg"+fn+'\\.*')
+	#os.system("rm -f kbdbg"+fn+'\\.*')
+
+	if no_parallel:
+		graphviz_workers = 0
+	if graphviz_workers == -1:
+		graphviz_workers = available_cpus()
+	if graphviz_workers == None:
+		graphviz_workers = 4
+	if graphviz_workers == 0:
+		no_parallel = True
 
 	from concurrent.futures import ThreadPoolExecutor
-	pool = ThreadPoolExecutor(max_workers = 1)
+	pool = ThreadPoolExecutor(max_workers = graphviz_workers)
 
 	g = Graph(OrderedStore())
 	prefixes = []
@@ -311,13 +329,20 @@ def run():
 			break
 		if l.startswith("#step"):
 			step = int(l[5:l.find(' ')])
-			print(step)
 		elif l.startswith('@prefix'):
 			prefixes.append(l)
 			continue
 		else:
 			lines.append(l)
 			continue
+		if step < start:
+			print ("skipping")
+			continue
+		if step > end and end != -1:
+			print ("ending")
+			break
+		print(str(step) + "...")
+
 
 		i = "".join(prefixes+lines)
 		g.parse(data=i, format='n3')
@@ -328,7 +353,7 @@ def run():
 		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 			continue
 
-		gv_output_file_name = fn + '_' + str(step).zfill(5) + '.gv'
+		gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:
@@ -337,12 +362,17 @@ def run():
 		generate_gv_image(g, step)
 		gv_output_file.close()
 		cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
-		if True:
+		if no_parallel:
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
 				raise RuntimeError(r)
 		else:
-			pool.submit(cmd, args)
+			def do_or_die(args):
+				r = cmd(args, stderr=subprocess.STDOUT)
+				if r != b"":
+					exit()
+
+			pool.submit(do_or_die, args)
 
 	pool.shutdown()
 

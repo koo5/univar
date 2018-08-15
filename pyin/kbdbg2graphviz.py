@@ -16,6 +16,7 @@ from rdflib.namespace import RDF
 from rdflib.collection import Collection
 from ordered_rdflib_store import OrderedStore
 import yattag
+from concurrent.futures import ThreadPoolExecutor
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -301,9 +302,10 @@ def available_cpus():
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--no-parallel', default=False)
 @click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
+@click.option('--workers', type=click.IntRange(0, 65536), default=8)
 @click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
 
-def run(start, end, no_parallel, graphviz_workers, input_file_name):
+def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 	global gv_output_file
 	input_file = open(input_file_name)
 	lines = []
@@ -318,8 +320,8 @@ def run(start, end, no_parallel, graphviz_workers, input_file_name):
 	if graphviz_workers == 0:
 		no_parallel = True
 
-	from concurrent.futures import ThreadPoolExecutor
-	pool = ThreadPoolExecutor(max_workers = graphviz_workers)
+	graphviz_pool = ThreadPoolExecutor(max_workers = graphviz_workers)
+	worker_pool = ThreadPoolExecutor(max_workers = workers)
 
 	g = Graph(OrderedStore())
 	prefixes = []
@@ -343,44 +345,52 @@ def run(start, end, no_parallel, graphviz_workers, input_file_name):
 			break
 		print(str(step) + "...")
 
-
 		i = "".join(prefixes+lines)
 		g.parse(data=i, format='n3')
 		lines = []
 
-		#print(g.store.triples((rdflib.term.URIRef('file:///#Rule1'), rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), None), g))
-
-		if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-			continue
-
-		gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
-		try:
-			os.unlink(gv_output_file_name)
-		except FileNotFoundError:
-			pass
-		gv_output_file = open(gv_output_file_name, 'w')
-		generate_gv_image(g, step)
-		gv_output_file.close()
-		cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
 		if no_parallel:
+			g2 = g
+		else:
+			g2 = Graph(g.store.copy())
+
+		args = (g2, input_file_name, step)
+		if no_parallel:
+			work(**args)
+		else:
+			worker_pool.submit(work, args)
+			print ('submitted ' + str(args))
+	import time
+	time.sleep(300)
+	worker_pool.shutdown()
+	graphviz_pool.shutdown()
+
+def work(g, input_file_name, step, no_parallel, graphviz_pool):
+	print('banana')
+	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
+		return
+	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+	try:
+		os.unlink(gv_output_file_name)
+	except FileNotFoundError:
+		pass
+	gv_output_file = open(gv_output_file_name, 'w')
+	generate_gv_image(g, step)
+	gv_output_file.close()
+	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
+	if no_parallel:
+		r = cmd(args, stderr=subprocess.STDOUT)
+		if r != b"":
+			raise RuntimeError(r)
+	else:
+		def do_or_die(args):
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
-				raise RuntimeError(r)
-		else:
-			def do_or_die(args):
-				r = cmd(args, stderr=subprocess.STDOUT)
-				if r != b"":
-					exit()
-
-			pool.submit(do_or_die, args)
-
-	pool.shutdown()
-
+				exit()
+		graphviz_pool.submit(do_or_die, args)
 
 
 if __name__ == '__main__':
 	run()
-
-
 
 #from IPython import embed;embed()

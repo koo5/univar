@@ -297,6 +297,33 @@ def available_cpus():
 	return len(os.sched_getaffinity(0))
 
 
+
+def work(g, input_file_name, step, no_parallel, graphviz_pool):
+	print('banana')
+	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
+		return
+	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+	try:
+		os.unlink(gv_output_file_name)
+	except FileNotFoundError:
+		pass
+	gv_output_file = open(gv_output_file_name, 'w')
+	generate_gv_image(g, step)
+	gv_output_file.close()
+	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
+	if no_parallel:
+		r = cmd(args, stderr=subprocess.STDOUT)
+		if r != b"":
+			raise RuntimeError(r)
+	else:
+		def do_or_die(args):
+			r = cmd(args, stderr=subprocess.STDOUT)
+			if r != b"":
+				exit()
+		graphviz_pool.submit(do_or_die, args)
+
+
+
 @click.command()
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
@@ -360,35 +387,9 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		else:
 			worker_pool.submit(work, args)
 			print ('submitted ' + str(args))
-	import time
-	time.sleep(300)
+
 	worker_pool.shutdown()
 	graphviz_pool.shutdown()
-
-def work(g, input_file_name, step, no_parallel, graphviz_pool):
-	print('banana')
-	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		return
-	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
-	try:
-		os.unlink(gv_output_file_name)
-	except FileNotFoundError:
-		pass
-	gv_output_file = open(gv_output_file_name, 'w')
-	generate_gv_image(g, step)
-	gv_output_file.close()
-	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
-	if no_parallel:
-		r = cmd(args, stderr=subprocess.STDOUT)
-		if r != b"":
-			raise RuntimeError(r)
-	else:
-		def do_or_die(args):
-			r = cmd(args, stderr=subprocess.STDOUT)
-			if r != b"":
-				exit()
-		graphviz_pool.submit(do_or_die, args)
-
 
 if __name__ == '__main__':
 	run()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import memoized
 import click
 from common import shorten
 import html as html_module
@@ -35,9 +36,10 @@ log=logger.debug
 arrow_width = 1
 border_width = 0
 
-def gv(text):
-	#logging.getLogger("kbdbg").info(text)
-	gv_output_file.write(text + '\n')
+
+def tell_if_is_last_element(x):
+	for i, j in enumerate(x):
+		yield j, (i == (len(x) - 1))
 
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
 	return g.value(subject, predicate, object, default, any)
@@ -78,174 +80,220 @@ def gv_escape(node, port=None):
 	return r
 """
 
-def tell_if_is_last_element(x):
-	for i, j in enumerate(x):
-		yield j, (i == (len(x) - 1))
+class Emitter:
 
-last_bindings = []
+	def __init__(first_g, g, gv_output_file, step)
+		s.last_bindings = []
+		s.first_g, s.g, s.gv_output_file = first_g, g, gv_output_file
+		s.step = step
 
-def generate_gv_image(g, step):
-	global arrow_width, last_bindings
+	def gv(s, text):
+		s.gv_output_file.write(text + '\n')
 
-	gv("digraph frame"+str(step) + "{  ")#splines=ortho;
-	#gv("pack=true")
+	def generate_gv_image(s, step):
+		g = s.g
 
-	root_frame = None
-	current_result = None
-	rrr = list(g.subjects(RDF.type, kbdbg.frame))
-	last_frame = None
-	for i, frame in enumerate(rrr):
-		if g.value(frame, kbdbg.is_finished, default=False):
-			continue
-		f, text = get_frame_gv(i, g, frame)
-		gv(f + text)
-		#if last_frame:
-		#	arrow(last_frame, f, color='yellow', weight=100)
-		parent = g.value(frame, kbdbg.has_parent)
-		if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
-			arrow(gv_escape(parent), f, color='yellow', weight=10000000)
-		else:
-			root_frame = f
-		last_frame = f
-		#if i == 0 and current_result:
-		#	arrow(result_node, f)
+		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;
+		#gv("pack=true")
 
-	for bnode in g.subjects(RDF.type, kbdbg.bnode):
-		if g.value(g.value(bnode, kbdbg.has_parent), kbdbg.is_finished, default=False):
-			continue
-		(doc, tag, text) = yattag.Doc().tagtext()
-		with tag("table", border=0, cellspacing=0):
-			#for i in Collection(g, bnode):
-			with tag('tr'):
-				with tag('td', border=1):
-					text((shorten(bnode.n3())))
-			items = None
-			for i in g.objects(bnode, kbdbg.has_items):
-				items = i # find the latest ones
-			if not items:
+		root_frame = None
+		current_result = None
+		rrr = list(g.subjects(RDF.type, kbdbg.frame))
+		last_frame = None
+		for i, frame in enumerate(rrr):
+			if g.value(frame, kbdbg.is_finished, default=False):
 				continue
-			for i in Collection(g,items):
+			f, text = s.get_frame_gv(i, frame)
+			s.gv(f + text)
+			#if last_frame:
+			#	arrow(last_frame, f, color='yellow', weight=100)
+			parent = g.value(frame, kbdbg.has_parent)
+			if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
+				s.arrow(gv_escape(parent), f, color='yellow', weight=10000000)
+			else:
+				root_frame = f
+			last_frame = f
+			#if i == 0 and current_result:
+			#	arrow(result_node, f)
+
+		for bnode in g.subjects(RDF.type, kbdbg.bnode):
+			if g.value(g.value(bnode, kbdbg.has_parent), kbdbg.is_finished, default=False):
+				continue
+			(doc, tag, text) = yattag.Doc().tagtext()
+			with tag("table", border=0, cellspacing=0):
+				#for i in Collection(g, bnode):
 				with tag('tr'):
-					name = g.value(i, kbdbg.has_name)
-					with tag("td", border=1, port=gv_escape(name)):
-						text(shorten(name))
-						text(' = ')
-						text(shorten(g.value(i, kbdbg.has_value)))
-					#with tag("td", border=1):
-					#	text(shorten(g.value(i, kbdbg.has_value)))
-		gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
-		arrow(gv_escape(g.value(bnode, kbdbg.has_parent)), gv_escape(bnode), color='yellow', weight=100)
+					with tag('td', border=1):
+						text((shorten(bnode.n3())))
+				items = None
+				for i in g.objects(bnode, kbdbg.has_items):
+					items = i # find the latest ones
+				if not items:
+					continue
+				for i in Collection(g,items):
+					with tag('tr'):
+						name = g.value(i, kbdbg.has_name)
+						with tag("td", border=1, port=gv_escape(name)):
+							text(shorten(name))
+							text(' = ')
+							text(shorten(g.value(i, kbdbg.has_value)))
+						#with tag("td", border=1):
+						#	text(shorten(g.value(i, kbdbg.has_value)))
+			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
+			s.arrow(gv_escape(g.value(bnode, kbdbg.has_parent)), gv_escape(bnode), color='yellow', weight=100)
 
 
-	new_last_bindings = []
-	for binding in g.subjects(RDF.type, kbdbg.binding):
-		source_uri = g.value(binding, kbdbg.has_source)
-		target_uri = g.value(binding, kbdbg.has_target)
-		if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
-			if (binding.n3() in last_bindings):
-				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='orange', binding=True)
-			continue
-		if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
-			if (binding.n3() in last_bindings):
-				arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri), color='red', binding=True)
-			continue
-		arrow(gv_endpoint(g, source_uri), gv_endpoint(g, target_uri),
-		      color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
-		new_last_bindings.append(binding)
-	last_bindings.clear()
-	for i in new_last_bindings:
-		last_bindings.append(i.n3())
+		last_bindings = 
 
-	last_result = root_frame
-	for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
-		result_node = gv_escape(result_uri)
-		r = result_node + ' [cellborder=2, shape=none, label=<'
-		(doc, tag, text) = yattag.Doc().tagtext()
-		with tag("table"):
-			with tag('tr'):
-				with tag("td"):
-					text('RESULT'+str(i) +' ')
-				emit_terms(tag, text, g, g.value(result_uri, RDF.value))
-		r += doc.getvalue()+ '>]'
-		gv(r)
-		false = rdflib.Literal(False)
-		if g.value(result_uri, kbdbg.was_unbound, default = false) == false:
-			current_result = result_node
-			arrow_width = 2
+
+		new_last_bindings = []
+		for binding in g.subjects(RDF.type, kbdbg.binding):
+			source_uri = g.value(binding, kbdbg.has_source)
+			target_uri = g.value(binding, kbdbg.has_target)
+			if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
+				if (binding.n3() in last_bindings):
+					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', binding=True)
+				continue
+			if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
+				if (binding.n3() in last_bindings):
+					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', binding=True)
+				continue
+			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
+				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
+			new_last_bindings.append(binding)
+		last_bindings.clear()
+		for i in new_last_bindings:
+			last_bindings.append(i.n3())
+
+		last_result = root_frame
+		for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
+			result_node = gv_escape(result_uri)
+			r = result_node + ' [cellborder=2, shape=none, label=<'
+			(doc, tag, text) = yattag.Doc().tagtext()
+			with tag("table"):
+				with tag('tr'):
+					with tag("td"):
+						text('RESULT'+str(i) +' ')
+					emit_terms(tag, text, g, g.value(result_uri, RDF.value))
+			r += doc.getvalue()+ '>]'
+			gv(r)
+			false = rdflib.Literal(False)
+			if g.value(result_uri, kbdbg.was_unbound, default = false) == false:
+				current_result = result_node
+				arrow_width = 2
+			else:
+				arrow_width = 1
+			if last_result:
+				arrow(last_result, result_node, color='yellow', weight=100)
+			last_result = result_node
+		gv("}")
+
+	def gv_endpoint(s, uri):
+		g=s.g
+		if(g.value(uri, kbdbg.is_bnode, default=False)):
+			term_idx = g.value(uri, kbdbg.term_idx, default=' $\=st #-* -')
+			return s.gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + s.gv_escape(term_idx)
 		else:
-			arrow_width = 1
-		if last_result:
-			arrow(last_result, result_node, color='yellow', weight=100)
-		last_result = result_node
+			x = g.value(uri, kbdbg.is_in_head, default=False)
+			is_in_head = (x == rdflib.Literal(True))
+			term_idx = g.value(uri, kbdbg.term_idx, default=0)
+			arg_idx  = g.value(uri, kbdbg.arg_idx)
+			return s.gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + s.port_name(is_in_head, term_idx, arg_idx)
+
+	def get_frame_gv(s, i, frame):
+		r = ' [shape=none, margin=0, '
+		isroot = False
+		if not s.g.value(frame, kbdbg.has_parent):
+			r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
+			isroot = True
+		return s.gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame, isroot) + ">]"
 
 
-	gv("}")
+	frame_name_template_var_name = '%frame_name_template_var_name%'
 
-def gv_endpoint(g, uri):
-	if(g.value(uri, kbdbg.is_bnode, default=False)):
-		term_idx = g.value(uri, kbdbg.term_idx, default=' $\=st #-* -')
-		return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + gv_escape(term_idx)
-	else:
-		x = g.value(uri, kbdbg.is_in_head, default=False)
-		is_in_head = (x == rdflib.Literal(True))
-		term_idx = g.value(uri, kbdbg.term_idx, default=0)
-		arg_idx  = g.value(uri, kbdbg.arg_idx)
-		return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port_name(is_in_head, term_idx, arg_idx)
-
-def get_frame_gv(i, g, frame):
-	r = ' [shape=none, margin=0, '
-	isroot = False
-	if not g.value(frame, kbdbg.has_parent):
-		r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
-		isroot = True
-	return gv_escape(frame), r + ' label=<' + get_frame_html_label(g, frame, isroot) + ">]"
+	def get_frame_html_label(s, frame, isroot):
+		rule = s.g.value(frame, kbdbg.is_for_rule)
+		return s._get_frame_html_label(
+			s.first_g, rule, isroot
+		).replace(
+			s.frame_name_template_var_name,html_module.escape(shorten(frame.n3()))
+		)
 
 
-frame_name_template_var_name = '%frame_name_template_var_name%'
-def get_frame_html_label(g, frame, isroot):
-	rule = g.value(frame, kbdbg.is_for_rule)
-	return _get_frame_html_label(
-		g, rule, isroot
-	).replace(
-		frame_name_template_var_name,html_module.escape(shorten(frame.n3()))
-	)
+	@staticmethod
+	@memoized.memoized
+	def _get_frame_html_label(g, rule, isroot):
+			head = g.value(rule, kbdbg.has_head)
+			doc, tag, text = yattag.Doc().tagtext()
 
-import memoized
-@memoized.memoized
-def _get_frame_html_label(g, rule, isroot):
-		head = g.value(rule, kbdbg.has_head)
-		doc, tag, text = yattag.Doc().tagtext()
+			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
+				with tag("tr"):
+					with tag('td', border=border_width):
+						if isroot:
+							text('QUERY:')
+						text(frame_name_template_var_name)
+					with tag("td", border=border_width):
+						text("{")
+					if head:
+						emit_term(tag, text, g, True, 0, head)
+					with tag("td", border=border_width):
+						text("} <= {")
 
-		with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
-			with tag("tr"):
-				with tag('td', border=border_width):
-					if isroot:
-						text('QUERY:')
-					text(frame_name_template_var_name)
-				with tag("td", border=border_width):
-					text("{")
-				if head:
-					emit_term(tag, text, g, True, 0, head)
-				with tag("td", border=border_width):
-					text("} <= {")
+					body_items_list_name = g.value(rule, kbdbg.has_body)
+					if body_items_list_name:
+						body_items_collection = Collection(g, body_items_list_name)
+						term_idx = 0
+						for body_item in body_items_collection:
+							emit_term(tag, text, g, False, term_idx, body_item)
+							term_idx += 1
+					with tag("td", border=border_width):
+						text('}')
+			#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
+			return doc.getvalue()
 
-				body_items_list_name = g.value(rule, kbdbg.has_body)
-				if body_items_list_name:
-					body_items_collection = Collection(g, body_items_list_name)
-					term_idx = 0
-					for body_item in body_items_collection:
-						emit_term(tag, text, g, False, term_idx, body_item)
-						term_idx += 1
-				with tag("td", border=border_width):
-					text('}')
-		#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
-		return doc.getvalue()
 
-def emit_terms(tag, text, g, uri):
-	body_items_collection = Collection(g, uri)
-	for term_idx, body_item in enumerate(body_items_collection):
-		emit_term(tag, text, g, False, term_idx, body_item)
+	def emit_terms(s, tag, text, uri):
+		body_items_collection = Collection(s.g, uri)
+		for term_idx, body_item in enumerate(body_items_collection):
+			s.emit_term(tag, text, s.g, False, term_idx, body_item)
 
+
+	def emit_term(s, tag, text, is_in_head, term_idx, term):
+		g=s.g
+		pred = g.value(term, kbdbg.has_pred)
+		args_collection = Collection(g, g.value(term, kbdbg.has_args))
+		if len(args_collection) == 2:
+			def arrrr(arg_idx):
+				with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
+					text(shorten(args_collection[arg_idx]))
+			arrrr(0)
+			with tag("td", border=border_width):
+				text(shorten(pred))
+			arrrr(1)
+			with tag("td", border=border_width):
+				text('.')
+		else:
+			with tag("td", border=border_width):
+				text(shorten(pred) + '( ')
+			arg_idx = 0
+			for arg, is_last in tell_if_is_last_element(args_collection):
+				with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
+					text(shorten(arg))
+				arg_idx += 1
+				if not is_last:
+					with tag("td", border=border_width):
+						text(', ')
+			with tag("td", border=border_width):
+				text(').')
+
+	def arrow(s,x,y,color='black',weight=1, binding=False):
+		r = x + '->' + y
+		#if arrow_width != 1:
+		r += ' [weight="'+str(weight)+'"color="'+color+'" penwidth = ' + str(arrow_width) + ' '
+		if binding:
+			r += 'constraint=false'
+		r += ']'# + ', arrowhead = ' + str(arrow_width)
+		s.gv(r)
 
 def port_name(is_in_head, term_idx, arg_idx):
 	return (
@@ -253,43 +301,6 @@ def port_name(is_in_head, term_idx, arg_idx):
 			str(term_idx) + "arg" +
 			str(arg_idx)
 			)
-
-def emit_term(tag, text, g, is_in_head, term_idx, term):
-	pred = g.value(term, kbdbg.has_pred)
-	args_collection = Collection(g, g.value(term, kbdbg.has_args))
-	if len(args_collection) == 2:
-		def arrrr(arg_idx):
-			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
-				text(shorten(args_collection[arg_idx]))
-		arrrr(0)
-		with tag("td", border=border_width):
-			text(shorten(pred))
-		arrrr(1)
-		with tag("td", border=border_width):
-			text('.')
-	else:
-		with tag("td", border=border_width):
-			text(shorten(pred) + '( ')
-		arg_idx = 0
-		for arg, is_last in tell_if_is_last_element(args_collection):
-			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
-				text(shorten(arg))
-			arg_idx += 1
-			if not is_last:
-				with tag("td", border=border_width):
-					text(', ')
-		with tag("td", border=border_width):
-			text(').')
-
-def arrow(x,y,color='black',weight=1, binding=False):
-	r = x + '->' + y
-	#if arrow_width != 1:
-	r += ' [weight="'+str(weight)+'"color="'+color+'" penwidth = ' + str(arrow_width) + ' '
-	if binding:
-		r += 'constraint=false'
-	r += ']'# + ', arrowhead = ' + str(arrow_width)
-	gv(r)
-
 
 
 def available_cpus():
@@ -306,7 +317,6 @@ futures = []
 @click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
 
 def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
-	global gv_output_file
 	input_file = open(input_file_name)
 	lines = []
 	#os.system("rm -f kbdbg"+fn+'\\.*')
@@ -371,7 +381,7 @@ def check_futures():
 		futures.remove(f)
 		f.result()
 
-def work(g, input_file_name, step, no_parallel, graphviz_pool):
+def work(first_g, g, input_file_name, step, no_parallel, graphviz_pool):
 	print('banana')
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 		print('no frames.')
@@ -382,7 +392,7 @@ def work(g, input_file_name, step, no_parallel, graphviz_pool):
 	except FileNotFoundError:
 		pass
 	gv_output_file = open(gv_output_file_name, 'w')
-	generate_gv_image(g, step)
+	Emitter(first_g, g, gv_output_file, step).generate_gv_image()
 	gv_output_file.close()
 	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
 	if no_parallel:

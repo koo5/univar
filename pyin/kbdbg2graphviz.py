@@ -125,7 +125,8 @@ class Emitter:
 			#	arrow(result_node, f)
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		for bnode in g.subjects(RDF.type, kbdbg.bnode):
-			if g.value(g.value(bnode, kbdbg.has_parent), kbdbg.is_finished, default=False):
+			parent = g.value(bnode, kbdbg.has_parent)
+			if g.value(parent, kbdbg.is_finished, default=False):
 				continue
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
@@ -148,7 +149,7 @@ class Emitter:
 						#with tag("td", border=1):
 						#	text(shorten(g.value(i, kbdbg.has_value)))
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
-			s.arrow(gv_escape(g.value(bnode, kbdbg.has_parent)), gv_escape(bnode), color='yellow', weight=100)
+			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
 
 		log ('get last bindings...' + '[' + str(s.step) + ']')
@@ -314,16 +315,19 @@ def available_cpus():
 	return len(os.sched_getaffinity(0))
 
 futures = []
+global_start = None
 
 @click.command()
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--no-parallel', default=False)
 @click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
-@click.option('--workers', type=click.IntRange(0, 65536), default=8)
+@click.option('--workers', type=click.IntRange(0, 65536), default=64)
 @click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
 
 def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
+	global global_start
+	global_start = start
 	input_file = open(input_file_name)
 	lines = []
 	#os.system("rm -f kbdbg"+fn+'\\.*')
@@ -355,7 +359,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		else:
 			lines.append(l)
 			continue
-		if step < start:
+		if step < start - 1:
 			print ("skipping")
 			continue
 		if step > end and end != -1:
@@ -380,7 +384,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		else:
 			log('submit ' + '[' + str(step) + ']')
 			futures.append(worker_pool.submit(work, *args))
-			check_futures()
+			#check_futures()
 
 	worker_pool.shutdown()
 	graphviz_pool.shutdown()
@@ -397,10 +401,13 @@ def work(g, input_file_name, step, no_parallel, graphviz_pool):
 		print('no frames.')
 		return
 	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+	if (step == global_start - 1):
+		gv_output_file_name = 'dummy'
 	try:
 		os.unlink(gv_output_file_name)
 	except FileNotFoundError:
 		pass
+
 	gv_output_file = open(gv_output_file_name, 'w')
 	e = Emitter(g, gv_output_file, step)
 	e.generate_gv_image()

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+import redislite
+#from collections import defaultdict
 import memoized
 import click
 from common import shorten
@@ -19,12 +20,22 @@ from rdflib.collection import Collection
 from ordered_rdflib_store import OrderedStore
 import yattag
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
-from multiprocessing import Manager, RLock
-from queue import Queue
+#from multiprocessing import Manager, RLock, Queue
 
-manager = Manager()
-manager.start()
-bindings_lock = manager.RLock()
+#manager = Manager()
+#bindings_lock = manager.RLock()
+#bindings = manager.dict()
+
+def get_last_bindings(step):
+	log ('get last bindings...' + '[' + str(step) + ']')
+	if step == 0:
+		return []
+	sss = step - 1
+	return redis_connection.blpop([sss])
+
+def put_last_bindings(step, new_last_bindings):
+	redis_connection.lpush(step, new_last_bindings)
+
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -93,7 +104,6 @@ def gv_escape(node, port=None):
 frame_name_template_var_name = '%frame_name_template_var_name%'
 
 class Emitter:
-	bindings = manager.dict()
 	first_g=None
 
 	def __init__(s, g, gv_output_file, step):
@@ -156,7 +166,7 @@ class Emitter:
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
-		last_bindings = s.get_last_bindings()
+		last_bindings = get_last_bindings(s.step)
 
 		log ('bindings...' + '[' + str(s.step) + ']')
 
@@ -176,10 +186,7 @@ class Emitter:
 				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
 			new_last_bindings.append(binding.n3())
 
-		with bindings_lock:
-			if s.step not in s.bindings:
-				s.bindings[s.step] = Queue()
-		s.bindings[s.step].put(new_last_bindings)
+		put_last_bindings(s.step, new_last_bindings)
 		del new_last_bindings
 
 		log ('results..' + '[' + str(s.step) + ']')
@@ -205,21 +212,6 @@ class Emitter:
 				s.arrow(last_result, result_node, color='yellow', weight=100)
 			last_result = result_node
 		s.gv("}")
-
-	def get_last_bindings(s):
-		log ('get last bindings...' + '[' + str(s.step) + ']')
-		if s.step == 0:
-			return []
-		sss = s.step - 1
-		if sss in s.bindings:
-			last_bindings = s.bindings[sss].get()
-		else:
-			with bindings_lock:
-				if sss in s.bindings:
-					return s.bindings[sss].get()
-				else:
-					s.bindings[sss] = Queue()
-			return s.bindings[sss].get()
 
 	def gv_endpoint(s, uri):
 		g=s.g
@@ -343,7 +335,7 @@ global_start = None
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--no-parallel', default=False)
 @click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
-@click.option('--workers', type=click.IntRange(0, 65536), default=64)
+@click.option('--workers', type=click.IntRange(0, 65536), default=8)
 @click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
 
 def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
@@ -362,11 +354,12 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 	if graphviz_workers == 0:
 		no_parallel = True
 
-	graphviz_pool = ProcessPoolExecutor(max_workers = graphviz_workers)
+	#graphviz_pool = ProcessPoolExecutor(max_workers = graphviz_workers)
 	#worker_pool = ThreadPoolExecutor(max_workers = workers)
 	worker_pool = ProcessPoolExecutor(max_workers = workers)
 
 	g = Graph(OrderedStore())
+	redis_fn = redislite.Redis().db
 
 	prefixes = []
 	while True:
@@ -400,28 +393,39 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		else:
 			g2 = Graph(g.store.copy(), identifier = g.identifier)
 
-		args = (g2, input_file_name, step, no_parallel, graphviz_pool)
+		args = (g2, input_file_name, step, no_parallel, redis_fn)
 		if no_parallel:
 			work(*args)
 		else:
-			log('submit ' + '[' + str(step) + ']')
+			log('submit ' + '[' + str(step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+			if len(futures) > workers:
+				import time
+				time.sleep(len(futures) - workers)
 			futures.append(worker_pool.submit(work, *args))
-			#check_futures()
+			check_futures()
 
 	worker_pool.shutdown()
-	graphviz_pool.shutdown()
+	#graphviz_pool.shutdown()
 	check_futures()
 
 def check_futures():
-	for f in as_completed(futures):
-		futures.remove(f)
-		f.result()
+	from concurrent.futures._base import TimeoutError
+	try:
+		for f in as_completed(futures, 0.1):
+			futures.remove(f)
+			f.result()
+	except TimeoutError:
+		pass
 
-def work(g, input_file_name, step, no_parallel, graphviz_pool):
+redis_connection = None
+
+def work(g, input_file_name, step, no_parallel, redis_fn):
+	global redis_connection
 	log('work' + str(g))
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 		print('no frames.')
 		return
+	redis_connection = redislite.Redis(redis_fn)
 	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
 	if (step == global_start - 1):
 		gv_output_file_name = 'dummy'
@@ -435,7 +439,7 @@ def work(g, input_file_name, step, no_parallel, graphviz_pool):
 	e.generate_gv_image()
 	gv_output_file.close()
 	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
-	if no_parallel:
+	if True:
 		r = cmd(args, stderr=subprocess.STDOUT)
 		if r != b"":
 			raise RuntimeError(r)

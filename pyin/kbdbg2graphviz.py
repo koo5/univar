@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-from queue import Queue
 import memoized
 import click
 from common import shorten
@@ -19,7 +18,13 @@ from rdflib.namespace import RDF
 from rdflib.collection import Collection
 from ordered_rdflib_store import OrderedStore
 import yattag
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
+from multiprocessing import Manager, RLock
+from queue import Queue
+
+manager = Manager()
+manager.start()
+bindings_lock = manager.RLock()
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -88,7 +93,7 @@ def gv_escape(node, port=None):
 frame_name_template_var_name = '%frame_name_template_var_name%'
 
 class Emitter:
-	bindings = defaultdict(Queue)
+	bindings = manager.dict()
 	first_g=None
 
 	def __init__(s, g, gv_output_file, step):
@@ -151,13 +156,9 @@ class Emitter:
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
+		last_bindings = s.get_last_bindings()
 
-		log ('get last bindings...' + '[' + str(s.step) + ']')
-		if s.step == 0:
-			last_bindings = []
-		else:
-			last_bindings = s.bindings[s.step - 1].get()
-		log ('got last bindings.' + '[' + str(s.step) + ']')
+		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
 		for binding in g.subjects(RDF.type, kbdbg.binding):
@@ -174,8 +175,13 @@ class Emitter:
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
 				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
 			new_last_bindings.append(binding.n3())
+
+		with bindings_lock:
+			if s.step not in s.bindings:
+				s.bindings[s.step] = Queue()
 		s.bindings[s.step].put(new_last_bindings)
 		del new_last_bindings
+
 		log ('results..' + '[' + str(s.step) + ']')
 		last_result = root_frame
 		for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
@@ -199,6 +205,21 @@ class Emitter:
 				s.arrow(last_result, result_node, color='yellow', weight=100)
 			last_result = result_node
 		s.gv("}")
+
+	def get_last_bindings(s):
+		log ('get last bindings...' + '[' + str(s.step) + ']')
+		if s.step == 0:
+			return []
+		sss = s.step - 1
+		if sss in s.bindings:
+			last_bindings = s.bindings[sss].get()
+		else:
+			with bindings_lock:
+				if sss in s.bindings:
+					return s.bindings[sss].get()
+				else:
+					s.bindings[sss] = Queue()
+			return s.bindings[sss].get()
 
 	def gv_endpoint(s, uri):
 		g=s.g
@@ -341,8 +362,9 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 	if graphviz_workers == 0:
 		no_parallel = True
 
-	graphviz_pool = ThreadPoolExecutor(max_workers = graphviz_workers)
-	worker_pool = ThreadPoolExecutor(max_workers = workers)
+	graphviz_pool = ProcessPoolExecutor(max_workers = graphviz_workers)
+	#worker_pool = ThreadPoolExecutor(max_workers = workers)
+	worker_pool = ProcessPoolExecutor(max_workers = workers)
 
 	g = Graph(OrderedStore())
 

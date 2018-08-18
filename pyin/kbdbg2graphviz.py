@@ -31,6 +31,8 @@ def get_last_bindings(step):
 	log ('get last bindings...' + '[' + str(step) + ']')
 	if step == 0:
 		return []
+	if step == global_start - 1:
+		return []
 	sss = step - 1
 	return redis_connection.blpop([sss])
 
@@ -431,6 +433,7 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 		return
 	redis_connection = redislite.Redis(redis_fn)
 	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+
 	if (step == global_start - 1):
 		gv_output_file_name = 'dummy'
 	try:
@@ -442,6 +445,9 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 	e = Emitter(g, gv_output_file, step)
 	e.generate_gv_image()
 	gv_output_file.close()
+
+	if (step == global_start - 1):
+		return
 
 	log('convert..' + '[' + str(step) + ']')
 	#cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.svg')

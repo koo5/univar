@@ -17,7 +17,7 @@ from rdflib import Graph
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
 from rdflib.collection import Collection
-from ordered_rdflib_store import OrderedStore
+from ordered_rdflib_store import OrderedAndIndexedStore
 import yattag
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 #from multiprocessing import Manager, RLock, Queue
@@ -358,7 +358,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 	#worker_pool = ThreadPoolExecutor(max_workers = workers)
 	worker_pool = ProcessPoolExecutor(max_workers = workers)
 
-	g = Graph(OrderedStore())
+	g = Graph(OrderedAndIndexedStore())
 	redis_fn = redislite.Redis().db
 
 	prefixes = []

@@ -364,6 +364,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 
 	prefixes = []
 	while True:
+		log("read...")
 		l = input_file.readline()
 		if l == "":
 			break
@@ -381,7 +382,6 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		if step > end and end != -1:
 			print ("ending")
 			break
-		log(str(step) + "...")
 
 		log('parse ' + '[' + str(step) + ']')
 		g.parse(data="".join(prefixes+lines), format='n3')
@@ -392,6 +392,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		if no_parallel:
 			g2 = g
 		else:
+			log('copy g..' + '[' + str(step) + ']')
 			g2 = Graph(g.store.copy(), identifier = g.identifier)
 
 		args = (g2, input_file_name, step, no_parallel, redis_fn)
@@ -403,7 +404,9 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 				import time
 				time.sleep(len(futures) - workers)
 			futures.append(worker_pool.submit(work, *args))
+			log('submitted ' )
 			check_futures()
+		log('loop ' )
 
 	worker_pool.shutdown()
 	#graphviz_pool.shutdown()
@@ -441,11 +444,16 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 	gv_output_file.close()
 
 	log('convert..' + '[' + str(step) + ']')
-	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
+	#cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.svg')
+	cmd, args = subprocess.check_output, ("dot", '-Tsvg',  gv_output_file_name, '-O')
 	if True:
-		r = cmd(args, stderr=subprocess.STDOUT)
-		if r != b"":
-			raise RuntimeError(r)
+		try:
+			r = cmd(args, stderr=subprocess.STDOUT)
+			if r != b"":
+				raise RuntimeError(r)
+		except subprocess.CalledProcessError as e:
+			print(e.output)
+		log('convert done.' + '[' + str(step) + ']')
 	else:
 		def do_or_die(args):
 			r = cmd(args, stderr=subprocess.STDOUT)

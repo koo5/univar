@@ -30,8 +30,8 @@ pyprof2calltree==1.4.3
 pytz==2018.5
 rdflib==4.2.2
 readline==6.2.4.1
-redis==2.10.6
-redislite==3.2.313
+redis
+redislite
 requests==2.19.1
 simplegeneric==0.8.1
 simplejson==3.16.0

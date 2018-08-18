@@ -364,7 +364,6 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 
 	prefixes = []
 	while True:
-		log("read...")
 		l = input_file.readline()
 		if l == "":
 			break
@@ -415,7 +414,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 def check_futures():
 	from concurrent.futures._base import TimeoutError
 	try:
-		for f in as_completed(futures, 0.1):
+		for f in as_completed(futures, 0):
 			futures.remove(f)
 			f.result()
 	except TimeoutError:

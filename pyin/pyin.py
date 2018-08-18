@@ -308,10 +308,21 @@ def unify(_x, _y):
 	else:
 		return fail("different things", emit_binding(orig))
 
+bp_heads = []
+
 def are_same_bnodes(x,y,binding_uri):
 	kbdbg_uri = bn()
 	kbdbg(kbdbg_uri + " rdf:type kbdbg:are_same_bnodes_check")
 	kbdbg(kbdbg_uri + " kbdbg:belongs_to_binding " + binding_uri)
+	bp_item = (x,y)
+	if bp_item in bp_heads:
+		kbdbg(kbdbg_uri + " kbdbg:cycle_detected true")
+		return True
+	bp_heads.append(bp_item)
+	return are_same_bnodes2(x,y,binding_uri, kbdbg_uri )
+	bp_heads.pop()
+
+def are_same_bnodes2(x,y,binding_uri, kbdbg_uri):
 	assert(x.bound_to == None)
 	assert(y.bound_to == None)
 	xbn = x.is_part_of_bnode()

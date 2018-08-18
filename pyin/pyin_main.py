@@ -91,7 +91,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 		print ()
 		o = ' RESULT : '
 		for triple in result:
-			o += str(triple)
+			o += triple.str()
 		print (o)
 
 	if sparql:

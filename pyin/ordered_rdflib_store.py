@@ -168,12 +168,12 @@ class OrderedAndIndexedStore(Store):
 		for pat in patterns:
 			i = self.indexes[pat]
 			for incoming_idx, l in enumerate(pat):
-				if i == 'f':
+				if l == 'f':
 					i = i[None]
 				else:
 					i = i[incoming[incoming_idx]]
-		i.append((xxx_todo_changeme, context))
-		self.quads.append(((s1, p1, o1), context))
+			i.append((xxx_todo_changeme, context))
+		self.quads.append((xxx_todo_changeme, context))
 
 
 	def remove(self, xxx_todo_changeme1, context=None):
@@ -195,7 +195,7 @@ class OrderedAndIndexedStore(Store):
 	# stats = defaultdict(lambda : 0)
 
 	def triples(self, triplein, context=None):
-		# print("want ", triplein, " in ", context)
+		#print("want ", triplein, " in ", context)
 		if context is not None:
 			if context == self:  # hmm...does this really ever happen?
 				context = None
@@ -205,14 +205,19 @@ class OrderedAndIndexedStore(Store):
 
 		pattern = self.get_pattern((s1, p1, o1, context))
 		if pattern in self.indexes:
-			return self.indexes[pattern][s1][p1][o1]
+			r = self.indexes[pattern][s1][p1][o1][context]
+			#print ('return ', r)
+			return r
+
 
 		if (s1 != None) and (p1 != None) and (o1 == None) and (context != None):
 			def filter_func(x):
 				(s2, p2, o2), c2 = x
 				return (s1 == s2) and (p1 == p2) and (context == c2)
+			#print ('return filter')
 			return filter(filter_func, self.quads)
 
+		#print ('return general')
 		return self.general_triple_helper(s1, p1, o1, context, self.quads)
 
 

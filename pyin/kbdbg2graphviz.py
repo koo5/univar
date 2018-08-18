@@ -16,7 +16,7 @@ import rdflib
 from rdflib import Graph
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
-from rdflib.collection import Collection
+from non_retarded_collection import Collection
 from ordered_rdflib_store import OrderedAndIndexedStore
 import yattag
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
@@ -212,6 +212,7 @@ class Emitter:
 				s.arrow(last_result, result_node, color='yellow', weight=100)
 			last_result = result_node
 		s.gv("}")
+		log ('}..' + '[' + str(s.step) + ']')
 
 	def gv_endpoint(s, uri):
 		g=s.g
@@ -438,6 +439,8 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 	e = Emitter(g, gv_output_file, step)
 	e.generate_gv_image()
 	gv_output_file.close()
+
+	log('convert..' + '[' + str(step) + ']')
 	cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.png')
 	if True:
 		r = cmd(args, stderr=subprocess.STDOUT)
@@ -445,7 +448,6 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 			raise RuntimeError(r)
 	else:
 		def do_or_die(args):
-			log('convert..' + '[' + str(step) + ']')
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
 				print(r)

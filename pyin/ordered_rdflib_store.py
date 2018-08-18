@@ -147,6 +147,7 @@ class OrderedAndIndexedStore(Store):
 		self.__defaultContexts = None
 		#self.indexes = defaultdict(new_i(0))
 		self.indexes = defaultdict(new_0)
+		self.locked = False
 
 	def copy(self):
 		r = self.__class__()
@@ -161,7 +162,8 @@ class OrderedAndIndexedStore(Store):
 		return "".join(('f' if x == None else 't') for x in spoc)
 
 	def add(self, xxx_todo_changeme, context, quoted=False):
-		assert not quoted
+		if quoted or self.locked:
+			raise RuntimeError('nope')
 		Store.add(self, xxx_todo_changeme, context, quoted)
 		s1, p1, o1 = xxx_todo_changeme
 		incoming = s1, p1, o1, context
@@ -177,7 +179,7 @@ class OrderedAndIndexedStore(Store):
 
 
 	def remove(self, xxx_todo_changeme1, context=None):
-		assert False
+		raise RuntimeError('nope')
 		# todo: figure out why the Memory store doesnt check the context
 		s1, p1, o1 = xxx_todo_changeme1
 		quads = self.quads[:]  # self.quads may be modified during the following iteration

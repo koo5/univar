@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time
+import pickle
 import redislite
-#from collections import defaultdict
 import memoized
 import click
 from common import shorten
@@ -167,7 +168,6 @@ class Emitter:
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
 		last_bindings = get_last_bindings(s.step)
-
 		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
@@ -388,19 +388,18 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 			Emitter.first_g = g
 		lines = []
 
-		if no_parallel:
+		if True:
 			g2 = g
 		else:
 			log('copy g..' + '[' + str(step) + ']')
-			g2 = Graph(g.store.copy(), identifier = g.identifier)
+			g2 = Graph(g.store, identifier = g.identifier)
 
-		args = (g2, input_file_name, step, no_parallel, redis_fn)
+		args = (pickle.dumps(g2), input_file_name, step, no_parallel, redis_fn)
 		if no_parallel:
 			work(*args)
 		else:
 			log('submit ' + '[' + str(step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			if len(futures) > workers:
-				import time
 				time.sleep(len(futures) - workers)
 			futures.append(worker_pool.submit(work, *args))
 			log('submitted ' )
@@ -424,7 +423,9 @@ redis_connection = None
 
 def work(g, input_file_name, step, no_parallel, redis_fn):
 	global redis_connection
-	log('work' + str(g))
+	g = pickle.loads(g)
+	#log('work' + str(id(g)) + ' ' + str(id(g.store)) + ' ' + str(id(g.store.indexes))  + ' ' + str(id(g.store.indexes['ttft']))  + ' ' + str(id(g.store.indexes['ttft'][rdflib.URIRef('http://kbd.bg/Rule1')])))
+	g.store.locked = True
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
 		print('no frames.')
 		return
@@ -449,9 +450,9 @@ def work(g, input_file_name, step, no_parallel, redis_fn):
 		try:
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
-				raise RuntimeError(r)
+				raise RuntimeError('[' + str(step) + '] ' + str(r))
 		except subprocess.CalledProcessError as e:
-			print(e.output)
+			print('[' + str(step) + ']' + e.output)
 		log('convert done.' + '[' + str(step) + ']')
 	else:
 		def do_or_die(args):

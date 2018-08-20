@@ -1,3 +1,9 @@
+/*so, err, writing of these _for_external files only works for a one-file test case, not if youd do kb filename, query filename..
+*/
+
+
+
+
 #include <stdio.h>
 #include <sstream>
 #include <tuple>
@@ -818,7 +824,23 @@ void qdb_to_nq(std::ostream &o, const qdb &db)
 	}
 }
 
+void write_file(string text, string fn)
+{
+	std::fstream out(text);
+	out.open(fn, std::fstream::out);
+	out << text;
+	out.close();
+}
 
+void write_out_qdb_text_without_fins(string fn)
+{
+	//string without_fin = cut_off_fin(qdb_text);
+	int fin_pos = qdb_text.length() - 5;
+	string fin = qdb_text.substr(fin_pos);
+	if (fin.compare(string("fin.\n")) != 0)
+		throw std::runtime_error(fin.c_str());
+	write_file(qdb_text.substr(0, fin_pos), fn);
+}
 
 int main ( int argc, char** argv)
 {
@@ -905,6 +927,7 @@ int main ( int argc, char** argv)
 
 				if(pr == COMPLETE) {
 					if (INPUT->mode == KB) {
+						write_out_qdb_text_without_fins("kb_for_external_raw.nq");				
 						kbs.push_back(kb);
 						fresh_prover();
 					}
@@ -953,7 +976,8 @@ int main ( int argc, char** argv)
 							out.open("kb_for_external.nq", std::fstream::out);
 							qdb_to_nq(out, merge_qdbs(kbs));
 							out.close();
-							
+							write_out_qdb_text_without_fins("query_for_external_raw.nq");				
+
 							if (INPUT->do_test)
 							{
 

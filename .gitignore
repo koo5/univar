@@ -1,3 +1,5 @@
+venv
+cpython3
 *.orig
 .cproject
 .project

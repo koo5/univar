@@ -927,7 +927,7 @@ int main ( int argc, char** argv)
 
 				if(pr == COMPLETE) {
 					if (INPUT->mode == KB) {
-						write_out_qdb_text_without_fins("kb_for_external_raw.nq");				
+						write_out_qdb_text_without_fins("kb_for_external_raw.n3");				
 						kbs.push_back(kb);
 						fresh_prover();
 					}
@@ -976,7 +976,7 @@ int main ( int argc, char** argv)
 							out.open("kb_for_external.nq", std::fstream::out);
 							qdb_to_nq(out, merge_qdbs(kbs));
 							out.close();
-							write_out_qdb_text_without_fins("query_for_external_raw.nq");				
+							write_out_qdb_text_without_fins("query_for_external_raw.n3");				
 
 							if (INPUT->do_test)
 							{

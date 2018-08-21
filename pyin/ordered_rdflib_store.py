@@ -102,9 +102,18 @@ class OrderedStore(Store):
 			s2, p2, o2 = spo2
 			# print("trying", spo2,c2,_q2)
 			if ((s1 == None) or (s1 == s2)) and ((p1 == None) or (p1 == p2)) and ((o1 == None) or (o1 == o2)) and (
-					context == c2):
+					(context == None) or (context == c2)):
 				# print("matches")
 				yield spo2, c2
+
+	def contexts(self, triple=None):
+		if triple is None:
+			triple = (None,None,None)
+		yielded = []
+		for spo, c in self.triples(triple):
+			if c not in yielded:
+				yielded.append(c)
+				yield c
 
 
 

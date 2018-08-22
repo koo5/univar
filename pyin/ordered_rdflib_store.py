@@ -76,10 +76,8 @@ class OrderedStore(Store):
 
 	def triples(self, triplein, context=None):
 		# print("want ", triplein, " in ", context)
-		if context is not None:
-			if context == self:  # hmm...does this really ever happen?
-				context = None
 		s1, p1, o1 = triplein
+
 		# self.__class__.stats["".join([('0' if (x == None) else '1') for x in (s1,p1,o1,context)])] += 1
 		# print (self.__class__.stats)
 		quads = self.quads[:]  # self.quads may be modified during the following iteration

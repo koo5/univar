@@ -42,23 +42,23 @@ def read(x):
 @click.argument('kb', type=click.File('rb'))
 def kb(kb):
 	g=read(kb)
-	for l in (g.serialize(format='nquads')).splitlines():
-		print(l)
+#	for l in (g.serialize(format='nquads')).splitlines():
+#		print(l)
 
 	ostore = OrderedStore()
 	og = ConjunctiveGraph(store=ostore, identifier='#')
 
-	print(list(g.contexts(None)))
+#	print(list(g.contexts(None)))
 
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 	global_facts = URIRef('#global_facts')
 	og.add((URIRef('#empty_graph'), implies, global_facts))
 
 	for c in g.contexts(None):
-		print ('context:', c)
+#		print ('context:', c)
 		for spo in g.triples((None, None, None, c)):
 			s,p,o = spo
-			print('spo:', spo)
+#			print('spo:', spo)
 			if type(s) == BNode:
 				s = URIRef('?' + str(s))
 			if type(o) == BNode:
@@ -66,8 +66,8 @@ def kb(kb):
 			cc = global_facts if (c.identifier == URIRef('#')) else c
 			og.add((s,p,o,cc))
 
-	print()
-	print()
+#	print()
+#	print()
 	print()
 	print()
 	for l in (og.serialize(format='nquads')).splitlines():

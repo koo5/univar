@@ -384,9 +384,6 @@ def is_var(x):
 	#from IPython import embed; embed()
 	if type(x) == rdflib.URIRef and '?' in str(x): #str(x).startswith('?'):
 		return True
-	if type(x) == str and '?' in x:
-		raise "this still happens?"
-		return True
 	return False
 
 class Locals(dict):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import rdflib
-from rdflib import BNode, URIRef
+from rdflib import BNode, URIRef, Variable
 from rdflib.graph import QuotedGraph, ConjunctiveGraph, Graph
 from ordered_rdflib_store import OrderedStore
 import click
@@ -27,12 +27,15 @@ def cli():
     pass
 
 
-
+dddd='#'
+bbbb= 'file:///'
+dddd= bbbb
 
 def read(x):
+
 	store = OrderedStore()
-	gg = Graph(store=store, identifier='#')
-	g = ConjunctiveGraph(store=store, identifier='#')
+	gg = Graph(store=store, identifier=dddd)
+	g = ConjunctiveGraph(store=store, identifier=dddd)
 	g.default_union = False
 	gg.parse(x, format='n3')
 	return g
@@ -46,25 +49,30 @@ def kb(kb):
 #		print(l)
 
 	ostore = OrderedStore()
-	og = ConjunctiveGraph(store=ostore, identifier='#')
+	og = ConjunctiveGraph(store=ostore, identifier=dddd)
 
 #	print(list(g.contexts(None)))
 
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
-	global_facts = URIRef('#global_facts')
-	og.add((URIRef('#empty_graph'), implies, global_facts))
+	global_facts = URIRef(dddd+'global_facts', base=bbbb)
+	og.add((URIRef(dddd+'empty_graph', base=bbbb), implies, global_facts))
 
 	for c in g.contexts(None):
 #		print ('context:', c)
 		for spo in g.triples((None, None, None, c)):
 			s,p,o = spo
-#			print('spo:', spo)
-			if type(s) == BNode:
-				s = URIRef('?' + str(s))
-			if type(o) == BNode:
-				o = URIRef('?' + str(o))
-			cc = global_facts if (c.identifier == URIRef('#')) else c
-			og.add((s,p,o,cc))
+			#print('spo1:', s,p,o)
+			s = fixup(s)
+			p = fixup(p)
+			o = fixup(o)
+			if c.identifier == URIRef(dddd, base=bbbb):
+				cc = global_facts
+			else:
+				cc = URIRef(c.identifier, base=bbbb)
+
+			spocc = (s,p,o,cc)
+			#print('spo2:', spocc)
+			og.add(spocc)
 
 #	print()
 #	print()
@@ -72,6 +80,17 @@ def kb(kb):
 	print()
 	for l in (og.serialize(format='nquads')).splitlines():
 		print(l.decode('utf8'))
+
+
+def fixup(o):
+	if type(o) == BNode:
+		o = Variable(str(o))
+	elif isinstance(o, Graph):
+		o = URIRef(o.identifier, base=bbbb)
+	if type(o) == Variable:
+		o = URIRef(o.n3(), base=bbbb)
+	return o
+
 
 
 #from IPython import embed; embed(); exit()

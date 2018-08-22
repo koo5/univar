@@ -1,4 +1,5 @@
 kb
+?w :t ?f.
 :T :not :F.
 :F :not :T.
 

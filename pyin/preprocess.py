@@ -38,24 +38,22 @@ def read(x):
 	g = ConjunctiveGraph(store=store, identifier=dddd)
 	g.default_union = False
 	gg.parse(x, format='n3')
-	return g
+	ostore = OrderedStore()
+	return g, ConjunctiveGraph(store=ostore, identifier=dddd)
 
 
 @click.command()
-@click.argument('kb', type=click.File('rb'))
-def kb(kb):
-	g=read(kb)
+@click.option('--kb', type=bool)
+@click.argument('input', type=click.File('rb'))
+def cli(kb, input):
+	g, og=read(input)
 #	for l in (g.serialize(format='nquads')).splitlines():
 #		print(l)
-
-	ostore = OrderedStore()
-	og = ConjunctiveGraph(store=ostore, identifier=dddd)
-
 #	print(list(g.contexts(None)))
-
-	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
-	global_facts = URIRef(dddd+'global_facts', base=bbbb)
-	og.add((URIRef(dddd+'empty_graph', base=bbbb), implies, global_facts))
+	if kb:
+		implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
+		global_facts = URIRef(dddd+'global_facts', base=bbbb)
+		og.add((URIRef(dddd+'empty_graph', base=bbbb), implies, global_facts))
 
 	for c in g.contexts(None):
 #		print ('context:', c)
@@ -65,11 +63,10 @@ def kb(kb):
 			s = fixup(s)
 			p = fixup(p)
 			o = fixup(o)
-			if c.identifier == URIRef(dddd, base=bbbb):
+			if kb and c.identifier == URIRef(dddd, base=bbbb):
 				cc = global_facts
 			else:
 				cc = URIRef(c.identifier, base=bbbb)
-
 			spocc = (s,p,o,cc)
 			#print('spo2:', spocc)
 			og.add(spocc)
@@ -90,19 +87,6 @@ def fixup(o):
 	if type(o) == Variable:
 		o = URIRef(o.n3(), base=bbbb)
 	return o
-
-
-
-#from IPython import embed; embed(); exit()
-
-@click.command()
-@click.argument('goal', type=click.File('rb'))
-def goal(goal):
-	pass
-
-cli.add_command(kb)
-cli.add_command(goal)
-
 
 
 if __name__ == "__main__":

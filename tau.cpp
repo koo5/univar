@@ -985,6 +985,9 @@ int main ( int argc, char** argv)
 							cmdss << INPUT->external;
 							cmdss << "  --identification ";
 							cmdss << current_file_name << "_" << query_counter;
+							cmdss << "  --base ";
+							cmdss << current_file_name;
+
 							redi::ipstream p(cmdss.str());
 
 							std::string line;
@@ -995,7 +998,7 @@ int main ( int argc, char** argv)
 									string result = line.substr(line.find(":") + 1);
 									qdb kb, kb2, external_output;
 									std::stringstream ss(result);
-									auto pr = parse(external_output, kb2, ss, "external_output");
+									auto pr = parse(external_output, kb2, ss, current_file_name);
 									external_results.push_back(external_output);
 								}
 							}

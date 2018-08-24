@@ -22,7 +22,8 @@ server, this = None, None
 @click.option('--visualize', default=False)
 @click.option('--sparql', default=False)
 @click.option('--identification', default="")
-def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification):
+@click.option('--base', default="")
+def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification, base):
 	global server, this
 	if sparql:
 		pyin.pool = ThreadPoolExecutor(8)#max_workers = , thread_name_prefix='sparql_updater'
@@ -62,9 +63,9 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 	kb_stream, goal_stream = kb, goal
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 	store = OrderedStore()
-	kb_graph = rdflib.Graph(store=store, identifier='file:///')
-	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier='file:///')
-	kb_graph.parse(kb_stream, format='n3', publicID='file:///')
+	kb_graph = rdflib.Graph(store=store, identifier=base)
+	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier=base)
+	kb_graph.parse(kb_stream, format='n3', publicID=base)
 
 	print('---kb:')
 	for l in kb_graph.serialize(format='n3').splitlines():
@@ -76,7 +77,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
-			return rdflib.Variable(str(o))
+			return rdflib.Variable(str(o), base=base)
 		return o
 
 	def fixup(spo):
@@ -98,8 +99,8 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
 				rules.append(Rule(head_triples_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 
-	goal_rdflib_graph = rdflib.Graph(store=OrderedStore(), identifier='file:///')
-	goal_rdflib_graph.parse(goal_stream, format='n3', publicID='file:///')
+	goal_rdflib_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
+	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
 	goal = Graph()
 
 	print('---goal:')

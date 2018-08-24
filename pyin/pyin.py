@@ -460,7 +460,7 @@ class Rule(Kbdbgable):
 		super().__init__()
 		singleton.head = head
 		singleton.body = body
-		singleton.original_head = original_head
+		singleton.original_head = id(original_head)
 		singleton.locals_template = singleton.make_locals(head, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 

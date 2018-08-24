@@ -47,29 +47,16 @@ def read(x):
 @click.argument('input', type=click.File('rb'))
 def cli(kb, input):
 	g, og=read(input)
-#	for l in (g.serialize(format='nquads')).splitlines():
-#		print(l)
-#	print(list(g.contexts(None)))
-	if kb:
-		implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
-		global_facts = URIRef(dddd+'global_facts', base=bbbb)
-		og.add((URIRef(dddd+'empty_graph', base=bbbb), implies, global_facts))
+	for spo,c in g.store.triples((None, None, None),None):
+		s,p,o = spo
+		s = fixup(s)
+		p = fixup(p)
+		o = fixup(o)
+		cc = URIRef(c.identifier, base=bbbb)
+		spocc = (s,p,o,cc)
+        r = "%s %s %s %s .\n" % (s.n3(),p.n3(),o.n3(),
+								 ('' if cc == bbbb else cc.n3()))
 
-	for c in g.contexts(None):
-#		print ('context:', c)
-		for spo in g.triples((None, None, None, c)):
-			s,p,o = spo
-			#print('spo1:', s,p,o)
-			s = fixup(s)
-			p = fixup(p)
-			o = fixup(o)
-			if kb and c.identifier == URIRef(dddd, base=bbbb):
-				cc = global_facts
-			else:
-				cc = URIRef(c.identifier, base=bbbb)
-			spocc = (s,p,o,cc)
-			#print('spo2:', spocc)
-			og.add(spocc)
 
 #	print()
 #	print()

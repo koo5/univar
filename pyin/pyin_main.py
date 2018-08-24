@@ -20,14 +20,16 @@ server, this = None, None
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
 @click.option('--visualize', default=False)
-@click.option('--sparql', default=False)
+@click.option('--sparql_uri', default='')#http://192.168.122.108:9999/blazegraph/sparql
 @click.option('--identification', default="")
 @click.option('--base', default="")
-def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification, base):
+def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
+	#print('base', base)
+	base = 'file://'  + base
 	global server, this
-	if sparql:
+	if sparql_uri != '':
 		pyin.pool = ThreadPoolExecutor(8)#max_workers = , thread_name_prefix='sparql_updater'
-		server = sparql.SPARQLServer('http://192.168.122.108:9999/blazegraph/sparql')
+		server = sparql.SPARQLServer(sparql_uri)
 		server.update("""CLEAR GRAPHS""")
 		pyin.server = server
 	this = ":"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
@@ -43,7 +45,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 	pyin.nokbdbg = nokbdbg
 	pyin.init_logging()
 
-	if sparql:
+	if sparql_uri != '':
 		server.update("""
 		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 		PREFIX kbdbg: <http://kbd.bg/#> 
@@ -77,7 +79,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
-			return rdflib.Variable(str(o), base=base)
+			return rdflib.URIRef('?'+str(o), base=base)
 		return o
 
 	def fixup(spo):
@@ -118,7 +120,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 			o += triple.str()
 		print (o)
 
-	if sparql:
+	if sparql_uri != '':
 		server.update("""
 		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 		PREFIX kbdbg: <http://kbd.bg/#> 
@@ -129,7 +131,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 		os.system('pypy3.5 -O pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
 
 
-	if sparql:
+	if sparql_uri != '':
 		pyin.pool.shutdown()
 
 if __name__ == "__main__":

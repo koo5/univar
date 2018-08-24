@@ -303,10 +303,13 @@ def unify(_x, _y):
 			return success("same bnodes", uri)
 		else:
 			return fail("different bnodes", uri)
-	elif type(x) == Atom and type(y) == Atom and x.value == y.value:
-		return success("same consts", emit_binding(orig))
+	elif type(x) == Atom and type(y) == Atom:
+		if x.value == y.value:
+			return success("same consts", emit_binding(orig))
+		else:
+			return fail("different consts: %s %s"%(x.value, y.value), emit_binding(orig))
 	else:
-		return fail("different things", emit_binding(orig))
+		return fail("different things: %s %s"%(x,y), emit_binding(orig))
 
 bp_heads = []
 
@@ -336,8 +339,8 @@ def are_same_bnodes2(x,y,binding_uri, kbdbg_uri):
 	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
 		kbdbg(kbdbg_uri + ' kbdbg:fail_reason "different original rules"')
 		return False
-	for id, i in (('x', xbn),('y', ybn)):
-		kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
+	#for id, i in (('x', xbn),('y', ybn)):
+	#	kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
 	assert len(xbn) == len(ybn)
 	kbdbg(kbdbg_uri + " kbdbg:has_x " + rdflib.Literal(str(x)).n3())
 	kbdbg(kbdbg_uri + " kbdbg:has_y " + rdflib.Literal(str(y)).n3())
@@ -382,7 +385,7 @@ def get_value(x):
 def is_var(x):
 	#return x.startswith('?')
 	#from IPython import embed; embed()
-	if type(x) == rdflib.URIRef and '?' in str(x): #str(x).startswith('?'):
+	if type(x) == rdflib.Variable or type(x) == rdflib.URIRef and '?' in str(x): #str(x).startswith('?'):
 		return True
 	return False
 
@@ -461,6 +464,7 @@ class Rule(Kbdbgable):
 		singleton.head = head
 		singleton.body = body
 		singleton.original_head = id(original_head)
+		singleton.original_head_triples = original_head[:]
 		singleton.locals_template = singleton.make_locals(head, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 
@@ -495,6 +499,8 @@ class Rule(Kbdbgable):
 			for a in triple.args:
 				if is_var(a):
 					x = Var(a, locals)
+				elif isinstance(a, rdflib.Graph):
+					x = Atom(URIRef(a.identifier), locals)
 				else:
 					x = Atom(a, locals)
 				locals[a] = x
@@ -588,7 +594,7 @@ class Rule(Kbdbgable):
 					total_bnode_counter += 1
 					bnode.is_a_bnode_from_original_rule = singleton.original_head
 					bnode.is_from_name = e
-					for triple in singleton.original_head:
+					for triple in singleton.original_head_triples:
 						for arg in triple.args:
 							if type(arg) == rdflib.Literal or not is_var(arg):
 								continue
@@ -675,7 +681,7 @@ class Rule(Kbdbgable):
 			if ep_match(args, head.items):
 				kbdbg(bn() + ' rdf:type kbdbg:ep_match')
 				return True
-		nolog or log ("..no match")
+		nolog or log ("..no ep match")
 
 def ep_match(args_a, args_b):
 	assert len(args_a) == len(args_b)
@@ -701,6 +707,12 @@ def pred(p, parent, args):
 		assert(isinstance(a, Arg))
 		assert(isinstance(a.thing, AtomVar))
 		assert get_value(a.thing) == a.thing
+
+	if p not in preds:
+		print (p)
+		for i in preds:
+			print(i)
+			print (i == p)
 
 	for rule in preds[p]:
 		if(rule.find_ep(args)):

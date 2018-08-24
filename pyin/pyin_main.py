@@ -64,10 +64,13 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 	store = OrderedStore()
 	kb_graph = rdflib.Graph(store=store, identifier='file:///')
 	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier='file:///')
-	kb_graph.parse(kb_stream, format='nquads')
+	kb_graph.parse(kb_stream, format='n3', publicID='file:///')
 
 	print('---kb:')
-	for l in (og.serialize(format='nquads')).splitlines():
+	for l in kb_graph.serialize(format='n3').splitlines():
+		print(l.decode('utf8'))
+	print('---kb quads:')
+	for l in kb_conjunctive.serialize(format='nquads').splitlines():
 		print(l.decode('utf8'))
 	print('---')
 
@@ -78,7 +81,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 
 	def fixup(spo):
 		s,p,o = spo
-		return (fixup(s), fixup(p), fixup(o))
+		return (fixup2(s), fixup2(p), fixup2(o))
 
 	rules = []
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
@@ -87,18 +90,24 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql, identification
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, _t, Graph()))
 		if p == implies:
-			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None), o)]
+			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = [Triple(x[1],[x[0],x[2]]) for x in head_triples]
 			for head_triple in head_triples:
 				body = Graph()
-				for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None), s)]:
+				for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
 				rules.append(Rule(head_triples_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 
 	goal_rdflib_graph = rdflib.Graph(store=OrderedStore(), identifier='file:///')
-	goal_rdflib_graph.parse(goal_stream, format='nquads')
+	goal_rdflib_graph.parse(goal_stream, format='n3', publicID='file:///')
 	goal = Graph()
-	for s,p,o in goal_rdflib_graph.triples((None, None, None)):
+
+	print('---goal:')
+	for l in goal_rdflib_graph.serialize(format='n3').splitlines():
+		print(l.decode('utf8'))
+	print('---')
+
+	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None))]:
 		goal.append(Triple((p), [(s), (o)]))
 
 	for result in query(rules, goal):

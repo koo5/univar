@@ -586,7 +586,7 @@ class Rule(Kbdbgable):
 					generator = pred(triple.pred, kbdbg_name, bi_args)
 				else:
 					"""generate blank node:"""
-					assert (depth < (len(args) + len(singleton.body) + len(outgoing_existentials))
+					assert (depth < (len(args) + len(singleton.body) + len(outgoing_existentials)))
 					ex_idx = depth - len(args) - len(singleton.body)
 					e = outgoing_existentials[ex_idx]
 					bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
@@ -607,7 +607,8 @@ class Rule(Kbdbgable):
 									x = get_value(locals[arg]).recursive_clone()
 								else:
 									#it must be an existential in another triple of the original head
-									assert arg in
+									assert arg in get_existentials([singleton.original_head_triples], singleton.body)
+									x = Var("this is another var in a bnode")
 							x.is_part_of_bnode = weakref(bnode)
 							x.debug_locals = weakref(bnode)
 							bnode[arg] = x
@@ -646,23 +647,6 @@ class Rule(Kbdbgable):
 					break
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
-	def get_existentials(heads, body):
-		"""gets all the names of existentials"""
-		vars = []
-		for head in heads:
-			if head:
-				for i_idx, i in enumerate(head.args):
-					if is_var(i):
-						if i not in vars:
-							vars.append(i)
-		for i in body:
-			for j in i.args:
-				if is_var(j):
-					if j in vars:
-						vars.remove(j)
-		print ("existentials:", vars)
-		return vars
-
 	def match(s, parent = None, args=[]):
 		#ttt = time.clock()
 		#print ("TTT", ttt)
@@ -687,6 +671,23 @@ class Rule(Kbdbgable):
 				kbdbg(bn() + ' rdf:type kbdbg:ep_match')
 				return True
 		nolog or log ("..no ep match")
+
+def get_existentials(heads, body):
+	"""gets all the names of existentials"""
+	vars = []
+	for head in heads:
+		if head:
+			for i_idx, i in enumerate(head.args):
+				if is_var(i):
+					if i not in vars:
+						vars.append(i)
+	for i in body:
+		for j in i.args:
+			if is_var(j):
+				if j in vars:
+					vars.remove(j)
+	print ("existentials:", vars)
+	return vars
 
 def ep_match(args_a, args_b):
 	assert len(args_a) == len(args_b)

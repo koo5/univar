@@ -7,7 +7,7 @@ kb
 
 fin.
 query
-?banana :a :SAT.
+(?banana ?orange) :a :SAT.
 fin.
 shouldbe
 (:T :T) :a :SAT.

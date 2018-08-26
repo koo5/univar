@@ -1003,6 +1003,14 @@ int main ( int argc, char** argv)
 								}
 							}
 							p.close();
+							if (!p.rdbuf()->exited()){
+								dout << "process didnt exit?" << std::endl;
+								test_result(false);
+							}
+							if (p.rdbuf()->status()){
+								dout << "non-zero exit code" << std::endl;
+								test_result(false);
+							}
 							}
 						}
 						done_anything = true;

@@ -44,7 +44,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
 	pyin.init_logging()
-
+	log = pyin.log
 	if sparql_uri != '':
 		server.update("""
 		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -69,13 +69,13 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier=base)
 	kb_graph.parse(kb_stream, format='n3', publicID=base)
 
-	print('---kb:')
+	log('---kb:')
 	for l in kb_graph.serialize(format='n3').splitlines():
-		print(l.decode('utf8'))
-	print('---kb quads:')
+		log(l.decode('utf8'))
+	log('---kb quads:')
 	for l in kb_conjunctive.serialize(format='nquads').splitlines():
-		print(l.decode('utf8'))
-	print('---')
+		log(l.decode('utf8'))
+	log('---')
 
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
@@ -101,16 +101,19 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
 				rules.append(Rule(head_triples_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
 
-	goal_rdflib_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
+	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
 	goal = Graph()
 
-	print('---goal:')
+	log('---goal:')
 	for l in goal_rdflib_graph.serialize(format='n3').splitlines():
-		print(l.decode('utf8'))
-	print('---')
+		log(l.decode('utf8'))
+	log('---goal nq:')
+	for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
+		log(l.decode('utf8'))
+	log('---')
 
-	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None))]:
+	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple((p), [(s), (o)]))
 
 	for result in query(rules, goal):
@@ -119,6 +122,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		for triple in result:
 			o += triple.str()
 		print (o)
+		log('('+o+')')
 
 	if sparql_uri != '':
 		server.update("""

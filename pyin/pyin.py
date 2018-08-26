@@ -519,7 +519,7 @@ class Rule(Kbdbgable):
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 		incoming_existentials = []
-		outgoing_existentials = singleton.get_existentials()
+		outgoing_existentials = get_existentials([singleton.head], singleton.body)
 		for arg_idx, arg in enumerate(args):
 			bnode = arg.thing.is_part_of_bnode()
 			if not bnode: continue
@@ -603,7 +603,11 @@ class Rule(Kbdbgable):
 							if arg in outgoing_existentials:
 								x = Var("this is a var in a bnode")
 							else:
-								x = get_value(locals[arg]).recursive_clone()
+								if arg in locals:
+									x = get_value(locals[arg]).recursive_clone()
+								else:
+									#it must be an existential in another triple of the original head
+									assert arg in
 							x.is_part_of_bnode = weakref(bnode)
 							x.debug_locals = weakref(bnode)
 							bnode[arg] = x
@@ -642,20 +646,20 @@ class Rule(Kbdbgable):
 					break
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
-	def get_existentials(s):
-		"""gets all the names of existentials in a single head triple"""
+	def get_existentials(heads, body):
+		"""gets all the names of existentials"""
 		vars = []
-		if s.head:
-			for i_idx, i in enumerate(s.head.args):
-				if is_var(i):
-					if i not in vars:
-						vars.append(i)
-						#i.position_in_head_args = i_idx
-			for i in s.body:
-				for j in i.args:
-					if is_var(j):
-						if j in vars:
-							vars.remove(j)
+		for head in heads:
+			if head:
+				for i_idx, i in enumerate(head.args):
+					if is_var(i):
+						if i not in vars:
+							vars.append(i)
+		for i in body:
+			for j in i.args:
+				if is_var(j):
+					if j in vars:
+						vars.remove(j)
 		print ("existentials:", vars)
 		return vars
 

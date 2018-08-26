@@ -523,15 +523,15 @@ class Rule(Kbdbgable):
 		for arg_idx, arg in enumerate(args):
 			bnode = arg.thing.is_part_of_bnode()
 			if not bnode: continue
-			if not ('is_a_bnode_from_original_rule' in bnode.__dict__): continue
+			#if not ('is_a_bnode_from_original_rule' in bnode.__dict__): continue
 			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
-				if bnode.is_from_name in outgoing_existentials:
+				#if bnode.is_from_name in outgoing_existentials:
 					if singleton.head.args[arg_idx] == bnode.is_from_name:
 						for k,v in bnode.items():
 							for head_arg_idx, head_arg in enumerate(singleton.head.args):
-								if bnode[head_arg] != head_arg:
-									continue
 								if type(locals[head_arg]) == Atom:
+									continue
+								if head_arg in [exbi[0].uri for exbi in incoming_existentials]:
 									continue
 								a0 = Arg(
 									head_arg, locals[head_arg],
@@ -542,8 +542,6 @@ class Rule(Kbdbgable):
 									bnode[head_arg],
 									bnode.kbdbg_name if dbg else None,
 									head_arg, 0, 'bnode')
-								if head_arg in [exbi[0].uri for exbi in incoming_existentials]:
-									continue
 								incoming_existentials.append((a0,a1))
 								print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
 			del bnode
@@ -607,7 +605,7 @@ class Rule(Kbdbgable):
 									x = get_value(locals[arg]).recursive_clone()
 								else:
 									#it must be an existential in another triple of the original head
-									assert arg in get_existentials([singleton.original_head_triples], singleton.body)
+									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
 									x = Var("this is another var in a bnode")
 							x.is_part_of_bnode = weakref(bnode)
 							x.debug_locals = weakref(bnode)

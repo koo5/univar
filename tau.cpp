@@ -1006,7 +1006,7 @@ int main ( int argc, char** argv)
 							if (!p.rdbuf()->exited()){
 								dout << "process didnt exit?" << std::endl;
 								test_result(false);
-							}
+							}else
 							if (p.rdbuf()->status()){
 								dout << "non-zero exit code" << std::endl;
 								test_result(false);

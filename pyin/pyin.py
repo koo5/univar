@@ -6,7 +6,7 @@ import sys
 import os
 import logging
 import urllib.parse
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from ordered_rdflib_store import OrderedStore
 from common import shorten
 
@@ -208,7 +208,7 @@ class Var(AtomVar):
 		else:
 			xxx = shortener(s.kbdbg_name)
 		bnode = s.is_part_of_bnode()
-		if bnode and ('is_a_bnode_from_rule' in bnode.__dict__):
+		if bnode and ('is_a_bnode_from_original_rule' in bnode.__dict__):
 			xxx += '['
 			for k,v in bnode.items():
 				if v != s:
@@ -583,35 +583,9 @@ class Rule(Kbdbgable):
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
 					generator = pred(triple.pred, kbdbg_name, bi_args)
 				else:
-					"""generate blank node:"""
 					assert (depth < (len(args) + len(singleton.body) + len(outgoing_existentials)))
 					ex_idx = depth - len(args) - len(singleton.body)
 					e = outgoing_existentials[ex_idx]
-					bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
-					bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
-					total_bnode_counter += 1
-					bnode.is_a_bnode_from_original_rule = singleton.original_head
-					bnode.is_from_name = e
-					for triple in singleton.original_head_triples:
-						for arg in triple.args:
-							if type(arg) == rdflib.Literal or not is_var(arg):
-								continue
-							if arg in bnode:
-								continue
-							if arg in outgoing_existentials:
-								x = Var("this is a var in a bnode")
-							else:
-								if arg in locals:
-									x = get_value(locals[arg]).recursive_clone()
-								else:
-									#it must be an existential in another triple of the original head
-									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
-									x = Var("this is another var in a bnode")
-							x.is_part_of_bnode = weakref(bnode)
-							x.debug_locals = weakref(bnode)
-							bnode[arg] = x
-					kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
-					bnode.emit()
 					generator = unify(
 						Arg(
 							e, locals[e],
@@ -622,7 +596,6 @@ class Rule(Kbdbgable):
 							bnode[e],
 							bnode.kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
-
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -631,6 +604,35 @@ class Rule(Kbdbgable):
 				if (depth < max_depth):
 					nolog or log ("down")
 					depth+=1
+					if depth == len(args) + len(singleton.body)
+						#we are on the first outgoing existential
+						outgoing_bnodes = OrderedDict()
+						for e in outgoing_existentials:
+							bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
+							bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
+							total_bnode_counter += 1
+							bnode.is_a_bnode_from_original_rule = singleton.original_head
+							bnode.is_from_name = e
+							outgoing_bnodes[e] = bnode
+						for e in outgoing_existentials:
+							bnode = outgoing_bnodes[e]
+							for arg in [[arg for arg in triple.args] for triple in singleton.original_head_triples]:
+								if type(arg) == rdflib.Literal:
+									continue
+								if not is_var(arg):
+									assert False
+								if arg in bnode:
+									continue
+								if arg in outgoing_existentials:
+									continue
+								if arg in locals:
+									x = get_value(locals[arg]).recursive_clone()
+								else:
+									#it must be an existential in another triple of the original head
+									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
+									bnode[arg] = outgoing_bnodes[arg]
+							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
+							bnode.emit()
 				else:
 					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
@@ -758,7 +760,7 @@ def emit_list(l):
 def print_bnode(v):
 	r = ''
 	bnode = v.is_part_of_bnode()
-	if bnode and ('is_a_bnode_from_rule' in bnode.__dict__):
+	if bnode and ('is_a_bnode_from_original_rule' in bnode.__dict__):
 		r += '['
 		for k,vv in bnode.items():
 			if v != vv:

@@ -1,3 +1,4 @@
+import itertools
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
@@ -8,7 +9,7 @@ import logging
 import urllib.parse
 from collections import defaultdict, OrderedDict
 from ordered_rdflib_store import OrderedStore
-from common import shorten
+from common import shorten, traverse
 
 dbg = True
 nolog = False
@@ -518,37 +519,36 @@ class Rule(Kbdbgable):
 		kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
-		incoming_existentials = []
+		total_bnode_counter = 0
+		incoming_bnode_unifications = []
 		outgoing_existentials = get_existentials([singleton.head], singleton.body)
+		original_head_outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
 		for arg_idx, arg in enumerate(args):
 			bnode = arg.thing.is_part_of_bnode()
 			if not bnode: continue
-			#if not ('is_a_bnode_from_original_rule' in bnode.__dict__): continue
 			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
-				#if bnode.is_from_name in outgoing_existentials:
-					if singleton.head.args[arg_idx] == bnode.is_from_name:
-						for k,v in bnode.items():
-							for head_arg_idx, head_arg in enumerate(singleton.head.args):
-								if type(locals[head_arg]) == Atom:
-									continue
-								if head_arg in [exbi[0].uri for exbi in incoming_existentials]:
-									continue
-								a0 = Arg(
-									head_arg, locals[head_arg],
-									locals.kbdbg_frame if dbg else None,
-									0, head_arg_idx, True)
-								a1 = Arg(
-									k,
-									bnode[head_arg],
-									bnode.kbdbg_name if dbg else None,
-									head_arg, 0, 'bnode')
-								incoming_existentials.append((a0,a1))
-								print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
+				if singleton.head.args[arg_idx] == bnode.is_from_name:
+					for k,v in bnode.items():
+						for head_arg_idx, head_arg in enumerate(singleton.head.args):
+							if type(locals[head_arg]) == Atom:
+								continue
+							if head_arg in [exbi[0].uri for exbi in incoming_bnode_unifications ]:
+								continue
+							a0 = Arg(
+								head_arg, locals[head_arg],
+								locals.kbdbg_frame if dbg else None,
+								0, head_arg_idx, True)
+							a1 = Arg(
+								k,
+								bnode[head_arg],
+								bnode.kbdbg_name if dbg else None,
+								head_arg, 0, 'bnode')
+							incoming_bnode_unifications .append((a0,a1))
+							print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
 			del bnode
-		total_bnode_counter = 0
 
-		if len(incoming_existentials):
-			max_depth = len(args) + len(incoming_existentials) - 1
+		if len(incoming_bnode_unifications ):
+			max_depth = len(args) + len(incoming_bnode_unifications ) - 1
 		else:
 			max_depth = (len(args) + len(singleton.body) + len(outgoing_existentials)) - 1
 
@@ -569,8 +569,8 @@ class Rule(Kbdbgable):
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
 					head_thing.arg_index = arg_index
-				elif len(incoming_existentials):
-					eee = incoming_existentials[depth-len(args)]
+				elif len(incoming_bnode_unifications ):
+					eee = incoming_bnode_unifications [depth-len(args)]
 					print ('unrolling', emit_arg(eee[0]), " into ", eee[1])
 					generator = unify(eee[0],eee[1])
 					print("existential generator", generator)
@@ -604,23 +604,23 @@ class Rule(Kbdbgable):
 				if (depth < max_depth):
 					nolog or log ("down")
 					depth+=1
-					if depth == len(args) + len(singleton.body)
+					if depth == len(args) + len(singleton.body):
 						#we are on the first outgoing existential
-						outgoing_bnodes = OrderedDict()
-						for e in outgoing_existentials:
+						original_head_outgoing_bnodes = OrderedDict()
+						for e in original_head_outgoing_existentials:
 							bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
 							bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 							total_bnode_counter += 1
 							bnode.is_a_bnode_from_original_rule = singleton.original_head
 							bnode.is_from_name = e
-							outgoing_bnodes[e] = bnode
+							original_head_outgoing_bnodes[e] = bnode
 						for e in outgoing_existentials:
-							bnode = outgoing_bnodes[e]
-							for arg in [[arg for arg in triple.args] for triple in singleton.original_head_triples]:
+							bnode = original_head_outgoing_bnodes[e]
+							for arg in traverse(triple.args for triple in singleton.original_head_triples):
 								if type(arg) == rdflib.Literal:
 									continue
 								if not is_var(arg):
-									assert False
+									continue
 								if arg in bnode:
 									continue
 								if arg in outgoing_existentials:
@@ -630,7 +630,7 @@ class Rule(Kbdbgable):
 								else:
 									#it must be an existential in another triple of the original head
 									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
-									bnode[arg] = outgoing_bnodes[arg]
+									bnode[arg] = original_head_outgoing_bnodes[arg]
 							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
 							bnode.emit()
 				else:

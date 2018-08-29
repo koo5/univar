@@ -10,3 +10,8 @@ def shorten(term):
 		return str(term)
 	shortenings[s] = term
 	return s
+
+def traverse(item):
+	for i in iter(item):
+		for j in iter(i):
+			yield j

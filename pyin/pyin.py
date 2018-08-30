@@ -125,13 +125,13 @@ class Arg:
 		s.thing = thing
 		assert(isinstance(thing, (AtomVar, Bnode)))
 		s.frame = frame
-		assert(not dbg or (type(frame) == str) or (type(frame) == URIRef))
+		assert((type(frame) == str) or (type(frame) == URIRef))
 		s.term_idx = term_idx
-		assert(isinstance(term_idx, (str, int)))
+		#assert(isinstance(term_idx, (str, int)))
 		s.arg_idx = arg_idx
-		assert(isinstance(arg_idx, int))
+		#assert(isinstance(arg_idx, int))
 		s.is_in_head = is_in_head
-		assert(isinstance(is_in_head, (bool, str)))
+		#assert(isinstance(is_in_head, (bool, str)))
 
 class Kbdbgable():
 	last_instance_debug_id = 0
@@ -153,7 +153,7 @@ class BnodeOrLocals(OrderedDict):
 	def __str__(s):
 		r = (s.bnode_or_locals + str(s.debug_id) + " of " + str(s.debug_rule()))
 		if len(s):
-			r += ":\n#" + printify([k.n3() + ": " + str(v) for k, v in s.items()], ", ")
+			r += ":\n#" + printify([k.n3() + ": " + '[]' if type(v) == Bnode else str(v) for k, v in s.items()], ", ")
 		return r
 
 	def emit(s):
@@ -169,7 +169,7 @@ class BnodeOrLocals(OrderedDict):
 			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
-		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")
+		return "["+printify([str(k) + ": " + (v.__short__str__() if type(v) != Bnode else "[]") for k, v in s.items()], ", ")+']'
 
 
 class Locals(BnodeOrLocals):
@@ -332,13 +332,15 @@ def emit_arg(x):
 		if x.is_in_head:
 			kbdbg(r + " kbdbg:is_in_head true")
 	else:
-		kbdbg(r + ' kbdbg:is_bnode true')
-	kbdbg(r + ' kbdbg:term_idx ' + (
-	                     str(x.term_idx)
-	                     if type(x.term_idx) == int
-	                     else rdflib.Literal(x.term_idx).n3()))
-
-	kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
+		if x.is_in_head == 'bnode':
+			kbdbg(r + ' kbdbg:is_bnode true')
+	if x.term_idx:
+		kbdbg(r + ' kbdbg:term_idx ' + (
+							 str(x.term_idx)
+							 if type(x.term_idx) == int
+							 else rdflib.Literal(x.term_idx).n3()))
+	if x.arg_idx:
+		kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
 	return r
 
 def unify(_x, _y):
@@ -351,10 +353,10 @@ def unify(_x, _y):
 def unify2(arg_x, arg_y, val_x, val_y):
 	orig = (arg_x, arg_y)
 	kbdbg_uri = bn()
-	unifycation_ep_item = (val_x, val_y)
+	unifycation_ep_item = (id(val_x), id(val_y))
 	if unifycation_ep_item in unifycation_ep_items:
 		kbdbg(kbdbg_uri + " kbdbg:cycle_detected true")
-		return True
+		return fail("cycle_detected", emit_binding(orig))
 	unifycation_ep_items.append(unifycation_ep_item)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if val_x == val_y:
@@ -385,6 +387,8 @@ def join_generators(a, b):
 def unify_bnodes(x,y,uri):
 	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:
 		return fail("bnodes from different rules", uri)
+	if x.is_from_name != y.is_from_name:
+		return fail("bnodes from different names", uri)
 	assert len(x) == len(y)
 	l = len(x)
 	if l == 0:
@@ -566,12 +570,12 @@ class Rule(Kbdbgable):
 					generator = unify(
 						Arg(
 							e, locals[e],
-							locals.kbdbg_frame if dbg else None,
+							locals.kbdbg_frame,
 							0, locals[e].arg_index, True),
 						Arg(
 							e, original_head_outgoing_bnodes[e],
-							original_head_outgoing_bnodes[e].kbdbg_name if dbg else None,
-							e, 0, 'bnode'))
+							original_head_outgoing_bnodes[e].kbdbg_name,
+							None, None, None))
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -590,7 +594,7 @@ class Rule(Kbdbgable):
 							bnode.is_a_bnode_from_original_rule = singleton.original_head
 							bnode.is_from_name = e
 							original_head_outgoing_bnodes[e] = bnode
-						for e in outgoing_existentials:
+						for e in original_head_outgoing_existentials:
 							bnode = original_head_outgoing_bnodes[e]
 							for arg in traverse(triple.args for triple in singleton.original_head_triples):
 								if type(arg) == rdflib.Literal:
@@ -607,6 +611,7 @@ class Rule(Kbdbgable):
 									#it must be an existential in another triple of the original head
 									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
 									bnode[arg] = original_head_outgoing_bnodes[arg]
+						for k,bnode in original_head_outgoing_bnodes.items():
 							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
 							bnode.emit()
 				else:
@@ -720,7 +725,13 @@ def query(input_rules, input_query):
 def emit_list(l):
 	r = uri = bn()
 	for idx, i in enumerate(l):
-		kbdbg(uri + " rdf:first " + (i if type(i) == str else i.n3()))
+		if type(i) == str:
+			v = i
+		elif not isinstance(i, rdflib.Graph):
+			v = i.n3()
+		else:
+			v = rdflib.URIRef(i.identifier).n3()
+		kbdbg(uri + " rdf:first " + v)
 		if type(i) == rdflib.BNode:
 			kbdbg(i.n3() + ' kbdbg:comment "thats a bnode from the kb input graph, a subj or an obj of an implication. fixme."')
 		if idx != len(l) - 1:

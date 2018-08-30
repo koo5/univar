@@ -58,7 +58,7 @@ logger.debug("hi")
 log=logger.debug
 
 arrow_width = 1
-border_width = 0
+border_width = 1
 
 
 def tell_if_is_last_element(x):
@@ -225,7 +225,9 @@ class Emitter:
 			x = g.value(uri, kbdbg.is_in_head, default=False)
 			is_in_head = (x == rdflib.Literal(True))
 			term_idx = g.value(uri, kbdbg.term_idx, default=0)
-			arg_idx  = g.value(uri, kbdbg.arg_idx)
+			arg_idx  = g.value(uri, kbdbg.arg_idx, None)
+			if not arg_idx:
+				return gv_escape(str(g.value(uri, kbdbg.has_frame)))
 			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" +port_name(is_in_head, term_idx, arg_idx)
 
 	def get_frame_gv(s, i, frame):

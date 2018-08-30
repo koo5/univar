@@ -123,7 +123,7 @@ class Arg:
 		s.uri = uri
 		assert(isinstance(uri, rdflib.term.Identifier))
 		s.thing = thing
-		assert(isinstance(thing, AtomVar))
+		assert(isinstance(thing, (AtomVar, Bnode)))
 		s.frame = frame
 		assert(not dbg or (type(frame) == str) or (type(frame) == URIRef))
 		s.term_idx = term_idx
@@ -146,6 +146,62 @@ class EpHead(Kbdbgable):
 		s.kbdbg_name = ':' + s.kbdbg_name
 		s.kbdbg_name = URIRef
 		s.items = []
+
+class BnodeOrLocals(OrderedDict):
+	def __init__(s):
+		super(s).__init__()
+	def __str__(s):
+		r = (s.bnode_or_locals + str(s.debug_id) + " of " + str(s.debug_rule()))
+		if len(s):
+			r += ":\n#" + printify([k.n3() + ": " + str(v) for k, v in s.items()], ", ")
+		return r
+
+	def emit(s):
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " rdf:type kbdbg:" + s.bnode_or_locals)
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
+		items = []
+		for k, v in s.items():
+			uri = bn()
+			items.append(uri)
+			kbdbg(uri + ' kbdbg:has_name ' + rdflib.URIRef(k).n3())
+			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
+			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
+			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
+
+	def __short__str__(s):
+		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")
+
+
+class Locals(BnodeOrLocals):
+	bnode_or_locals = 'locals'
+	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
+		super().__init__()
+		s.debug_id = debug_id
+		s.debug_last_instance_id = 0
+		s.debug_rule = weakref(debug_rule)
+		s.kbdbg_frame = kbdbg_frame
+		for k,v in initializer.items():
+			if type(v) == Var:
+				s[k] = Var(v.debug_name + "_clone", s)
+			else:
+				s[k] = Atom(v.value, s)
+	def new(s, kbdbg_frame):
+		nolog or log("cloning " + str(s))
+		if dbg:
+			s.debug_last_instance_id += 1
+		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
+		#s.emit()
+		return r
+
+
+class Bnode(BnodeOrLocals):
+	bnode_or_locals = 'bnode'
+	def __init__(s, debug_rule, debug_id = 0, kbdbg_frame=None):
+		super().__init__()
+		s.debug_id = debug_id
+		s.debug_last_instance_id = 0
+		s.debug_rule = weakref(debug_rule)
+		s.kbdbg_frame = kbdbg_frame
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
@@ -286,96 +342,69 @@ def emit_arg(x):
 	return r
 
 def unify(_x, _y):
-	orig = (_x, _y)
 	assert(isinstance(_x, Arg))
 	assert(isinstance(_y, Arg))
 	x = get_value(_x.thing)
 	y = get_value(_y.thing)
-	nolog or log("unify " + str(x) + " with " + str(y))
-	if x == y:
-		return success("same things", emit_binding(orig))
-	elif type(x) == Var and not x.is_part_of_bnode():
-		return x.bind_to(y, emit_binding(orig))
-	elif type(y) == Var and not y.is_part_of_bnode():
-		return y.bind_to(x, emit_binding((_y, _x)))
-	elif type(x) == Var and type(y) == Var:
-		uri = emit_binding(orig)
-		if are_same_bnodes(x,y,uri):
-			return success("same bnodes", uri)
-		else:
-			return fail("different bnodes", uri)
-	elif type(x) == Atom and type(y) == Atom:
-		if x.value == y.value:
-			return success("same consts", emit_binding(orig))
-		else:
-			return fail("different consts: %s %s"%(x.value, y.value), emit_binding(orig))
-	else:
-		return fail("different things: %s %s"%(x,y), emit_binding(orig))
+	return unify2(_x, _y, x, y)
 
-bp_heads = []
-
-def are_same_bnodes(x,y,binding_uri):
+def unify2(arg_x, arg_y, val_x, val_y):
+	orig = (arg_x, arg_y)
 	kbdbg_uri = bn()
-	kbdbg(kbdbg_uri + " rdf:type kbdbg:are_same_bnodes_check")
-	kbdbg(kbdbg_uri + " kbdbg:belongs_to_binding " + binding_uri)
-	bp_item = (x,y)
-	if bp_item in bp_heads:
+	unifycation_ep_item = (val_x, val_y)
+	if unifycation_ep_item in unifycation_ep_items:
 		kbdbg(kbdbg_uri + " kbdbg:cycle_detected true")
 		return True
-	bp_heads.append(bp_item)
-	return are_same_bnodes2(x,y,binding_uri, kbdbg_uri )
-	bp_heads.pop()
-
-def are_same_bnodes2(x,y,binding_uri, kbdbg_uri):
-	assert(x.bound_to == None)
-	assert(y.bound_to == None)
-	xbn = x.is_part_of_bnode()
-	ybn = y.is_part_of_bnode()
-	if not xbn: kbdbg(kbdbg_uri + ' kbdbg:fail_reason "x is not a bnode"')
-	if not ybn: kbdbg(kbdbg_uri + ' kbdbg:fail_reason "y is not a bnode"')
-	if not (xbn and ybn):
-	    return False
-	kbdbg(kbdbg_uri + ' kbdbg:has_original_rule_x ' + rdflib.Literal(str(xbn.is_a_bnode_from_original_rule)).n3())
-	kbdbg(kbdbg_uri + ' kbdbg:has_original_rule_y ' + rdflib.Literal(str(ybn.is_a_bnode_from_original_rule)).n3())
-	if xbn.is_a_bnode_from_original_rule != ybn.is_a_bnode_from_original_rule:
-		kbdbg(kbdbg_uri + ' kbdbg:fail_reason "different original rules"')
-		return False
-	#for id, i in (('x', xbn),('y', ybn)):
-	#	kbdbg(kbdbg_uri + " kbdbg:has_bnode_" + id + ' ' + emit_list(emit_terms(i.is_a_bnode_from_original_rule)))
-	assert len(xbn) == len(ybn)
-	kbdbg(kbdbg_uri + " kbdbg:has_x " + rdflib.Literal(str(x)).n3())
-	kbdbg(kbdbg_uri + " kbdbg:has_y " + rdflib.Literal(str(y)).n3())
-	for k,xv in xbn.items():
-		if k not in ybn:
-			return False
-		yv = ybn[k]
-		kbdbg(kbdbg_uri + " kbdbg:has_xv " + rdflib.Literal(str(xv)).n3())
-		kbdbg(kbdbg_uri + " kbdbg:has_yv " + rdflib.Literal(str(yv)).n3())
-		if xv == x:
-			continue
-		if yv == y:
-			continue
-		if type(xv) != type(yv):
-			return False
-		if type(xv) != Var:
-			if xv.value != yv.value:
-				return False
+	unifycation_ep_items.append(unifycation_ep_item)
+	nolog or log("unify " + str(val_x) + " with " + str(val_y))
+	if val_x == val_y:
+		return success("same things", emit_binding(orig))
+	elif type(val_x) == Var:
+		return val_x.bind_to(val_y, emit_binding(orig))
+	elif type(val_y) == Var:
+		return val_y.bind_to(val_x, emit_binding((arg_y, arg_x)))
+	elif type(val_x) == Bnode and type(val_y) == Bnode:
+		uri = emit_binding(orig)
+		return unify_bnodes(val_x, val_y, uri)
+	elif type(val_x) == Atom and type(val_y) == Atom:
+		if val_x.value == val_y.value:
+			return success("same consts", emit_binding(orig))
 		else:
-			assert(xv.bound_to == None)
-			assert(yv.bound_to == None)
-			xvbn = xv.is_part_of_bnode()
-			yvbn = yv.is_part_of_bnode()
-			if (xvbn and not yvbn) or (yvbn and not xvbn):
-				return False
-			if xvbn:
-				if not are_same_bnodes(xv,yv,kbdbg_uri):
-					return False
-	return True
+			return fail("different consts: %s %s" % (val_x.value, val_y.value), emit_binding(orig))
+	else:
+		return fail("different things: %s %s" % (val_x, val_y), emit_binding(orig))
+	unifycation_ep_items.pop()
+
+unifycation_ep_items = []
+
+def join_generators(a, b):
+	for i in a:
+		for j in b:
+			yield True
+
+def unify_bnodes(x,y,uri):
+	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:
+		return fail("bnodes from different rules", uri)
+	assert len(x) == len(y)
+	l = len(x)
+	if l == 0:
+		return success("same bnodes", uri)
+	xv, yv = list(x.values()), list(y.values())
+	xk, yk = list(x.keys()), list(y.keys())
+	x_arg = Arg(xk[0], xv[0], x.kbdbg_name, xk[0], 0, 'bnode')
+	y_arg = Arg(yk[0], yv[0], y.kbdbg_name, yk[0], 0, 'bnode')
+	g = unify2(x_arg, y_arg, xv[0], yv[0])
+	for i in range(1, l):
+		x_arg = Arg(xk[i], xv[i], x.kbdbg_name, xk[i], 0, 'bnode')
+		y_arg = Arg(yk[i], yv[i], y.kbdbg_name, yk[i], 0, 'bnode')
+		g = join_generators(g, unify2(x_arg, y_arg, xv[i], yv[i]))
+	return g
+
 
 
 def get_value(x):
 	asst(x)
-	if type(x) == Atom:
+	if type(x) in (Atom, Bnode):
 		return x
 	v = x.bound_to
 	if v:
@@ -390,58 +419,6 @@ def is_var(x):
 		return True
 	return False
 
-class Locals(dict):
-	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None, is_bnode = False):
-		s.is_bnode = is_bnode
-		if dbg:
-			super().__init__()
-			s.debug_id = debug_id
-			s.debug_last_instance_id = 0
-			s.debug_rule = weakref(debug_rule)
-			s.kbdbg_frame = kbdbg_frame
-			#if s.kbdbg_frame:
-			#	s.kbdbg_name = rdflib.URIRef(s.kbdbg_frame)
-		for k,v in initializer.items():
-			if type(v) == Var:
-				s[k] = Var(v.debug_name + "_clone", s)
-			else:
-				s[k] = Atom(v.value, s)
-
-	def __str__(s):
-		r = ("locals " + str(s.debug_id) + " of " + str(s.debug_rule()))
-		if len(s):
-			r += ":\n#" + printify([k.n3() + ": " + str(v) for k, v in s.items()], ", ")
-		return r
-
-	def emit(s):
-		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " rdf:type kbdbg:" + ("bnode" if s.is_bnode else "locals"))
-		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
-		items = []
-		for k, v in s.items():
-			uri = bn()
-			items.append(uri)
-			kbdbg(uri + ' kbdbg:has_name ' + rdflib.URIRef(k).n3())
-			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
-			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
-			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
-
-	def __short__str__(s):
-		return printify([str(k) + ": " + v.__short__str__() for k, v in s.items()], ", ")
-
-	def new(s, kbdbg_frame):
-		nolog or log("cloning " + str(s))
-		if dbg:
-			s.debug_last_instance_id += 1
-		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
-		#s.emit()
-		return r
-
-	def new_bnode(s, idx):
-		r = Locals({}, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, xxxxx, is_bnode = True)
-		for k,v in s.items():
-			r[k] = get_value(v).recursive_clone()#not really recursive
-		#s.emit()
-		return r
 
 def emit_terms(terms):
 	c=[]
@@ -524,8 +501,8 @@ class Rule(Kbdbgable):
 		outgoing_existentials = get_existentials([singleton.head], singleton.body)
 		original_head_outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
 		for arg_idx, arg in enumerate(args):
-			bnode = arg.thing.is_part_of_bnode()
-			if not bnode: continue
+			if type(arg) != Bnode: continue
+			bnode = arg
 			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
 				if singleton.head.args[arg_idx] == bnode.is_from_name:
 					for k,v in bnode.items():
@@ -592,9 +569,8 @@ class Rule(Kbdbgable):
 							locals.kbdbg_frame if dbg else None,
 							0, locals[e].arg_index, True),
 						Arg(
-							e,
-							bnode[e],
-							bnode.kbdbg_name if dbg else None,
+							e, original_head_outgoing_bnodes[e],
+							original_head_outgoing_bnodes[e].kbdbg_name if dbg else None,
 							e, 0, 'bnode'))
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
@@ -608,7 +584,7 @@ class Rule(Kbdbgable):
 						#we are on the first outgoing existential
 						original_head_outgoing_bnodes = OrderedDict()
 						for e in original_head_outgoing_existentials:
-							bnode = Locals({}, singleton, total_bnode_counter, kbdbg_name, is_bnode = True)
+							bnode = Bnode(singleton, total_bnode_counter, kbdbg_name)
 							bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 							total_bnode_counter += 1
 							bnode.is_a_bnode_from_original_rule = singleton.original_head
@@ -648,15 +624,13 @@ class Rule(Kbdbgable):
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
 	def match(s, parent = None, args=[]):
-		#ttt = time.clock()
-		#print ("TTT", ttt)
-		#if ttt > 1:
-			#while True:
-			#	print("end")
-		#return
 		head = EpHead()
 		for arg in args:
-			head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame if dbg else None, arg.term_idx, arg.arg_idx, arg.is_in_head))
+			assert arg.thing == get_value(arg.thing)
+			if type(arg.thing) == Bnode:
+				head.items.append(Arg(arg.uri, arg.thing, arg.thing.kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
+			else:
+				head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
 		s.ep_heads.append(head)
 		for i in s.rule_unify(parent, args):
 			s.ep_heads.pop()
@@ -706,12 +680,12 @@ def asst(x):
 		for i in x:
 			asst(i)
 	else:
-		assert type(x) in [Var, Atom]
+		assert type(x) in [Var, Atom, Bnode]
 
 def pred(p, parent, args):
 	for a in args:
 		assert(isinstance(a, Arg))
-		assert(isinstance(a.thing, AtomVar))
+		assert(isinstance(a.thing, (AtomVar, Bnode)))
 		assert get_value(a.thing) == a.thing
 
 	if p not in preds:

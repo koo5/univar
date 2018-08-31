@@ -149,7 +149,7 @@ class EpHead(Kbdbgable):
 
 class BnodeOrLocals(OrderedDict):
 	def __init__(s):
-		super(s).__init__()
+		super().__init__()
 	def __str__(s):
 		r = (s.bnode_or_locals + str(s.debug_id) + " of " + str(s.debug_rule()))
 		if len(s):
@@ -334,12 +334,12 @@ def emit_arg(x):
 	else:
 		if x.is_in_head == 'bnode':
 			kbdbg(r + ' kbdbg:is_bnode true')
-	if x.term_idx:
+	if x.term_idx != None:
 		kbdbg(r + ' kbdbg:term_idx ' + (
 							 str(x.term_idx)
 							 if type(x.term_idx) == int
 							 else rdflib.Literal(x.term_idx).n3()))
-	if x.arg_idx:
+	if x.arg_idx != None:
 		kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
 	return r
 
@@ -359,7 +359,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 		return fail("cycle_detected", emit_binding(orig))
 	unifycation_ep_items.append(unifycation_ep_item)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
-	if val_x == val_y:
+	if id(val_x) == id(val_y):
 		return success("same things", emit_binding(orig))
 	elif type(val_x) == Var:
 		return val_x.bind_to(val_y, emit_binding(orig))
@@ -507,7 +507,7 @@ class Rule(Kbdbgable):
 		for arg_idx, arg in enumerate(args):
 			if type(arg) != Bnode: continue
 			bnode = arg
-			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
+			if bnode.is_a_bnode_from_original_rule == singleton:
 				if singleton.head.args[arg_idx] == bnode.is_from_name:
 					for k,v in bnode.items():
 						for head_arg_idx, head_arg in enumerate(singleton.head.args):
@@ -591,7 +591,7 @@ class Rule(Kbdbgable):
 							bnode = Bnode(singleton, total_bnode_counter, kbdbg_name)
 							bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 							total_bnode_counter += 1
-							bnode.is_a_bnode_from_original_rule = singleton.original_head
+							bnode.is_a_bnode_from_original_rule = singleton
 							bnode.is_from_name = e
 							original_head_outgoing_bnodes[e] = bnode
 						for e in original_head_outgoing_existentials:
@@ -675,6 +675,10 @@ def ep_match(args_a, args_b):
 		b = args_b[i].thing
 		if type(a) != type(b):
 			return
+		if type(a) == Bnode and a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule:
+			return
+		if type(a) == Bnode and a.is_from_name != b.is_from_name:
+			return
 		if type(a) == Atom and b.value != a.value:
 			return
 	nolog or log("EP!")
@@ -710,6 +714,7 @@ def query(input_rules, input_query):
 	dbg = not nolog or not nokbdbg
 	kbdbg(this + " rdf:value " + step_list_item(0))
 	kbdbg_graph_first()
+	step()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
@@ -744,13 +749,11 @@ def emit_list(l):
 
 def print_bnode(v):
 	r = ''
-	bnode = v.is_part_of_bnode()
-	if bnode and ('is_a_bnode_from_original_rule' in bnode.__dict__):
-		r += '['
-		for k,vv in bnode.items():
-			if v != vv:
-				r += str(k) + ' --->>> ' + str(vv)
-		r += ']'
+	r += '['
+	for k,vv in v.items():
+		if v != vv:
+			r += str(k) + ' --->>> ' + str(vv)
+	r += ']'
 	return r
 
 def substitute_term(term, locals):
@@ -760,8 +763,10 @@ def substitute(node, locals):
 	assert(isinstance(node, rdflib.term.Identifier))
 	if node in locals:
 		v = get_value(locals[node])
-		print(print_bnode(v))
-		if type(v) == Var:
+		if type(v) == Bnode:
+			print(print_bnode(v))
+			r = node
+		elif type(v) == Var:
 			r = node
 		elif type(v) == Atom:
 			r = v.value

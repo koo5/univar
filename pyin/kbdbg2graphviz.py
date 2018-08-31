@@ -3,8 +3,7 @@
 
 import time
 import pickle
-import redislite
-import memoized
+import redislite, redis_collections
 import click
 from common import shorten
 import html as html_module
@@ -20,12 +19,7 @@ from rdflib.namespace import RDF
 from non_retarded_collection import Collection
 from ordered_rdflib_store import OrderedAndIndexedStore
 import yattag
-from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
-#from multiprocessing import Manager, RLock, Queue
-
-#manager = Manager()
-#bindings_lock = manager.RLock()
-#bindings = manager.dict()
+from concurrent.futures import as_completed, ProcessPoolExecutor
 
 def get_last_bindings(step):
 	log ('get last bindings...' + '[' + str(step) + ']')
@@ -68,17 +62,12 @@ def tell_if_is_last_element(x):
 def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
 	return g.value(subject, predicate, object, default, any)
 
-#import memoized
-#gv_escape_counter = 0
-#@memoized.memoized
+import memoized
+@memoized.memoized
 def gv_escape(string):
-	#global gv_escape_counter
-	#gv_escape_counter += 1
-	#string = string.replace('"', '\\"')
 	r = ""
 	for i in string:
 		r += str(ord(i)).zfill(4)
-	#r += str(gv_escape_counter)
 	r += '_'
 	for i in string:
 		if i.isalnum():
@@ -87,31 +76,15 @@ def gv_escape(string):
 	return "<"+urllib.parse.quote_plus(string)+">"
 	return '"%s"' % string
 
-"""
-import memoized
-gv_escape_counter = 0
-@memoized.memoized
-def gv_escape(node, port=None):
-	global gv_escape_counter
-	if port:
-		return gv_escape(node) + ":" + gv_escape(port)
-	gv_escape_counter += 1
-	r = "gv" + str(gv_escape_counter)
-	r += '_'
-	for i in node:
-		if i.isalnum():
-			r += i
-	return r
-"""
 
 frame_name_template_var_name = '%frame_name_template_var_name%'
 
 class Emitter:
-	first_g=None
 
 	def __init__(s, g, gv_output_file, step):
 		s.g, s.gv_output_file = g, gv_output_file
 		s.step = step
+		s.frame_templates = redis_collections.Dict(redis=strict_redis_connection)
 
 	def gv(s, text):
 		s.gv_output_file.write(text + '\n')
@@ -201,7 +174,7 @@ class Emitter:
 				with tag('tr'):
 					with tag("td"):
 						text('RESULT'+str(i) +' ')
-					s.emit_terms(tag, text, g, g.value(result_uri, RDF.value))
+					s.emit_terms(tag, text, s.g.value(result_uri, RDF.value))
 			r += doc.getvalue()+ '>]'
 			s.gv(r)
 			false = rdflib.Literal(False)
@@ -241,15 +214,15 @@ class Emitter:
 
 	def get_frame_html_label(s, frame, isroot):
 		rule = s.g.value(frame, kbdbg.is_for_rule)
-		return s._get_frame_html_label(
-			s.first_g, rule, isroot
-		).replace(
-			frame_name_template_var_name,html_module.escape(shorten(frame.n3()))
-		)
-
+		params = rule, isroot
+		try:
+			template = s.frame_templates[params]
+		except KeyError:
+			template = s._get_frame_html_label(s.g, *params)
+			s.frame_templates[params] = template
+		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame.n3())))
 
 	@staticmethod
-	@memoized.memoized
 	def _get_frame_html_label(g, rule, isroot):
 			head = g.value(rule, kbdbg.has_head)
 			doc, tag, text = yattag.Doc().tagtext()
@@ -283,7 +256,7 @@ class Emitter:
 	def emit_terms(s, tag, text, uri):
 		body_items_collection = Collection(s.g, uri)
 		for term_idx, body_item in enumerate(body_items_collection):
-			emit_term(g, tag, text, s.g, False, term_idx, body_item)
+			emit_term(s.g, tag, text, False, term_idx, body_item)
 
 	def arrow(s,x,y,color='black',weight=1, binding=False):
 		r = x + '->' + y
@@ -388,8 +361,6 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 
 		log('parse ' + '[' + str(step) + ']')
 		g.parse(data="".join(prefixes+lines), format='n3')
-		if Emitter.first_g == None:
-			Emitter.first_g = g
 		lines = []
 
 		if True:
@@ -424,17 +395,25 @@ def check_futures():
 		pass
 
 redis_connection = None
+strict_redis_connection = None
+
 
 def work(g, input_file_name, step, no_parallel, redis_fn):
-	global redis_connection
+	global redis_connection, strict_redis_connection
+	strict_redis_connection = redis_fn
+
+	redis_connection = redislite.Redis(redis_fn)
+	strict_redis_connection = redislite.StrictRedis(redis_fn)
+
+	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
+
 	g = pickle.loads(g)
 	#log('work' + str(id(g)) + ' ' + str(id(g.store)) + ' ' + str(id(g.store.indexes))  + ' ' + str(id(g.store.indexes['ttft']))  + ' ' + str(id(g.store.indexes['ttft'][rdflib.URIRef('http://kbd.bg/Rule1')])))
 	g.store.locked = True
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		print('no frames.')
+		print('no frames.' + '[' + str(step) + ']')
+		put_last_bindings(step, [])
 		return
-	redis_connection = redislite.Redis(redis_fn)
-	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
 
 	if (step == global_start - 1):
 		gv_output_file_name = 'dummy'

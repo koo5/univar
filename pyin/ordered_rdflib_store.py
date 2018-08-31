@@ -115,7 +115,7 @@ class OrderedStore(Store):
 
 
 
-patterns = ['ttft']
+patterns = ['ttft', 'fttt']
 """
 def new_i(idx):
 	def fun():

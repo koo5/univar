@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#import ujson
 import time
 import pickle
 import redislite, redis_collections
@@ -199,7 +200,7 @@ class Emitter:
 			is_in_head = (x == rdflib.Literal(True))
 			term_idx = g.value(uri, kbdbg.term_idx, default=0)
 			arg_idx  = g.value(uri, kbdbg.arg_idx, None)
-			if not arg_idx:
+			if arg_idx == None:
 				return gv_escape(str(g.value(uri, kbdbg.has_frame)))
 			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" +port_name(is_in_head, term_idx, arg_idx)
 
@@ -311,9 +312,9 @@ global_start = None
 @click.command()
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
-@click.option('--no-parallel', default=False)
+@click.option('--no-parallel', default=False, type=click.BOOL)
 @click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
-@click.option('--workers', type=click.IntRange(0, 65536), default=8)
+@click.option('--workers', type=click.IntRange(0, 65536), default=32)
 @click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
 
 def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
@@ -362,14 +363,10 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 		log('parse ' + '[' + str(step) + ']')
 		g.parse(data="".join(prefixes+lines), format='n3')
 		lines = []
-
-		if True:
-			g2 = g
-		else:
-			log('copy g..' + '[' + str(step) + ']')
-			g2 = Graph(g.store, identifier = g.identifier)
-
-		args = (pickle.dumps(g2), input_file_name, step, no_parallel, redis_fn)
+		log('pickle ' + '[' + str(step) + ']')
+		pickled_graph = pickle.dumps(g)
+		#pickled_graph = ujson.dumps(g)
+		args = (pickled_graph, input_file_name, step, no_parallel, redis_fn)
 		if no_parallel:
 			work(*args)
 		else:
@@ -398,16 +395,24 @@ redis_connection = None
 strict_redis_connection = None
 
 
-def work(g, input_file_name, step, no_parallel, redis_fn):
+def work(serialized_graph, input_file_name, step, no_parallel, redis_fn):
 	global redis_connection, strict_redis_connection
 	strict_redis_connection = redis_fn
+
+	log('work ' + '[' + str(step) + ']')
 
 	redis_connection = redislite.Redis(redis_fn)
 	strict_redis_connection = redislite.StrictRedis(redis_fn)
 
 	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
 
-	g = pickle.loads(g)
+	log('loads ' + '[' + str(step) + ']')
+
+	g = pickle.loads(serialized_graph)
+	#g = Graph(OrderedAndIndexedStore())
+	#for i in ujson.loads(serialized_graph):
+	#	g.add(i)
+
 	#log('work' + str(id(g)) + ' ' + str(id(g.store)) + ' ' + str(id(g.store.indexes))  + ' ' + str(id(g.store.indexes['ttft']))  + ' ' + str(id(g.store.indexes['ttft'][rdflib.URIRef('http://kbd.bg/Rule1')])))
 	g.store.locked = True
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:

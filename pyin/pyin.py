@@ -714,11 +714,12 @@ def query(input_rules, input_query):
 	dbg = not nolog or not nokbdbg
 	kbdbg(this + " rdf:value " + step_list_item(0))
 	kbdbg_graph_first()
-	step()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	for i, locals in enumerate(Rule([], None, input_query).match()):
+	query_rule = Rule([], None, input_query)
+	step()
+	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
 		terms = [substitute_term(term, locals) for term in input_query]
 		kbdbg(uri + " rdf:type kbdbg:result")

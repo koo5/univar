@@ -158,12 +158,12 @@ class BnodeOrLocals(OrderedDict):
 
 	def emit(s):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " rdf:type kbdbg:" + s.bnode_or_locals)
-		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:belongs_to " + rdflib.URIRef(s.kbdbg_frame).n3())
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_parent " + rdflib.URIRef(s.kbdbg_frame).n3())
 		items = []
 		for k, v in s.items():
 			uri = bn()
 			items.append(uri)
-			kbdbg(uri + ' kbdbg:has_name ' + rdflib.URIRef(k).n3())
+			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(k.n3()).n3())
 			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
 			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
 			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
@@ -502,6 +502,7 @@ class Rule(Kbdbgable):
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 		total_bnode_counter = 0
 		incoming_bnode_unifications = []
+		original_head_args = list(traverse(triple.args for triple in singleton.original_head_triples))
 		outgoing_existentials = get_existentials([singleton.head], singleton.body)
 		original_head_outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
 		for arg_idx, arg in enumerate(args):
@@ -596,23 +597,23 @@ class Rule(Kbdbgable):
 							original_head_outgoing_bnodes[e] = bnode
 						for e in original_head_outgoing_existentials:
 							bnode = original_head_outgoing_bnodes[e]
-							for arg in traverse(triple.args for triple in singleton.original_head_triples):
+							for arg in original_head_args:
 								if type(arg) == rdflib.Literal:
 									continue
 								if not is_var(arg):
 									continue
 								if arg in bnode:
 									continue
-								if arg in outgoing_existentials:
+								if arg == e:
 									continue
-								if arg in locals:
-									x = get_value(locals[arg]).recursive_clone()
+								if arg not in original_head_outgoing_existentials:
+									bnode[arg] = get_value(locals[arg]).recursive_clone()
 								else:
 									#it must be an existential in another triple of the original head
 									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
 									bnode[arg] = original_head_outgoing_bnodes[arg]
-						for k,bnode in original_head_outgoing_bnodes.items():
-							kbdbg(bnode.kbdbg_name.n3() + " kbdbg:has_parent " + kbdbg_name.n3())
+						original_head_outgoing_bnodes_items = list(original_head_outgoing_bnodes.items())
+						for k,bnode in original_head_outgoing_bnodes_items:
 							bnode.emit()
 				else:
 					yield locals

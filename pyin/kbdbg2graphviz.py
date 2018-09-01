@@ -281,7 +281,7 @@ def emit_term(g, tag, text, is_in_head, term_idx, term):
 	if len(args_collection) == 2:
 		def arrrr(arg_idx):
 			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
-				text(shorten(args_collection[arg_idx]))
+				text(' ' + shorten(args_collection[arg_idx]) + ' ')
 		arrrr(0)
 		with tag("td", border=border_width):
 			text(shorten(pred))

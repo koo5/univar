@@ -355,30 +355,31 @@ def unify(_x, _y):
 
 def unify2(arg_x, arg_y, val_x, val_y):
 	orig = (arg_x, arg_y)
-	kbdbg_uri = bn()
 	unifycation_ep_item = (id(val_x), id(val_y))
 	if unifycation_ep_item in unifycation_ep_items:
-		kbdbg(kbdbg_uri + " kbdbg:cycle_detected true")
-		return fail("cycle_detected", emit_binding(orig))
+		eee = emit_binding(orig)
+		kbdbg(eee + " kbdbg:cycle_detected true")
+		return success("cycle_detected", eee)
 	unifycation_ep_items.append(unifycation_ep_item)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
-		return success("same things", emit_binding(orig))
+		r = success("same things", emit_binding(orig))
 	elif type(val_x) == Var:
-		return val_x.bind_to(val_y, emit_binding(orig))
+		r = val_x.bind_to(val_y, emit_binding(orig))
 	elif type(val_y) == Var:
-		return val_y.bind_to(val_x, emit_binding((arg_y, arg_x)))
+		r = val_y.bind_to(val_x, emit_binding((arg_y, arg_x)))
 	elif type(val_x) == Bnode and type(val_y) == Bnode:
 		uri = emit_binding(orig)
-		return unify_bnodes(val_x, val_y, uri)
+		r = unify_bnodes(val_x, val_y, uri)
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
-			return success("same consts", emit_binding(orig))
+			r = success("same consts", emit_binding(orig))
 		else:
-			return fail("different consts: %s %s" % (val_x.value, val_y.value), emit_binding(orig))
+			r = fail("different consts: %s %s" % (val_x.value, val_y.value), emit_binding(orig))
 	else:
-		return fail("different things: %s %s" % (val_x, val_y), emit_binding(orig))
+		r = fail("different things: %s %s" % (val_x, val_y), emit_binding(orig))
 	unifycation_ep_items.pop()
+	return r
 
 unifycation_ep_items = []
 
@@ -547,8 +548,8 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 		while True:
-			if 51 == global_step_counter:
-				print('51')
+			if 49 == global_step_counter:
+				print('49')
 
 			if len(generators) <= depth:
 				if depth < len(args):

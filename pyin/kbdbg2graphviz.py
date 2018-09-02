@@ -168,7 +168,7 @@ class Emitter:
 					s.comment("just failed binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', binding=True)
 				continue
-			s.comment("a binding")
+			s.comment("binding " + binding.n3())
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
 				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
 			new_last_bindings.append(binding.n3())

@@ -64,11 +64,13 @@ def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999
 	return g.value(subject, predicate, object, default, any)
 
 import memoized
-@memoized.memoized
+#@memoized.memoized
 def gv_escape(string):
 	r = ""
 	for i in string:
-		r += str(ord(i)).zfill(4)
+		enc = str(ord(i)).zfill(4)
+		r += enc
+		if len(enc) > 4: raise "opps, gotta increase the zfill length here"
 	r += '_'
 	for i in string:
 		if i.isalnum():
@@ -89,6 +91,9 @@ class Emitter:
 
 	def gv(s, text):
 		s.gv_output_file.write(text + '\n')
+
+	def comment(s, text):
+		s.gv('//'+text)
 
 	def generate_gv_image(s):
 		g = s.g
@@ -116,6 +121,8 @@ class Emitter:
 			#if i == 0 and current_result:
 			#	arrow(result_node, f)
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
+		if s.step == 51:
+			print ('eeee')
 		for bnode in g.subjects(RDF.type, kbdbg.bnode):
 			parent = g.value(bnode, kbdbg.has_parent)
 			if g.value(parent, kbdbg.is_finished, default=False):
@@ -134,7 +141,8 @@ class Emitter:
 				for i in Collection(g,items):
 					with tag('tr'):
 						name = g.value(i, kbdbg.has_name)
-						with tag("td", border=1, port=gv_escape(name)):
+						pn = gv_escape(name)
+						with tag("td", border=1, port=pn):
 							text(shorten(name))
 							text(' = ')
 							text(shorten(g.value(i, kbdbg.has_value)))
@@ -152,12 +160,15 @@ class Emitter:
 			target_uri = g.value(binding, kbdbg.has_target)
 			if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
+					s.comment("just unbound binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', binding=True)
 				continue
 			if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
+					s.comment("just failed binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', binding=True)
 				continue
+			s.comment("a binding")
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
 				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
 			new_last_bindings.append(binding.n3())
@@ -194,7 +205,10 @@ class Emitter:
 		g=s.g
 		if(g.value(uri, kbdbg.is_bnode, default=False)):
 			term_idx = g.value(uri, kbdbg.term_idx, default=' $\=st #-* -')
-			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + gv_escape(term_idx)
+			port = gv_escape(term_idx)
+			#if port == 'gv0121_y': #gv01080049_l1':
+			#	print('x')
+			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port
 		else:
 			x = g.value(uri, kbdbg.is_in_head, default=False)
 			is_in_head = (x == rdflib.Literal(True))
@@ -202,7 +216,8 @@ class Emitter:
 			arg_idx  = g.value(uri, kbdbg.arg_idx, None)
 			if arg_idx == None:
 				return gv_escape(str(g.value(uri, kbdbg.has_frame)))
-			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" +port_name(is_in_head, term_idx, arg_idx)
+			port = port_name(is_in_head, term_idx, arg_idx)
+			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" +port
 
 	def get_frame_gv(s, i, frame):
 		r = ' [shape=none, margin=0, '

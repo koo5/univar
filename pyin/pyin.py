@@ -335,10 +335,13 @@ def emit_arg(x):
 		if x.is_in_head == 'bnode':
 			kbdbg(r + ' kbdbg:is_bnode true')
 	if x.term_idx != None:
-		kbdbg(r + ' kbdbg:term_idx ' + (
-							 str(x.term_idx)
-							 if type(x.term_idx) == int
-							 else rdflib.Literal(x.term_idx).n3()))
+		if type(x.term_idx) == int:
+			t = str(x.term_idx)
+		elif type(x.term_idx) == rdflib.Variable:
+			t = rdflib.Literal('?' + str(x.term_idx)).n3()
+		else:
+			t = rdflib.Literal(x.term_idx).n3()
+		kbdbg(r + ' kbdbg:term_idx ' + t)
 	if x.arg_idx != None:
 		kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
 	return r
@@ -508,7 +511,7 @@ class Rule(Kbdbgable):
 		for arg_idx, arg in enumerate(args):
 			if type(arg) != Bnode: continue
 			bnode = arg
-			if bnode.is_a_bnode_from_original_rule == singleton:
+			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
 				if singleton.head.args[arg_idx] == bnode.is_from_name:
 					for k,v in bnode.items():
 						for head_arg_idx, head_arg in enumerate(singleton.head.args):
@@ -544,6 +547,9 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 		while True:
+			if 51 == global_step_counter:
+				print('51')
+
 			if len(generators) <= depth:
 				if depth < len(args):
 					arg_index = depth
@@ -592,7 +598,7 @@ class Rule(Kbdbgable):
 							bnode = Bnode(singleton, total_bnode_counter, kbdbg_name)
 							bnode.kbdbg_name = URIRef(kbdbg_name + ("_bnode" + str(total_bnode_counter)))
 							total_bnode_counter += 1
-							bnode.is_a_bnode_from_original_rule = singleton
+							bnode.is_a_bnode_from_original_rule = singleton.original_head
 							bnode.is_from_name = e
 							original_head_outgoing_bnodes[e] = bnode
 						for e in original_head_outgoing_existentials:
@@ -619,11 +625,10 @@ class Rule(Kbdbgable):
 					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
 			except StopIteration:
-				if (depth > 0):
-					nolog or log ("back")
-					generators.pop()
-					depth-=1
-				else:
+				nolog or log ("back")
+				generators.pop()
+				depth-=1
+				if depth == -1:
 					nolog or log ("rule done")
 					step()
 					break
@@ -734,6 +739,8 @@ def emit_list(l):
 	for idx, i in enumerate(l):
 		if type(i) == str:
 			v = i
+		elif isinstance(i, rdflib.Variable):
+			v = rdflib.Literal('?' + str(i)).n3()
 		elif not isinstance(i, rdflib.Graph):
 			v = i.n3()
 		else:

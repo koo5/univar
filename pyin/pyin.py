@@ -291,38 +291,46 @@ class Var(AtomVar):
 			r.bound_to = s.bound_to.recursive_clone()
 		return r
 
-	def bind_to(x, y, uri):
+	def bind_to(x, y, orig):
 		assert x.bound_to == None
 		x.bound_to = y
 		msg = "bound " + str(x) + " to " + str(y)
 		nolog or log(msg)
+		uri = bn()
+		emit_binding(uri, orig)
 		step()
 		yield msg
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
 
-def success(msg, uri):
-	step()
-	kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
-	yield msg
-	kbdbg(uri + " kbdbg:was_unbound true")
-	step()
-
-def fail(msg, uri):
-	kbdbg(uri + " kbdbg:failed true")
-	while False:
+def success(msg, orig, uri = None):
+		if uri == None:
+			uri = bn()
+		emit_binding(uri, orig)
+		step()
+		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 		yield msg
-	kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
-	step()
+		kbdbg(uri + " kbdbg:was_unbound true")
+		step()
 
-def emit_binding(_x_y):
+def fail(msg, orig, uri = None):
+		if uri == None:
+			uri = bn()
+		emit_binding(uri, orig)
+		kbdbg(uri + " kbdbg:failed true")
+		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
+		while False:
+			yield msg
+		step()
+
+
+def emit_binding(uri, _x_y):
 	_x, _y = _x_y
-	uri = bn()
 	kbdbg(uri + " rdf:type kbdbg:binding")
 	kbdbg(uri + " kbdbg:has_source " + emit_arg(_x))
 	kbdbg(uri + " kbdbg:has_target " + emit_arg(_y))
-	return uri
+
 
 def emit_arg(x):
 	r = bn()
@@ -357,27 +365,26 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	orig = (arg_x, arg_y)
 	unifycation_ep_item = (id(val_x), id(val_y))
 	if unifycation_ep_item in unifycation_ep_items:
-		eee = emit_binding(orig)
-		kbdbg(eee + " kbdbg:cycle_detected true")
-		return success("cycle_detected", eee)
+		uri = bn()
+		kbdbg(uri + " kbdbg:cycle_detected true")
+		return success("cycle detected", orig, uri)
 	unifycation_ep_items.append(unifycation_ep_item)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
-		r = success("same things", emit_binding(orig))
+		r = success("same things", (orig))
 	elif type(val_x) == Var:
-		r = val_x.bind_to(val_y, emit_binding(orig))
+		r = val_x.bind_to(val_y, (orig))
 	elif type(val_y) == Var:
-		r = val_y.bind_to(val_x, emit_binding((arg_y, arg_x)))
+		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
 	elif type(val_x) == Bnode and type(val_y) == Bnode:
-		uri = emit_binding(orig)
-		r = unify_bnodes(val_x, val_y, uri)
+		r = unify_bnodes(val_x, val_y, orig)
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
-			r = success("same consts", emit_binding(orig))
+			r = success("same consts", (orig))
 		else:
-			r = fail("different consts: %s %s" % (val_x.value, val_y.value), emit_binding(orig))
+			r = fail("different consts: %s %s" % (val_x.value, val_y.value), (orig))
 	else:
-		r = fail("different things: %s %s" % (val_x, val_y), emit_binding(orig))
+		r = fail("different things: %s %s" % (val_x, val_y), (orig))
 	unifycation_ep_items.pop()
 	return r
 
@@ -388,15 +395,15 @@ def join_generators(a, b):
 		for j in b:
 			yield True
 
-def unify_bnodes(x,y,uri):
+def unify_bnodes(x,y,orig):
 	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:
-		return fail("bnodes from different rules", uri)
+		return fail("bnodes from different rules", orig)
 	if x.is_from_name != y.is_from_name:
-		return fail("bnodes from different names", uri)
+		return fail("bnodes from different names", orig)
 	assert len(x) == len(y)
 	l = len(x)
 	if l == 0:
-		return success("same bnodes", uri)
+		return success("same bnodes", orig)
 	xv, yv = list(x.values()), list(y.values())
 	xk, yk = list(x.keys()), list(y.keys())
 	x_arg = Arg(xk[0], xv[0], x.kbdbg_name, xk[0], 0, 'bnode')

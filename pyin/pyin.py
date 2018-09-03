@@ -206,6 +206,8 @@ class Bnode(BnodeOrLocals):
 		s.debug_last_instance_id = 0
 		s.debug_rule = weakref(debug_rule)
 		s.kbdbg_frame = kbdbg_frame
+	#def recursive_clone(s):
+	#	r = Bnode(s.debug_rule, s.debug_id, kbdbg_frame)
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
@@ -625,7 +627,7 @@ class Rule(Kbdbgable):
 								if arg == e:
 									continue
 								if arg not in original_head_outgoing_existentials:
-									bnode[arg] = get_value(locals[arg]).recursive_clone()
+									bnode[arg] = get_value(locals[arg])#.recursive_clone()
 								else:
 									#it must be an existential in another triple of the original head
 									assert arg in get_existentials(singleton.original_head_triples, singleton.body)

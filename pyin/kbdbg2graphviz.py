@@ -21,6 +21,7 @@ from non_retarded_collection import Collection
 from ordered_rdflib_store import OrderedAndIndexedStore
 import yattag
 from concurrent.futures import as_completed, ProcessPoolExecutor
+from concurrent.futures._base import TimeoutError
 
 def get_last_bindings(step):
 
@@ -389,7 +390,9 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 			log('submit ' + '[' + str(step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			if len(futures) > workers:
 				time.sleep(len(futures) - workers)
-			futures.append(worker_pool.submit(work, *args))
+			fut = worker_pool.submit(work, *args)
+			fut.step = step
+			futures.append(fut)
 			log('submitted ' )
 			check_futures()
 		log('loop ' )
@@ -399,13 +402,17 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 	check_futures()
 
 def check_futures():
-	from concurrent.futures._base import TimeoutError
-	try:
-		for f in as_completed(futures, 0):
+	log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
+	while True:
+		if len(futures) == 0: return
+		f = futures[0]
+		log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+		if f.done():
+			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)
-			f.result()
-	except TimeoutError:
-		pass
+		else:
+			return
+
 
 redis_connection = None
 strict_redis_connection = None
@@ -471,6 +478,8 @@ def work(serialized_graph, input_file_name, step, no_parallel, redis_fn):
 				#exit()
 		futures.append(graphviz_pool.submit(do_or_die, args))
 
+	redis_connection._cleanup()
+	strict_redis_connection._cleanup()
 
 
 #from IPython import embed;embed()

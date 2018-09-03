@@ -163,7 +163,11 @@ class BnodeOrLocals(OrderedDict):
 		for k, v in s.items():
 			uri = bn()
 			items.append(uri)
-			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(k.n3()).n3())
+			if isinstance(k, rdflib.Variable):
+				sss = k.n3()
+			else:
+				sss = k
+			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(sss).n3())
 			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
 			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
 			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))

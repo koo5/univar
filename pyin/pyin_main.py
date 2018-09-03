@@ -122,7 +122,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		for triple in result:
 			o += triple.str()
 		print (o)
-		log('('+o+')')
+		#log('('+o+')')
 
 	if sparql_uri != '':
 		server.update("""

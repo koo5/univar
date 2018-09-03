@@ -23,6 +23,7 @@ import yattag
 from concurrent.futures import as_completed, ProcessPoolExecutor
 
 def get_last_bindings(step):
+
 	log ('get last bindings...' + '[' + str(step) + ']')
 	if step == 0:
 		return []

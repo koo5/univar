@@ -1,0 +1,12 @@
+kb
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+?w :t ?f.
+:T :not :F.
+:F :not :T.
+
+{?y :not ?ny. ?z :not ?nz} => { ?l0 rdf:first ?y. ?l0 rdf:rest ?l1. ?l1 rdf:first ?z. ?l1 rdf:rest rdf:nil. ?l0 :a :SAT }.
+
+fin.
+query
+(?banana ?orange) :a :SAT.
+fin.

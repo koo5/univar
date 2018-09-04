@@ -1,0 +1,14 @@
+kb
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+{(rdf:nil ?y) :append ?y. ?y rdf:type rdf:List} <= {}.
+{(?x ?y) :append ?z. ?x rdf:first ?xe0. ?x rdf:rest ?x1. ?z rdf:first ?xe0. ?z rdf:rest ?rest_append. (?x1 ?y) :append ?rest_append} <= {}.
+
+fin.
+
+
+query
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+((:banana :pie) (:carrot :stick :mule)) :append (:banana :pie :carrot :stick :mule).
+fin.
+

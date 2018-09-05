@@ -123,7 +123,7 @@ class Arg:
 		s.uri = uri
 		assert(isinstance(uri, rdflib.term.Identifier))
 		s.thing = thing
-		assert(isinstance(thing, (AtomVar, Bnode)))
+		assert(isinstance(thing, (AtomVar)))
 		s.frame = frame
 		assert((type(frame) == str) or (type(frame) == URIRef))
 		s.term_idx = term_idx
@@ -211,7 +211,6 @@ class Bnode(BnodeOrLocals):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
-		s.is_part_of_bnode = lambda : None
 		if dbg:
 			super().__init__()
 			s.debug_name = debug_name
@@ -265,18 +264,18 @@ class Var(AtomVar):
 		if dbg:
 			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
+		s.bnode = None
 	def str(s, shortener = lambda x:x):
 		if type(s.kbdbg_name) == URIRef:
 			xxx = shortener(s.kbdbg_name.n3())
 		else:
 			xxx = shortener(s.kbdbg_name)
-		bnode = s.is_part_of_bnode()
-		if bnode and ('is_a_bnode_from_original_rule' in bnode.__dict__):
+		if s.bnode:
 			xxx += '['
-			for k,v in bnode.items():
+			for k,v in s.bnode.items():
 				if v != s:
 					xxx += str(shortener(k)) + ' --->>> '
-					if (type(v) == Var) and (v.is_part_of_bnode()) and (s in v.is_part_of_bnode().values()):
+					if (type(v) == Var) and v.bnode and (s in v.bnode.values()):
 						xxx += '[recursive]'
 					else:
 					    xxx += shortener(str(v))
@@ -285,12 +284,13 @@ class Var(AtomVar):
 		return (xxx if dbg else '') + s.___short__str__()
 		# + " in " + str(s.debug_locals())
 	def ___short__str__(s):
+		r = ''
+		if s.bnode:
+			r +=  '[bnode]'
 		if s.bound_to:
-			return ' = ' + (s.bound_to.__short__str__())
-		elif s.is_part_of_bnode():
-			return '[bnode]'
+			return r + ' = ' + (s.bound_to.__short__str__())
 		else:
-			return '(free)'
+			return r + '(free)'
 	def recursive_clone(s):
 		r = super().recursive_clone()
 		if s.bound_to:
@@ -382,8 +382,8 @@ def unify2(arg_x, arg_y, val_x, val_y):
 		r = val_x.bind_to(val_y, (orig))
 	elif type(val_y) == Var:
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
-	elif type(val_x) == Bnode and type(val_y) == Bnode:
-		r = unify_bnodes(val_x, val_y, orig)
+	#elif type(val_x) == Bnode and type(val_y) == Bnode:
+	#	r = unify_bnodes(val_x, val_y, orig)
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
 			r = success("same consts", (orig))
@@ -425,7 +425,7 @@ def unify_bnodes(x,y,orig):
 
 def get_value(x):
 	asst(x)
-	if type(x) in (Atom, Bnode):
+	if type(x) in (Atom,):
 		return x
 	v = x.bound_to
 	if v:
@@ -523,8 +523,8 @@ class Rule(Kbdbgable):
 		outgoing_existentials = get_existentials([singleton.head], singleton.body)
 		original_head_outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
 		for arg_idx, arg in enumerate(args):
-			if type(arg) != Bnode: continue
-			bnode = arg
+			if type(arg) != Var or not arg.bnode: continue
+			bnode = arg.bnode
 			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
 				if singleton.head.args[arg_idx] == bnode.is_from_name:
 					for k,v in bnode.items():
@@ -549,7 +549,7 @@ class Rule(Kbdbgable):
 		if len(incoming_bnode_unifications ):
 			max_depth = len(args) + len(incoming_bnode_unifications ) - 1
 		else:
-			max_depth = (len(args) + len(singleton.body) + len(outgoing_existentials)) - 1
+			max_depth = len(args) + len(singleton.body) - 1
 
 		def desc():
 			return ("\n#vvv\n#" + #str(singleton) + "\n" +
@@ -561,8 +561,8 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 		while True:
-			if 49 == global_step_counter:
-				print('49')
+			#if 49 == global_step_counter:
+			#	print('49')
 
 			if len(generators) <= depth:
 				if depth < len(args):
@@ -614,9 +614,11 @@ class Rule(Kbdbgable):
 							total_bnode_counter += 1
 							bnode.is_a_bnode_from_original_rule = singleton.original_head
 							bnode.is_from_name = e
-							original_head_outgoing_bnodes[e] = bnode
+							bbbb = Var("bnode var")
+							bbbb.bnode = bnode
+							original_head_outgoing_bnodes[e] = bbbb
 						for e in original_head_outgoing_existentials:
-							bnode = original_head_outgoing_bnodes[e]
+							bnode = original_head_outgoing_bnodes[e].bnode
 							for arg in original_head_args:
 								if type(arg) == rdflib.Literal:
 									continue
@@ -634,7 +636,7 @@ class Rule(Kbdbgable):
 									bnode[arg] = original_head_outgoing_bnodes[arg]
 						original_head_outgoing_bnodes_items = list(original_head_outgoing_bnodes.items())
 						for k,bnode in original_head_outgoing_bnodes_items:
-							bnode.emit()
+							bnode.bnode.emit()
 				else:
 					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
@@ -695,10 +697,11 @@ def ep_match(args_a, args_b):
 		b = args_b[i].thing
 		if type(a) != type(b):
 			return
-		if type(a) == Bnode and a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule:
-			return
-		if type(a) == Bnode and a.is_from_name != b.is_from_name:
-			return
+		if type(a) == Var:
+			if b.bnode and a.bnode.is_a_bnode_from_original_rule != b.bnode.is_a_bnode_from_original_rule:
+				return
+			if a.bnode.is_from_name != b.bnode.is_from_name:
+				return
 		if type(a) == Atom and b.value != a.value:
 			return
 	nolog or log("EP!")
@@ -786,10 +789,9 @@ def substitute(node, locals):
 	assert(isinstance(node, rdflib.term.Identifier))
 	if node in locals:
 		v = get_value(locals[node])
-		if type(v) == Bnode:
-			print(print_bnode(v))
-			r = node
-		elif type(v) == Var:
+		if type(v) == Var and v.bnode:
+			print(print_bnode(v.bnode))
+		if type(v) == Var:
 			r = node
 		elif type(v) == Atom:
 			r = v.value

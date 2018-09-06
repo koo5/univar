@@ -378,7 +378,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
 		r = success("same things", (orig))
-	elif type(val_x) == Var:
+	elif type(val_x) == Var and not val_x.bnode:
 		r = val_x.bind_to(val_y, (orig))
 	elif type(val_y) == Var:
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
@@ -517,40 +517,13 @@ class Rule(Kbdbgable):
 		kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
+		max_depth=0
 		total_bnode_counter = 0
+		bnode_unifications_not_done = True
 		incoming_bnode_unifications = []
 		original_head_args = list(traverse(triple.args for triple in singleton.original_head_triples))
 		outgoing_existentials = get_existentials([singleton.head], singleton.body)
 		original_head_outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
-		for arg_idx, arg in enumerate(args):
-			if type(arg) != Var or not arg.bnode: continue
-			bnode = arg.bnode
-			if bnode.is_a_bnode_from_original_rule == singleton.original_head:
-				if singleton.head.args[arg_idx] == bnode.is_from_name:
-					for k,v in bnode.items():
-						for head_arg_idx, head_arg in enumerate(singleton.head.args):
-							if type(locals[head_arg]) == Atom:
-								continue
-							if head_arg in [exbi[0].uri for exbi in incoming_bnode_unifications ]:
-								continue
-							a0 = Arg(
-								head_arg, locals[head_arg],
-								locals.kbdbg_frame if dbg else None,
-								0, head_arg_idx, True)
-							a1 = Arg(
-								k,
-								bnode[head_arg],
-								bnode.kbdbg_name if dbg else None,
-								head_arg, 0, 'bnode')
-							incoming_bnode_unifications .append((a0,a1))
-							print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
-			del bnode
-
-		if len(incoming_bnode_unifications ):
-			max_depth = len(args) + len(incoming_bnode_unifications ) - 1
-		else:
-			max_depth = len(args) + len(singleton.body) - 1
-
 		def desc():
 			return ("\n#vvv\n#" + #str(singleton) + "\n" +
 			kbdbg_name.n3() + '\n' +
@@ -561,8 +534,10 @@ class Rule(Kbdbgable):
 		nolog or log ("entering " + desc())
 
 		while True:
-			#if 49 == global_step_counter:
-			#	print('49')
+			if len(incoming_bnode_unifications ):
+				max_depth = len(args) + len(incoming_bnode_unifications) - 1
+			else:
+				max_depth = len(args) + len(singleton.body) - 1
 
 			if len(generators) <= depth:
 				if depth < len(args):
@@ -576,7 +551,8 @@ class Rule(Kbdbgable):
 					print ('unrolling', emit_arg(eee[0]), " into ", eee[1])
 					generator = unify(eee[0],eee[1])
 					print("existential generator", generator)
-				elif (depth < len(args) + len(singleton.body)):
+				else:
+					assert (depth < len(args) + len(singleton.body))
 					body_item_index = depth - len(args)
 					triple = singleton.body[body_item_index]
 					bi_args = []
@@ -584,29 +560,43 @@ class Rule(Kbdbgable):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
 					generator = pred(triple.pred, kbdbg_name, bi_args)
-				else:
-					assert (depth < (len(args) + len(singleton.body) + len(outgoing_existentials)))
-					ex_idx = depth - len(args) - len(singleton.body)
-					e = outgoing_existentials[ex_idx]
-					generator = unify(
-						Arg(
-							e, locals[e],
-							locals.kbdbg_frame,
-							0, locals[e].arg_index, True),
-						Arg(
-							e, original_head_outgoing_bnodes[e],
-							original_head_outgoing_bnodes[e].kbdbg_name,
-							None, None, None))
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
 				generators[depth].__next__()
+				if depth == len(args) - 1 and bnode_unifications_not_done:
+
+					for arg_idx, arg in enumerate(args):
+						arg = get_value(arg.thing)
+						if type(arg) != Var or not arg.bnode: continue
+						incoming_bnode = arg.bnode
+						if incoming_bnode.is_a_bnode_from_original_rule == singleton.original_head:
+							if singleton.head.args[arg_idx] == incoming_bnode.is_from_name:
+								for k,v in incoming_bnode.items():
+									for head_arg_idx, head_arg in enumerate(singleton.head.args):
+										if type(locals[head_arg]) == Atom:
+											continue
+										if head_arg in [exbi[0].uri for exbi in incoming_bnode_unifications ]:
+											continue
+										a0 = Arg(
+											head_arg, locals[head_arg],
+											locals.kbdbg_frame if dbg else None,
+											0, head_arg_idx, True)
+										a1 = Arg(
+											k,
+											incoming_bnode[head_arg],
+											incoming_bnode.kbdbg_name if dbg else None,
+											head_arg, 0, 'bnode')
+										incoming_bnode_unifications .append((a0,a1))
+										print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
+
+					bnode_unifications_not_done = False
 				nolog or log ("back in " + desc() + "\n# from sub-rule")
 				if (depth < max_depth):
 					nolog or log ("down")
 					depth+=1
-					if depth == len(args) + len(singleton.body):
-						#we are on the first outgoing existential
+				else:
+					if len(incoming_bnode_unifications ) == 0:
 						original_head_outgoing_bnodes = OrderedDict()
 						for e in original_head_outgoing_existentials:
 							bnode = Bnode(singleton, total_bnode_counter, kbdbg_name)
@@ -614,11 +604,9 @@ class Rule(Kbdbgable):
 							total_bnode_counter += 1
 							bnode.is_a_bnode_from_original_rule = singleton.original_head
 							bnode.is_from_name = e
-							bbbb = Var("bnode var")
-							bbbb.bnode = bnode
-							original_head_outgoing_bnodes[e] = bbbb
+							original_head_outgoing_bnodes[e] = bnode
 						for e in original_head_outgoing_existentials:
-							bnode = original_head_outgoing_bnodes[e].bnode
+							bnode = original_head_outgoing_bnodes[e]
 							for arg in original_head_args:
 								if type(arg) == rdflib.Literal:
 									continue
@@ -626,18 +614,28 @@ class Rule(Kbdbgable):
 									continue
 								if arg in bnode:
 									continue
-								if arg == e:
-									continue
+								#if arg == e:
+								#	continue
 								if arg not in original_head_outgoing_existentials:
 									bnode[arg] = get_value(locals[arg])#.recursive_clone()
 								else:
 									#it must be an existential in another triple of the original head
 									assert arg in get_existentials(singleton.original_head_triples, singleton.body)
-									bnode[arg] = original_head_outgoing_bnodes[arg]
+									vvvv = Var('vvvv', original_head_outgoing_bnodes[arg])
+									vvvv.bnode = original_head_outgoing_bnodes[arg]
+									bnode[arg] = vvvv
 						original_head_outgoing_bnodes_items = list(original_head_outgoing_bnodes.items())
+						doing_bnodes = False
 						for k,bnode in original_head_outgoing_bnodes_items:
-							bnode.bnode.emit()
-				else:
+							if k in locals:
+								doing_bnodes = True
+						if doing_bnodes:
+							for k,bnode in original_head_outgoing_bnodes_items:
+								bnode.emit()
+								if k in locals:
+									var = locals[k]
+									if not var.bound_to:
+										var.bnode = bnode
 					yield locals
 					nolog or log ("re-entering " + desc() + " for more results")
 			except StopIteration:
@@ -698,10 +696,13 @@ def ep_match(args_a, args_b):
 		if type(a) != type(b):
 			return
 		if type(a) == Var:
-			if b.bnode and a.bnode.is_a_bnode_from_original_rule != b.bnode.is_a_bnode_from_original_rule:
+			if a.bnode and not b.bnode or b.bnode and not a.bnode:
 				return
-			if a.bnode.is_from_name != b.bnode.is_from_name:
-				return
+			if a.bnode and b.bnode:
+				if a.bnode.is_a_bnode_from_original_rule != b.bnode.is_a_bnode_from_original_rule:
+					return
+				if a.bnode.is_from_name != b.bnode.is_from_name:
+					return
 		if type(a) == Atom and b.value != a.value:
 			return
 	nolog or log("EP!")

@@ -324,6 +324,8 @@ def success(msg, orig, uri = None):
 def fail(msg, orig, uri = None):
 		if uri == None:
 			uri = bn()
+		if uri == ':bn167':
+			print(uri)
 		emit_binding(uri, orig)
 		kbdbg(uri + " kbdbg:failed true")
 		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
@@ -386,6 +388,8 @@ def unify2(arg_x, arg_y, val_x, val_y):
 
 	elif type(val_y) == Var and type(val_x) == Atom :
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+	#elif type(val_x) == Var and type(val_y) == Atom :
+	#	r = val_x.bind_to(val_y, ((arg_x, arg_y)))
 	#elif type(val_x) == Bnode and type(val_y) == Bnode:
 	#	r = unify_bnodes(val_x, val_y, orig)
 	elif type(val_x) == Atom and type(val_y) == Atom:
@@ -578,6 +582,8 @@ class Rule(Kbdbgable):
 							if singleton.head.args[arg_idx] == incoming_bnode.is_from_name:
 								for k,v in incoming_bnode.items():
 									for head_arg_idx, head_arg in enumerate(singleton.head.args):
+										if arg_idx == head_arg_idx:
+											continue
 										if type(locals[head_arg]) == Atom:
 											continue
 										if head_arg in [exbi[0].uri for exbi in incoming_bnode_unifications ]:

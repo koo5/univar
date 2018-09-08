@@ -295,6 +295,7 @@ class Var(AtomVar):
 		r = super().recursive_clone()
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
+		r.bnode = s.bnode
 		return r
 
 	def bind_to(x, y, orig):
@@ -380,7 +381,10 @@ def unify2(arg_x, arg_y, val_x, val_y):
 		r = success("same things", (orig))
 	elif type(val_x) == Var and not val_x.bnode:
 		r = val_x.bind_to(val_y, (orig))
-	elif type(val_y) == Var:
+	elif type(val_y) == Var and not val_y.bnode:
+		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+
+	elif type(val_y) == Var and type(val_x) == Atom :
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
 	#elif type(val_x) == Bnode and type(val_y) == Bnode:
 	#	r = unify_bnodes(val_x, val_y, orig)
@@ -591,6 +595,9 @@ class Rule(Kbdbgable):
 										print ('gonna unroll', emit_arg(a0), " into ", emit_arg(a1))
 
 					bnode_unifications_not_done = False
+					if len(incoming_bnode_unifications):
+						max_depth = len(args) + len(incoming_bnode_unifications) - 1
+
 				nolog or log ("back in " + desc() + "\n# from sub-rule")
 				if (depth < max_depth):
 					nolog or log ("down")
@@ -745,12 +752,30 @@ def query(input_rules, input_query):
 	step()
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
-		terms = [substitute_term(term, locals) for term in input_query]
 		kbdbg(uri + " rdf:type kbdbg:result")
+		terms = [substitute_term(term, locals) for term in input_query]
 		result_terms_uri = emit_list(emit_terms(terms))
 		kbdbg(uri + " rdf:value " + result_terms_uri)
-		kbdbg(uri + " kbdbg:was_unbound true")
 		yield terms
+		printed = []
+		for t in terms:
+			for a in t.args:
+				if a in printed: continue
+				if a not in locals:	continue
+				v = get_value(locals[a])
+				if type(v) == Var and v.bnode:
+					log(str(a) + ':')
+					log(print_bnode(v.bnode))
+					printed.append(a)
+
+		#log(print_proof(..))
+
+		kbdbg(uri + " kbdbg:was_unbound true")
+
+#def print_proof(indent, rules, substs):
+#	for rule in rules:
+#		log(' '*indent +
+
 
 def emit_list(l):
 	r = uri = bn()
@@ -776,10 +801,10 @@ def emit_list(l):
 
 def print_bnode(v):
 	r = ''
-	r += '['
+	r += '[\n'
 	for k,vv in v.items():
 		if v != vv:
-			r += str(k) + ' --->>> ' + str(vv)
+			r += str(k) + ' --->>> ' + str(get_value(vv)) + '\n'
 	r += ']'
 	return r
 
@@ -790,8 +815,8 @@ def substitute(node, locals):
 	assert(isinstance(node, rdflib.term.Identifier))
 	if node in locals:
 		v = get_value(locals[node])
-		if type(v) == Var and v.bnode:
-			print(print_bnode(v.bnode))
+		#if type(v) == Var and v.bnode:
+		#	log(print_bnode(v.bnode))
 		if type(v) == Var:
 			r = node
 		elif type(v) == Atom:

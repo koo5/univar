@@ -1,4 +1,3 @@
-kb
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 #— Existence of lists
@@ -15,11 +14,4 @@ kb
 :this :a :thing. :that :a :thing2.
 { ?z :a :thing. ?l0 rdf:first ?y. ?l0 rdf:rest ?l1. ?l1 rdf:first ?z. ?l1 rdf:rest rdf:nil. ?y :a :thing2} => { ?l0 :a :banana }.
 
-fin.
-
-
-query
-@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-?l0 :a :banana. ?l0 rdf:rest ?l1. ?l1 rdf:first :thing.
-fin.
 

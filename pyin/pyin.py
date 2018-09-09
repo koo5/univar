@@ -170,7 +170,7 @@ class BnodeOrLocals(OrderedDict):
 			kbdbg(uri + ' kbdbg:has_name ' + rdflib.Literal(sss).n3())
 			kbdbg(uri + " kbdbg:has_value_description " + rdflib.Literal(v.kbdbg_name).n3())
 			kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(v.__short__str__()).n3())
-			kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
+		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
 		return "["+printify([str(k) + ": " + (v.__short__str__() if type(v) != Bnode else "[]") for k, v in s.items()], ", ")+']'
@@ -386,8 +386,8 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	elif type(val_y) == Var and not val_y.bnode:
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
 
-	elif type(val_y) == Var and type(val_x) == Atom :
-		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+	elif type(val_x) == Var and type(val_y) == Atom :
+		r = val_x.bind_to(val_y, ((arg_x, arg_y)))
 	#elif type(val_x) == Var and type(val_y) == Atom :
 	#	r = val_x.bind_to(val_y, ((arg_x, arg_y)))
 	#elif type(val_x) == Bnode and type(val_y) == Bnode:

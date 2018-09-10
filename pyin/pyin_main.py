@@ -79,7 +79,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
-			return rdflib.URIRef('?'+str(o), base=base)
+			return rdflib.Variable(str(o))
 		return o
 
 	def fixup(spo):

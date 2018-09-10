@@ -112,9 +112,7 @@ class Triple():
 	def __init__(s, pred, args):
 		s.pred = pred
 		s.args = args
-		for arg in args:
-			#if type(arg) == rdflib.Variable:
-			#	print(1)
+
 	def str(s, shortener = lambda x:x):
 		if len(s.args) == 2:
 			return shortener(s.args[0].n3()) + " " + shortener(s.pred.n3()) + " " + shortener(s.args[1].n3()) + "."

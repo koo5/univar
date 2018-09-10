@@ -77,6 +77,11 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		log(l.decode('utf8'))
 	log('---')
 
+	def fixup3(o):
+		if isinstance(o, rdflib.Graph):
+			return URIRef(o.identifier)
+		return o
+
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
 			return rdflib.Variable(str(o))
@@ -88,18 +93,18 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 
 	rules = []
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
-	facts = [Triple(x[1],[x[0],x[2]]) for x in kb_graph_triples]
+	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
 	for s,p,o in kb_graph_triples:
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, _t, Graph()))
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
-			head_triples_triples = [Triple(x[1],[x[0],x[2]]) for x in head_triples]
+			head_triples_triples = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples]
 			for head_triple in head_triples:
 				body = Graph()
 				for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
-					body.append(Triple((body_triple[1]), [(body_triple[0]), (body_triple[2])]))
-				rules.append(Rule(head_triples_triples, Triple((head_triple[1]), [(head_triple[0]), (head_triple[2])]), body))
+					body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
+				rules.append(Rule(head_triples_triples, Triple(fixup3(head_triple[1]), [fixup3(head_triple[0]), fixup3(head_triple[2])]), body))
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
@@ -114,7 +119,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	log('---')
 
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
-		goal.append(Triple((p), [(s), (o)]))
+		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
 
 	for result in query(rules, goal):
 		print ()
@@ -123,7 +128,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		for triple in result:
 			r += triple.str()
 		print(' RESULT :' + r)
-		pyin.kbdbg('result: ' + o)
+		pyin.kbdbg('#result: ' + r)
 
 	if sparql_uri != '':
 		server.update("""

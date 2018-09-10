@@ -371,10 +371,10 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 			lines.append(l)
 			continue
 		if step < start - 1:
-			print ("skipping")
+			log ("skipping")
 			continue
 		if step > end and end != -1:
-			print ("ending")
+			log ("ending")
 			break
 
 		log('parse ' + '[' + str(step) + ']')
@@ -439,7 +439,7 @@ def work(serialized_graph, input_file_name, step, no_parallel, redis_fn):
 	#log('work' + str(id(g)) + ' ' + str(id(g.store)) + ' ' + str(id(g.store.indexes))  + ' ' + str(id(g.store.indexes['ttft']))  + ' ' + str(id(g.store.indexes['ttft'][rdflib.URIRef('http://kbd.bg/Rule1')])))
 	g.store.locked = True
 	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		print('no frames.' + '[' + str(step) + ']')
+		log('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])
 		return
 
@@ -467,13 +467,13 @@ def work(serialized_graph, input_file_name, step, no_parallel, redis_fn):
 			if r != b"":
 				raise RuntimeError('[' + str(step) + '] ' + str(r))
 		except subprocess.CalledProcessError as e:
-			print('[' + str(step) + ']' + e.output)
+			log ('[' + str(step) + ']' + e.output)
 		log('convert done.' + '[' + str(step) + ']')
 	else:
 		def do_or_die(args):
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
-				print(r)
+				log (r)
 				raise RuntimeError(r)
 				#exit()
 		futures.append(graphviz_pool.submit(do_or_die, args))

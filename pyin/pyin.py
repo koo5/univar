@@ -9,7 +9,7 @@ import logging
 import urllib.parse
 from collections import defaultdict, OrderedDict
 from ordered_rdflib_store import OrderedStore
-from common import shorten, traverse
+from common import shorten, traverse, join_generators
 
 dbg = True
 nolog = False
@@ -69,6 +69,7 @@ INSERT {""" + ("Graph " + (step_graph_name(global_step_counter) + "{") if not de
 	("}." if not default else "") +
 	"} WHERE {}")
 
+
 def step_graph_name(idx):
 	return this + '_' + str(idx)
 
@@ -85,6 +86,7 @@ def step():
 	kbdbg(step_list_item(global_step_counter) + " rdf:rest " + step_list_item(global_step_counter + 1))
 	global_step_counter += 1
 	kbdbg_graph_first()
+
 
 bnode_counter = 0
 def bn():
@@ -105,10 +107,14 @@ def printify(iterable, separator, shortener = lambda x:x):
 			r += separator
 	return r
 
+
 class Triple():
 	def __init__(s, pred, args):
 		s.pred = pred
 		s.args = args
+		for arg in args:
+			#if type(arg) == rdflib.Variable:
+			#	print(1)
 	def str(s, shortener = lambda x:x):
 		if len(s.args) == 2:
 			return shortener(s.args[0].n3()) + " " + shortener(s.pred.n3()) + " " + shortener(s.args[1].n3()) + "."
@@ -146,6 +152,7 @@ class EpHead(Kbdbgable):
 		s.kbdbg_name = ':' + s.kbdbg_name
 		s.kbdbg_name = URIRef
 		s.items = []
+
 
 class BnodeOrLocals(OrderedDict):
 	def __init__(s):
@@ -209,6 +216,7 @@ class Bnode(BnodeOrLocals):
 	#def recursive_clone(s):
 	#	r = Bnode(s.debug_rule, s.debug_id, kbdbg_frame)
 
+
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
 		if dbg:
@@ -238,6 +246,7 @@ class AtomVar(Kbdbgable):
 	def __short__str__(s):
 		return get_value(s).___short__str__()
 
+
 class Atom(AtomVar):
 	def __init__(s, value, debug_locals=None):
 		if dbg:
@@ -259,12 +268,14 @@ class Atom(AtomVar):
 		r.value = s.value
 		return r
 
+
 class Var(AtomVar):
 	def __init__(s, debug_name=None, debug_locals=None):
 		if dbg:
 			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
 		s.bnode = None
+
 	def str(s, shortener = lambda x:x):
 		if type(s.kbdbg_name) == URIRef:
 			xxx = shortener(s.kbdbg_name.n3())
@@ -291,6 +302,7 @@ class Var(AtomVar):
 			return r + ' = ' + (s.bound_to.__short__str__())
 		else:
 			return r + '(free)'
+
 	def recursive_clone(s):
 		r = super().recursive_clone()
 		if s.bound_to:
@@ -310,6 +322,7 @@ class Var(AtomVar):
 		x.bound_to = None
 		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
+
 
 def success(msg, orig, uri = None):
 		if uri == None:
@@ -333,13 +346,11 @@ def fail(msg, orig, uri = None):
 			yield msg
 		step()
 
-
 def emit_binding(uri, _x_y):
 	_x, _y = _x_y
 	kbdbg(uri + " rdf:type kbdbg:binding")
 	kbdbg(uri + " kbdbg:has_source " + emit_arg(_x))
 	kbdbg(uri + " kbdbg:has_target " + emit_arg(_y))
-
 
 def emit_arg(x):
 	r = bn()
@@ -362,6 +373,9 @@ def emit_arg(x):
 	if x.arg_idx != None:
 		kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
 	return r
+
+
+
 
 def unify(_x, _y):
 	assert(isinstance(_x, Arg))
@@ -404,11 +418,6 @@ def unify2(arg_x, arg_y, val_x, val_y):
 
 unifycation_ep_items = []
 
-def join_generators(a, b):
-	for i in a:
-		for j in b:
-			yield True
-
 def unify_bnodes(x,y,orig):
 	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:
 		return fail("bnodes from different rules", orig)
@@ -442,27 +451,9 @@ def get_value(x):
 		return x
 
 def is_var(x):
-	#return x.startswith('?')
-	#from IPython import embed; embed()
-	if type(x) == rdflib.Variable or type(x) == rdflib.URIRef and '?' in str(x): #str(x).startswith('?'):
-		return True
-	return False
+	return (type(x) == rdflib.Variable) or (type(x) == rdflib.URIRef and '?' in str(x))
 
 
-def emit_terms(terms):
-	c=[]
-	for i in terms:
-		c.append(emit_term(i, bn()))
-	return c
-
-def emit_term(t, uri):
-	kbdbg(uri + " rdf:type kbdbg:term")
-	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
-	kbdbg(uri + " kbdbg:has_args " + emit_list(t.args))
-	return uri
-
-def pr(x):
-	print(x.__class__, x.context, x.triple)
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
@@ -541,6 +532,9 @@ class Rule(Kbdbgable):
 
 		nolog or log ("entering " + desc())
 
+
+
+
 		while True:
 			if len(incoming_bnode_unifications ):
 				max_depth = len(args) + len(incoming_bnode_unifications) - 1
@@ -610,6 +604,7 @@ class Rule(Kbdbgable):
 					depth+=1
 				else:
 					if len(incoming_bnode_unifications ) == 0:
+
 						original_head_outgoing_bnodes = OrderedDict()
 						for e in original_head_outgoing_existentials:
 							bnode = Bnode(singleton, total_bnode_counter, kbdbg_name)
@@ -835,6 +830,21 @@ def substitute(node, locals):
 	return r
 
 
+
+def emit_terms(terms):
+	c=[]
+	for i in terms:
+		c.append(emit_term(i, bn()))
+	return c
+
+def emit_term(t, uri):
+	kbdbg(uri + " rdf:type kbdbg:term")
+	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
+	kbdbg(uri + " kbdbg:has_args " + emit_list(t.args))
+	return uri
+
+def pr(x):
+	print(x.__class__, x.context, x.triple)
 
 
 """

@@ -15,3 +15,9 @@ def traverse(item):
 	for i in iter(item):
 		for j in iter(i):
 			yield j
+
+
+def join_generators(a, b):
+	for i in a:
+		for j in b:
+			yield True

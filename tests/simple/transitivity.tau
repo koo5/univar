@@ -1,6 +1,6 @@
 kb
-A :causes B.
-B :causes C.
+:A :causes :B.
+:B :causes :C.
 
 {?x :causes ?y. ?y :causes ?z} => {?x :causes ?z}.
 fin.
@@ -10,15 +10,15 @@ query
 fin.
 
 shouldbe
-A :causes B.
+:A :causes :B.
 fin.
 
 shouldbe
-B :causes C.
+:B :causes :C.
 fin.
 
 shouldbe
-A :causes C.
+:A :causes :C.
 fin.
 
 thatsall

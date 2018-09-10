@@ -1,5 +1,5 @@
 kb
-a :foo b.
+:a :foo :b.
 {?a :foo ?b} => {?b :foo ?a}.
 fin.
 
@@ -8,9 +8,9 @@ query
 fin.
 
 shouldbe
-a :foo b.
+:a :foo :b.
 fin.
 shouldbe
-b :foo a.
+:b :foo :a.
 fin.
 thatsall

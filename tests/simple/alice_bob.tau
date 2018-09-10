@@ -7,7 +7,7 @@ query
 ?WHO :tolerates ?WHAT.
 fin.
 shouldbe
-Alice :tolerates Bob.
+:Alice :tolerates :Bob.
 fin.
 thatsall
 

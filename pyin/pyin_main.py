@@ -118,11 +118,12 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 
 	for result in query(rules, goal):
 		print ()
-		o = ' RESULT : '
+
+		r = ''
 		for triple in result:
-			o += triple.str()
-		pyin.kbdbg("#" + o)
-		#log('('+o+')')
+			r += triple.str()
+		print(' RESULT :' + r)
+		pyin.kbdbg('result: ' + o)
 
 	if sparql_uri != '':
 		server.update("""

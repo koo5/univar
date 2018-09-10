@@ -1,13 +1,13 @@
 kb
-Alice :loves Bob.
+:Alice :loves :Bob.
 {?x :loves ?y} => {?x :likes ?y}.
 {?x :likes ?y} => {?x :tolerates ?y}.
 fin.
 query
-Alice :tolerates Bob.
+:Alice :tolerates :Bob.
 fin.
 shouldbe
-Alice :tolerates Bob.
+:Alice :tolerates :Bob.
 fin.
 thatsall
 

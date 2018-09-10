@@ -1,7 +1,7 @@
 kb
-Bob :a Person .
-Bob :self Bob .
-{ ?x :a Person. ?x :self ?x } => { ?x :is ?x } .
+:Bob :a :Person .
+:Bob :self :Bob .
+{ ?x :a :Person. ?x :self ?x } => { ?x :is ?x } .
 fin.
 
 query
@@ -10,8 +10,7 @@ query
 fin.
 
 shouldbe
-Bob :is Bob .
-Bob :is Bob .
+:Bob :is :Bob . :Bob :is :Bob .
 fin.
 
 thatsall

@@ -1,35 +1,35 @@
 kb
-T not F.
-F not T.
-{ ?x not ?nx. ?y not ?ny. ?z not ?nz} => { ?x fff ?y }.
+:T :not :F.
+:F :not :T.
+{ ?x :not ?nx. ?y :not ?ny. ?z :not ?nz} => { ?x :fff ?y }.
 fin.
 
 query
-?banana fff ?orange.
+?banana :fff ?orange.
 fin.
 
 shouldbe
-T fff T .
+:T :fff :T .
 fin.
 shouldbe
-T fff T .
+:T :fff :T .
 fin.
 shouldbe
-T fff F .
+:T :fff :F .
 fin.
 shouldbe
-T fff F .
+:T :fff :F .
 fin.
 shouldbe
-F fff T .
+:F :fff :T .
 fin.
 shouldbe
-F fff T .
+:F :fff :T .
 fin.
 shouldbe
-F fff F .
+:F :fff :F .
 fin.
 shouldbe
-F fff F .
+:F :fff :F .
 fin.
 thatsall

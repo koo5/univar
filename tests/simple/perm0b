@@ -1,9 +1,9 @@
 kb
-b x a .
-{ ?local x ?heads } => { ?heads y ?heado }.
+:b :x :a .
+{ ?local :x ?heads } => { ?heads :y ?heado }.
 fin.
 query
-a z b .
+:a :z :b .
 fin.
 shouldbe
 fin.

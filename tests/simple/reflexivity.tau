@@ -1,13 +1,13 @@
 kb
-zero :a Nat.
-{?x :a Nat} => {?x :eq ?x}.
+:zero :a :Nat.
+{?x :a :Nat} => {?x :eq ?x}.
 fin.
 
 query
 ?WHAT :eq ?WHAT.
 fin.
 shouldbe
-zero :eq zero.
+:zero :eq :zero.
 fin.
 thatsall
 
@@ -15,32 +15,32 @@ query
 ?WHAT :eq ?WHATELSE.
 fin.
 shouldbe
-zero :eq zero.
+:zero :eq :zero.
 fin.
 thatsall
 
 
 query
-zero :eq ?WHATELSE.
+:zero :eq ?WHATELSE.
 fin.
 shouldbe
-zero :eq zero.
+:zero :eq :zero.
 fin.
 thatsall
 
 
 query
-?WHAT :eq zero.
+?WHAT :eq :zero.
 fin.
 shouldbe
-zero :eq zero.
+:zero :eq :zero.
 fin.
 thatsall
 
 query
-zero :eq zero.
+:zero :eq :zero.
 fin.
 shouldbe
-zero :eq zero.
+:zero :eq :zero.
 fin.
 thatsall

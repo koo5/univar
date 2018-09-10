@@ -1,0 +1,18 @@
+kb
+@prefix : <#>.
+:zero :a :Nat.
+{?x :a :Nat} => {?x :succ ?y. ?y :a :Nat}.
+fin.
+
+
+query
+@prefix : <#>.
+?what :a :Nat. ?predecessor :succ ?what.
+fin.
+
+
+shouldbe
+@prefix : <#>.
+?what :a :Nat. :zero :succ ?what.
+fin.
+

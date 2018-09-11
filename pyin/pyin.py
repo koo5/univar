@@ -528,13 +528,15 @@ class Rule(Kbdbgable):
 			"#locals:" + locals.__short__str__() + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#entering^^^")
 
-		max_depth = len(args) + len(singleton.body) - 1
+		max_depth = len(args) - 1
 
 		log ("entering:" + desc())
 
 		for e in outgoing_existentials:
 			locals[e].bnode = locals
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
+
+		incoming_bnode = None
 
 		while True:
 
@@ -546,14 +548,22 @@ class Rule(Kbdbgable):
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
 					head_thing.arg_index = arg_index
 				else:
-					assert (depth < len(args) + len(singleton.body))
-					body_item_index = depth - len(args)
-					triple = singleton.body[body_item_index]
-					bi_args = []
-					for arg_idx, uri in enumerate(triple.args):
-						thing = locals[uri]
-						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
-					generator = pred(triple.pred, kbdbg_name, bi_args)
+					if incoming_bnode and depth < len(args) + len(incoming_bnode):
+						k,v2 = list(incoming_bnode.items())[depth - len(args)]
+						v = locals[k]
+						generator = unify(
+							Arg(k, v,   v.kbdbg_frame, 0, 0, True),
+							Arg(k, v2, v2.kbdbg_frame, 0, 0, True)
+						)
+					else:
+						assert depth < len(args) + len(singleton.body)
+						body_item_index = depth - len(args)
+						triple = singleton.body[body_item_index]
+						bi_args = []
+						for arg_idx, uri in enumerate(triple.args):
+							thing = locals[uri]
+							bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
+						generator = pred(triple.pred, kbdbg_name, bi_args)
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -572,9 +582,13 @@ class Rule(Kbdbgable):
 				for k,v in locals.items():
 					vv = get_value(v)
 					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head:
-						max_depth = len(args) - 1
 						log('its a bnode')
+						incoming_bnode = vv.bnode
 						break
+				if incoming_bnode:
+					max_depth = len(args) + len(incoming_bnode) - 1
+				else:
+					max_depth = len(args) + len(singleton.body) - 1
 			if (depth < max_depth):
 				log ("down")
 				depth+=1
@@ -582,6 +596,13 @@ class Rule(Kbdbgable):
 				yield locals
 				log ("re-entering " + desc() + " for more results")
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
+
+
+#	if have_incoming_bnode:
+#		yield from s.unify_with_bnode()
+#	else:
+#		yield from s.unify_body()
+
 
 	def match(s, parent = None, args=[]):
 		head = EpHead()

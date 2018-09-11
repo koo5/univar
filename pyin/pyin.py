@@ -310,6 +310,8 @@ class Var(AtomVar):
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
 		r.bnode = s.bnode
+		if s.bnode:
+			r.is_a_bnode_from_original_rule = s.is_a_bnode_from_original_rule
 		return r
 
 	def bind_to(x, y, orig):
@@ -402,12 +404,14 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	elif type(val_y) == Var and not val_y.bnode:
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
 
-	elif type(val_x) == Var and type(val_y) == Atom :
-		r = val_x.bind_to(val_y, ((arg_x, arg_y)))
 	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule:
 		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
-	#elif type(val_x) == Bnode and type(val_y) == Bnode:
-	#	r = unify_bnodes(val_x, val_y, orig)
+
+	elif type(val_x) == Var and type(val_y) == Atom :
+		r = val_x.bind_to(val_y, ((arg_x, arg_y)))
+	elif type(val_y) == Var and type(val_x) == Atom:
+		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
 			r = success("same consts", (orig))
@@ -567,7 +571,7 @@ class Rule(Kbdbgable):
 			if depth == len(args) - 1:
 				for k,v in locals.items():
 					vv = get_value(v)
-					if type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head:
+					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head:
 						max_depth = len(args) - 1
 						log('its a bnode')
 						break
@@ -630,9 +634,7 @@ def ep_match(args_a, args_b):
 			if a.bnode and not b.bnode or b.bnode and not a.bnode:
 				return
 			if a.bnode and b.bnode:
-				if a.bnode.is_a_bnode_from_original_rule != b.bnode.is_a_bnode_from_original_rule:
-					return
-				if a.bnode.is_from_name != b.bnode.is_from_name:
+				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule:
 					return
 		if type(a) == Atom and b.value != a.value:
 			return

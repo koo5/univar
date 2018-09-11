@@ -156,13 +156,32 @@ class EpHead(Kbdbgable):
 		s.items = []
 
 
-class BnodeOrLocals(OrderedDict):
-	def __init__(s):
+class Locals(OrderedDict):
+
+	bnode_or_locals = 'bnode'
+
+	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
 		super().__init__()
+		s.debug_id = debug_id
+		s.debug_last_instance_id = 0
+		s.debug_rule = weakref(debug_rule)
+		s.kbdbg_frame = kbdbg_frame
+		for k,v in initializer.items():
+			if type(v) == Var:
+				s[k] = Var(v.debug_name + "_clone", s)
+			else:
+				s[k] = Atom(v.value, s)
+
+	def new(s, kbdbg_frame):
+		nolog or log("cloning " + str(s))
+		s.debug_last_instance_id += 1
+		return Locals(s, s.debug_rule(), s.debug_last_instance_id, kbdbg_frame)
+
+
 	def __str__(s):
 		r = (s.bnode_or_locals + str(s.debug_id) + " of " + str(s.debug_rule()))
 		if len(s):
-			r += ":\n#" + printify([k.n3() + ": " + ('[]' if type(v) == Bnode else str(v)) for k, v in s.items()], ", ")
+			r += ":\n#" + printify([k.n3() + ": " + (str(v)) for k, v in s.items()], ", ")
 		return r
 
 	def emit(s):
@@ -170,6 +189,7 @@ class BnodeOrLocals(OrderedDict):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_parent " + rdflib.URIRef(s.kbdbg_frame).n3())
 		items = []
 		for k, v in s.items():
+			if not is_var(k): continue
 			uri = bn()
 			items.append(uri)
 			if isinstance(k, rdflib.Variable):
@@ -182,41 +202,8 @@ class BnodeOrLocals(OrderedDict):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
-		return "["+printify([str(k) + ": " + (v.__short__str__() if type(v) != Bnode else "[]") for k, v in s.items()], ", ")+']'
+		return "["+printify([str(k) + ": " + (v.__short__str__()) for k, v in s.items()], ", ")+']'
 
-
-class Locals(BnodeOrLocals):
-	bnode_or_locals = 'locals'
-	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
-		super().__init__()
-		s.debug_id = debug_id
-		s.debug_last_instance_id = 0
-		s.debug_rule = weakref(debug_rule)
-		s.kbdbg_frame = kbdbg_frame
-		for k,v in initializer.items():
-			if type(v) == Var:
-				s[k] = Var(v.debug_name + "_clone", s)
-			else:
-				s[k] = Atom(v.value, s)
-	def new(s, kbdbg_frame):
-		nolog or log("cloning " + str(s))
-		if dbg:
-			s.debug_last_instance_id += 1
-		r = Locals(s, s.debug_rule() if dbg else None, s.debug_last_instance_id if dbg else None, kbdbg_frame)
-		#s.emit()
-		return r
-
-
-class Bnode(BnodeOrLocals):
-	bnode_or_locals = 'bnode'
-	def __init__(s, debug_rule, debug_id = 0, kbdbg_frame=None):
-		super().__init__()
-		s.debug_id = debug_id
-		s.debug_last_instance_id = 0
-		s.debug_rule = weakref(debug_rule)
-		s.kbdbg_frame = kbdbg_frame
-	#def recursive_clone(s):
-	#	r = Bnode(s.debug_rule, s.debug_id, kbdbg_frame)
 
 
 class AtomVar(Kbdbgable):
@@ -234,8 +221,7 @@ class AtomVar(Kbdbgable):
 				s.kbdbg_name = s.debug_locals().kbdbg_frame
 			assert(debug_name)
 			s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
-	#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_frame " + ":"+)
-	#		kbdbg(":"+x.kbdbg_name + " kbdbg:belongs_to_term " + ":"+)
+
 	def recursive_clone(s):
 		if type(s) == Atom:
 			r = Atom(s.value, s.debug_locals if dbg else None)
@@ -245,6 +231,7 @@ class AtomVar(Kbdbgable):
 		if dbg:
 			r.kbdbg_name = s.kbdbg_name
 		return r
+
 	def __short__str__(s):
 		return get_value(s).___short__str__()
 
@@ -514,13 +501,14 @@ class Rule(Kbdbgable):
 		generators = []
 		kbdbg_name = rdflib.URIRef(singleton.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
 		locals = singleton.locals_template.new(kbdbg_name)
+		locals.kbdbg_name = URIRef(kbdbg_name + ("_locals"))
 		uuu = kbdbg_name.n3()
 		kbdbg(uuu + " rdf:type kbdbg:frame")
 		kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 
-		outgoing_existentials = get_existentials(singleton.original_head_triples, singleton.body)
+		existentials = get_existentials(singleton.original_head_triples, singleton.body)
 		def desc():
 			return ("#vvv\n#" + #str(singleton) + "\n" +
 			kbdbg_name.n3() + '\n' +
@@ -532,13 +520,14 @@ class Rule(Kbdbgable):
 
 		log ("entering:" + desc())
 
-		for e in outgoing_existentials:
+		for e in existentials:
 			locals[e].bnode = locals
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
 
-		incoming_bnode = None
+		incoming_bnode_unifications = []
 
-		#todo emit locals for visualization
+		if len(existentials):
+			locals.emit()
 
 		while True:
 
@@ -549,23 +538,19 @@ class Rule(Kbdbgable):
 					head_thing = locals[head_uriref]
 					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
 					head_thing.arg_index = arg_index
+				elif len(incoming_bnode_unifications):
+					assert depth < len(args) + len(incoming_bnode_unifications)
+					ua,ub = incoming_bnode_unifications[depth - len(args)]
+					generator = unify(ua, ub)
 				else:
-					if incoming_bnode and depth < len(args) + len(incoming_bnode):
-						k,v2 = list(incoming_bnode.items())[depth - len(args)]
-						v = locals[k]
-						generator = unify(
-							Arg(k, v,   v.debug_locals().kbdbg_frame, 0, 0, True),
-							Arg(k, v2, v2.debug_locals().kbdbg_frame, 0, 0, True)
-						)
-					else:
-						assert depth < len(args) + len(singleton.body)
-						body_item_index = depth - len(args)
-						triple = singleton.body[body_item_index]
-						bi_args = []
-						for arg_idx, uri in enumerate(triple.args):
-							thing = locals[uri]
-							bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
-						generator = pred(triple.pred, kbdbg_name, bi_args)
+					assert depth < len(args) + len(singleton.body)
+					body_item_index = depth - len(args)
+					triple = singleton.body[body_item_index]
+					bi_args = []
+					for arg_idx, uri in enumerate(triple.args):
+						thing = locals[uri]
+						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
+					generator = pred(triple.pred, kbdbg_name, bi_args)
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
@@ -585,10 +570,16 @@ class Rule(Kbdbgable):
 					vv = get_value(v)
 					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head:
 						log('its a bnode')
-						incoming_bnode = vv.bnode
-						break
-				if incoming_bnode:
-					max_depth = len(args) + len(incoming_bnode) - 1
+						b = vv.bnode
+						for k,v in b.items():
+							if not is_var(k): continue
+							incoming_bnode_unifications.append((
+								Arg(k, locals[k], locals.kbdbg_name, k, 0, 'bnode'),
+								Arg(k, b[k], b.kbdbg_name, k, 0, 'bnode')))
+
+
+				if len(incoming_bnode_unifications):
+					max_depth = len(args) + len(incoming_bnode_unifications) - 1
 				else:
 					max_depth = len(args) + len(singleton.body) - 1
 			if (depth < max_depth):
@@ -610,10 +601,7 @@ class Rule(Kbdbgable):
 		head = EpHead()
 		for arg in args:
 			assert arg.thing == get_value(arg.thing)
-			if type(arg.thing) == Bnode:
-				head.items.append(Arg(arg.uri, arg.thing, arg.thing.kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
-			else:
-				head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
+			head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
 		s.ep_heads.append(head)
 		for i in s.rule_unify(parent, args):
 			s.ep_heads.pop()
@@ -669,12 +657,13 @@ def asst(x):
 		for i in x:
 			asst(i)
 	else:
-		assert type(x) in [Var, Atom, Bnode]
+		assert type(x) in (Var, Atom)
+
 
 def pred(p, parent, args):
 	for a in args:
 		assert(isinstance(a, Arg))
-		assert(isinstance(a.thing, (AtomVar, Bnode)))
+		assert(isinstance(a.thing, (AtomVar, )))
 		assert get_value(a.thing) == a.thing
 
 	if p not in preds:

@@ -158,21 +158,24 @@ class Emitter:
 
 		new_last_bindings = []
 		for binding in g.subjects(RDF.type, kbdbg.binding):
+			weight = 1
 			source_uri = g.value(binding, kbdbg.has_source)
 			target_uri = g.value(binding, kbdbg.has_target)
+			if g.value(source_uri, kbdbg.is_bnode, default=False) and g.value(target_uri, kbdbg.is_bnode, default=False):
+				weight = 0
 			if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
 					s.comment("just unbound binding")
-					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', binding=True)
+					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', weight=weight, binding=True)
 				continue
 			if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
 					s.comment("just failed binding")
-					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', binding=True)
+					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
 				continue
 			s.comment("binding " + binding.n3())
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
-				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), binding=True)
+				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), weight=weight, binding=True)
 			new_last_bindings.append(binding.n3())
 
 		put_last_bindings(s.step, new_last_bindings)

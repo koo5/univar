@@ -528,7 +528,7 @@ class Rule(Kbdbgable):
 			"#locals:" + locals.__short__str__() + "\n" +
 			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#entering^^^")
 
-		max_depth = len(args) - 1
+		max_depth = len(args)  + len(singleton.body) - 1
 
 		log ("entering:" + desc())
 
@@ -537,6 +537,8 @@ class Rule(Kbdbgable):
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
 
 		incoming_bnode = None
+
+		#todo emit locals for visualization
 
 		while True:
 
@@ -552,8 +554,8 @@ class Rule(Kbdbgable):
 						k,v2 = list(incoming_bnode.items())[depth - len(args)]
 						v = locals[k]
 						generator = unify(
-							Arg(k, v,   v.kbdbg_frame, 0, 0, True),
-							Arg(k, v2, v2.kbdbg_frame, 0, 0, True)
+							Arg(k, v,   v.debug_locals().kbdbg_frame, 0, 0, True),
+							Arg(k, v2, v2.debug_locals().kbdbg_frame, 0, 0, True)
 						)
 					else:
 						assert depth < len(args) + len(singleton.body)
@@ -751,7 +753,7 @@ def print_bnode(v):
 	r += '[\n'
 	for k,vv in v.items():
 		if v != vv:
-			r += str(k) + ' --->>> ' + str(get_value(vv)) + '\n'
+			r += str(k) + ' --->>> ' + (get_value(vv).__short__str__()) + '\n'
 	r += ']'
 	return r
 

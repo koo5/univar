@@ -376,40 +376,43 @@ def unify(_x, _y):
 	return unify2(_x, _y, x, y)
 
 def unify2(arg_x, arg_y, val_x, val_y):
-	orig = (arg_x, arg_y)
-	unifycation_ep_item = (id(val_x), id(val_y))
-	if unifycation_ep_item in unifycation_ep_items:
-		uri = bn()
-		kbdbg(uri + " kbdbg:cycle_detected true")
-		return success("cycle detected", orig, uri)
-	unifycation_ep_items.append(unifycation_ep_item)
-	nolog or log("unify " + str(val_x) + " with " + str(val_y))
+	xy = (arg_x, arg_y)
+	yx = (arg_y, arg_x)
+
+	log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
-		r = success("same things", (orig))
+		r = success("same things", xy)
 	elif type(val_x) == Var and not val_x.bnode:
-		r = val_x.bind_to(val_y, (orig))
+		r = val_x.bind_to(val_y, xy)
 	elif type(val_y) == Var and not val_y.bnode:
-		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+		r = val_y.bind_to(val_x, yx)
 
 	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule:
-		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+		r = val_y.bind_to(val_x, yx)
 
 	elif type(val_x) == Var and type(val_y) == Atom :
-		r = val_x.bind_to(val_y, ((arg_x, arg_y)))
+		r = val_x.bind_to(val_y, xy)
 	elif type(val_y) == Var and type(val_x) == Atom:
-		r = val_y.bind_to(val_x, ((arg_y, arg_x)))
+		r = val_y.bind_to(val_x, yx)
 
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
-			r = success("same consts", (orig))
+			r = success("same consts", xy)
 		else:
-			r = fail("different consts: %s %s" % (val_x.value, val_y.value), (orig))
+			r = fail("different consts: %s %s" % (val_x.value, val_y.value), xy)
 	else:
-		r = fail("different things: %s %s" % (val_x, val_y), (orig))
-	unifycation_ep_items.pop()
+		r = fail("different things: %s %s" % (val_x, val_y), xy)
 	return r
 
-unifycation_ep_items = []
+
+#unifycation_ep_items = []
+	#unifycation_ep_item = (id(val_x), id(val_y))
+	#if unifycation_ep_item in unifycation_ep_items:
+	#	uri = bn()
+	#	kbdbg(uri + " kbdbg:cycle_detected true")
+	#	return success("cycle detected", xy, uri)
+	#unifycation_ep_items.append(unifycation_ep_item)
+	#unifycation_ep_items.pop()
 
 def unify_bnodes(x,y,orig):
 	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:

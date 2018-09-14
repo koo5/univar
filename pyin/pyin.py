@@ -299,6 +299,7 @@ class Var(AtomVar):
 		r.bnode = s.bnode
 		if s.bnode:
 			r.is_a_bnode_from_original_rule = s.is_a_bnode_from_original_rule
+			r.is_from_name = s.is_from_name
 		return r
 
 	def bind_to(x, y, orig):
@@ -387,13 +388,13 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	elif type(val_y) == Var and not val_y.bnode:
 		r = val_y.bind_to(val_x, yx)
 
-	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule:
+	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
 		r = val_y.bind_to(val_x, yx)
 
-	elif type(val_x) == Var and type(val_y) == Atom :
-		r = val_x.bind_to(val_y, xy)
-	elif type(val_y) == Var and type(val_x) == Atom:
-		r = val_y.bind_to(val_x, yx)
+	#elif type(val_x) == Var and type(val_y) == Atom :
+	#	r = val_x.bind_to(val_y, xy)
+	#elif type(val_y) == Var and type(val_x) == Atom:
+	#	r = val_y.bind_to(val_x, yx)
 
 	elif type(val_x) == Atom and type(val_y) == Atom:
 		if val_x.value == val_y.value:
@@ -403,38 +404,6 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	else:
 		r = fail("different things: %s %s" % (val_x, val_y), xy)
 	return r
-
-
-#unifycation_ep_items = []
-	#unifycation_ep_item = (id(val_x), id(val_y))
-	#if unifycation_ep_item in unifycation_ep_items:
-	#	uri = bn()
-	#	kbdbg(uri + " kbdbg:cycle_detected true")
-	#	return success("cycle detected", xy, uri)
-	#unifycation_ep_items.append(unifycation_ep_item)
-	#unifycation_ep_items.pop()
-
-def unify_bnodes(x,y,orig):
-	if x.is_a_bnode_from_original_rule != y.is_a_bnode_from_original_rule:
-		return fail("bnodes from different rules", orig)
-	if x.is_from_name != y.is_from_name:
-		return fail("bnodes from different names", orig)
-	assert len(x) == len(y)
-	l = len(x)
-	if l == 0:
-		return success("same bnodes", orig)
-	xv, yv = list(x.values()), list(y.values())
-	xk, yk = list(x.keys()), list(y.keys())
-	x_arg = Arg(xk[0], xv[0], x.kbdbg_name, xk[0], 0, 'bnode')
-	y_arg = Arg(yk[0], yv[0], y.kbdbg_name, yk[0], 0, 'bnode')
-	g = unify2(x_arg, y_arg, xv[0], yv[0])
-	for i in range(1, l):
-		x_arg = Arg(xk[i], xv[i], x.kbdbg_name, xk[i], 0, 'bnode')
-		y_arg = Arg(yk[i], yv[i], y.kbdbg_name, yk[i], 0, 'bnode')
-		g = join_generators(g, unify2(x_arg, y_arg, xv[i], yv[i]))
-	return g
-
-
 
 def get_value(x):
 	asst(x)
@@ -526,6 +495,7 @@ class Rule(Kbdbgable):
 		for e in existentials:
 			locals[e].bnode = locals
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
+			locals[e].is_from_name = e
 
 		incoming_bnode_unifications = []
 
@@ -571,7 +541,7 @@ class Rule(Kbdbgable):
 			if depth == len(args) - 1:
 				for k,v in locals.items():
 					vv = get_value(v)
-					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head:
+					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
 						log('its a bnode')
 						b = vv.bnode
 						for k,v in b.items():
@@ -648,7 +618,7 @@ def ep_match(args_a, args_b):
 			if a.bnode and not b.bnode or b.bnode and not a.bnode:
 				return
 			if a.bnode and b.bnode:
-				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule:
+				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule or a.is_from_name != b.is_from_name:
 					return
 		if type(a) == Atom and b.value != a.value:
 			return

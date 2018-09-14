@@ -1,6 +1,6 @@
 kb
 :b :x :a .
-{ ?local :x ?heads } => { ?heads :y ?heado }.
+{ ?heado :x ?heads } => { ?heads :y ?heado }.
 fin.
 query
 :a :y :b .

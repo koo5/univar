@@ -1,0 +1,11 @@
+kb
+:b :x :a .
+{ ?universal :x ?heads } => { ?heads :y ?existential }.
+fin.
+query
+:a :y ?what .
+fin.
+shouldbe
+:a :y ?what .
+fin.
+thatsall

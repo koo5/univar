@@ -1,0 +1,12 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+#— Existence of lists
+{?L rdf:first ?X. ?L rdf:rest rdf:nil} <= {?X :type ?t}.
+{ ?X :type ?t. ?L rdf:rest [ ] } => { [ ] rdf:first ?X; rdf:rest ?L }.
+
+
+:this :a :thing. :that :a :thing2.
+:this :type :fruit. :that :type :fruit.
+{ ?z :a :thing. ?l0 rdf:first ?y. ?l0 rdf:rest ?l1. ?l1 rdf:first ?z. ?l1 rdf:rest rdf:nil. ?y :a :thing2} => { ?l0 :a :potato }.
+
+

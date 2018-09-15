@@ -33,6 +33,7 @@ def tau(command, files):
 		base = 'file://'  + fn
 		identification = fn + '_' + str(query_counter)
 		prefixes = []
+		remaining_results = []
 		if buffer != []:
 			echo('previous file not ended properly?')
 			exit(1)
@@ -50,6 +51,9 @@ def tau(command, files):
 				elif l_stripped == 'thatsall':
 					if len(remaining_results) != 0:
 						fail(str(len(remaining_results)) + ' results remaining')
+					else:
+						print('')
+					continue
 				try:
 					mode = Mode[l_stripped]
 				except KeyError:
@@ -84,8 +88,18 @@ def tau(command, files):
 				buffer.append(l)
 
 
+def print_graph(g):
+	for i in g.triples((None, None, None)):
+		print(i)
+
 def compare_results(a,b):
 	echo ('compare_results ' + str((a,b)))
+	print('expected:')
+	print_graph(a)
+	print('got:')
+	print_graph(b)
+	print('.')
+
 
 
 def grab_buffer():

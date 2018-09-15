@@ -1,6 +1,6 @@
 shortenings = {}
 def shorten(term):
-	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst
+	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst instead
 	s = str(term)
 	for i in '/:#?':
 		p = s.rfind(i)
@@ -16,8 +16,8 @@ def traverse(item):
 		for j in iter(i):
 			yield j
 
-
 def join_generators(a, b):
 	for i in a:
 		for j in b:
 			yield True
+

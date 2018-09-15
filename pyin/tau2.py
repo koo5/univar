@@ -47,6 +47,9 @@ def tau(command, files):
 					continue
 				elif l_stripped == '':
 					continue
+				elif l_stripped == 'thatsall':
+					if len(remaining_results) != 0:
+						fail(str(len(remaining_results)) + ' results remaining')
 				try:
 					mode = Mode[l_stripped]
 				except KeyError:

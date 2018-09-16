@@ -27,3 +27,5 @@ def kbdbg_file_path(fn):
 def kbdbg_file_name(fn):
 	return kbdbg_file_path(fn) + fn
 
+def fix_up_identification(i):
+	return "".join([ch if ch.isalnum() else "_" for ch in i])

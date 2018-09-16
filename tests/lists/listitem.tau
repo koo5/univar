@@ -1,12 +1,13 @@
 kb
-(?A) not ?A.
+(?A) :not ?A.
 fin.
 
 query
-?banana not SAT.
+(?banana) :not :SAT.
 fin.
 
 shouldbe
-(SAT) not SAT .
+(:SAT) :not :SAT .
 fin.
+
 thatsall

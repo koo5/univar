@@ -19,6 +19,7 @@ class Mode(Enum):
 	query = auto()
 	shouldbe = auto()
 
+identification = '?'
 mode = Mode.none
 prefixes = []
 buffer = []
@@ -30,13 +31,13 @@ fn = '?'
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 
 def tau(command, files):
-	global mode, buffer, prefixes, output, fn
+	global mode, buffer, prefixes, output, fn, identification
 	query_counter = 0
 	for fn in files:
 		echo(fn+':')
 		results = []
 		base = fn
-		identification = fn + '_' + str(query_counter)
+		identification = common.fix_up_identification(fn + '_' + str(query_counter))
 		remaining_results = []
 		mode = Mode.none
 		prefixes = []
@@ -80,7 +81,7 @@ def tau(command, files):
 							universal_newlines=True, stdout=subprocess.PIPE)
 						if r.returncode != 0:
 							fail()
-							echo("kwrite " + common.kbdbg_file_name(fn))
+							print_kwrite_link()
 						else:
 							for output_line in r.stdout.splitlines():
 								echo(output_line)
@@ -105,6 +106,7 @@ def tau(command, files):
 						if not len(results):
 							echo('no more results')
 							fail()
+							print_kwrite_link()
 							mode = Mode.none
 							buffer = []
 							continue
@@ -118,7 +120,7 @@ def tau(command, files):
 						else:
 							fail()
 							echo(cmp)
-							echo("kwrite " + common.kbdbg_file_name(fn))
+							print_kwrite_link()
 						mode = Mode.none
 						continue
 				buffer.append(l)
@@ -178,6 +180,8 @@ def write_out(fn):
 		f.write(grab_buffer())
 	mode = Mode.none
 
+def print_kwrite_link():
+	echo("kwrite " + common.kbdbg_file_name(identification))
 
 if __name__ == "__main__":
 	tau()

@@ -63,6 +63,7 @@ def tau(command, files):
 				try:
 					mode = Mode[l_stripped]
 				except KeyError:
+					fail()
 					echo("can't make sense of line " + str(line_number) + ':')
 					echo(l)
 					echo('please make sense and try again')

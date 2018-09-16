@@ -1,34 +1,34 @@
 kb
-T not F .
-F not T .
-{ ?x not ?nx. ?y not ?ny. ?z not ?nz} => { (?x ?y ?z) a SAT } .
+:T :not :F .
+:F :not :T .
+{ ?x :not ?nx. ?y :not ?ny. ?z :not ?nz} => { (?x ?y ?z) :a :SAT } .
 fin.
 query
-?banana a SAT .
+(?x ?y ?z) :a :SAT .
 fin.
 
 shouldbe
-(T T T) a SAT .
+(:T :T :T) :a :SAT .
 fin.
 shouldbe
-(T T F) a SAT .
+(:T :T :F) :a :SAT .
 fin.
 shouldbe
-(T F T) a SAT .
+(:T :F :T) :a :SAT .
 fin.
 shouldbe
-(T F F) a SAT .
+(:T :F :F) :a :SAT .
 fin.
 shouldbe
-(F T T) a SAT .
+(:F :T :T) :a :SAT .
 fin.
 shouldbe
-(F T F) a SAT .
+(:F :T :F) :a :SAT .
 fin.
 shouldbe
-(F F T) a SAT .
+(:F :F :T) :a :SAT .
 fin.
 shouldbe
-(F F F) a SAT .
+(:F :F :F) :a :SAT .
 fin.
 thatsall

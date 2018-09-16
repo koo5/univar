@@ -1,2 +1,0 @@
-@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-?l0 :a :banana. ?l0 rdf:rest ?l1. ?l1 rdf:first :thing2.

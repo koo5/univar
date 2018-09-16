@@ -50,11 +50,15 @@ def tau(command, files):
 					continue
 				elif l_stripped == '':
 					continue
+				elif l_stripped.startswith('#'):
+					continue
 				elif l_stripped == 'thatsall':
 					if len(remaining_results) != 0:
 						fail(str(len(remaining_results)) + ' results remaining')
 					else:
 						print('')
+					continue
+				elif l_stripped.startswith('--limit'):
 					continue
 				try:
 					mode = Mode[l_stripped]
@@ -84,6 +88,18 @@ def tau(command, files):
 						query_counter += 1
 						continue
 					elif mode == Mode.shouldbe:
+
+						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier='file://'+base)
+						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID='file://'+base)
+
+						l1 = len(shouldbe_graph)
+						l2 = len(results)
+						if not l1 and not l2:
+							success()
+							mode = Mode.none
+							buffer = []
+							continue
+
 						if not len(results):
 							echo('no more results')
 							fail()
@@ -91,13 +107,8 @@ def tau(command, files):
 							buffer = []
 							continue
 
-						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier='file://'+base)
-						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID='file://'+base)
-
-						if len(shouldbe_graph):
-
 						result_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						result_graph.parse(data=results.pop(), format='n3', publicID=base)
+						result_graph.parse(data=results.pop(0), format='n3', publicID=base)
 
 						cmp = do_results_comparison(shouldbe_graph, result_graph)
 						if cmp == True:

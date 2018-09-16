@@ -26,6 +26,10 @@ class OrderedStore(Store):
 		# default context information for triples
 		self.__defaultContexts = None
 
+	def __len__(s, context = None):
+		return sum(1 for _ in s.triples((None, None, None), context))
+
+
 	def copy(self):
 
 		r = self.__class__()

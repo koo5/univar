@@ -56,7 +56,7 @@ def tau(command, files):
 					if len(remaining_results) != 0:
 						fail(str(len(remaining_results)) + ' results remaining')
 					else:
-						print('')
+						success()
 					continue
 				elif l_stripped.startswith('--limit'):
 					continue
@@ -153,9 +153,9 @@ def do_results_comparison(a, b):
 			if type(an) == URIRef or type(bn) == URIRef:
 				return str(an) + ' != ' + str(bn)
 			if an in correspondences:
-				if an == correspondences[an]:
+				if bn == correspondences[an]:
 					continue
-				return str(an) + ' != ' + str(correspondences[an])
+				return str(bn) + ' != ' + str(correspondences[an])
 			correspondences[an] = bn
 	return True
 

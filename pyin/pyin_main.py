@@ -9,6 +9,7 @@ import datetime
 import rdflib
 from ordered_rdflib_store import OrderedStore
 import click
+import common
 
 
 server, this = None, None
@@ -36,8 +37,8 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	pyin.this = this
 	identification = "".join([ch if ch.isalnum() else "_" for ch in identification])
 	fn = 'kbdbg'+identification+'.n3'
-	outpath = 'visualizations/'+fn+ '/'
-	pyin.kbdbg_file_name = outpath + fn
+	outpath = common.kbdbg_file_path(fn)
+	pyin.kbdbg_file_name = common.kbdbg_file_name(fn)
 	pyin._rules_file_name = pyin.kbdbg_file_name + '_rules'
 	subprocess.call(['rm', '-f', pyin._rules_file_name])
 	os.system('mkdir -p '+outpath)

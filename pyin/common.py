@@ -21,3 +21,9 @@ def join_generators(a, b):
 		for j in b:
 			yield True
 
+def kbdbg_file_path(fn):
+	return 'runs/'+fn+ '/'
+
+def kbdbg_file_name(fn):
+	return kbdbg_file_path(fn) + fn
+

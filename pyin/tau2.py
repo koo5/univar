@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+import common
 import subprocess
 import click
 from click import echo, style
@@ -25,8 +26,8 @@ output = ''
 fn = '?'
 
 @click.command()
-@click.argument('command')
-@click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True), required=True)
+@click.argument('command', type=click.Path(readable=True, exists=True, dir_okay=False), required=True)
+@click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 
 def tau(command, files):
 	global mode, buffer, prefixes, output, fn
@@ -34,11 +35,11 @@ def tau(command, files):
 	for fn in files:
 		echo(fn+':')
 		results = []
-		base = 'file://'  + fn
+		base = fn
 		identification = fn + '_' + str(query_counter)
-		prefixes = []
 		remaining_results = []
 		mode = Mode.none
+		prefixes = []
 		output = ''
 		for line_number, l in enumerate(open(fn).readlines()):
 			line_number += 1
@@ -69,15 +70,17 @@ def tau(command, files):
 						continue
 					elif mode == Mode.query:
 						write_out('query_for_external_raw.n3')
-						r = subprocess.run(['bash', '-c', command],
+						r = subprocess.run(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
 							universal_newlines=True, stdout=subprocess.PIPE)
 						if r.returncode != 0:
 							fail()
-							echo("kwrite " + kbdbg_file_name)
-						result_marker = ' RESULT :'
-						for output_line in r.stdout.splitlines():
-							if output_line.startswith(result_marker):
-								results.append(output_line[len(result_marker):])
+							echo("kwrite " + common.kbdbg_file_name(fn))
+						else:
+							for output_line in r.stdout.splitlines():
+								echo(output_line)
+								result_marker = ' RESULT :'
+								if output_line.startswith(result_marker):
+									results.append(output_line[len(result_marker):])
 						query_counter += 1
 						continue
 					elif mode == Mode.shouldbe:
@@ -85,12 +88,16 @@ def tau(command, files):
 							echo('no more results')
 							fail()
 							mode = Mode.none
+							buffer = []
 							continue
 
-						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID=base)
+						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier='file://'+base)
+						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID='file://'+base)
+
+						if len(shouldbe_graph):
+
 						result_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						result_graph.parse(data=results[0], format='n3', publicID=base)
+						result_graph.parse(data=results.pop(), format='n3', publicID=base)
 
 						cmp = do_results_comparison(shouldbe_graph, result_graph)
 						if cmp == True:
@@ -98,6 +105,7 @@ def tau(command, files):
 						else:
 							fail()
 							echo(cmp)
+							echo("kwrite " + common.kbdbg_file_name(fn))
 						mode = Mode.none
 						continue
 				buffer.append(l)
@@ -127,9 +135,9 @@ def do_results_comparison(a, b):
 		for ti, an in enumerate(at):
 			bn = bt[ti]
 			if type(an) == URIRef and type(bn) == URIRef:
-				if an.value == bn.value:
+				if str(an) == str(bn):
 					continue
-				return str(an.value) + ' != ' + str(bn.value)
+				return str(an) + ' != ' + str(bn)
 			if type(an) == URIRef or type(bn) == URIRef:
 				return str(an) + ' != ' + str(bn)
 			if an in correspondences:
@@ -140,10 +148,10 @@ def do_results_comparison(a, b):
 	return True
 
 def success():
-	echo(fn+":PASS")
+	echo(fn+":test:PASS")
 
 def fail():
-	echo(fn+":FAIL")
+	echo(fn+":test:FAIL")
 
 def grab_buffer():
 	global buffer

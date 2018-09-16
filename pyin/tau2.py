@@ -7,6 +7,7 @@ import click
 from click import echo, style
 from enum import Enum, auto
 import rdflib
+from rdflib import URIRef, BNode, Variable
 from ordered_rdflib_store import OrderedStore
 from itertools import chain
 
@@ -21,22 +22,22 @@ mode = Mode.none
 prefixes = []
 buffer = []
 output = ''
+fn = '?'
 
 @click.command()
 @click.argument('command')
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True), required=True)
 
 def tau(command, files):
-	global mode, buffer, prefixes, output
+	global mode, buffer, prefixes, output, fn
 	query_counter = 0
 	for fn in files:
+		echo(fn+':')
+		results = []
 		base = 'file://'  + fn
 		identification = fn + '_' + str(query_counter)
 		prefixes = []
 		remaining_results = []
-		if buffer != []:
-			echo('previous file not ended properly?')
-			exit(1)
 		mode = Mode.none
 		output = ''
 		for line_number, l in enumerate(open(fn).readlines()):
@@ -70,37 +71,79 @@ def tau(command, files):
 						write_out('query_for_external_raw.n3')
 						r = subprocess.run(['bash', '-c', command],
 							universal_newlines=True, stdout=subprocess.PIPE)
-						result_stdout = ''
 						if r.returncode != 0:
-							echo("ERR")
+							fail()
 							echo("kwrite " + kbdbg_file_name)
-							result_stdout = r.stdout
+						result_marker = ' RESULT :'
+						for output_line in r.stdout.splitlines():
+							if output_line.startswith(result_marker):
+								results.append(output_line[len(result_marker):])
 						query_counter += 1
 						continue
 					elif mode == Mode.shouldbe:
+						if not len(results):
+							echo('no more results')
+							fail()
+							mode = Mode.none
+							continue
+
 						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						result_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						result_graph.parse(data=result_stdout, format='n3', publicID=base)
 						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID=base)
-						compare_results(shouldbe_graph, result_graph)
+						result_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
+						result_graph.parse(data=results[0], format='n3', publicID=base)
+
+						cmp = do_results_comparison(shouldbe_graph, result_graph)
+						if cmp == True:
+							success()
+						else:
+							fail()
+							echo(cmp)
 						mode = Mode.none
 						continue
 				buffer.append(l)
+		if buffer != []:
+			echo('file not ended properly?')
+			exit(1)
 
 
 def print_graph(g):
 	for i in g.triples((None, None, None)):
 		print(i)
 
-def compare_results(a,b):
-	echo ('compare_results ' + str((a,b)))
+def do_results_comparison(a, b):
+	#echo ('compare_results ' + str((a,b)))
 	print('expected:')
 	print_graph(a)
 	print('got:')
 	print_graph(b)
 	print('.')
+	correspondences = {}
+	aa = list(a.triples((None, None, None)))
+	bb = list(b.triples((None, None, None)))
+	if len(aa) != len(bb):
+		return "len "+str(len(aa)) +' != len ' + str(len(bb))
+	for i,at in enumerate(aa):
+		bt = bb[i]
+		for ti, an in enumerate(at):
+			bn = bt[ti]
+			if type(an) == URIRef and type(bn) == URIRef:
+				if an.value == bn.value:
+					continue
+				return str(an.value) + ' != ' + str(bn.value)
+			if type(an) == URIRef or type(bn) == URIRef:
+				return str(an) + ' != ' + str(bn)
+			if an in correspondences:
+				if an == correspondences[an]:
+					continue
+				return str(an) + ' != ' + str(correspondences[an])
+			correspondences[an] = bn
+	return True
 
+def success():
+	echo(fn+":PASS")
 
+def fail():
+	echo(fn+":FAIL")
 
 def grab_buffer():
 	global buffer

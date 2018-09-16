@@ -1,0 +1,55 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+:zero a :Nat.
+{?x :has_succ ?y. ?x a :Nat} => { ?y a :Nat}.
+
+{(:zero ?y) :has_sum ?y.} <= {?y a :Nat}.
+{(?sx ?y) :has_sum ?sz } <= {?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
+
+:zero :has_succ :one. :one :has_succ :two. :two :has_succ :three. :three :has_succ :four. :four :has_succ :five. :five :has_succ :six. :six :has_succ :seven.
+fin.
+
+query
+(:three :four) :has_sum :seven.
+fin.
+shouldbe
+(:three :four) :has_sum :seven.
+fin.
+
+query
+(:three :four) :has_sum ?w.
+fin.
+shouldbe
+(:three :four) :has_sum :seven.
+fin.
+
+
+query
+(:three ?w) :has_sum :seven.
+fin.
+shouldbe
+(:three :four) :has_sum :seven.
+fin.
+
+
+
+
+#:z a :nat.
+#:z :succ :o.
+#:o :succ :two.
+#(:z :z) :add :z.
+#{ ?x a :nat. ?y a :nat. (?x ?y) :add ?z } => { ?z :a :nat }.
+#{ ?x a :nat. ?x :succ ?y } => { ?y a :nat }.
+#{ ?x a :nat. } => { ?x :eq ?x }.
+#{ ?x :eq ?y } => { ?x :eq ?y }.
+#{ ?x :succ ?y. ?x :succ ?z } => { ?y :eq ?z }.
+#{ ?y :succ ?x. ?z :succ ?x } => { ?y :eq ?z }.
+#{ ?z :eq ?y } => { ?y :eq ?z }.
+#{ (?x ?y) :add ?cc. ?x :succ ?ss. ?cc :succ ?dd } => { (?ss ?y) :add ?dd }.
+#fin.
+#query
+#(:o :z) add ?c.
+#fin.
+

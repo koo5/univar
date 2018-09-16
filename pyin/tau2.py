@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
+import time
 import common
 import subprocess
 import click
@@ -35,9 +36,9 @@ def tau(command, files):
 	query_counter = 0
 	for fn in files:
 		echo(fn+':')
+		query_counter = 0
 		results = []
 		base = fn
-		identification = common.fix_up_identification(fn + '_' + str(query_counter))
 		remaining_results = []
 		mode = Mode.none
 		prefixes = []
@@ -77,6 +78,8 @@ def tau(command, files):
 						continue
 					elif mode == Mode.query:
 						write_out('query_for_external_raw.n3')
+						identification = common.fix_up_identification(fn + '_' + str(query_counter))
+						identify()
 						r = subprocess.run(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
 							universal_newlines=True, stdout=subprocess.PIPE)
 						if r.returncode != 0:
@@ -162,11 +165,17 @@ def do_results_comparison(a, b):
 			correspondences[an] = bn
 	return True
 
+def timestamp():
+	return str(round(time.perf_counter(), 3)).ljust(10) + ' '
+
 def success():
-	echo(fn+":test:PASS")
+	echo(timestamp()+identification+":test:PASS")
 
 def fail():
-	echo(fn+":test:FAIL")
+	echo(timestamp()+identification+":test:FAIL")
+
+def identify():
+	echo(timestamp()+identification+":test:")
 
 def grab_buffer():
 	global buffer

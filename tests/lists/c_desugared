@@ -1,0 +1,36 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+:T :not :F .
+:F :not :T .
+{ ?x :not ?nx. ?y :not ?ny. ?z :not ?nz} => { ?l0 rdf:first ?x. ?l0 rdf:rest ?l1. ?l1 rdf:first ?y. ?l1 rdf:rest ?l2. ?l2 rdf:first ?z. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT } .
+fin.
+query
+?l0 rdf:first ?x. ?l0 rdf:rest ?l1. ?l1 rdf:first ?y. ?l1 rdf:rest ?l2. ?l2 rdf:first ?z. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+
+shouldbe
+?l0 rdf:first :T. ?l0 rdf:rest ?l1. ?l1 rdf:first :T. ?l1 rdf:rest ?l2. ?l2 rdf:first :T. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :T. ?l0 rdf:rest ?l1. ?l1 rdf:first :T. ?l1 rdf:rest ?l2. ?l2 rdf:first :F. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :T. ?l0 rdf:rest ?l1. ?l1 rdf:first :F. ?l1 rdf:rest ?l2. ?l2 rdf:first :T. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :T. ?l0 rdf:rest ?l1. ?l1 rdf:first :F. ?l1 rdf:rest ?l2. ?l2 rdf:first :F. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :F. ?l0 rdf:rest ?l1. ?l1 rdf:first :T. ?l1 rdf:rest ?l2. ?l2 rdf:first :T. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :F. ?l0 rdf:rest ?l1. ?l1 rdf:first :T. ?l1 rdf:rest ?l2. ?l2 rdf:first :F. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :F. ?l0 rdf:rest ?l1. ?l1 rdf:first :F. ?l1 rdf:rest ?l2. ?l2 rdf:first :T. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+shouldbe
+?l0 rdf:first :F. ?l0 rdf:rest ?l1. ?l1 rdf:first :F. ?l1 rdf:rest ?l2. ?l2 rdf:first :F. ?l2 rdf:rest rdf:nil. ?l0 :a :SAT.
+fin.
+thatsall

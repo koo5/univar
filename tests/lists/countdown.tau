@@ -1,45 +1,48 @@
+@keywords a .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
 #The Countdown
  
 kb
 #digits
-0 a Nat.
-1 a Nat.
-2 a Nat.
-3 a Nat.
-4 a Nat.
-5 a Nat.
-6 a Nat.
-7 a Nat.
-8 a Nat.
-9 a Nat.
+:a0 a :Nat.
+:a1 a :Nat.
+:a2 a :Nat.
+:a3 a :Nat.
+:a4 a :Nat.
+:a5 a :Nat.
+:a6 a :Nat.
+:a7 a :Nat.
+:a8 a :Nat.
+:a9 a :Nat.
  
 #order
-1 prev 0.
-2 prev 1.
-3 prev 2.
-4 prev 3.
-5 prev 4.
-6 prev 5.
-7 prev 6.
-8 prev 7.
-9 prev 8.
+:a1 :has_prev :a0.
+:a2 :has_prev :a1.
+:a3 :has_prev :a2.
+:a4 :has_prev :a3.
+:a5 :has_prev :a4.
+:a6 :has_prev :a5.
+:a7 :has_prev :a6.
+:a8 :has_prev :a7.
+:a9 :has_prev :a8.
  
  
 #check if digit ?x is greater than digit ?y
-{ ?x prev ?y . } => { ?x digit_gt ?y . } .
-{ ?x digit_gt ?y . ?y digit_gt ?z . } => { ?x digit_gt ?z . } .
+{ ?x :has_prev ?y . } => { ?x :is_digit_gt ?y . } .
+{ ?x :is_digit_gt ?y . ?y :is_digit_gt ?z . } => { ?x :is_digit_gt ?z . } .
  
  
 #take a list and check if it's all 0's
-() isallzeroes t.
-{?r rdf:first 0. ?r rdf:rest ?q. ?q isallzeroes t.} => {?r isallzeroes t}.
+() :isallzeroes :t.
+{?r rdf:first :a0. ?r rdf:rest ?q. ?q :isallzeroes :t.} => {?r :isallzeroes :t}.
  
-{?r rdf:first ?x. ?x digit_gt 0.} => {?r isallzeroes f}.
-{?x rdf:first 0. ?r rdf:rest ?q. ?q isallzeroes f.} => {?r isallzeroes f}.
+{?r rdf:first ?x. ?x digit_gt :a0.} => {?r :isallzeroes :f}.
+{?x rdf:first :a0. ?r rdf:rest ?q. ?q :isallzeroes :f.} => {?r :isallzeroes :f}.
  
  
 #listappend: this forces an (?a . ?b) list in the subject to bind to something in the object.
-() append ().
+() :append ().
 {?x rdf:first ?f.} => {?x append ?x}.
  
  

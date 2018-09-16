@@ -41,11 +41,12 @@ def tau(command, files):
 		mode = Mode.none
 		prefixes = []
 		output = ''
+		buffer = []
 		for line_number, l in enumerate(open(fn).readlines()):
 			line_number += 1
 			l_stripped = l.strip()
 			if mode == Mode.none:
-				if l.startswith('@prefix'):
+				if l.startswith('@prefix') or l.startswith('@keywords'):
 					prefixes.append(l)
 					continue
 				elif l_stripped == '':
@@ -67,7 +68,7 @@ def tau(command, files):
 					echo("can't make sense of line " + str(line_number) + ':')
 					echo(l)
 					echo('please make sense and try again')
-					exit(1)
+					fail()
 			else:
 				if l_stripped == 'fin.':
 					if mode == Mode.kb:

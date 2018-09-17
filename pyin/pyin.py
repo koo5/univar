@@ -652,7 +652,7 @@ def pred(p, parent, args):
 			yield i
 
 def query(input_rules, input_query):
-	global preds, dbg, kbdbg_file_name_rules
+	global preds, dbg
 	dbg = not nolog or not nokbdbg
 	kbdbg(this + " rdf:value " + step_list_item(0))
 	kbdbg_graph_first()

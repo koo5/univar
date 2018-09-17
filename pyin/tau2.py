@@ -10,6 +10,7 @@ from click import echo, style
 from enum import Enum, auto
 import rdflib
 from rdflib import URIRef, BNode, Variable
+from rdflib.plugins.parsers import notation3
 from ordered_rdflib_store import OrderedStore
 from itertools import chain
 
@@ -20,6 +21,7 @@ class Mode(Enum):
 	query = auto()
 	shouldbe = auto()
 
+query_counter = 6666666
 identification = '?'
 mode = Mode.none
 prefixes = []
@@ -32,14 +34,15 @@ fn = '?'
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 
 def tau(command, files):
-	global mode, buffer, prefixes, output, fn, identification
+	global mode, buffer, prefixes, output, fn, identification, query_counter
 	query_counter = 0
 	for fn in files:
-		echo(fn+':')
+		echo(fn+':test:')
 		query_counter = 0
 		results = []
 		base = fn
 		remaining_results = []
+		identification = None
 		mode = Mode.none
 		prefixes = []
 		output = ''
@@ -78,7 +81,7 @@ def tau(command, files):
 						continue
 					elif mode == Mode.query:
 						write_out('query_for_external_raw.n3')
-						identification = common.fix_up_identification(fn + '_' + str(query_counter))
+						set_new_identification()
 						identify()
 						r = subprocess.run(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
 							universal_newlines=True, stdout=subprocess.PIPE)
@@ -95,9 +98,7 @@ def tau(command, files):
 						continue
 					elif mode == Mode.shouldbe:
 
-						shouldbe_graph = rdflib.Graph(store=OrderedStore(), identifier='file://'+base)
-						shouldbe_graph.parse(data=grab_buffer(), format='n3', publicID='file://'+base)
-
+						shouldbe_graph = parse(data=grab_buffer(), identifier='file://'+base, publicID='file://'+base)
 						l1 = len(shouldbe_graph)
 						l2 = len(results)
 						if not l1 and not l2:
@@ -114,9 +115,7 @@ def tau(command, files):
 							buffer = []
 							continue
 
-						result_graph = rdflib.Graph(store=OrderedStore(), identifier=base)
-						result_graph.parse(data=results.pop(0), format='n3', publicID=base)
-
+						result_graph = parse(data=results.pop(0), identifier=base, publicID=base)
 						cmp = do_results_comparison(shouldbe_graph, result_graph)
 						if cmp == True:
 							success()
@@ -129,8 +128,23 @@ def tau(command, files):
 				buffer.append(l)
 		if buffer != []:
 			echo('file not ended properly?')
-			exit(1)
+			fail()
 
+
+def parse(data, identifier, publicID):
+	try:
+		graph = rdflib.Graph(store=OrderedStore(), identifier=identifier)
+		graph.parse(data=data, format='n3', publicID=publicID)
+	except notation3.BadSyntax as e:
+		echo(':test:parsing failed in:')
+		echo(data)
+		echo(str(e))
+		fail()
+	return graph
+
+def set_new_identification():
+	global identification
+	identification = common.fix_up_identification(fn + '_' + str(query_counter))
 
 def print_graph(g):
 	for i in g.triples((None, None, None)):
@@ -172,7 +186,7 @@ def success():
 	echo(timestamp()+identification+":test:PASS")
 
 def fail():
-	echo(timestamp()+identification+":test:FAIL")
+	echo(timestamp()+(identification if identification else fn)+":test:FAIL")
 
 def identify():
 	echo(timestamp()+identification+":test:")

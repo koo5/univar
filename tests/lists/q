@@ -1,2 +1,4 @@
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+kb
 ((:banana :pie) (:carrot :stick :mule)) :append (:banana :pie :carrot :stick :mule).
+fin.

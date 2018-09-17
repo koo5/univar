@@ -101,11 +101,16 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples]
-			for head_triple in head_triples:
-				body = Graph()
-				for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
-					body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
-				rules.append(Rule(head_triples_triples, Triple(fixup3(head_triple[1]), [fixup3(head_triple[0]), fixup3(head_triple[2])]), body))
+
+			body = Graph()
+			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
+				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
+
+			with open(pyin._rules_file_name, 'a') as ru:
+				ru.write("{" + str(head_triples_triples) + "} <= " + str(body) + ":\n")
+
+			for head_triple in head_triples_triples:
+				rules.append(Rule(head_triples_triples, head_triple, body))
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)

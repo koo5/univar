@@ -202,7 +202,7 @@ class Locals(OrderedDict):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
-		return "["+printify([str(k) + ": " + (v.__short__str__()) for k, v in s.items()], ", ")+']'
+		return "["+printify([str(k) + ": " + (v.__short__str__()) for k, v in s.items() if (type(k) != URIRef)], ", ")+']'
 
 
 
@@ -426,6 +426,7 @@ class Rule(Kbdbgable):
 		singleton.head = head
 		singleton.body = body
 		singleton.original_head = id(original_head)
+		singleton.original_head_ref = original_head #prevent gc
 		singleton.original_head_triples = original_head[:]
 		singleton.locals_template = singleton.make_locals(singleton.original_head_triples, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
@@ -539,6 +540,7 @@ class Rule(Kbdbgable):
 				continue
 			log ("back in " + desc() + "\n# from sub-rule")
 			if depth == len(args) - 1:
+				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
 					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:

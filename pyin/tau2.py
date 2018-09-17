@@ -21,7 +21,7 @@ class Mode(Enum):
 	query = auto()
 	shouldbe = auto()
 
-query_counter = 6666666
+query_number = 6666666
 identification = '?'
 mode = Mode.none
 prefixes = []
@@ -32,13 +32,12 @@ fn = '?'
 @click.command()
 @click.argument('command', type=click.Path(readable=True, exists=True, dir_okay=False), required=True)
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
-
-def tau(command, files):
-	global mode, buffer, prefixes, output, fn, identification, query_counter
-	query_counter = 0
+@click.option('--only-id', type=click.INT)
+def tau(command, files, only_id):
+	global mode, buffer, prefixes, output, fn, identification, query_number
 	for fn in files:
 		echo(fn+':test:')
-		query_counter = 0
+		query_number = None
 		results = []
 		base = fn
 		remaining_results = []
@@ -59,6 +58,8 @@ def tau(command, files):
 				elif l_stripped.startswith('#'):
 					continue
 				elif l_stripped == 'thatsall':
+					if only_id != None and only_id != query_number:
+						continue
 					if len(remaining_results) != 0:
 						fail(str(len(remaining_results)) + ' results remaining')
 					else:
@@ -80,6 +81,14 @@ def tau(command, files):
 						write_out('kb_for_external_raw.n3')
 						continue
 					elif mode == Mode.query:
+						if query_number == None:
+							query_number = 0
+						else:
+							query_number = query_number + 1
+						if only_id != None and only_id != query_number:
+							buffer = []
+							mode = Mode.none
+							continue
 						write_out('query_for_external_raw.n3')
 						set_new_identification()
 						identify()
@@ -94,9 +103,12 @@ def tau(command, files):
 								result_marker = ' RESULT :'
 								if output_line.startswith(result_marker):
 									results.append(output_line[len(result_marker):])
-						query_counter += 1
 						continue
 					elif mode == Mode.shouldbe:
+						if only_id != None and only_id != query_number:
+							buffer = []
+							mode = Mode.none
+							continue
 
 						shouldbe_graph = parse(data=grab_buffer(), identifier='file://'+base, publicID='file://'+base)
 						l1 = len(shouldbe_graph)
@@ -144,7 +156,7 @@ def parse(data, identifier, publicID):
 
 def set_new_identification():
 	global identification
-	identification = common.fix_up_identification(fn + '_' + str(query_counter))
+	identification = common.fix_up_identification(fn + '_' + str(query_number))
 
 def print_graph(g):
 	for i in g.triples((None, None, None)):

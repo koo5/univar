@@ -10,6 +10,8 @@ import rdflib
 from ordered_rdflib_store import OrderedStore
 import click
 import common
+from common import shorten
+from rdflib.namespace import RDF
 
 
 server, this = None, None
@@ -100,14 +102,18 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		rules.append(Rule(facts, _t, Graph()))
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
-			head_triples_triples = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples]
+			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
+			head_triples_triples = reorder_lists(head_triples_triples)
 
 			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
 
-			with open(pyin._rules_file_name, 'a') as ru:
-				ru.write("{" + str(head_triples_triples) + "} <= " + str(body) + ":\n")
+			body = reorder_lists(body)
+
+			if len(head_triples_triples) > 1:
+				with open(pyin._rules_file_name, 'a') as ru:
+					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")
 
 			for head_triple in head_triples_triples:
 				rules.append(Rule(head_triples_triples, head_triple, body))
@@ -149,6 +155,18 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 
 	if sparql_uri != '':
 		pyin.pool.shutdown()
+
+def reorder_lists(g):
+	r = Graph()
+	backburner = []
+	for t in g:
+		if t.pred == RDF.first:
+			backburner.append(t)
+		else:
+			r.append(t)
+	for t in backburner:
+		r.append(t)
+	return r
 
 if __name__ == "__main__":
 	query_from_files()

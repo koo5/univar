@@ -1,44 +1,46 @@
 #Math
- 
+@keywords a .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
 kb
 #digits
-0 a Nat.
-1 a Nat.
-2 a Nat.
-3 a Nat.
-4 a Nat.
-5 a Nat.
-6 a Nat.
-7 a Nat.
-8 a Nat.
-9 a Nat.
+:a0 a :aNat.
+:a1 a :aNat.
+:a2 a :aNat.
+:a3 a :aNat.
+:a4 a :aNat.
+:a5 a :aNat.
+:a6 a :aNat.
+:a7 a :aNat.
+:a8 a :aNat.
+:a9 a :aNat.
  
 #order
-1 prev 0.
-2 prev 1.
-3 prev 2.
-4 prev 3.
-5 prev 4
-6 prev 5.
-7 prev 6.
-8 prev 7.
-9 prev 8.
+:a1 :has_prev :a0.
+:a2 :has_prev :a1.
+:a3 :has_prev :a2.
+:a4 :has_prev :a3.
+:a5 :has_prev :a4
+:a6 :has_prev :a5.
+:a7 :has_prev :a6.
+:a8 :has_prev :a7.
+:a9 :has_prev :a8.
  
  
 #check if digit ?x is greater than digit ?y
-{ ?x prev ?y . } => { ?x digit_gt ?y . } .
-{ ?x digit_gt ?y . ?y digit_gt ?z . } => { ?x digit_gt ?z . } .
+{ ?x :has_prev ?y . } => { ?x :digit_is_gt_than ?y . } .
+{ ?x :digit_is_gt_than ?y . ?y :digit_is_gt_than ?z . } => { ?x :digit_is_gt_than ?z . } .
 
 
 #less-than.
-{ ?y prev ?x . } => {?x digit_lt ?y . } .
-{ ?x digit_lt ?y. ?y digit_lt ?z. } => {?x digit_lt ?z}. 
+{ ?y :has_prev ?x . } => {?x :digit_is_less_than ?y . } .
+{ ?x :digit_is_less_than ?y. ?y :digit_is_less_than ?z. } => {?x :digit_is_less_than ?z}. 
  
 #take a list and check if it's all 0's
 () isallzeroes t.
 {?r rdf:first 0. ?r rdf:rest ?q. ?q isallzeroes t.} => {?r isallzeroes t}.
  
-{?r rdf:first ?x. ?x digit_gt 0.} => {?r isallzeroes f}.
+{?r rdf:first ?x. ?x :digit_is_gt_than 0.} => {?r isallzeroes f}.
 {?x rdf:first 0. ?r rdf:rest ?q. ?q isallzeroes f.} => {?r isallzeroes f}.
  
  
@@ -55,16 +57,16 @@ kb
  
 #normalize input: trim leading 0's and fail if it contains any items that aren't nats.
 {?x rdf:first ?f. ?f a Nat. ?r normalize2 ?r.} => {?x normalize2 ?x}.
-{?x rdf:first ?f. ?f digit_gt 0. ?x rdf:rest ?r. ?r normalize2 ?r} => {?x normalize ?x}.
+{?x rdf:first ?f. ?f :digit_is_gt_than 0. ?x rdf:rest ?r. ?r normalize2 ?r} => {?x normalize ?x}.
 {?x rdf:first 0. ?x rdf:rest ?r. ?r normalize ?y} => {?x normalize ?y}.
  
  
 #get previous number
-{?x rdf:rest ?r. ?r isallzeroes t. ?x rdf:first ?f. ?f prev ?prev. ?r makeallnines ?nines. (?prev ?nines) append ?y.} => {?x succ2 ?y}.
+{?x rdf:rest ?r. ?r isallzeroes t. ?x rdf:first ?f. ?f :has_prev ?:has_prev. ?r makeallnines ?nines. (?:has_prev ?nines) append ?y.} => {?x succ2 ?y}.
 {?x rdf:rest ?r. ?r isallzeroes f. ?x rdf:first ?f. ?r succ2 ?p. (?f ?p) append ?y} => {?x succ2 ?y}.
  
  
-{?x rdf:rest ?r. ?r isallzeroes t. ?x rdf:first ?f. ?f digit_gt 1. ?f prev ?prev. ?r makeallnines ?nines. (?prev ?nines) append ?y.} => {?x succ ?y}.
+{?x rdf:rest ?r. ?r isallzeroes t. ?x rdf:first ?f. ?f :digit_is_gt_than 1. ?f :has_prev ?:has_prev. ?r makeallnines ?nines. (?:has_prev ?nines) append ?y.} => {?x succ ?y}.
 {?x rdf:rest ?r. ?r isallzeroes t. ?r rdf:first ?dummy. ?x rdf:first 1. ?r makeallnines ?y} => {?x succ ?y}.
 {?x rdf:rest ?r. ?r isallzeroes f. ?x rdf:first ?f. ?r succ2 ?p. (?f ?p) append ?y.} => {?x succ ?y}.
  

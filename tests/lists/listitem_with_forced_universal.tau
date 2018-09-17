@@ -1,0 +1,14 @@
+kb
+:SAT :a :thing.
+{(?A) :not ?A.} <= {?A :a :thing}.
+fin.
+
+query
+(?banana) :not :SAT.
+fin.
+
+shouldbe
+(:SAT) :not :SAT .
+fin.
+
+thatsall

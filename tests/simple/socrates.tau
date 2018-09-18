@@ -1,0 +1,12 @@
+kb
+:socrates :a :man .
+#forall ?x , (?x a man) -> (?x a mortal)
+{ ?x :a :man. } => { ?x :a :mortal } .
+fin.
+query
+?Y :a :mortal .
+fin.
+shouldbe
+:socrates :a :mortal .
+fin.
+

@@ -566,12 +566,6 @@ class Rule(Kbdbgable):
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
 
-#	if have_incoming_bnode:
-#		yield from s.unify_with_bnode()
-#	else:
-#		yield from s.unify_body()
-
-
 	def match(s, parent = None, args=[]):
 		head = EpHead()
 		for arg in args:

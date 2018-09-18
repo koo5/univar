@@ -24,7 +24,6 @@ shouldbe
 (:three :four) :has_sum :seven.
 fin.
 
-
 query
 (:three ?w) :has_sum :seven.
 fin.

@@ -420,10 +420,18 @@ def is_var(x):
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
-	def __init__(singleton, original_head, head, body=Graph()):
+	emitted_formulas = {}
+	def __init__(singleton, original_head, head_idx, body=Graph()):
 		super().__init__()
-		singleton.head = head
+		assert type(head_idx) == int or head_idx == None
+		singleton.head_idx = head_idx
+		if head_idx != None:
+			singleton.head = original_head[head_idx]
+		else:
+			singleton.head = None
 		singleton.body = body
+		if body == None:
+			singleton.body = []
 		singleton.original_head = id(original_head)
 		singleton.original_head_ref = original_head #prevent gc
 		singleton.original_head_triples = original_head[:]
@@ -438,18 +446,16 @@ class Rule(Kbdbgable):
 			head_uri = ":"+singleton.kbdbg_name + "Head"
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 			emit_term(singleton.head, head_uri)
-		if singleton.body:
-			body_uri = singleton.kbdbg_name + "Body"
-			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body :' + body_uri)
-			for i in singleton.body:
-				body_term_uri = bn()
-				emit_term(i, body_term_uri)
-				kbdbg(":"+body_uri + " rdf:first " + body_term_uri)
-				body_uri2 = body_uri + "X"
-				kbdbg(":"+body_uri + " rdf:rest :" + body_uri2)
-				body_uri = body_uri2
-			kbdbg(":"+body_uri + " rdf:rest rdf:nil")
-		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + rdflib.Literal(str(singleton.original_head)).n3())
+		try:
+			emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
+		except KeyError:
+			emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), ':'+singleton.kbdbg_name + "Body")
+		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
+		try:
+			emitted_original_head = Rule.emitted_formulas[singleton.original_head]
+		except KeyError:
+			emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), ':'+singleton.kbdbg_name + "OriginalHead")
+		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
 		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
@@ -509,7 +515,7 @@ class Rule(Kbdbgable):
 					arg_index = depth
 					head_uriref = singleton.head.args[arg_index]
 					head_thing = locals[head_uriref]
-					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame if dbg else None, 0, arg_index, True))
+					generator = unify(args[arg_index], Arg(head_uriref, head_thing, head_thing.debug_locals().kbdbg_frame, singleton.head_idx, arg_index, True))
 					head_thing.arg_index = arg_index
 				elif len(incoming_bnode_unifications):
 					assert depth < len(args) + len(incoming_bnode_unifications)
@@ -522,7 +528,7 @@ class Rule(Kbdbgable):
 					bi_args = []
 					for arg_idx, uri in enumerate(triple.args):
 						thing = locals[uri]
-						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame if dbg else None, body_item_index, arg_idx, False))
+						bi_args.append(Arg(uri, get_value(thing), thing.debug_locals().kbdbg_frame, body_item_index, arg_idx, False))
 					generator = pred(triple.pred, kbdbg_name, bi_args)
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
@@ -676,8 +682,10 @@ def query(input_rules, input_query):
 #		log(' '*indent +
 
 
-def emit_list(l):
-	r = uri = bn()
+def emit_list(l, uri=None):
+	if uri == None:
+		uri = bn()
+	r = uri
 	for idx, i in enumerate(l):
 		if type(i) == str:
 			v = i
@@ -726,8 +734,6 @@ def substitute(node, locals):
 		r = node
 	assert(isinstance(r, rdflib.term.Identifier))
 	return r
-
-
 
 def emit_terms(terms):
 	c=[]

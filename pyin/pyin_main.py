@@ -99,9 +99,9 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	rules = []
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
 	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
-	for s,p,o in kb_graph_triples:
+	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
 		_t = Triple(p, [s, o])
-		rules.append(Rule(facts, _t, Graph()))
+		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
@@ -117,8 +117,8 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 				with open(pyin._rules_file_name, 'a') as ru:
 					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")
 
-			for head_triple in head_triples_triples:
-				rules.append(Rule(head_triples_triples, head_triple, body))
+			for head_triple_idx in range(len(head_triples_triples)):
+				rules.append(Rule(head_triples_triples, head_triple_idx, body))
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
@@ -189,7 +189,7 @@ def newList(self, n, f):
 	self.graph.last_n3_syntax_list_id = list_id
 
 	def make_bnode(idx):
-		return BNode('l' + str(list_id) + '.' + str(idx))
+		return rdflib.BNode('l' + str(list_id) + '.' + str(idx))
 
 	r = None
 	next = None

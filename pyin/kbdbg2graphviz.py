@@ -245,7 +245,7 @@ class Emitter:
 
 	@staticmethod
 	def _get_frame_html_label(g, rule, isroot):
-			head = g.value(rule, kbdbg.has_head)
+
 			doc, tag, text = yattag.Doc().tagtext()
 
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
@@ -256,8 +256,7 @@ class Emitter:
 						text(frame_name_template_var_name)
 					with tag("td", border=border_width):
 						text("{")
-					if head:
-						emit_term(g, tag, text, True, 0, head)
+					emit_terms(g, tag, text, True, 0, g.value(rule, kbdbg.has_head))
 					with tag("td", border=border_width):
 						text("} <= {")
 
@@ -275,9 +274,9 @@ class Emitter:
 
 
 	def emit_terms(s, tag, text, uri):
-		body_items_collection = Collection(s.g, uri)
-		for term_idx, body_item in enumerate(body_items_collection):
-			emit_term(s.g, tag, text, False, term_idx, body_item)
+		items = Collection(s.g, uri)
+		for term_idx, item in enumerate(items):
+			emit_term(s.g, tag, text, False, term_idx, item)
 
 	def arrow(s,x,y,color='black',weight=1, binding=False):
 		r = x + '->' + y

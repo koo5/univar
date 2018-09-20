@@ -12,6 +12,7 @@ import click
 import common
 from common import shorten
 from rdflib.namespace import RDF
+from rdflib.plugins.parsers import notation3
 
 
 server, this = None, None
@@ -27,6 +28,7 @@ server, this = None, None
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
+	notation3.RDFSink.newList = newList
 	#print('base', base)
 	base = 'file://'  + base
 	global server, this
@@ -103,13 +105,13 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
-			head_triples_triples = reorder_lists(head_triples_triples)
+			#head_triples_triples = reorder_lists(head_triples_triples)
 
 			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
 
-			body = reorder_lists(body)
+			#body = reorder_lists(body)
 
 			if len(head_triples_triples) > 1:
 				with open(pyin._rules_file_name, 'a') as ru:
@@ -167,6 +169,49 @@ def reorder_lists(g):
 	for t in backburner:
 		r.append(t)
 	return r
+
+
+def newList(self, n, f):
+	nil = self.newSymbol('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')
+
+	if len(n) == 0 or not n:
+		return nil
+
+	first = self.newSymbol(
+		'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+	rest = self.newSymbol(
+		'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
+
+	if hasattr(self.graph, 'last_n3_syntax_list_id'):
+		list_id = self.graph.last_n3_syntax_list_id + 1
+	else:
+		list_id = 0
+	self.graph.last_n3_syntax_list_id = list_id
+
+	def make_bnode(idx):
+		return BNode('l' + str(list_id) + '.' + str(idx))
+
+	r = None
+	next = None
+	for idx, i in enumerate(n):
+		if next == None:
+			a = make_bnode(idx)
+		else:
+			a = next
+		if r == None:
+			r = a
+		self.makeStatement((f, first, a, i))
+		if idx == len(n) - 1:
+			next = nil
+		else:
+			next = make_bnode(idx + 1)
+		self.makeStatement((f, rest, a, next))
+
+	return r
+
+
+
+
 
 if __name__ == "__main__":
 	query_from_files()

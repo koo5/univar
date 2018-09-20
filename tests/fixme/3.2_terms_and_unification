@@ -11,11 +11,21 @@ kb
 :zero :has_succ :one. :one :has_succ :two. :two :has_succ :three. :three :has_succ :four. :four :has_succ :five. :five :has_succ :six. :six :has_succ :seven.
 fin.
 
+
+#currently this takes a whole day and first two test cases fail and then i killed it
+
 query
 (:three :four) :has_sum :seven.
 fin.
 shouldbe
 (:three :four) :has_sum :seven.
+fin.
+
+query
+( :four :three) :has_sum :seven.
+fin.
+shouldbe
+( :four :three) :has_sum :seven.
 fin.
 
 query

@@ -406,8 +406,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	return r
 
 def get_value(x):
-	asst(x)
-	if type(x) in (Atom,):
+	if type(x) == Atom:
 		return x
 	v = x.bound_to
 	if v:
@@ -620,13 +619,6 @@ def ep_match(args_a, args_b):
 			return
 	nolog or log("EP!")
 	return True
-
-def asst(x):
-	if type(x) == tuple:
-		for i in x:
-			asst(i)
-	else:
-		assert type(x) in (Var, Atom)
 
 
 def pred(p, parent, args):

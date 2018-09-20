@@ -374,7 +374,7 @@ def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
 			lines.append(l)
 			continue
 		if step < start - 1:
-			log ("skipping")
+			log ("skipping ["+str(step) + ']')
 			continue
 		if step > end and end != -1:
 			log ("ending")

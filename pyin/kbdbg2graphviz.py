@@ -191,7 +191,7 @@ class Emitter:
 				with tag('tr'):
 					with tag("td"):
 						text('RESULT'+str(i) +' ')
-					s.emit_terms(tag, text, s.g.value(result_uri, RDF.value))
+					s.emit_terms(tag, text, s.g.value(result_uri, RDF.value), 'result')
 			r += doc.getvalue()+ '>]'
 			s.gv(r)
 			false = rdflib.Literal(False)
@@ -256,7 +256,7 @@ class Emitter:
 						text(frame_name_template_var_name)
 					with tag("td", border=border_width):
 						text("{")
-					emit_terms(g, tag, text, True, 0, g.value(rule, kbdbg.has_head))
+					emit_terms(g, tag, text, g.value(rule, kbdbg.has_original_head), True)
 					with tag("td", border=border_width):
 						text("} <= {")
 
@@ -271,12 +271,6 @@ class Emitter:
 						text('}')
 			#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
 			return doc.getvalue()
-
-
-	def emit_terms(s, tag, text, uri):
-		items = Collection(s.g, uri)
-		for term_idx, item in enumerate(items):
-			emit_term(s.g, tag, text, False, term_idx, item)
 
 	def arrow(s,x,y,color='black',weight=1, binding=False):
 		r = x + '->' + y
@@ -320,6 +314,11 @@ def emit_term(g, tag, text, is_in_head, term_idx, term):
 					text(', ')
 		with tag("td", border=border_width):
 			text(').')
+
+def emit_terms(g, tag, text, uri, is_head):
+	items = Collection(g, uri)
+	for term_idx, item in enumerate(items):
+		emit_term(g, tag, text, is_head, term_idx, item)
 
 
 def available_cpus():

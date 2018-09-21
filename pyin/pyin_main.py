@@ -37,7 +37,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		server = sparql.SPARQLServer(sparql_uri)
 		server.update("""CLEAR GRAPHS""")
 		pyin.server = server
-	this = ":"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
+	this = ":run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	pyin.this = this
 	identification = common.fix_up_identification(identification)
 	fn = 'kbdbg'+identification+'.n3'
@@ -65,7 +65,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		INSERT {kbdbg:latest kbdbg:is """ + this + "} WHERE {}""")
 
 	if identification != "":
-		pyin.kbdbg(": kbdbg:has_run_identification " + rdflib.Literal(identification).n3())
+		pyin.kbdbg(this +" kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
 
 	kb_stream, goal_stream = kb, goal
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")

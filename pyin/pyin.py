@@ -55,37 +55,53 @@ def init_logging():
 	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 
-pool = None
 
-def kbdbg(text, default = False):
-	kbdbg_text(text)
-	if pool:
-		pool.submit(server.update, """
+prefixes = """
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 PREFIX kbdbg: <http://kbd.bg/#> 
 PREFIX : <file:///#> 
-INSERT {""" + ("Graph " + (step_graph_name(global_step_counter) + "{") if not default else "") +
-	text + "." +
-	("}." if not default else "") +
-	"} WHERE {}")
+"""
 
+pool = None
+
+to_submit_default = ''
+to_submit_graph = ''
+
+def kbdbg(text, default = False):
+	global to_submit_default, to_submit_graph
+	kbdbg_text(text)
+	if pool:
+		if default:
+			to_submit_default += text+'. '
+		else:
+			to_submit_graph += text+'. '
+
+def submit_kbdbg():
+	global to_submit_default, to_submit_graph
+	txt = prefixes + "INSERT DATA {"+ to_submit_default +"}"
+	pool.submit(server.update, txt)
+	txt = prefixes + "INSERT DATA {Graph " + step_graph_name(global_step_counter) + " {" + to_submit_graph +'}}'
+	pool.submit(server.update, txt)
+	to_submit_default, to_submit_graph = '',''
 
 def step_graph_name(idx):
-	return this + '_' + str(idx)
+	return this + '_' + str(idx).rjust(10,'0')
 
 def step_list_item(idx):
 	return step_graph_name(idx) + "_list_item"
 
 def kbdbg_graph_first():
-	kbdbg(step_list_item(global_step_counter) + " rdf:first " + step_graph_name(global_step_counter))
+	kbdbg(step_list_item(global_step_counter) + " rdf:first " + step_graph_name(global_step_counter), True)
 
 global_step_counter = 0
 def step():
 	global global_step_counter
 	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
-	kbdbg(step_list_item(global_step_counter) + " rdf:rest " + step_list_item(global_step_counter + 1))
+	kbdbg(step_list_item(global_step_counter) + " rdf:rest " + step_list_item(global_step_counter + 1), True)
+	submit_kbdbg()
 	global_step_counter += 1
 	kbdbg_graph_first()
+
 
 
 bnode_counter = 0

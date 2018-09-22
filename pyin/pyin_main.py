@@ -17,6 +17,9 @@ from rdflib.plugins.parsers import notation3
 
 server, this = None, None
 
+default_graph = '<http://kbd.bg/#runs>'
+pyin.default_graph = default_graph
+
 
 @click.command()
 @click.argument('kb', type=click.File('rb'))
@@ -37,7 +40,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		server = sparql.SPARQLServer(sparql_uri)
 		server.update("""CLEAR GRAPHS""")
 		pyin.server = server
-	this = ":run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
+	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	pyin.this = this
 	identification = common.fix_up_identification(identification)
 	fn = 'kbdbg'+identification+'.n3'
@@ -55,14 +58,9 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 		PREFIX kbdbg: <http://kbd.bg/#> 
 		PREFIX : <file:///#> 
+		WITH """ + default_graph + """
 		DELETE {kbdbg:latest kbdbg:is ?x} 
-		WHERE {kbdbg:latest kbdbg:is ?x}""")
-
-		server.update("""
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-		PREFIX kbdbg: <http://kbd.bg/#> 
-		PREFIX : <file:///#> 
-		INSERT {kbdbg:latest kbdbg:is """ + this + "} WHERE {}""")
+		INSERT {kbdbg:latest kbdbg:is <""" + this + ">} WHERE {}""")
 
 	if identification != "":
 		pyin.kbdbg(this +" kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
@@ -148,7 +146,8 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		server.update("""
 		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 		PREFIX kbdbg: <http://kbd.bg/#> 
-		PREFIX : <file:///#> 
+		PREFIX : <file:///#>
+		WITH """ + default_graph + """ 
 		INSERT {""" + this + " kbdbg:is kbdbg:done} WHERE {}""")
 
 	if visualize:

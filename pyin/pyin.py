@@ -78,10 +78,12 @@ def kbdbg(text, default = False):
 
 def submit_kbdbg():
 	global to_submit_default, to_submit_graph
-	txt = prefixes + "INSERT DATA {"+ to_submit_default +"}"
-	pool.submit(server.update, txt)
-	txt = prefixes + "INSERT DATA {Graph " + step_graph_name(global_step_counter) + " {" + to_submit_graph +'}}'
-	pool.submit(server.update, txt)
+	if to_submit_default != '':
+		txt = prefixes + "INSERT DATA {Graph <" + default_graph + "> {" + to_submit_default +"}}"
+		pool.submit(server.update, txt)
+	if to_submit_graph != '':
+		txt = prefixes + "INSERT DATA {Graph <" + step_graph_name(global_step_counter) + "> {" + to_submit_graph +'}}'
+		pool.submit(server.update, txt)
 	to_submit_default, to_submit_graph = '',''
 
 def step_graph_name(idx):

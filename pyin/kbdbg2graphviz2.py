@@ -5,7 +5,7 @@
 import time
 import redislite, redis_collections
 import click
-from common import shorten
+from common import shorten, fix_up_identification
 import html as html_module
 import os
 import sys
@@ -14,25 +14,19 @@ import urllib.parse
 import subprocess
 import yattag
 import rdflib
-from rdflib import Graph
+from rdflib import Graph, URIRef
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
+from rdflib.plugins.stores import sparqlstore
 from non_retarded_collection import Collection
 from concurrent.futures import ProcessPoolExecutor
+from pymantic import sparql
 
 
-def get_last_bindings(step):
-	log ('get last bindings...' + '[' + str(step) + ']')
-	if step == 0:
-		return []
-	if step == global_start - 1:
-		return []
-	sss = step - 1
-	return redis_connection.blpop([sss])
+sparql_uri = 'http://localhost:9999/blazegraph/sparql'
 
-def put_last_bindings(step, new_last_bindings):
-	redis_connection.lpush(step, new_last_bindings)
-
+redis_connection = None
+strict_redis_connection = None
 
 kbdbg = Namespace('http://kbd.bg/#')
 
@@ -51,8 +45,26 @@ logger.addHandler(console)
 logger.debug("hi")
 log=logger.debug
 
+default_graph = 'http://kbd.bg/#runs'
+
 arrow_width = 1
 border_width = 1
+
+
+
+
+def get_last_bindings(step):
+	log ('get last bindings...' + '[' + str(step) + ']')
+	if step == 0:
+		return []
+	if step == global_start - 1:
+		return []
+	sss = step - 1
+	return redis_connection.blpop([sss])
+
+def put_last_bindings(step, new_last_bindings):
+	redis_connection.lpush(step, new_last_bindings)
+
 
 
 def tell_if_is_last_element(x):
@@ -83,8 +95,8 @@ frame_name_template_var_name = '%frame_name_template_var_name%'
 
 class Emitter:
 
-	def __init__(s, g, gv_output_file, step):
-		s.g, s.gv_output_file = g, gv_output_file
+	def __init__(s, gv_output_file, step):
+		s.gv_output_file = gv_output_file
 		s.step = step
 		s.frame_templates = redis_collections.Dict(redis=strict_redis_connection)
 
@@ -95,14 +107,12 @@ class Emitter:
 		s.gv('//'+text)
 
 	def generate_gv_image(s):
-		g = s.g
-
 		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;
 		#gv("pack=true")
 		log ('frames.. ' + '[' + str(s.step) + ']')
 		root_frame = None
 		#current_result = None
-		rrr = list(g.subjects(RDF.type, kbdbg.frame))
+		rrr = list(subjects(RDF.type, kbdbg.frame))
 		last_frame = None
 		for i, frame in enumerate(rrr):
 			if g.value(frame, kbdbg.is_finished, default=False):
@@ -318,8 +328,34 @@ def emit_terms(g, tag, text, uri, is_head):
 		emit_term(g, tag, text, is_head, term_idx, item)
 
 
-def available_cpus():
-	return len(os.sched_getaffinity(0))
+
+
+
+def triples(spo):
+	spo2=[]
+	for i,x in enumerate(spo):
+		if x == None:
+			spo2.append('?x'+str(i))
+		else:
+			spo2.append(x.n3())
+
+	query_str = """SELECT * WHERE  {
+	  GRAPH ?g {"""+" ".join(spo2)+"""}.
+	  FILTER (STRSTARTS(STR(?g), <"""+graph_name_start+""">)).
+	  BIND  (STRAFTER(STR(?g), "_") AS ?strg).
+	  FILTER (?strg < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
+	}
+	ORDER BY (?strg)"""
+	r=sparql_server.query(query_str)
+	log(query_str)
+	log('results:')
+	log(str(r))
+	log('.')
+	return r
+
+def subjects(p,o):
+	return triples((None, p, o))
+
 
 futures = []
 global_start = None
@@ -327,77 +363,99 @@ global_start = None
 @click.command()
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
-@click.option('--no-parallel', default=False, type=click.BOOL)
-@click.option('--graphviz-workers', type=click.IntRange(0, 65536), default=8)
 @click.option('--workers', type=click.IntRange(0, 65536), default=32)
-@click.argument('input_file_name', type=click.Path(exists=True), default = 'kbdbg.n3')
-
-def run(start, end, no_parallel, graphviz_workers, workers, input_file_name):
-	global global_start
+def run(start, end, workers):
+	global global_start, graph_name_start
 	global_start = start
-	input_file = open(input_file_name)
-	lines = []
-	#os.system("rm -f kbdbg"+fn+'\\.*')
 
-	if no_parallel:
-		graphviz_workers = 0
-	if graphviz_workers == -1:
-		graphviz_workers = available_cpus()
-	if graphviz_workers == None:
-		graphviz_workers = 4
-	if graphviz_workers == 0:
-		no_parallel = True
-
-	#graphviz_pool = ProcessPoolExecutor(max_workers = graphviz_workers)
-	#worker_pool = ThreadPoolExecutor(max_workers = workers)
-	worker_pool = ProcessPoolExecutor(max_workers = workers)
-
-	g = Graph(OrderedAndIndexedStore())
 	redis_fn = redislite.Redis().db
+	if workers:
+		worker_pool = ProcessPoolExecutor(max_workers = workers)
 
-	prefixes = []
+	g = Graph(sparqlstore.SPARQLStore(sparql_uri), default_graph)
+	graph_name_start = g.value(kbdbg.latest, kbdbg['is'], any=False).toPython()
+
+	identification = fix_up_identification(graph_name_start)
+
+	step_to_submit = -1
 	while True:
-		l = input_file.readline()
-		if l == "":
-			break
-		if l.startswith("#step"):
-			step = int(l[5:l.find(' ')])
-		elif l.startswith('@prefix'):
-			prefixes.append(l)
+		step_to_submit+=1
+		if step_to_submit < start - 1:
+			log ("skipping ["+str(step_to_submit) + ']')
 			continue
-		else:
-			lines.append(l)
-			continue
-		if step < start - 1:
-			log ("skipping ["+str(step) + ']')
-			continue
-		if step > end and end != -1:
+		if step_to_submit > end and end != -1:
 			log ("ending")
 			break
 
-		log('parse ' + '[' + str(step) + ']')
-		g.parse(data="".join(prefixes+lines), format='n3')
-		lines = []
-		log('pickle ' + '[' + str(step) + ']')
-		pickled_graph = pickle.dumps(g)
-		#pickled_graph = ujson.dumps(g)
-		args = (pickled_graph, input_file_name, step, no_parallel, redis_fn)
-		if no_parallel:
+		args = (identification, step_to_submit, redis_fn)
+		if not workers:
 			work(*args)
 		else:
-			log('submit ' + '[' + str(step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+			log('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			if len(futures) > workers:
 				time.sleep(len(futures) - workers)
 			fut = worker_pool.submit(work, *args)
-			fut.step = step
+			fut.step = step_to_submit
 			futures.append(fut)
 			log('submitted ' )
 			check_futures()
 		log('loop ' )
 
 	worker_pool.shutdown()
-	#graphviz_pool.shutdown()
 	check_futures()
+
+
+
+def work(identification, step_to_do, redis_fn):
+	global redis_connection, strict_redis_connection, sparql_server, step
+	step = step_to_do
+
+	log('work ' + '[' + str(step) + ']')
+
+	sparql_server = sparql.SPARQLServer(sparql_uri)
+	redis_connection = redislite.Redis(redis_fn)
+	strict_redis_connection = redislite.StrictRedis(redis_fn)
+
+	gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
+
+	if list(subjects(RDF.type, kbdbg.frame)) == []:
+		log('no frames.' + '[' + str(step) + ']')
+		put_last_bindings(step, [])
+		return
+
+	if (step == global_start - 1):
+		gv_output_file_name = 'dummy'
+	try:
+		os.unlink(gv_output_file_name)
+	except FileNotFoundError:
+		pass
+
+	gv_output_file = open(gv_output_file_name, 'w')
+	e = Emitter(gv_output_file, step)
+	e.generate_gv_image()
+	gv_output_file.close()
+
+	if (step == global_start - 1):
+		return
+
+	log('convert..' + '[' + str(step) + ']')
+	#cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.svg')
+	cmd, args = subprocess.check_output, ("dot", '-Tsvg',  gv_output_file_name, '-O')
+	try:
+		r = cmd(args, stderr=subprocess.STDOUT)
+		if r != b"":
+			raise RuntimeError('[' + str(step) + '] ' + str(r))
+	except subprocess.CalledProcessError as e:
+		log ('[' + str(step) + ']' + e.output)
+	log('convert done.' + '[' + str(step) + ']')
+
+	redis_connection._cleanup()
+	strict_redis_connection._cleanup()
+
+
+
+def available_cpus():
+	return len(os.sched_getaffinity(0))
 
 def check_futures():
 	log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
@@ -412,79 +470,8 @@ def check_futures():
 			return
 
 
-redis_connection = None
-strict_redis_connection = None
-
-
-def work(serialized_graph, input_file_name, step, no_parallel, redis_fn):
-	global redis_connection, strict_redis_connection
-	strict_redis_connection = redis_fn
-
-	log('work ' + '[' + str(step) + ']')
-
-	redis_connection = redislite.Redis(redis_fn)
-	strict_redis_connection = redislite.StrictRedis(redis_fn)
-
-	gv_output_file_name = input_file_name + '_' + str(step).zfill(5) + '.gv'
-
-	log('loads ' + '[' + str(step) + ']')
-
-	g = pickle.loads(serialized_graph)
-	#g = Graph(OrderedAndIndexedStore())
-	#for i in ujson.loads(serialized_graph):
-	#	g.add(i)
-
-	#log('work' + str(id(g)) + ' ' + str(id(g.store)) + ' ' + str(id(g.store.indexes))  + ' ' + str(id(g.store.indexes['ttft']))  + ' ' + str(id(g.store.indexes['ttft'][rdflib.URIRef('http://kbd.bg/Rule1')])))
-	g.store.locked = True
-	if list(g.subjects(RDF.type, kbdbg.frame)) == []:
-		log('no frames.' + '[' + str(step) + ']')
-		put_last_bindings(step, [])
-		return
-
-	if (step == global_start - 1):
-		gv_output_file_name = 'dummy'
-	try:
-		os.unlink(gv_output_file_name)
-	except FileNotFoundError:
-		pass
-
-	gv_output_file = open(gv_output_file_name, 'w')
-	e = Emitter(g, gv_output_file, step)
-	e.generate_gv_image()
-	gv_output_file.close()
-
-	if (step == global_start - 1):
-		return
-
-	log('convert..' + '[' + str(step) + ']')
-	#cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.svg')
-	cmd, args = subprocess.check_output, ("dot", '-Tsvg',  gv_output_file_name, '-O')
-	if True:
-		try:
-			r = cmd(args, stderr=subprocess.STDOUT)
-			if r != b"":
-				raise RuntimeError('[' + str(step) + '] ' + str(r))
-		except subprocess.CalledProcessError as e:
-			log ('[' + str(step) + ']' + e.output)
-		log('convert done.' + '[' + str(step) + ']')
-	else:
-		def do_or_die(args):
-			r = cmd(args, stderr=subprocess.STDOUT)
-			if r != b"":
-				log (r)
-				raise RuntimeError(r)
-				#exit()
-		futures.append(graphviz_pool.submit(do_or_die, args))
-
-	redis_connection._cleanup()
-	strict_redis_connection._cleanup()
-
+if __name__ == '__main__':
+	run()
 
 #from IPython import embed;embed()
 
-
-
-
-
-if __name__ == '__main__':
-	run()

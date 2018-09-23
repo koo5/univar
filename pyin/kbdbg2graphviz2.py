@@ -14,7 +14,7 @@ import urllib.parse
 import subprocess
 import yattag
 import rdflib
-from rdflib import Graph, URIRef, Literal
+from rdflib import ConjunctiveGraph, Graph, URIRef, Literal
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
 from rdflib.plugins.stores import sparqlstore
@@ -458,7 +458,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	log('work ' + '[' + str(step) + ']')
 
 	#for Collections
-	step_graph = Graph(sparqlstore.SPARQLStore(sparql_uri), graph_name)
+	step_graph = ConjunctiveGraph(sparqlstore.SPARQLStore(sparql_uri), graph_name)
 
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_connection = redislite.Redis(redis_fn)

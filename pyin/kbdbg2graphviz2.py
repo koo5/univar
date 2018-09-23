@@ -14,7 +14,7 @@ import urllib.parse
 import subprocess
 import yattag
 import rdflib
-from rdflib import Graph, URIRef
+from rdflib import Graph, URIRef, Literal
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
 from rdflib.plugins.stores import sparqlstore
@@ -238,7 +238,7 @@ class Emitter:
 
 	def get_frame_html_label(s, frame, isroot):
 		rule = value(frame, kbdbg.is_for_rule)
-		params = rule, isroot
+		params = (rule, isroot)
 		try:
 			template = s.frame_templates[params]
 		except KeyError:
@@ -386,7 +386,7 @@ def objects(s, p):
 	for x in triples((s, p, None)):
 		yield x[0]
 
-def value(self, subject=None, predicate=RDF.value, object=None,
+def value(subject=None, predicate=RDF.value, object=None,
               default=None, any=True):
 	t = triples((subject, predicate, object))
 	if len(t) == 0:
@@ -398,7 +398,7 @@ def value(self, subject=None, predicate=RDF.value, object=None,
 		if len(t) > 1:
 			if not any:
 				raise RuntimeError('duplicate values')
-		return t[0]
+		return t[0][0]
 
 
 futures = []

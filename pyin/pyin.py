@@ -102,6 +102,8 @@ def step_graph_name(idx):
 	return this + '_' + str(idx).rjust(10,'0')
 
 def step_list_item(idx):
+	if idx == 0:
+		return this
 	return step_graph_name(idx) + "_list_item"
 
 def kbdbg_graph_first():
@@ -111,10 +113,10 @@ global_step_counter = 0
 def step():
 	global global_step_counter
 	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
-	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
 	submit_kbdbg()
-	global_step_counter += 1
 	kbdbg_graph_first()
+	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
+	global_step_counter += 1
 
 
 

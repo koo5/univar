@@ -115,7 +115,7 @@ class Emitter:
 		rrr = list(subjects(RDF.type, kbdbg.frame))
 		last_frame = None
 		for i, frame in enumerate(rrr):
-			if g.value(frame, kbdbg.is_finished, default=False):
+			if value(frame, kbdbg.is_finished, default=False):
 				continue
 			f, text = s.get_frame_gv(i, frame)
 			s.gv(f + text)
@@ -143,7 +143,7 @@ class Emitter:
 					with tag('td', border=1):
 						text((shorten(bnode.n3())))
 				items = None
-				for i in g.objects(bnode, kbdbg.has_items):
+				for i in objects(bnode, kbdbg.has_items):
 					items = i # find the latest ones
 				if not items:
 					continue
@@ -358,37 +358,51 @@ def triples(spo):
 	results = []
 	for b in bb:
 		bbb=[]
-		for i in spo:
-		if i == None:
-			bbb.append(b[i
-	return b
+		for i,x in enumerate(spo):
+			if x == None:
+				bbb.append(node_from_result(b['x'+str(i)]))
+		results.append(bbb)
+	return results
 
-def _node_from_result(node):
-    """
-    Helper function that casts XML node in SPARQL results
-    to appropriate rdflib term
-    """
-    if node.tag == '{%s}bnode' % SPARQL_NS:
-        return BNode(node.text)
-    elif node.tag == '{%s}uri' % SPARQL_NS:
-        return URIRef(node.text)
-    elif node.tag == '{%s}literal' % SPARQL_NS:
-        value = node.text if node.text is not None else ''
-        if 'datatype' in node.attrib:
-            dt = URIRef(node.attrib['datatype'])
-            return Literal(value, datatype=dt)
-        elif '{http://www.w3.org/XML/1998/namespace}lang' in node.attrib:
-            return Literal(value, lang=node.attrib[
-                "{http://www.w3.org/XML/1998/namespace}lang"])
-        else:
-            return Literal(value)
-    else:
-        raise Exception('Unknown answer type')
-
+def node_from_result(node):
+	if node['type'] == 'bnode':
+		return BNode(node['value'])
+	elif node['type'] == 'uri':
+		return URIRef(node['value'])
+	elif node['type'] == 'literal':
+		value = node['value']# if node.value is not None else ''
+		#if 'datatype' in node.attrib:
+		#    dt = URIRef(node.attrib['datatype'])
+		#    return Literal(value, datatype=dt)
+		#elif '{http://www.w3.org/XML/1998/namespace}lang' in node.attrib:
+		#    return Literal(value, lang=node.attrib[
+		#        "{http://www.w3.org/XML/1998/namespace}lang"])
+		#else:
+		return Literal(value)
+	else:
+		raise Exception('Unknown answer type')
 
 def subjects(p,o):
-	return triples((None, p, o))
+	for x in triples((None, p, o)):
+		yield x[0]
 
+def subjects(s, p):
+	for x in triples((s, p, None)):
+		yield x[0]
+
+def value(self, subject=None, predicate=RDF.value, object=None,
+              default=None, any=True):
+	t = triples((subject, predicate, object))
+	if len(t) == 0:
+		if default != None:
+			return default
+		else:
+			raise RuntimeError('no value')
+	else:
+		if len(t) > 1:
+			if not any:
+				raise RuntimeError('duplicate values')
+		return t[0]
 
 
 futures = []

@@ -63,9 +63,19 @@ PREFIX : <file:///#>
 """
 
 pool = None
+futures = []
 
 to_submit_default = ''
 to_submit_graph = ''
+
+def check_futures():
+	while True:
+		if len(futures) == 0: return
+		f = futures[0]
+		if f.done():
+			futures.remove(f)
+		else:
+			return
 
 def kbdbg(text, default = False):
 	global to_submit_default, to_submit_graph
@@ -79,11 +89,13 @@ def kbdbg(text, default = False):
 def submit_kbdbg():
 	global to_submit_default, to_submit_graph
 	if to_submit_default != '':
-		txt = prefixes + "INSERT DATA {Graph <" + default_graph + "> {" + to_submit_default +"}}"
-		pool.submit(server.update, txt)
+		txt = prefixes + "INSERT DATA {Graph " + default_graph + " {" + to_submit_default +"}}"
+		futures.append(pool.submit(server.update, txt))
+		log(txt)
 	if to_submit_graph != '':
 		txt = prefixes + "INSERT DATA {Graph <" + step_graph_name(global_step_counter) + "> {" + to_submit_graph +'}}'
-		pool.submit(server.update, txt)
+		futures.append(pool.submit(server.update, txt))
+	check_futures()
 	to_submit_default, to_submit_graph = '',''
 
 def step_graph_name(idx):
@@ -93,13 +105,13 @@ def step_list_item(idx):
 	return step_graph_name(idx) + "_list_item"
 
 def kbdbg_graph_first():
-	kbdbg(step_list_item(global_step_counter) + " rdf:first " + step_graph_name(global_step_counter), True)
+	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:first <" + step_graph_name(global_step_counter)+'>', True)
 
 global_step_counter = 0
 def step():
 	global global_step_counter
 	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
-	kbdbg(step_list_item(global_step_counter) + " rdf:rest " + step_list_item(global_step_counter + 1), True)
+	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
 	submit_kbdbg()
 	global_step_counter += 1
 	kbdbg_graph_first()
@@ -666,7 +678,7 @@ def pred(p, parent, args):
 def query(input_rules, input_query):
 	global preds, dbg
 	dbg = not nolog or not nokbdbg
-	kbdbg(this + " rdf:value " + step_list_item(0))
+	kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
 	kbdbg_graph_first()
 	preds = defaultdict(list)
 	for r in input_rules:

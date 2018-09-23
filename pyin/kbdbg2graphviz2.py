@@ -71,9 +71,6 @@ def tell_if_is_last_element(x):
 	for i, j in enumerate(x):
 		yield j, (i == (len(x) - 1))
 
-def value(g, subject=None, predicate=rdflib.term.URIRef(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#value'), object=None, default=None, any=False):
-	return g.value(subject, predicate, object, default, any)
-
 import memoized
 #@memoized.memoized
 def gv_escape(string):
@@ -121,7 +118,7 @@ class Emitter:
 			s.gv(f + text)
 			#if last_frame:
 			#	arrow(last_frame, f, color='yellow', weight=100)
-			parent = g.value(frame, kbdbg.has_parent)
+			parent = value(frame, kbdbg.has_parent)
 			if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
 				s.arrow(gv_escape(parent), f, color='yellow', weight=10000000)
 			else:
@@ -132,9 +129,9 @@ class Emitter:
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		if s.step == 51:
 			print ('eeee')
-		for bnode in g.subjects(RDF.type, kbdbg.bnode):
-			parent = g.value(bnode, kbdbg.has_parent)
-			if g.value(parent, kbdbg.is_finished, default=False):
+		for bnode in subjects(RDF.type, kbdbg.bnode):
+			parent = value(bnode, kbdbg.has_parent)
+			if value(parent, kbdbg.is_finished, default=False):
 				continue
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
@@ -147,14 +144,14 @@ class Emitter:
 					items = i # find the latest ones
 				if not items:
 					continue
-				for i in Collection(g,items):
+				for i in Collection(step_graph,items):
 					with tag('tr'):
-						name = g.value(i, kbdbg.has_name)
+						name = value(i, kbdbg.has_name)
 						pn = gv_escape(name)
 						with tag("td", border=1, port=pn):
 							text(shorten(name))
 							text(' = ')
-							text(shorten(g.value(i, kbdbg.has_value)))
+							text(shorten(value(i, kbdbg.has_value)))
 						#with tag("td", border=1):
 						#	text(shorten(g.value(i, kbdbg.has_value)))
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
@@ -164,18 +161,18 @@ class Emitter:
 		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
-		for binding in g.subjects(RDF.type, kbdbg.binding):
+		for binding in subjects(RDF.type, kbdbg.binding):
 			weight = 1
-			source_uri = g.value(binding, kbdbg.has_source)
-			target_uri = g.value(binding, kbdbg.has_target)
-			if g.value(source_uri, kbdbg.is_bnode, default=False) and g.value(target_uri, kbdbg.is_bnode, default=False):
+			source_uri = value(binding, kbdbg.has_source)
+			target_uri = value(binding, kbdbg.has_target)
+			if value(source_uri, kbdbg.is_bnode, default=False) and value(target_uri, kbdbg.is_bnode, default=False):
 				weight = 0
-			if g.value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
+			if value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
 					s.comment("just unbound binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', weight=weight, binding=True)
 				continue
-			if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
+			if value(binding, kbdbg.failed) == rdflib.Literal(True):
 				if (binding.n3() in last_bindings):
 					s.comment("just failed binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
@@ -190,7 +187,7 @@ class Emitter:
 
 		log ('results..' + '[' + str(s.step) + ']')
 		last_result = root_frame
-		for i, result_uri in enumerate(g.subjects(RDF.type, kbdbg.result)):
+		for i, result_uri in enumerate(subjects(RDF.type, kbdbg.result)):
 			result_node = gv_escape(result_uri)
 			r = result_node + ' [cellborder=2, shape=none, label=<'
 			(doc, tag, text) = yattag.Doc().tagtext()
@@ -198,7 +195,7 @@ class Emitter:
 				with tag('tr'):
 					with tag("td"):
 						text('RESULT'+str(i) +' ')
-					s.emit_terms(tag, text, s.g.value(result_uri, RDF.value), 'result')
+					s.emit_terms(tag, text, value(result_uri, RDF.value), 'result')
 			r += doc.getvalue()+ '>]'
 			s.gv(r)
 			false = rdflib.Literal(False)
@@ -214,44 +211,43 @@ class Emitter:
 		log ('}..' + '[' + str(s.step) + ']')
 
 	def gv_endpoint(s, uri):
-		g=s.g
-		if(g.value(uri, kbdbg.is_bnode, default=False)):
-			term_idx = g.value(uri, kbdbg.term_idx, default=' $\=st #-* -')
+		if(value(uri, kbdbg.is_bnode, default=False)):
+			term_idx = value(uri, kbdbg.term_idx, default=' $\=st #-* -')
 			port = gv_escape(term_idx)
 			#if port == 'gv0121_y': #gv01080049_l1':
 			#	print('x')
-			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" + port
+			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" + port
 		else:
-			x = g.value(uri, kbdbg.is_in_head, default=False)
+			x = value(uri, kbdbg.is_in_head, default=False)
 			is_in_head = (x == rdflib.Literal(True))
-			term_idx = g.value(uri, kbdbg.term_idx, default=0)
-			arg_idx  = g.value(uri, kbdbg.arg_idx, None)
+			term_idx = value(uri, kbdbg.term_idx, default=0)
+			arg_idx  = value(uri, kbdbg.arg_idx, None)
 			if arg_idx == None:
-				return gv_escape(str(g.value(uri, kbdbg.has_frame)))
+				return gv_escape(str(value(uri, kbdbg.has_frame)))
 			port = port_name(is_in_head, term_idx, arg_idx)
-			return gv_escape(str(g.value(uri, kbdbg.has_frame))) + ":" +port
+			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" +port
 
 	def get_frame_gv(s, i, frame):
 		r = ' [shape=none, margin=0, '
 		isroot = False
-		if not s.g.value(frame, kbdbg.has_parent):
+		if not value(frame, kbdbg.has_parent):
 			r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
 			isroot = True
 		return gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame, isroot) + ">]"
 
 
 	def get_frame_html_label(s, frame, isroot):
-		rule = s.g.value(frame, kbdbg.is_for_rule)
+		rule = value(frame, kbdbg.is_for_rule)
 		params = rule, isroot
 		try:
 			template = s.frame_templates[params]
 		except KeyError:
-			template = s._get_frame_html_label(s.g, *params)
+			template = s._get_frame_html_label(*params)
 			s.frame_templates[params] = template
 		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame.n3())))
 
 	@staticmethod
-	def _get_frame_html_label(g, rule, isroot):
+	def _get_frame_html_label(rule, isroot):
 
 			doc, tag, text = yattag.Doc().tagtext()
 
@@ -263,16 +259,16 @@ class Emitter:
 						text(frame_name_template_var_name)
 					with tag("td", border=border_width):
 						text("{")
-					emit_terms(g, tag, text, g.value(rule, kbdbg.has_original_head), True)
+					emit_terms(tag, text, value(rule, kbdbg.has_original_head), True)
 					with tag("td", border=border_width):
 						text("} <= {")
 
-					body_items_list_name = g.value(rule, kbdbg.has_body)
+					body_items_list_name = value(rule, kbdbg.has_body)
 					if body_items_list_name:
-						body_items_collection = Collection(g, body_items_list_name)
+						body_items_collection = Collection(step_graph, body_items_list_name)
 						term_idx = 0
 						for body_item in body_items_collection:
-							emit_term(g, tag, text, False, term_idx, body_item)
+							emit_term(tag, text, False, term_idx, body_item)
 							term_idx += 1
 					with tag("td", border=border_width):
 						text('}')
@@ -295,9 +291,9 @@ def port_name(is_in_head, term_idx, arg_idx):
 			str(arg_idx)
 			)
 
-def emit_term(g, tag, text, is_in_head, term_idx, term):
-	pred = g.value(term, kbdbg.has_pred)
-	args_collection = Collection(g, g.value(term, kbdbg.has_args))
+def emit_term(tag, text, is_in_head, term_idx, term):
+	pred = value(term, kbdbg.has_pred)
+	args_collection = Collection(step_graph, value(term, kbdbg.has_args))
 	if len(args_collection) == 2:
 		def arrrr(arg_idx):
 			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
@@ -322,10 +318,10 @@ def emit_term(g, tag, text, is_in_head, term_idx, term):
 		with tag("td", border=border_width):
 			text(').')
 
-def emit_terms(g, tag, text, uri, is_head):
-	items = Collection(g, uri)
+def emit_terms( tag, text, uri, is_head):
+	items = Collection(step_graph, uri)
 	for term_idx, item in enumerate(items):
-		emit_term(g, tag, text, is_head, term_idx, item)
+		emit_term(tag, text, is_head, term_idx, item)
 
 
 
@@ -386,7 +382,7 @@ def subjects(p,o):
 	for x in triples((None, p, o)):
 		yield x[0]
 
-def subjects(s, p):
+def objects(s, p):
 	for x in triples((s, p, None)):
 		yield x[0]
 
@@ -397,7 +393,7 @@ def value(self, subject=None, predicate=RDF.value, object=None,
 		if default != None:
 			return default
 		else:
-			raise RuntimeError('no value')
+			return None
 	else:
 		if len(t) > 1:
 			if not any:
@@ -420,13 +416,13 @@ def run(start, end, workers):
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
 
-	g = Graph(sparqlstore.SPARQLStore(sparql_uri), default_graph)
-	graph_name_start = g.value(kbdbg.latest, kbdbg['is'], any=False).toPython()
-
+	runs_graph = Graph(sparqlstore.SPARQLStore(sparql_uri), default_graph)
+	graph_name_start = runs_graph.value(kbdbg.latest, kbdbg['is'], any=False).toPython()
 	identification = fix_up_identification(graph_name_start)
 
 	step_to_submit = -1
-	while True:
+
+	for step_graph_uri in Collection(runs_graph, URIRef(graph_name_start)):
 		step_to_submit+=1
 		if step_to_submit < start - 1:
 			log ("skipping ["+str(step_to_submit) + ']')
@@ -435,7 +431,7 @@ def run(start, end, workers):
 			log ("ending")
 			break
 
-		args = (identification, step_to_submit, redis_fn)
+		args = (identification, step_graph_uri, step_to_submit, redis_fn)
 		if not workers:
 			work(*args)
 		else:
@@ -449,16 +445,20 @@ def run(start, end, workers):
 			check_futures()
 		log('loop ' )
 
-	worker_pool.shutdown()
+	if workers:
+		worker_pool.shutdown()
 	check_futures()
 
 
 
-def work(identification, step_to_do, redis_fn):
-	global redis_connection, strict_redis_connection, sparql_server, step
+def work(identification, graph_name, step_to_do, redis_fn):
+	global redis_connection, strict_redis_connection, sparql_server, step, step_graph
 	step = step_to_do
 
 	log('work ' + '[' + str(step) + ']')
+
+	#for Collections
+	step_graph = Graph(sparqlstore.SPARQLStore(sparql_uri), graph_name)
 
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_connection = redislite.Redis(redis_fn)

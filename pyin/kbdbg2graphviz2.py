@@ -339,22 +339,56 @@ def triples(spo):
 		else:
 			spo2.append(x.n3())
 
-	query_str = """SELECT * WHERE  {
+	query_str = """
+	SELECT * WHERE  {
 	  GRAPH ?g {"""+" ".join(spo2)+"""}.
-	  FILTER (STRSTARTS(STR(?g), <"""+graph_name_start+""">)).
-	  BIND  (STRAFTER(STR(?g), "_") AS ?strg).
-	  FILTER (?strg < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, """+'"'+graph_name_start+'"'+""")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
 	}
-	ORDER BY (?strg)"""
+	ORDER BY (?strg)
+	"""
 	r=sparql_server.query(query_str)
 	log(query_str)
 	log('results:')
 	log(str(r))
 	log('.')
-	return r
+	bb = r['results']['bindings']
+	results = []
+	for b in bb:
+		bbb=[]
+		for i in spo:
+		if i == None:
+			bbb.append(b[i
+	return b
+
+def _node_from_result(node):
+    """
+    Helper function that casts XML node in SPARQL results
+    to appropriate rdflib term
+    """
+    if node.tag == '{%s}bnode' % SPARQL_NS:
+        return BNode(node.text)
+    elif node.tag == '{%s}uri' % SPARQL_NS:
+        return URIRef(node.text)
+    elif node.tag == '{%s}literal' % SPARQL_NS:
+        value = node.text if node.text is not None else ''
+        if 'datatype' in node.attrib:
+            dt = URIRef(node.attrib['datatype'])
+            return Literal(value, datatype=dt)
+        elif '{http://www.w3.org/XML/1998/namespace}lang' in node.attrib:
+            return Literal(value, lang=node.attrib[
+                "{http://www.w3.org/XML/1998/namespace}lang"])
+        else:
+            return Literal(value)
+    else:
+        raise Exception('Unknown answer type')
+
 
 def subjects(p,o):
 	return triples((None, p, o))
+
 
 
 futures = []

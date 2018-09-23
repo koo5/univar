@@ -117,6 +117,12 @@ class Emitter:
 	def generate_gv_image(s):
 		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;
 		#gv("pack=true")
+
+		"""
+		select all non-finished frames with optionally their parents"""
+
+
+
 		log ('frames.. ' + '[' + str(s.step) + ']')
 		root_frame = None
 		#current_result = None
@@ -137,9 +143,13 @@ class Emitter:
 			last_frame = f
 			#if i == 0 and current_result:
 			#	arrow(result_node, f)
+
+
+
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		if s.step == 51:
 			print ('eeee')
+		"""get with parents, their is_finished, """
 		for bnode in subjects(RDF.type, kbdbg.bnode):
 			parent = value(bnode, kbdbg.has_parent)
 			if value(parent, kbdbg.is_finished, default=False):
@@ -151,10 +161,12 @@ class Emitter:
 					with tag('td', border=1):
 						text((shorten(bnode.n3())))
 				items = None
+				"""???"""
 				for i in objects(bnode, kbdbg.has_items):
 					items = i # find the latest ones
 				if not items:
 					continue
+				"""one step  with names"""
 				c1 = profile(list, (Collection(step_graph,items),))
 				for i in c1:
 					with tag('tr'):
@@ -173,6 +185,7 @@ class Emitter:
 		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
+		"""one step with was_unbound and failed and has_source & has_target and their is_bnode's """
 		for binding in subjects(RDF.type, kbdbg.binding):
 			weight = 1
 			source_uri = value(binding, kbdbg.has_source)
@@ -223,6 +236,7 @@ class Emitter:
 		log ('}..' + '[' + str(s.step) + ']')
 
 	def gv_endpoint(s, uri):
+		"""merge? is_bnode, is_in_head, . get term_idx, arg_idx"""
 		if(value(uri, kbdbg.is_bnode, default=False)):
 			term_idx = value(uri, kbdbg.term_idx, default=' $\=st #-* -')
 			port = gv_escape(term_idx)
@@ -239,7 +253,7 @@ class Emitter:
 			port = port_name(is_in_head, term_idx, arg_idx)
 			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" +port
 
-	def get_frame_gv(s, i, frame):
+	def get_frame_gv(s, i, frame):"""pass parent here"""
 		r = ' [shape=none, margin=0, '
 		isroot = False
 		if not value(frame, kbdbg.has_parent):
@@ -249,7 +263,7 @@ class Emitter:
 
 
 	def get_frame_html_label(s, frame, isroot):
-		rule = value(frame, kbdbg.is_for_rule)
+		rule = value(frame, kbdbg.is_for_rule)"""get also rule up there"""
 		params = (rule, isroot)
 		try:
 			template = s.frame_templates[params]
@@ -276,6 +290,7 @@ class Emitter:
 						text("} <= {")
 
 					body_items_list_name = value(rule, kbdbg.has_body)
+					"""get also head and body there"""
 					if body_items_list_name:
 						body_items_list = profile(list, (Collection(step_graph, body_items_list_name),))
 						term_idx = 0
@@ -305,6 +320,7 @@ def port_name(is_in_head, term_idx, arg_idx):
 
 def emit_term(tag, text, is_in_head, term_idx, term):
 	pred = value(term, kbdbg.has_pred)
+	"""collect in one step"""
 	args_list = profile(list, (Collection(step_graph, value(term, kbdbg.has_args)),))
 	if len(args_list ) == 2:
 		def arrrr(arg_idx):
@@ -331,6 +347,8 @@ def emit_term(tag, text, is_in_head, term_idx, term):
 			text(').')
 
 def emit_terms( tag, text, uri, is_head):
+
+	"""collect in one query"""
 	items = profile(list, (Collection(step_graph, uri),))
 	for term_idx, item in enumerate(items):
 		emit_term(tag, text, is_head, term_idx, item)
@@ -347,6 +365,7 @@ def triples(spo):
 		else:
 			spo2.append(x.n3())
 
+	"""RDR?"""
 	query_str = """
 	SELECT * WHERE  {
 	  GRAPH ?g {"""+" ".join(spo2)+"""}.

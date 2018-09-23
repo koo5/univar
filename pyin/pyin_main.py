@@ -63,7 +63,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		INSERT {kbdbg:latest kbdbg:is <""" + this + ">} WHERE {}""")
 
 	if identification != "":
-		pyin.kbdbg(this +" kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
+		pyin.kbdbg('<'+this +"> kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
 
 	kb_stream, goal_stream = kb, goal
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")

@@ -118,14 +118,28 @@ class Emitter:
 		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;
 		#gv("pack=true")
 
-		"""
-		select all non-finished frames with optionally their parents"""
-
-
-
 		log ('frames.. ' + '[' + str(s.step) + ']')
 		root_frame = None
 		#current_result = None
+
+
+				"""
+		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+		PREFIX kbdbg: <http://kbd.bg/#> 
+		
+		select * WHERE
+		{
+			  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+			  BIND  (STR(?g) AS ?strg).
+			  FILTER (STRSTARTS(?strg, "http")).
+			  BIND  (STRAFTER(?strg, "_") AS ?step).
+			  FILTER (?step < "0000084242").
+			  OPTIONAL {?X kbdbg:has_parent ?parent}. 
+			  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+		}
+		ORDER BY (?strg)
+		"""
+
 		rrr = list(subjects(RDF.type, kbdbg.frame))
 		last_frame = None
 		for i, frame in enumerate(rrr):
@@ -149,7 +163,30 @@ class Emitter:
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		if s.step == 51:
 			print ('eeee')
-		"""get with parents, their is_finished, """
+		"""get with non_finished parents, has_items
+		
+		
+		
+		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)
+				
+		"""
+
+
+
 		for bnode in subjects(RDF.type, kbdbg.bnode):
 			parent = value(bnode, kbdbg.has_parent)
 			if value(parent, kbdbg.is_finished, default=False):
@@ -160,7 +197,6 @@ class Emitter:
 				with tag('tr'):
 					with tag('td', border=1):
 						text((shorten(bnode.n3())))
-				items = None
 				"""???"""
 				for i in objects(bnode, kbdbg.has_items):
 					items = i # find the latest ones

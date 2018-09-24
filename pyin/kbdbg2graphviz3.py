@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ORDER BY #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -137,7 +137,7 @@ class Emitter:
 			  OPTIONAL {?X kbdbg:has_parent ?parent}. 
 			  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
 		}
-		ORDER BY (?strg)
+		#ORDER BY (?strg)
 		"""
 
 		rrr = list(subjects(RDF.type, kbdbg.frame))
@@ -181,7 +181,7 @@ select * WHERE
   	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
       ?x kbdbg:has_items ?items.
 }
-ORDER BY (?strg)
+#ORDER BY (?strg)
 				
 		"""
 
@@ -197,12 +197,16 @@ ORDER BY (?strg)
 				with tag('tr'):
 					with tag('td', border=1):
 						text((shorten(bnode.n3())))
-				"""???"""
-				for i in objects(bnode, kbdbg.has_items):
-					items = i # find the latest ones
-				if not items:
-					continue
-				"""one step  with names"""
+				"""				
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?name ?value
+{
+ <file:///#bn66544> rdf:rest*/rdf:first ?item. ?item kbdbg:has_name ?name. ?item kbdbg:has_value ?value.
+}
+				
+				"""
 				c1 = profile(list, (Collection(step_graph,items),))
 				for i in c1:
 					with tag('tr'):
@@ -410,7 +414,7 @@ def triples(spo):
 	  BIND  (STRAFTER(?strg, "_") AS ?step).
 	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
 	}
-	ORDER BY (?strg)
+	#ORDER BY (?strg)
 	"""
 	log(query_str)
 	r=profile(sparql_server.query, (query_str,))

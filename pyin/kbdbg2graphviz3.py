@@ -81,7 +81,7 @@ def query(vars, q):
 				if v['type'] == 'uri':
 					r[k] = v['value']
 				else:
-					raise v
+					r[k] = v['value']
 			else:
 				r[k] = None
 		if len(vars) == 1:
@@ -146,7 +146,6 @@ class Emitter:
 		s.gv('//'+text)
 
 	def generate_gv_image(s, frames_list):
-		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;#gv("pack=true")
 		log ('frames.. ' + '[' + str(s.step) + ']')
 		root_frame = None
 		#current_result = None
@@ -156,7 +155,7 @@ class Emitter:
 			s.gv(f + text)
 			#if last_frame:
 			#	arrow(last_frame, f, color='yellow', weight=100)
-			parent = value(frame, kbdbg.has_parent)
+			parent = frame['parent']
 			if parent:# and not g.value(parent, kbdbg.is_finished, default=False):
 				s.arrow(gv_escape(parent), f, color='yellow', weight=10000000)
 			else:
@@ -165,7 +164,7 @@ class Emitter:
 			#if i == 0 and current_result:
 			#	arrow(result_node, f)
 
-
+		return
 
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		if s.step == 51:
@@ -302,8 +301,6 @@ select *
 			if last_result:
 				s.arrow(last_result, result_node, color='yellow', weight=100)
 			last_result = result_node
-		s.gv("}")
-		log ('}..' + '[' + str(s.step) + ']')
 
 	def gv_endpoint(s, uri):
 		"""merge? is_bnode, is_in_head, . get term_idx, arg_idx"""
@@ -323,17 +320,18 @@ select *
 			port = port_name(is_in_head, term_idx, arg_idx)
 			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" +port
 
-	def get_frame_gv(s, i, frame):#"""pass parent here"""
+	def get_frame_gv(s, i, frame_data):#"""pass parent here"""
 		r = ' [shape=none, margin=0, '
 		isroot = False
-		if not frame['parent']:
+		if not frame_data['parent']:
 			r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
 			isroot = True
-		return gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame, isroot) + ">]"
+		frame = frame_data['frame']
+		return gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame_data, isroot) + ">]"
 
 
 	def get_frame_html_label(s, frame, isroot):
-		rule = kbdbg['is_for_rule']
+		rule = frame['is_for_rule']
 		params = (rule, isroot)
 		try:
 			template = s.frame_templates[params]
@@ -345,7 +343,7 @@ select *
 	@staticmethod
 	def _get_frame_html_label(rule, isroot):
 			rule_data = query_one(('head','body'),
-						'<'+rule+'> kbdbg:has_original_head ?head. <'+rule+'> kbdbg:has_body ?body.')
+						'{OPTIONAL {<'+rule+'> kbdbg:has_original_head ?head.}. OPTIONAL { <'+rule+'> kbdbg:has_body ?body.}}')
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
@@ -380,9 +378,10 @@ def port_name(is_in_head, term_idx, arg_idx):
 			)
 
 def emit_term(tag, text, is_in_head, term_idx, term):
-	pred = value(term, kbdbg.has_pred)
+	term_data = query_one(('pred', 'args'), '{<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}')
+	pred = term_data['pred']
 	"""collect in one step"""
-	args_list = profile(list, (Collection(step_graph, value(term, kbdbg.has_args)),))
+	args_list = list(query('item', '{<'+term_data['args']+'> rdf:rest*/rdf:first ?item.}'))
 	if len(args_list ) == 2:
 		def arrrr(arg_idx):
 			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
@@ -411,7 +410,7 @@ def emit_terms( tag, text, uri, is_head):
 	if uri == None: return
 
 	"""collect in one query"""
-	items = profile(list, (Collection(step_graph, uri),))
+	items = profile(list, (Collection(step_graph, URIRef(uri)),))
 	for term_idx, item in enumerate(items):
 		emit_term(tag, text, is_head, term_idx, item)
 
@@ -447,7 +446,7 @@ def run(start, end, workers):
 	step_to_submit = -1
 	while True:
 		step_graph_positions = list(query(('to','item'),
-			"""WHERE {{    
+			""" {{    
 			SELECT ?to WHERE {
 			SERVICE bd:alp { 
 			<"""+graph_name_start+"""> rdf:rest ?to. 
@@ -522,7 +521,10 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	gv_output_file = open(gv_output_file_name, 'w')
 	e = Emitter(gv_output_file, step)
+	e.gv("digraph frame"+str(step) + "{  ")#splines=ortho;#gv("pack=true")
 	e.generate_gv_image(frames_list)
+	e.gv("}")
+	log ('}..' + '[' + str(step) + ']')
 	gv_output_file.close()
 
 	if (step == global_start - 1):
@@ -536,7 +538,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		if r != b"":
 			raise RuntimeError('[' + str(step) + '] ' + str(r))
 	except subprocess.CalledProcessError as e:
-		log ('[' + str(step) + ']' + e.output)
+		log ('[' + str(step) + ']' + str(e.output))
 	log('convert done.' + '[' + str(step) + ']')
 
 	if len(stats):

@@ -1,0 +1,1493 @@
+Time	Query	Results	Execution Time	Delete
+2018-09-23T19:43:47.745Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  <http://kbd.bg/run2018-09-23-16-50-08-130345_0000000001_list_item> 
+  (rdf:rest*/rdf:first)* ?label
+}		Running...	X
+2018-09-23T19:41:54.876Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  ?x kbdbg:is ?label
+}	1	106ms	X
+2018-09-23T17:53:37.056Z	SELECT * WHERE { GRAPH ?g {?s ?p ?o}}	635869	7sec, 781ms	X
+Clear history
+
+
+
+
+
+
+
+
+
+	
+blazegraph workbench
+ultra-scalable, high-performance database from Blazegraph
+SEARCH: 
+ 
+WELCOMEQUERYUPDATEEXPLORENAMESPACESSTATUSPERFORMANCECurrent namespace:
+Wiki - SPARQL Query Namespace shortcuts: Edit
+
+#
+1
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+2
+PREFIX kbdbg: <http://kbd.bg/#> 
+3
+â€
+4
+describe ?x WHERE
+5
+{
+6
+      GRAPH ?g {?X rdf:type kbdbg:frame}. 
+7
+      BIND  (STR(?g) AS ?strg).
+8
+      FILTER (STRSTARTS(?strg, "http")).
+9
+      BIND  (STRAFTER(?strg, "_") AS ?step).
+10
+      FILTER (?step < "0000084242").
+11
+      #OPTIONAL {?X kbdbg:has_parent ?parent}. 
+12
+      FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+13
+}
+14
+ORDER BY (?strg)
+Advanced features
+ Explain   (Details)   Analytic   Runtime Query Optimizer   LBS
+ 
+Query running...
+Time	Query	Results	Execution Time	Delete
+2018-09-24T19:42:08.537Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+describe ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000084242").
+      #OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:41:36.403Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000084242").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)	30	229ms	X
+2018-09-24T19:41:21.457Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004242").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)	11	250ms	X
+2018-09-24T19:40:29.298Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000001").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	51ms	X
+2018-09-24T19:40:22.218Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000010").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	56ms	X
+2018-09-24T19:40:15.145Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	54ms	X
+2018-09-24T19:40:07.506Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000002020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	108ms	X
+2018-09-24T19:39:26.601Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished ?f. 
+}
+ORDER BY (?strg)	959	916ms	X
+2018-09-24T19:39:00.895Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	54ms	X
+2018-09-24T19:38:50.562Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:38:21.014Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+}
+ORDER BY (?strg)	970	728ms	X
+2018-09-24T19:38:10.022Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. OPTIONAL {?X kbdbg:has_parent ?y}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	970	795ms	X
+2018-09-24T19:36:19.398Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. OPTIONAL {?X kbdbg:has_parent ?y}. ?X kbdbg:is_finished false. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	0	48ms	X
+2018-09-24T19:33:30.754Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame. OPTIONAL {?X kbdbg:has_parent ?y}. ?X kbdbg:is_finished false. }.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:28:43.014Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	970	753ms	X
+2018-09-24T19:24:46.147Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020")
+}
+ORDER BY (?strg)	8	839ms	X
+2018-09-24T19:14:10.382Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+DESCRIBE ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020")
+}
+ORDER BY (?strg)	635869	1min, 19sec, 477ms	X
+2018-09-24T19:10:38.782Z	SELECT * WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	635869	13sec, 575ms	X
+2018-09-24T17:46:14.629Z	CONSTRUCT {?s ?p ?o ?g} WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )		Running...	X
+2018-09-24T17:45:42.251Z	CONSTRUCT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )		Running...	X
+2018-09-24T17:42:14.991Z	SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	635869	9sec, 641ms	X
+2018-09-24T17:34:47.949Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	42441	340ms	X
+2018-09-24T17:34:16.366Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY DESCENDING ?g 		Running...	X
+2018-09-24T17:34:08.838Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g DESCEND		Running...	X
+2018-09-24T17:34:03.950Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g DESCENDING		Running...	X
+2018-09-24T17:33:50.750Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g	42441	435ms	X
+2018-09-24T17:33:39.863Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}	42441	1sec, 428ms	X
+2018-09-24T11:41:52.040Z	SELECT * WHERE { GRAPH ?g {?s ?p ?o}}	635869	14sec, 442ms	X
+2018-09-23T19:43:47.745Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  <http://kbd.bg/run2018-09-23-16-50-08-130345_0000000001_list_item> 
+  (rdf:rest*/rdf:first)* ?label
+}		Running...	X
+2018-09-23T19:41:54.876Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  ?x kbdbg:is ?label
+}	1	106ms	X
+Clear history
+Export  Clear
+Blazegraph - Wiki
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+blazegraph workbench
+ultra-scalable, high-performance database from Blazegraph
+SEARCH: 
+ 
+WELCOMEQUERYUPDATEEXPLORENAMESPACESSTATUSPERFORMANCECurrent namespace:
+Wiki - SPARQL Query Namespace shortcuts: Edit
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+      OPTIONAL {?x kbdbg:failed ?failed}.
+      ?x kbdbg:has_source ?source.
+      ?x kbdbg:has_target ?target.
+      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+      OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+      ?source kbdbg:term_idx ?source_term_idx.
+      ?target kbdbg:term_idx ?target_term_idx.
+      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+}
+1
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+2
+PREFIX kbdbg: <http://kbd.bg/#> 
+3
+
+4
+select * 
+5
+{
+6
+      ?x rdf:type kbdbg:binding.
+7
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+8
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+9
+      OPTIONAL {?x kbdbg:failed ?failed}.
+10
+      ?x kbdbg:has_source ?source.
+11
+      ?x kbdbg:has_target ?target.
+12
+      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+13
+      OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+14
+      ?source kbdbg:term_idx ?source_term_idx.
+15
+      ?target kbdbg:term_idx ?target_term_idx.
+16
+      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+17
+      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+18
+      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+19
+      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+20
+}
+Advanced features
+ Explain   (Details)   Analytic   Runtime Query Optimizer   LBS
+ 
+x	failed	source	target	source_is_bnode	target_is_bnode	source_term_idx	target_term_idx	source_is_in_head	target_is_in_head	source_arg_idx	target_arg_idx
+<file:///#bn168>	true	<file:///#bn169>	<file:///#bn170>			0	0		true	1	1
+<file:///#bn181>	true	<file:///#bn182>	<file:///#bn183>			0	0		true	0	0
+<file:///#bn193>	true	<file:///#bn194>	<file:///#bn195>			0	4		true	1	1
+<file:///#bn199>	true	<file:///#bn200>	<file:///#bn201>			0	5		true	1	1
+<file:///#bn208>	true	<file:///#bn209>	<file:///#bn210>			1	0		true	0	0
+<file:///#bn220>	true	<file:///#bn221>	<file:///#bn222>			0	4		true	1	1
+<file:///#bn229>	true	<file:///#bn230>	<file:///#bn231>			1	0		true	0	0
+<file:///#bn254>	true	<file:///#bn255>	<file:///#bn256>			1	1		true	0	0
+<file:///#bn280>	true	<file:///#bn281>	<file:///#bn282>			2	0		true	0	0
+<file:///#bn287>	true	<file:///#bn288>	<file:///#bn289>			2	2		true	0	0
+<file:///#bn300>	true	<file:///#bn301>	<file:///#bn302>			2	0		true	0	0
+<file:///#bn313>	true	<file:///#bn314>	<file:///#bn315>			2	2		true	0	0
+<file:///#bn326>	true	<file:///#bn327>	<file:///#bn328>			1	1		true	0	0
+<file:///#bn339>	true	<file:///#bn340>	<file:///#bn341>			1	3		true	0	0
+<file:///#bn351>	true	<file:///#bn352>	<file:///#bn353>			0	4		true	1	1
+<file:///#bn357>	true	<file:///#bn358>	<file:///#bn359>			0	5		true	1	1
+<file:///#bn363>	true	<file:///#bn364>	<file:///#bn365>			0	6		true	1	1
+<file:///#bn369>	true	<file:///#bn370>	<file:///#bn371>			0	7		true	1	1
+<file:///#bn375>	true	<file:///#bn376>	<file:///#bn377>			0	8		true	1	1
+<file:///#bn381>	true	<file:///#bn382>	<file:///#bn383>			0	9		true	1	1
+<file:///#bn387>	true	<file:///#bn388>	<file:///#bn389>			0	10		true	1	1
+<file:///#bn393>	true	<file:///#bn394>	<file:///#bn395>			0	5		true	1	1
+<file:///#bn399>	true	<file:///#bn400>	<file:///#bn401>			0	6		true	1	1
+<file:///#bn405>	true	<file:///#bn406>	<file:///#bn407>			0	7		true	1	1
+<file:///#bn411>	true	<file:///#bn412>	<file:///#bn413>			0	8		true	1	1
+<file:///#bn417>	true	<file:///#bn418>	<file:///#bn419>			0	9		true	1	1
+<file:///#bn423>	true	<file:///#bn424>	<file:///#bn425>			0	10		true	1	1
+<file:///#bn429>	true	<file:///#bn430>	<file:///#bn431>			0	6		true	1	1
+<file:///#bn435>	true	<file:///#bn436>	<file:///#bn437>			0	7		true	1	1
+<file:///#bn441>	true	<file:///#bn442>	<file:///#bn443>			0	8		true	1	1
+<file:///#bn447>	true	<file:///#bn448>	<file:///#bn449>			0	9		true	1	1
+<file:///#bn453>	true	<file:///#bn454>	<file:///#bn455>			0	10		true	1	1
+<file:///#bn459>	true	<file:///#bn460>	<file:///#bn461>			0	7		true	1	1
+<file:///#bn465>	true	<file:///#bn466>	<file:///#bn467>			0	8		true	1	1
+<file:///#bn471>	true	<file:///#bn472>	<file:///#bn473>			0	9		true	1	1
+<file:///#bn477>	true	<file:///#bn478>	<file:///#bn479>			0	10		true	1	1
+<file:///#bn490>		<file:///#bn491>	<file:///#bn492>			0	0		true	0	0
+<file:///#bn493>		<file:///#bn494>	<file:///#bn495>			0	0	true		1	1
+<file:///#bn499>	true	<file:///#bn500>	<file:///#bn501>			0	4		true	1	1
+<file:///#bn505>	true	<file:///#bn506>	<file:///#bn507>			0	5		true	1	1
+<file:///#bn508>		<file:///#bn509>	<file:///#bn510>			0	6		true	0	0
+<file:///#bn511>		<file:///#bn512>	<file:///#bn513>			0	6		true	1	1
+<file:///#bn514>		<file:///#bn515>	<file:///#bn516>			1	4		true	0	0
+<file:///#bn517>		<file:///#bn518>	<file:///#bn519>			1	4		true	1	1
+<file:///#bn527>	true	<file:///#bn528>	<file:///#bn529>			2	0		true	1	1
+<file:///#bn540>	true	<file:///#bn541>	<file:///#bn542>			0	0		true	0	0
+<file:///#bn552>	true	<file:///#bn553>	<file:///#bn554>			0	4		true	1	1
+<file:///#bn561>	true	<file:///#bn562>	<file:///#bn563>			1	0		true	0	0
+<file:///#bn586>	true	<file:///#bn587>	<file:///#bn588>			3	1		true	0	0
+<file:///#bn612>	true	<file:///#bn613>	<file:///#bn614>			4	0		true	0	0
+<file:///#bn619>	true	<file:///#bn620>	<file:///#bn621>			4	2		true	0	0
+<file:///#bn632>	true	<file:///#bn633>	<file:///#bn634>			4	0		true	0	0
+<file:///#bn645>	true	<file:///#bn646>	<file:///#bn647>			4	2		true	0	0
+<file:///#bn658>	true	<file:///#bn659>	<file:///#bn660>			3	1		true	0	0
+<file:///#bn671>	true	<file:///#bn672>	<file:///#bn673>			3	3		true	0	0
+<file:///#bn683>	true	<file:///#bn684>	<file:///#bn685>			0	4		true	1	1
+<file:///#bn689>	true	<file:///#bn690>	<file:///#bn691>			0	5		true	1	1
+<file:///#bn695>	true	<file:///#bn696>	<file:///#bn697>			0	6		true	1	1
+<file:///#bn701>	true	<file:///#bn702>	<file:///#bn703>			0	7		true	1	1
+<file:///#bn707>	true	<file:///#bn708>	<file:///#bn709>			0	8		true	1	1
+<file:///#bn713>	true	<file:///#bn714>	<file:///#bn715>			0	9		true	1	1
+<file:///#bn719>	true	<file:///#bn720>	<file:///#bn721>			0	10		true	1	1
+<file:///#bn725>	true	<file:///#bn726>	<file:///#bn727>			0	5		true	1	1
+<file:///#bn731>	true	<file:///#bn732>	<file:///#bn733>			0	6		true	1	1
+<file:///#bn737>	true	<file:///#bn738>	<file:///#bn739>			0	7		true	1	1
+<file:///#bn743>	true	<file:///#bn744>	<file:///#bn745>			0	8		true	1	1
+<file:///#bn749>	true	<file:///#bn750>	<file:///#bn751>			0	9		true	1	1
+<file:///#bn755>	true	<file:///#bn756>	<file:///#bn757>			0	10		true	1	1
+<file:///#bn761>	true	<file:///#bn762>	<file:///#bn763>			0	6		true	1	1
+<file:///#bn767>	true	<file:///#bn768>	<file:///#bn769>			0	7		true	1	1
+<file:///#bn773>	true	<file:///#bn774>	<file:///#bn775>			0	8		true	1	1
+<file:///#bn779>	true	<file:///#bn780>	<file:///#bn781>			0	9		true	1	1
+<file:///#bn785>	true	<file:///#bn786>	<file:///#bn787>			0	10		true	1	1
+<file:///#bn798>		<file:///#bn799>	<file:///#bn800>			2	0		true	0	0
+<file:///#bn801>		<file:///#bn802>	<file:///#bn803>			0	2	true		1	1
+<file:///#bn807>	true	<file:///#bn808>	<file:///#bn809>			0	4		true	1	1
+<file:///#bn810>		<file:///#bn811>	<file:///#bn812>			0	5		true	0	0
+<file:///#bn813>		<file:///#bn814>	<file:///#bn815>			0	5		true	1	1
+<file:///#bn816>		<file:///#bn817>	<file:///#bn818>			1	4		true	0	0
+<file:///#bn819>		<file:///#bn820>	<file:///#bn821>			1	4		true	1	1
+<file:///#bn829>	true	<file:///#bn830>	<file:///#bn831>			2	0		true	1	1
+<file:///#bn842>	true	<file:///#bn843>	<file:///#bn844>			0	0		true	0	0
+<file:///#bn867>	true	<file:///#bn868>	<file:///#bn869>			3	1		true	0	0
+<file:///#bn893>	true	<file:///#bn894>	<file:///#bn895>			4	0		true	0	0
+<file:///#bn900>	true	<file:///#bn901>	<file:///#bn902>			4	2		true	0	0
+<file:///#bn913>	true	<file:///#bn914>	<file:///#bn915>			4	0		true	0	0
+<file:///#bn926>	true	<file:///#bn927>	<file:///#bn928>			4	2		true	0	0
+<file:///#bn939>	true	<file:///#bn940>	<file:///#bn941>			3	1		true	0	0
+<file:///#bn952>	true	<file:///#bn953>	<file:///#bn954>			3	3		true	0	0
+<file:///#bn964>	true	<file:///#bn965>	<file:///#bn966>			0	4		true	1	1
+<file:///#bn970>	true	<file:///#bn971>	<file:///#bn972>			0	5		true	1	1
+<file:///#bn976>	true	<file:///#bn977>	<file:///#bn978>			0	6		true	1	1
+<file:///#bn982>	true	<file:///#bn983>	<file:///#bn984>			0	7		true	1	1
+<file:///#bn988>	true	<file:///#bn989>	<file:///#bn990>			0	8		true	1	1
+<file:///#bn994>	true	<file:///#bn995>	<file:///#bn996>			0	9		true	1	1
+<file:///#bn1000>	true	<file:///#bn1001>	<file:///#bn1002>			0	10		true	1	1
+<file:///#bn1006>	true	<file:///#bn1007>	<file:///#bn1008>			0	5		true	1	1
+<file:///#bn1012>	true	<file:///#bn1013>	<file:///#bn1014>			0	6		true	1	1
+<file:///#bn1018>	true	<file:///#bn1019>	<file:///#bn1020>			0	7		true	1	1
+<file:///#bn1024>	true	<file:///#bn1025>	<file:///#bn1026>			0	8		true	1	1
+<file:///#bn1030>	true	<file:///#bn1031>	<file:///#bn1032>			0	9		true	1	1
+<file:///#bn1036>	true	<file:///#bn1037>	<file:///#bn1038>			0	10		true	1	1
+<file:///#bn1049>		<file:///#bn1050>	<file:///#bn1051>			2	0		true	0	0
+<file:///#bn1052>		<file:///#bn1053>	<file:///#bn1054>			0	2	true		1	1
+<file:///#bn5536>	true	<file:///#bn5537>	<file:///#bn5538>			0	10		true	1	1
+<file:///#bn5545>	true	<file:///#bn5546>	<file:///#bn5547>			1	0		true	0	0
+<file:///#bn5557>	true	<file:///#bn5558>	<file:///#bn5559>			0	4		true	1	1
+<file:///#bn5563>	true	<file:///#bn5564>	<file:///#bn5565>			0	5		true	1	1
+<file:///#bn5572>	true	<file:///#bn5573>	<file:///#bn5574>			1	0		true	0	0
+<file:///#bn5584>	true	<file:///#bn5585>	<file:///#bn5586>			0	4		true	1	1
+<file:///#bn5593>	true	<file:///#bn5594>	<file:///#bn5595>			1	0		true	0	0
+<file:///#bn5637>	true	<file:///#bn5638>	<file:///#bn5639>			4	0		true	0	0
+<file:///#bn5656>	true	<file:///#bn5657>	<file:///#bn5658>	true	true	?y	?y			0	0
+<file:///#bn5669>	true	<file:///#bn5670>	<file:///#bn5671>			4	0		true	0	0
+<file:///#bn5682>	true	<file:///#bn5683>	<file:///#bn5684>			4	2		true	0	0
+<file:///#bn5689>	true	<file:///#bn5690>	<file:///#bn5691>			3	3		true	0	0
+<file:///#bn5702>	true	<file:///#bn5703>	<file:///#bn5704>			3	1		true	0	0
+<file:///#bn5715>	true	<file:///#bn5716>	<file:///#bn5717>			3	3		true	0	0
+<file:///#bn5727>	true	<file:///#bn5728>	<file:///#bn5729>			0	4		true	1	1
+<file:///#bn5733>	true	<file:///#bn5734>	<file:///#bn5735>			0	5		true	1	1
+<file:///#bn5739>	true	<file:///#bn5740>	<file:///#bn5741>			0	6		true	1	1
+<file:///#bn5745>	true	<file:///#bn5746>	<file:///#bn5747>			0	7		true	1	1
+<file:///#bn5751>	true	<file:///#bn5752>	<file:///#bn5753>			0	8		true	1	1
+<file:///#bn5757>	true	<file:///#bn5758>	<file:///#bn5759>			0	9		true	1	1
+<file:///#bn5763>	true	<file:///#bn5764>	<file:///#bn5765>			0	10		true	1	1
+<file:///#bn5769>	true	<file:///#bn5770>	<file:///#bn5771>			0	5		true	1	1
+<file:///#bn5775>	true	<file:///#bn5776>	<file:///#bn5777>			0	6		true	1	1
+<file:///#bn5781>	true	<file:///#bn5782>	<file:///#bn5783>			0	7		true	1	1
+<file:///#bn5787>	true	<file:///#bn5788>	<file:///#bn5789>			0	8		true	1	1
+<file:///#bn5793>	true	<file:///#bn5794>	<file:///#bn5795>			0	9		true	1	1
+<file:///#bn5799>	true	<file:///#bn5800>	<file:///#bn5801>			0	10		true	1	1
+<file:///#bn5805>	true	<file:///#bn5806>	<file:///#bn5807>			0	6		true	1	1
+<file:///#bn5811>	true	<file:///#bn5812>	<file:///#bn5813>			0	7		true	1	1
+<file:///#bn5817>	true	<file:///#bn5818>	<file:///#bn5819>			0	8		true	1	1
+<file:///#bn5823>	true	<file:///#bn5824>	<file:///#bn5825>			0	9		true	1	1
+<file:///#bn5829>	true	<file:///#bn5830>	<file:///#bn5831>			0	10		true	1	1
+<file:///#bn5835>	true	<file:///#bn5836>	<file:///#bn5837>			0	7		true	1	1
+<file:///#bn5841>	true	<file:///#bn5842>	<file:///#bn5843>			0	8		true	1	1
+<file:///#bn5847>	true	<file:///#bn5848>	<file:///#bn5849>			0	9		true	1	1
+<file:///#bn5853>	true	<file:///#bn5854>	<file:///#bn5855>			0	10		true	1	1
+<file:///#bn5862>	true	<file:///#bn5863>	<file:///#bn5864>			1	0		true	0	0
+<file:///#bn5874>	true	<file:///#bn5875>	<file:///#bn5876>			0	4		true	1	1
+<file:///#bn5880>	true	<file:///#bn5881>	<file:///#bn5882>			0	5		true	1	1
+<file:///#bn5886>	true	<file:///#bn5887>	<file:///#bn5888>			0	6		true	1	1
+<file:///#bn5895>	true	<file:///#bn5896>	<file:///#bn5897>			1	0		true	0	0
+<file:///#bn5907>	true	<file:///#bn5908>	<file:///#bn5909>			0	4		true	1	1
+<file:///#bn5913>	true	<file:///#bn5914>	<file:///#bn5915>			0	5		true	1	1
+<file:///#bn5922>	true	<file:///#bn5923>	<file:///#bn5924>			1	0		true	0	0
+<file:///#bn5934>	true	<file:///#bn5935>	<file:///#bn5936>			0	4		true	1	1
+<file:///#bn5943>	true	<file:///#bn5944>	<file:///#bn5945>			1	0		true	0	0
+<file:///#bn5987>	true	<file:///#bn5988>	<file:///#bn5989>			4	0		true	0	0
+<file:///#bn6006>	true	<file:///#bn6007>	<file:///#bn6008>	true	true	?y	?y			0	0
+<file:///#bn6019>	true	<file:///#bn6020>	<file:///#bn6021>			4	0		true	0	0
+<file:///#bn6032>	true	<file:///#bn6033>	<file:///#bn6034>			4	2		true	0	0
+<file:///#bn6039>	true	<file:///#bn6040>	<file:///#bn6041>			3	3		true	0	0
+<file:///#bn6052>	true	<file:///#bn6053>	<file:///#bn6054>			3	1		true	0	0
+<file:///#bn6065>	true	<file:///#bn6066>	<file:///#bn6067>			3	3		true	0	0
+<file:///#bn6077>	true	<file:///#bn6078>	<file:///#bn6079>			0	4		true	1	1
+<file:///#bn6083>	true	<file:///#bn6084>	<file:///#bn6085>			0	5		true	1	1
+<file:///#bn6089>	true	<file:///#bn6090>	<file:///#bn6091>			0	6		true	1	1
+<file:///#bn6095>	true	<file:///#bn6096>	<file:///#bn6097>			0	7		true	1	1
+<file:///#bn6101>	true	<file:///#bn6102>	<file:///#bn6103>			0	8		true	1	1
+<file:///#bn6107>	true	<file:///#bn6108>	<file:///#bn6109>			0	9		true	1	1
+<file:///#bn6113>	true	<file:///#bn6114>	<file:///#bn6115>			0	10		true	1	1
+<file:///#bn6119>	true	<file:///#bn6120>	<file:///#bn6121>			0	5		true	1	1
+<file:///#bn6125>	true	<file:///#bn6126>	<file:///#bn6127>			0	6		true	1	1
+<file:///#bn6131>	true	<file:///#bn6132>	<file:///#bn6133>			0	7		true	1	1
+<file:///#bn6137>	true	<file:///#bn6138>	<file:///#bn6139>			0	8		true	1	1
+<file:///#bn6143>	true	<file:///#bn6144>	<file:///#bn6145>			0	9		true	1	1
+<file:///#bn6149>	true	<file:///#bn6150>	<file:///#bn6151>			0	10		true	1	1
+<file:///#bn6155>	true	<file:///#bn6156>	<file:///#bn6157>			0	6		true	1	1
+<file:///#bn6161>	true	<file:///#bn6162>	<file:///#bn6163>			0	7		true	1	1
+<file:///#bn6167>	true	<file:///#bn6168>	<file:///#bn6169>			0	8		true	1	1
+<file:///#bn6173>	true	<file:///#bn6174>	<file:///#bn6175>			0	9		true	1	1
+<file:///#bn6179>	true	<file:///#bn6180>	<file:///#bn6181>			0	10		true	1	1
+<file:///#bn6185>	true	<file:///#bn6186>	<file:///#bn6187>			0	7		true	1	1
+<file:///#bn6191>	true	<file:///#bn6192>	<file:///#bn6193>			0	8		true	1	1
+<file:///#bn6197>	true	<file:///#bn6198>	<file:///#bn6199>			0	9		true	1	1
+<file:///#bn6203>	true	<file:///#bn6204>	<file:///#bn6205>			0	10		true	1	1
+<file:///#bn6209>	true	<file:///#bn6210>	<file:///#bn6211>			0	8		true	1	1
+<file:///#bn6215>	true	<file:///#bn6216>	<file:///#bn6217>			0	9		true	1	1
+<file:///#bn6221>	true	<file:///#bn6222>	<file:///#bn6223>			0	10		true	1	1
+<file:///#bn6230>	true	<file:///#bn6231>	<file:///#bn6232>			1	0		true	0	0
+<file:///#bn6242>	true	<file:///#bn6243>	<file:///#bn6244>			0	4		true	1	1
+<file:///#bn6248>	true	<file:///#bn6249>	<file:///#bn6250>			0	5		true	1	1
+<file:///#bn6254>	true	<file:///#bn6255>	<file:///#bn6256>			0	6		true	1	1
+<file:///#bn6260>	true	<file:///#bn6261>	<file:///#bn6262>			0	7		true	1	1
+<file:///#bn6269>	true	<file:///#bn6270>	<file:///#bn6271>			1	0		true	0	0
+<file:///#bn6281>	true	<file:///#bn6282>	<file:///#bn6283>			0	4		true	1	1
+<file:///#bn6287>	true	<file:///#bn6288>	<file:///#bn6289>			0	5		true	1	1
+<file:///#bn6293>	true	<file:///#bn6294>	<file:///#bn6295>			0	6		true	1	1
+<file:///#bn6302>	true	<file:///#bn6303>	<file:///#bn6304>			1	0		true	0	0
+<file:///#bn6314>	true	<file:///#bn6315>	<file:///#bn6316>			0	4		true	1	1
+<file:///#bn6320>	true	<file:///#bn6321>	<file:///#bn6322>			0	5		true	1	1
+<file:///#bn6329>	true	<file:///#bn6330>	<file:///#bn6331>			1	0		true	0	0
+<file:///#bn6341>	true	<file:///#bn6342>	<file:///#bn6343>			0	4		true	1	1
+<file:///#bn6350>	true	<file:///#bn6351>	<file:///#bn6352>			1	0		true	0	0
+<file:///#bn6394>	true	<file:///#bn6395>	<file:///#bn6396>			4	0		true	0	0
+<file:///#bn6413>	true	<file:///#bn6414>	<file:///#bn6415>	true	true	?y	?y			0	0
+<file:///#bn6426>	true	<file:///#bn6427>	<file:///#bn6428>			4	0		true	0	0
+<file:///#bn6439>	true	<file:///#bn6440>	<file:///#bn6441>			4	2		true	0	0
+<file:///#bn6446>	true	<file:///#bn6447>	<file:///#bn6448>			3	3		true	0	0
+<file:///#bn6459>	true	<file:///#bn6460>	<file:///#bn6461>			3	1		true	0	0
+<file:///#bn6472>	true	<file:///#bn6473>	<file:///#bn6474>			3	3		true	0	0
+<file:///#bn2428>	true	<file:///#bn2429>	<file:///#bn2430>			1	0		true	0	0
+<file:///#bn2440>	true	<file:///#bn2441>	<file:///#bn2442>			0	4		true	1	1
+<file:///#bn2446>	true	<file:///#bn2447>	<file:///#bn2448>			0	5		true	1	1
+<file:///#bn2455>	true	<file:///#bn2456>	<file:///#bn2457>			1	0		true	0	0
+<file:///#bn2467>	true	<file:///#bn2468>	<file:///#bn2469>			0	4		true	1	1
+<file:///#bn2476>	true	<file:///#bn2477>	<file:///#bn2478>			1	0		true	0	0
+<file:///#bn2520>	true	<file:///#bn2521>	<file:///#bn2522>			4	0		true	0	0
+<file:///#bn2546>	true	<file:///#bn2547>	<file:///#bn2548>			5	1		true	0	0
+<file:///#bn2584>	true	<file:///#bn2585>	<file:///#bn2586>	true	true	?y	?y			0	0
+<file:///#bn2597>	true	<file:///#bn2598>	<file:///#bn2599>			6	4		true	0	0
+<file:///#bn2610>	true	<file:///#bn2611>	<file:///#bn2612>			5	1		true	0	0
+<file:///#bn2623>	true	<file:///#bn2624>	<file:///#bn2625>			5	3		true	0	0
+<file:///#bn2636>	true	<file:///#bn2637>	<file:///#bn2638>			4	0		true	0	0
+<file:///#bn2649>	true	<file:///#bn2650>	<file:///#bn2651>			4	2		true	0	0
+<file:///#bn2656>	true	<file:///#bn2657>	<file:///#bn2658>			3	3		true	0	0
+<file:///#bn2669>	true	<file:///#bn2670>	<file:///#bn2671>			3	1		true	0	0
+<file:///#bn2682>	true	<file:///#bn2683>	<file:///#bn2684>			3	3		true	0	0
+<file:///#bn2694>	true	<file:///#bn2695>	<file:///#bn2696>			0	4		true	1	1
+<file:///#bn2700>	true	<file:///#bn2701>	<file:///#bn2702>			0	5		true	1	1
+<file:///#bn2706>	true	<file:///#bn2707>	<file:///#bn2708>			0	6		true	1	1
+<file:///#bn2712>	true	<file:///#bn2713>	<file:///#bn2714>			0	7		true	1	1
+<file:///#bn2718>	true	<file:///#bn2719>	<file:///#bn2720>			0	8		true	1	1
+<file:///#bn2724>	true	<file:///#bn2725>	<file:///#bn2726>			0	9		true	1	1
+<file:///#bn2730>	true	<file:///#bn2731>	<file:///#bn2732>			0	10		true	1	1
+<file:///#bn2736>	true	<file:///#bn2737>	<file:///#bn2738>			0	5		true	1	1
+<file:///#bn2742>	true	<file:///#bn2743>	<file:///#bn2744>			0	6		true	1	1
+<file:///#bn2748>	true	<file:///#bn2749>	<file:///#bn2750>			0	7		true	1	1
+<file:///#bn2754>	true	<file:///#bn2755>	<file:///#bn2756>			0	8		true	1	1
+<file:///#bn2760>	true	<file:///#bn2761>	<file:///#bn2762>			0	9		true	1	1
+<file:///#bn2766>	true	<file:///#bn2767>	<file:///#bn2768>			0	10		true	1	1
+<file:///#bn2772>	true	<file:///#bn2773>	<file:///#bn2774>			0	6		true	1	1
+<file:///#bn2778>	true	<file:///#bn2779>	<file:///#bn2780>			0	7		true	1	1
+<file:///#bn2784>	true	<file:///#bn2785>	<file:///#bn2786>			0	8		true	1	1
+<file:///#bn2790>	true	<file:///#bn2791>	<file:///#bn2792>			0	9		true	1	1
+<file:///#bn2796>	true	<file:///#bn2797>	<file:///#bn2798>			0	10		true	1	1
+<file:///#bn2802>	true	<file:///#bn2803>	<file:///#bn2804>			0	7		true	1	1
+<file:///#bn2808>	true	<file:///#bn2809>	<file:///#bn2810>			0	8		true	1	1
+<file:///#bn2814>	true	<file:///#bn2815>	<file:///#bn2816>			0	9		true	1	1
+<file:///#bn2820>	true	<file:///#bn2821>	<file:///#bn2822>			0	10		true	1	1
+<file:///#bn2829>	true	<file:///#bn2830>	<file:///#bn2831>			1	0		true	0	0
+<file:///#bn2841>	true	<file:///#bn2842>	<file:///#bn2843>			0	4		true	1	1
+<file:///#bn2847>	true	<file:///#bn2848>	<file:///#bn2849>			0	5		true	1	1
+<file:///#bn2853>	true	<file:///#bn2854>	<file:///#bn2855>			0	6		true	1	1
+<file:///#bn2862>	true	<file:///#bn2863>	<file:///#bn2864>			1	0		true	0	0
+<file:///#bn2874>	true	<file:///#bn2875>	<file:///#bn2876>			0	4		true	1	1
+<file:///#bn2880>	true	<file:///#bn2881>	<file:///#bn2882>			0	5		true	1	1
+<file:///#bn2889>	true	<file:///#bn2890>	<file:///#bn2891>			1	0		true	0	0
+<file:///#bn2901>	true	<file:///#bn2902>	<file:///#bn2903>			0	4		true	1	1
+<file:///#bn2910>	true	<file:///#bn2911>	<file:///#bn2912>			1	0		true	0	0
+<file:///#bn2954>	true	<file:///#bn2955>	<file:///#bn2956>			4	0		true	0	0
+<file:///#bn2980>	true	<file:///#bn2981>	<file:///#bn2982>			5	1		true	0	0
+<file:///#bn3018>	true	<file:///#bn3019>	<file:///#bn3020>	true	true	?y	?y			0	0
+Total results: 10647, displaying 1-256   per page ? Page 
+1
+ of 42  ?
+ Show datatypes   Show languages
+Time	Query	Results	Execution Time	Delete
+2018-09-25T00:02:03.098Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+      OPTIONAL {?x kbdbg:failed ?failed}.
+      ?x kbdbg:has_source ?source.
+      ?x kbdbg:has_target ?target.
+      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+      OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+      ?source kbdbg:term_idx ?source_term_idx.
+      ?target kbdbg:term_idx ?target_term_idx.
+      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+}	10647	2sec, 927ms	X
+2018-09-25T00:01:51.628Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+      OPTIONAL {?x kbdbg:failed ?failed}.
+      ?x kbdbg:has_source ?source.
+      ?x kbdbg:has_target ?target.
+      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+      OPTIONAL {??target kbdbg:is_bnode ?target_is_bnode.}.
+      ?source kbdbg:term_idx ?source_term_idx.
+      ?target kbdbg:term_idx ?target_term_idx.
+      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+}		Running...	X
+2018-09-24T23:58:18.554Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+      OPTIONAL {?x kbdbg:failed ?failed}.
+      ?x kbdbg:has_source ?source.
+      ?x kbdbg:has_target ?target.
+      ?source kbdbg:is_bnode ?source_is_bnode.
+      ?target kbdbg:is_bnode ?target_is_bnode.
+      ?source kbdbg:term_idx ?source_term_idx.
+      ?target kbdbg:term_idx ?target_term_idx.
+      OPTIONAL {
+        ?source kbdbg:is_in_head ?source_is_in_head.
+        ?target kbdbg:is_in_head ?target_is_in_head.
+      }.
+      OPTIONAL {
+        ?source kbdbg:arg_idx ?source_arg_idx.
+        ?target kbdbg:arg_idx ?target_arg_idx.
+      }    
+}	256	1sec, 779ms	X
+2018-09-24T23:51:54.627Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      
+}	26543	1sec, 61ms	X
+2018-09-24T23:51:43.571Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:bindig.
+      
+}	0	74ms	X
+2018-09-24T23:29:20.077Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?name ?value
+{
+ <file:///#bn66544> rdf:rest*/rdf:first ?item. ?item kbdbg:has_name ?name. ?item kbdbg:has_value ?value.
+
+}
+9	227ms	X
+2018-09-24T23:27:55.590Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item 
+{
+ <file:///#bn66544> rdf:rest*/rdf:first ?item.
+
+}
+9	207ms	X
+2018-09-24T23:26:56.478Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ ?list rdf:rest*/rdf:first ?item.
+ VALUES ?list 
+ {
+    <file:///#bn66544>
+
+
+
+ }
+ 
+}
+9	114ms	X
+2018-09-24T23:26:46.632Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ ?list rdf:rest*/rdf:first ?item.
+ VALUES ?list 
+ {
+        <file:///#bn101741>
+
+
+ }
+ 
+}
+3	109ms	X
+2018-09-24T23:26:25.769Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ ?list rdf:rest*/rdf:first ?item.
+ VALUES ?list 
+ {
+    <file:///#bn93769>
+
+ }
+ 
+}
+9	250ms	X
+2018-09-24T23:25:00.534Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ ?list rdf:rest*/rdf:first ?item.
+ VALUES ?list 
+ {
+    <file:///#bn93769>
+    <file:///#bn101741>
+ }
+ 
+}
+1634	20sec, 762ms	X
+2018-09-24T23:20:56.237Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ ?list rdf:rest*/rdf:first ?item.
+ VALUES ?list 
+ {
+    <file:///#bn489>            
+    <file:///#bn797>
+    <file:///#bn1048>
+    <file:///#bn4555>
+    <file:///#bn23467>
+    <file:///#bn44011>
+    <file:///#bn66544>
+    <file:///#bn93769>
+    <file:///#bn101741>
+ }
+ 
+}
+45205	1min, 36sec, 914ms	X
+2018-09-24T23:13:51.973Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+{
+ VALUES ?list 
+ {
+    <file:///#bn489>            
+    <file:///#bn797>
+    <file:///#bn1048>
+    <file:///#bn4555>
+    <file:///#bn23467>
+    <file:///#bn44011>
+    <file:///#bn66544>
+    <file:///#bn93769>
+    <file:///#bn101741>
+ }
+ ?list rdf:rest*/rdf:first ?item.     
+}
+45549	1min, 38sec, 203ms	X
+2018-09-24T23:12:08.544Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item WHERE
+VALUES ?list { <file:///#bn489>
+              
+<file:///#bn797>
+<file:///#bn1048>
+<file:///#bn4555>
+<file:///#bn23467>
+<file:///#bn44011>
+<file:///#bn66544>
+<file:///#bn93769>
+<file:///#bn101741>
+}
+	  ?list rdf:rest*/rdf:first ?item.
+      
+}
+Running...	X
+2018-09-24T23:11:31.982Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item 
+VALUES ?list { <file:///#bn489>
+              
+<file:///#bn797>
+<file:///#bn1048>
+<file:///#bn4555>
+<file:///#bn23467>
+<file:///#bn44011>
+<file:///#bn66544>
+<file:///#bn93769>
+<file:///#bn101741>
+}
+WHERE
+{
+	  ?list rdf:rest*/rdf:first ?item.
+      
+}
+Running...	X
+2018-09-24T23:11:14.201Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+VALUES ?list { <file:///#bn489>
+              
+<file:///#bn797>
+<file:///#bn1048>
+<file:///#bn4555>
+<file:///#bn23467>
+<file:///#bn44011>
+<file:///#bn66544>
+<file:///#bn93769>
+<file:///#bn101741>
+}
+select ?list ?item WHERE
+{
+	  ?list rdf:rest*/rdf:first ?item.
+      
+}
+Running...	X
+2018-09-24T23:07:26.007Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?list ?item WHERE
+{
+	  ?list rdf:rest*/rdf:first ?item.
+      
+}
+VALUES ?list (<file:///#bn489>
+<file:///#bn797>
+<file:///#bn1048>
+<file:///#bn4555>
+<file:///#bn23467>
+<file:///#bn44011>
+<file:///#bn66544>
+<file:///#bn93769>
+<file:///#bn101741>
+)	45351	2min, 35sec, 132ms	X
+2018-09-24T23:01:47.073Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?items WHERE
+{
+	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+  
+}
+ORDER BY (?strg)	9	505ms	X
+2018-09-24T23:01:17.594Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  <file:///#bn489> rdf:rest*/rdf:first ?item.
+      
+}	9	255ms	X
+2018-09-24T22:57:12.792Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+      ?items rdf:rest*/rdf:first ?item.
+  
+}
+ORDER BY (?strg)	75	1sec, 260ms	X
+2018-09-24T22:48:45.051Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  <file:///#bn489> (rdf:rest*/rdf:first)* ?item.
+      
+}		Running...	X
+2018-09-24T22:43:06.824Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  ?x kbdbg:has_items ?item.
+      
+}	3282	1sec, 313ms	X
+2018-09-24T22:42:21.879Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  <:bn489> (rdf:rest*/rdf:first) ?item.
+      
+}	0	109ms	X
+2018-09-24T22:25:42.598Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  <:bn489> (rdf:rest*/rdf:first)* ?item.
+      
+}		Running...	X
+2018-09-24T22:04:50.154Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select ?item WHERE
+{
+	  <http://kbd.bg/Rule11Frame48_locals> (rdf:rest*/rdf:first)* ?item.
+      
+}		Running...	X
+2018-09-24T22:03:44.915Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  <http://kbd.bg/Rule11Frame48_locals> (rdf:rest*/rdf:first)* ?item.
+      
+}		Running...	X
+2018-09-24T22:02:35.518Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  <http://kbd.bg/Rule11Frame48_locals> ?items (rdf:rest*/rdf:first)* ?item.
+      
+}		Running...	X
+2018-09-24T22:02:11.778Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  <http://kbd.bg/Rule11Frame48_locals> ?items (rdf:rest*/rdf:first)* ?item.
+      
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T22:01:23.938Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {<http://kbd.bg/Rule11Frame48_locals> ?items (rdf:rest*/rdf:first)* ?item}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T22:01:03.074Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {<http://kbd.bg/Rule11Frame48_locals> ?items (rdf:rest*/rdf:first)* ?item.}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T21:58:59.111Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)	9	2sec, 769ms	X
+2018-09-24T21:12:45.363Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+  	  ?items (rdf:rest*/rdf:first)* ?item.
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T21:09:24.717Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?X kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?X kbdbg:has_items ?items.
+}
+ORDER BY (?strg)	9	544ms	X
+2018-09-24T21:05:05.409Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?X kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      #?X kbdbg:has_items ?items.
+}
+ORDER BY (?strg)	9	1sec, 996ms	X
+2018-09-24T21:03:43.776Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      #?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T21:03:31.754Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      #?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      #?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)	0	753ms	X
+2018-09-24T21:00:55.425Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T20:56:08.065Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:bnode}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000084242").
+      ?x kbdbg:has_parent ?parent.
+  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
+      ?x kbdbg:has_items ?items.
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:47:09.840Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000084242").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)	30	312ms	X
+2018-09-24T19:45:25.176Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+describe ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080002").
+      #OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:44:17.418Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+describe ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000080242").
+      #OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:43:54.264Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+describe ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000084242").
+      #OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:41:21.457Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004242").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
+}
+ORDER BY (?strg)	11	250ms	X
+2018-09-24T19:40:29.298Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000001").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	51ms	X
+2018-09-24T19:40:22.218Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000010").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	56ms	X
+2018-09-24T19:40:15.145Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	54ms	X
+2018-09-24T19:40:07.506Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000002020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	108ms	X
+2018-09-24T19:39:26.601Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished ?f. 
+}
+ORDER BY (?strg)	959	916ms	X
+2018-09-24T19:39:00.895Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false. 
+}
+ORDER BY (?strg)	0	54ms	X
+2018-09-24T19:38:50.562Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+  	  ?X kbdbg:is_finished false}. 
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:38:21.014Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020").
+      OPTIONAL {?X kbdbg:has_parent ?parent}. 
+}
+ORDER BY (?strg)	970	728ms	X
+2018-09-24T19:38:10.022Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. OPTIONAL {?X kbdbg:has_parent ?y}. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	970	795ms	X
+2018-09-24T19:36:19.398Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}. OPTIONAL {?X kbdbg:has_parent ?y}. ?X kbdbg:is_finished false. 
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	0	48ms	X
+2018-09-24T19:33:30.754Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame. OPTIONAL {?X kbdbg:has_parent ?y}. ?X kbdbg:is_finished false. }.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)		Running...	X
+2018-09-24T19:28:43.014Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000004020")
+}
+ORDER BY (?strg)	970	753ms	X
+2018-09-24T19:24:46.147Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020")
+}
+ORDER BY (?strg)	8	839ms	X
+2018-09-24T19:14:10.382Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+DESCRIBE ?x WHERE
+{
+	  GRAPH ?g {?X rdf:type kbdbg:frame}.
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, "http")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < "0000000020")
+}
+ORDER BY (?strg)	635869	1min, 19sec, 477ms	X
+2018-09-24T19:10:38.782Z	SELECT * WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	635869	13sec, 575ms	X
+2018-09-24T17:46:14.629Z	CONSTRUCT {?s ?p ?o ?g} WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )		Running...	X
+2018-09-24T17:45:42.251Z	CONSTRUCT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )		Running...	X
+2018-09-24T17:42:14.991Z	SELECT ?s ?p ?o ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	635869	9sec, 641ms	X
+2018-09-24T17:34:47.949Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDER BY DESC(?g  )	42441	340ms	X
+2018-09-24T17:34:16.366Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY DESCENDING ?g 		Running...	X
+2018-09-24T17:34:08.838Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g DESCEND		Running...	X
+2018-09-24T17:34:03.950Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g DESCENDING		Running...	X
+2018-09-24T17:33:50.750Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}
+ORDERBY ?g	42441	435ms	X
+2018-09-24T17:33:39.863Z	SELECT DISTINCT ?g WHERE { GRAPH ?g {?s ?p ?o}}	42441	1sec, 428ms	X
+2018-09-24T11:41:52.040Z	SELECT * WHERE { GRAPH ?g {?s ?p ?o}}	635869	14sec, 442ms	X
+2018-09-23T19:43:47.745Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  <http://kbd.bg/run2018-09-23-16-50-08-130345_0000000001_list_item> 
+  (rdf:rest*/rdf:first)* ?label
+}		Running...	X
+2018-09-23T19:41:54.876Z	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+select * where {
+  ?x kbdbg:is ?label
+}	1	106ms	X
+Clear history
+Export  Clear
+Blazegraph - Wiki

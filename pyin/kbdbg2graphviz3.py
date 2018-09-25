@@ -1,4 +1,4 @@
-ORDER BY #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -51,8 +51,13 @@ arrow_width = 1
 border_width = 1
 
 
-
 stats = SortedList(key=lambda x: -x[0])
+
+prefixes = """
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+PREFIX : <file:///#> 
+"""
 
 
 def profile(func, args=(), note=''):
@@ -62,6 +67,9 @@ def profile(func, args=(), note=''):
 	stats.add((end - start, func, args, note))
 	return r
 
+
+def query(q):
+	return profile(sparql_server.query, (prefixes+q,))
 
 
 def get_last_bindings(step):
@@ -122,23 +130,10 @@ class Emitter:
 		root_frame = None
 		#current_result = None
 
-
-				"""
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-		PREFIX kbdbg: <http://kbd.bg/#> 
-		
-		select * WHERE
-		{
-			  GRAPH ?g {?X rdf:type kbdbg:frame}. 
-			  BIND  (STR(?g) AS ?strg).
-			  FILTER (STRSTARTS(?strg, "http")).
-			  BIND  (STRAFTER(?strg, "_") AS ?step).
-			  FILTER (?step < "0000084242").
-			  OPTIONAL {?X kbdbg:has_parent ?parent}. 
-			  FILTER NOT EXISTS {?X kbdbg:is_finished true}. 
-		}
-		#ORDER BY (?strg)
-		"""
+		print(query("SELECT GRAPH ?g {?x rdf:type kbdbg:frame}." + step_magic() +
+			  """OPTIONAL {?x kbdbg:has_parent ?parent}. 
+			  FILTER NOT EXISTS {?x kbdbg:is_finished true}."""))
+		exit()
 
 		rrr = list(subjects(RDF.type, kbdbg.frame))
 		last_frame = None
@@ -225,7 +220,30 @@ select ?name ?value
 		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
-		"""one step with was_unbound and failed and has_source & has_target and their is_bnode's """
+		"""
+		
+		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX kbdbg: <http://kbd.bg/#> 
+
+select * 
+{
+	  ?x rdf:type kbdbg:binding.
+      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
+      #FILTER NOT EXISTS {?x kbdbg:failed true}.
+      OPTIONAL {?x kbdbg:failed ?failed}.
+      ?x kbdbg:has_source ?source.
+      ?x kbdbg:has_target ?target.
+      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+      OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+      ?source kbdbg:term_idx ?source_term_idx.
+      ?target kbdbg:term_idx ?target_term_idx.
+      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+}
+		
+		"""
 		for binding in subjects(RDF.type, kbdbg.binding):
 			weight = 1
 			source_uri = value(binding, kbdbg.has_source)
@@ -395,17 +413,15 @@ def emit_terms( tag, text, uri, is_head):
 
 
 
+def step_magic():
+	return """
+	  BIND  (STR(?g) AS ?strg).
+	  FILTER (STRSTARTS(?strg, """+'"'+graph_name_start+'"'+""")).
+	  BIND  (STRAFTER(?strg, "_") AS ?step).
+	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
+	"""
 
 
-def triples(spo):
-	spo2=[]
-	for i,x in enumerate(spo):
-		if x == None:
-			spo2.append('?x'+str(i))
-		else:
-			spo2.append(x.n3())
-
-	"""RDR?"""
 	query_str = """
 	SELECT * WHERE  {
 	  GRAPH ?g {"""+" ".join(spo2)+"""}.
@@ -600,3 +616,4 @@ if __name__ == '__main__':
 
 #from IPython import embed;embed()
 
+#"""RDR?"""

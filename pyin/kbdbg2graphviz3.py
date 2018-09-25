@@ -68,9 +68,32 @@ def profile(func, args=(), note=''):
 	return r
 
 
-def query(q):
-	return profile(sparql_server.query, (prefixes+q,))
+def query(vars, q):
+	if isinstance(vars, str):
+		vars = (vars,)
+	q = 'SELECT '+' '.join('?'+x for x in vars)+' ' + q
+	log(q)
+	for i in profile(sparql_server.query, (prefixes+q,))['results']['bindings']:
+		r = {}
+		for k in vars:
+			if k in i:
+				v = i[k]
+				if v['type'] == 'uri':
+					r[k] = v['value']
+				else:
+					raise v
+			else:
+				r[k] = None
+		if len(vars) == 1:
+			yield r[k]
+		else:
+			yield r
 
+def query_one(vars, q):
+	l = list(query(vars, q))
+	if len(l) != 1:
+		raise 666
+	return l[0]
 
 def get_last_bindings(step):
 	log ('get last bindings...' + '[' + str(step) + ']')
@@ -122,24 +145,13 @@ class Emitter:
 	def comment(s, text):
 		s.gv('//'+text)
 
-	def generate_gv_image(s):
-		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;
-		#gv("pack=true")
-
+	def generate_gv_image(s, frames_list):
+		s.gv("digraph frame"+str(s.step) + "{  ")#splines=ortho;#gv("pack=true")
 		log ('frames.. ' + '[' + str(s.step) + ']')
 		root_frame = None
 		#current_result = None
-
-		print(query("SELECT GRAPH ?g {?x rdf:type kbdbg:frame}." + step_magic() +
-			  """OPTIONAL {?x kbdbg:has_parent ?parent}. 
-			  FILTER NOT EXISTS {?x kbdbg:is_finished true}."""))
-		exit()
-
-		rrr = list(subjects(RDF.type, kbdbg.frame))
 		last_frame = None
-		for i, frame in enumerate(rrr):
-			if value(frame, kbdbg.is_finished, default=False):
-				continue
+		for i, frame in enumerate(frames_list):
 			f, text = s.get_frame_gv(i, frame)
 			s.gv(f + text)
 			#if last_frame:
@@ -311,30 +323,30 @@ select *
 			port = port_name(is_in_head, term_idx, arg_idx)
 			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" +port
 
-	def get_frame_gv(s, i, frame):"""pass parent here"""
+	def get_frame_gv(s, i, frame):#"""pass parent here"""
 		r = ' [shape=none, margin=0, '
 		isroot = False
-		if not value(frame, kbdbg.has_parent):
+		if not frame['parent']:
 			r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
 			isroot = True
 		return gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame, isroot) + ">]"
 
 
 	def get_frame_html_label(s, frame, isroot):
-		rule = value(frame, kbdbg.is_for_rule)"""get also rule up there"""
+		rule = kbdbg['is_for_rule']
 		params = (rule, isroot)
 		try:
 			template = s.frame_templates[params]
 		except KeyError:
 			template = s._get_frame_html_label(*params)
 			s.frame_templates[params] = template
-		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame.n3())))
+		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame['frame'])))
 
 	@staticmethod
 	def _get_frame_html_label(rule, isroot):
-
+			rule_data = query_one(('head','body'),
+						'<'+rule+'> kbdbg:has_original_head ?head. <'+rule+'> kbdbg:has_body ?body.')
 			doc, tag, text = yattag.Doc().tagtext()
-
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
 					with tag('td', border=border_width):
@@ -343,21 +355,12 @@ select *
 						text(frame_name_template_var_name)
 					with tag("td", border=border_width):
 						text("{")
-					emit_terms(tag, text, value(rule, kbdbg.has_original_head), True)
+					emit_terms(tag, text, rule_data['head'], True)
 					with tag("td", border=border_width):
 						text("} <= {")
-
-					body_items_list_name = value(rule, kbdbg.has_body)
-					"""get also head and body there"""
-					if body_items_list_name:
-						body_items_list = profile(list, (Collection(step_graph, body_items_list_name),))
-						term_idx = 0
-						for body_item in body_items_list:
-							emit_term(tag, text, False, term_idx, body_item)
-							term_idx += 1
+						emit_terms(tag, text, rule_data['body'], False)
 					with tag("td", border=border_width):
 						text('}')
-			#todo print a table of variables, because showing bindings directly between args of triples is misleading? is it?
 			return doc.getvalue()
 
 	def arrow(s,x,y,color='black',weight=1, binding=False):
@@ -405,6 +408,7 @@ def emit_term(tag, text, is_in_head, term_idx, term):
 			text(').')
 
 def emit_terms( tag, text, uri, is_head):
+	if uri == None: return
 
 	"""collect in one query"""
 	items = profile(list, (Collection(step_graph, uri),))
@@ -421,73 +425,6 @@ def step_magic():
 	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
 	"""
 
-
-	query_str = """
-	SELECT * WHERE  {
-	  GRAPH ?g {"""+" ".join(spo2)+"""}.
-	  BIND  (STR(?g) AS ?strg).
-	  FILTER (STRSTARTS(?strg, """+'"'+graph_name_start+'"'+""")).
-	  BIND  (STRAFTER(?strg, "_") AS ?step).
-	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
-	}
-	#ORDER BY (?strg)
-	"""
-	log(query_str)
-	r=profile(sparql_server.query, (query_str,))
-	log('results:')
-	log(str(r))
-	log('.')
-	bb = r['results']['bindings']
-	results = []
-	for b in bb:
-		bbb=[]
-		for i,x in enumerate(spo):
-			if x == None:
-				bbb.append(node_from_result(b['x'+str(i)]))
-		results.append(bbb)
-	return results
-
-def node_from_result(node):
-	if node['type'] == 'bnode':
-		return BNode(node['value'])
-	elif node['type'] == 'uri':
-		return URIRef(node['value'])
-	elif node['type'] == 'literal':
-		value = node['value']# if node.value is not None else ''
-		#if 'datatype' in node.attrib:
-		#    dt = URIRef(node.attrib['datatype'])
-		#    return Literal(value, datatype=dt)
-		#elif '{http://www.w3.org/XML/1998/namespace}lang' in node.attrib:
-		#    return Literal(value, lang=node.attrib[
-		#        "{http://www.w3.org/XML/1998/namespace}lang"])
-		#else:
-		return Literal(value)
-	else:
-		raise Exception('Unknown answer type')
-
-def subjects(p,o):
-	for x in triples((None, p, o)):
-		yield x[0]
-
-def objects(s, p):
-	for x in triples((s, p, None)):
-		yield x[0]
-
-def value(subject=None, predicate=RDF.value, object=None,
-              default=None, any=True):
-	t = triples((subject, predicate, object))
-	if len(t) == 0:
-		if default != None:
-			return default
-		else:
-			return None
-	else:
-		if len(t) > 1:
-			if not any:
-				raise RuntimeError('duplicate values')
-		return t[0][0]
-
-
 futures = []
 global_start = None
 
@@ -496,41 +433,54 @@ global_start = None
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--workers', type=click.IntRange(0, 65536), default=32)
 def run(start, end, workers):
-	global global_start, graph_name_start
+	global global_start, graph_name_start, sparql_server
 	global_start = start
+	sparql_server = sparql.SPARQLServer(sparql_uri)
 
 	redis_fn = redislite.Redis().db
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
 
-	runs_graph = Graph(sparqlstore.SPARQLStore(sparql_uri), default_graph)
-	graph_name_start = runs_graph.value(kbdbg.latest, kbdbg['is'], any=False).toPython()
+	graph_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
 	identification = fix_up_identification(graph_name_start)
-
+	graph_list_position = graph_name_start
 	step_to_submit = -1
-
-	for step_graph_uri in profile(list,(Collection(runs_graph, URIRef(graph_name_start)),)):
-		step_to_submit+=1
-		if step_to_submit < start - 1:
-			log ("skipping ["+str(step_to_submit) + ']')
-			continue
-		if step_to_submit > end and end != -1:
-			log ("ending")
-			break
-
-		args = (identification, step_graph_uri, step_to_submit, redis_fn)
-		if not workers:
-			work(*args)
-		else:
-			log('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
-			if len(futures) > workers:
-				time.sleep(len(futures) - workers)
-			fut = worker_pool.submit(work, *args)
-			fut.step = step_to_submit
-			futures.append(fut)
-			log('submitted ' )
-			check_futures()
-		log('loop ' )
+	while True:
+		step_graph_positions = list(query(('to','item'),
+			"""WHERE {{    
+			SELECT ?to WHERE {
+			SERVICE bd:alp { 
+			<"""+graph_name_start+"""> rdf:rest ?to. 
+			hint:Prior hint:alp.pathExpr true .
+			hint:Group hint:alp.lowerBound 0 .
+			hint:Group hint:alp.upperBound 100 .
+			}}}
+			?to rdf:first ?item.
+			}"""))
+		if len(step_graph_positions) == 0: break
+		graph_list_position = step_graph_positions[-1]['to']
+		for rrr in step_graph_positions:
+			step_graph_uri = rrr['item']
+			step_to_submit+=1
+			if step_to_submit < start - 1:
+				log ("skipping ["+str(step_to_submit) + ']')
+				continue
+			if step_to_submit > end and end != -1:
+				log ("ending")
+				break
+			args = (identification, step_graph_uri, step_to_submit, redis_fn)
+			if not workers:
+				work(*args)
+			else:
+				log('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+				if len(futures) > workers:
+					time.sleep(len(futures) - workers)
+				fut = worker_pool.submit(work, *args)
+				fut.step = step_to_submit
+				futures.append(fut)
+				log('submitted ' )
+				check_futures()
+			log('loop ' )
 
 	if workers:
 		worker_pool.shutdown()
@@ -553,7 +503,12 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
 
-	if list(subjects(RDF.type, kbdbg.frame)) == []:
+	frames_list = list(query(('frame','parent', 'is_for_rule'), "{GRAPH ?g {?frame rdf:type kbdbg:frame}." + step_magic() +
+	"""OPTIONAL {?frame kbdbg:has_parent ?parent}.
+	?frame kbdbg:is_for_rule ?is_for_rule. 
+	FILTER NOT EXISTS {?frame kbdbg:is_finished true}.}"""))
+
+	if len(frames_list) == 0:
 		log('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])
 		return
@@ -567,7 +522,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	gv_output_file = open(gv_output_file_name, 'w')
 	e = Emitter(gv_output_file, step)
-	e.generate_gv_image()
+	e.generate_gv_image(frames_list)
 	gv_output_file.close()
 
 	if (step == global_start - 1):

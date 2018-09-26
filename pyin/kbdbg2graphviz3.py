@@ -68,6 +68,10 @@ def profile(func, args=(), note=''):
 	return r
 
 
+def fetch_list(vars, list_uri, additional):
+	return query(vars, 'WHERE {<'+list_uri+'> rdf:rest*/rdf:first ?item.' +
+				 additional + '}')
+
 def query(vars, q):
 	if isinstance(vars, str):
 		vars = (vars,)
@@ -86,9 +90,12 @@ def query(vars, q):
 			else:
 				r[k] = None
 		if len(vars) == 1:
-			yield r[k]
+			rrrr= r[k]
 		else:
-			yield r
+			rrrr = r
+		log(rrrr)
+		yield rrrr
+
 
 def query_one(vars, q):
 	l = list(query(vars, q))
@@ -148,11 +155,12 @@ class Emitter:
 
 	def generate_gv_image(s, frames_list):
 		log ('frames.. ' + '[' + str(s.step) + ']')
-		log(str(frames_list))
+		#log(str(frames_list))
 		root_frame = None
 		#current_result = None
 		last_frame = None
 		for i, frame in enumerate(frames_list):
+			log(frame)
 			f, text = s.get_frame_gv(i, frame)
 			s.gv(f + text)
 			#if last_frame:
@@ -166,67 +174,48 @@ class Emitter:
 			#if i == 0 and current_result:
 			#	arrow(result_node, f)
 
-		return
-
-
-
 
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
-		if s.step == 51:
-			print ('eeee')
-		"""get with non_finished parents, has_items
-		
-		
-		
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
 
-select * WHERE
-{
-	  GRAPH ?g {?x rdf:type kbdbg:bnode}.
-	  BIND  (STR(?g) AS ?strg).
-	  FILTER (STRSTARTS(?strg, "http://kbd.bg/run2018-09-23-16-50-08-130345")).
-	  BIND  (STRAFTER(?strg, "_") AS ?step).
-	  FILTER (?step < "0000080002").
-      ?x kbdbg:has_parent ?parent.
-  	  FILTER NOT EXISTS {?parent kbdbg:is_finished true}.
-      ?x kbdbg:has_items ?items.
-}
-#ORDER BY (?strg)
-				
-		"""
+		bnode_list = list(query(('bnode','parent', 'items'),
+		"""WHERE
+		{
+			{
+				SELECT (?frame AS ?parent) WHERE
+				{
+					GRAPH ?g {
+						?frame rdf:type kbdbg:frame
+					}.""" + step_magic() + """
+					FILTER NOT EXISTS {
+						GRAPH ?gg 
+						{
+							?frame kbdbg:is_finished true
+						}.""" + step_magic('gg') + """
+					}
+				}
+			}
+			?bnode kbdbg:has_parent ?frame.
+			?bnode kbdbg:has_items ?items.
+		}"""))
 
-
-
-		for bnode in subjects(RDF.type, kbdbg.bnode):
-			parent = value(bnode, kbdbg.has_parent)
-			if value(parent, kbdbg.is_finished, default=False):
-				continue
+		for bnode_data in bnode_list:
+			bnode, parent, items_uri  = bnode_data['bnode'],bnode_data['parent'],bnode_data['items']
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
-				#for i in Collection(g, bnode):
 				with tag('tr'):
 					with tag('td', border=1):
-						text((shorten(bnode.n3())))
-				"""				
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
-
-select ?name ?value
-{
- <file:///#bn66544> rdf:rest*/rdf:first ?item. ?item kbdbg:has_name ?name. ?item kbdbg:has_value ?value.
-}
-				
-				"""
-				c1 = profile(list, (Collection(step_graph,items),))
-				for i in c1:
+						text(shorten(bnode))
+				items = fetch_list(('item','name','value'), items_uri,
+					"""	?item kbdbg:has_name ?name.
+                		?item kbdbg:has_value ?value.""")
+				for i in items:
 					with tag('tr'):
-						name = value(i, kbdbg.has_name)
+						name = i['name']
 						pn = gv_escape(name)
 						with tag("td", border=1, port=pn):
 							text(shorten(name))
 							text(' = ')
-							text(shorten(value(i, kbdbg.has_value)))
+							text(shorten(i['value']))
 						#with tag("td", border=1):
 						#	text(shorten(g.value(i, kbdbg.has_value)))
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
@@ -537,7 +526,6 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		OPTIONAL {?frame kbdbg:has_parent ?parent}.
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
-	log(frames_list)
 	if len(frames_list) == 0:
 		log('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])

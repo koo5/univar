@@ -221,13 +221,19 @@ class Emitter:
 
 		new_last_bindings = []
 		for binding_data in query(
-				('x','source','target','source_is_bnode','target_is_bnode','unbound','failed'
+				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
+				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
+				'source_arg_idx','target_arg_idx','unbound','failed')
 
 		,"""WHERE 
 		{
 		?x rdf:type kbdbg:binding.
-		OPTIONAL {?x kbdbg:was_unbound ?unbound}.
-		OPTIONAL {?x kbdbg:failed ?failed}.
+		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound ?unbound}.
+		"""+step_magic('binding_unbound ')+"""
+		}.
+		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed ?failed}
+		"""+step_magic('binding_failed ')+"""
+		}.
 		?x kbdbg:has_source ?source.
 		?x kbdbg:has_target ?target.
 		?source kbdbg:has_frame ?source_frame.
@@ -243,23 +249,36 @@ class Emitter:
 		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""):
+			binding = binding_data['x']
 			weight = 1
 			source_uri = binding_data['source']
 			target_uri = binding_data['target']
 			if binding_data['source_is_bnode'] and binding_data['target_is_bnode']:
 				weight = 0
+			source_endpoint = s.gv_endpoint(
+				binding_data['source_frame'],
+				binding_data['source_is_bnode'],
+				binding_data['source_is_in_head'],
+				binding_data['source_term_idx'],
+				binding_data['source_arg_idx'])
+			target_endpoint = s.gv_endpoint(
+				binding_data['target_frame'],
+				binding_data['target_is_bnode'],
+				binding_data['target_is_in_head'],
+				binding_data['target_term_idx'],
+				binding_data['target_arg_idx'])
 			if binding_data['unbound']:
 				if binding in last_bindings:
 					s.comment("just unbound binding")
-					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', weight=weight, binding=True)
+					s.arrow(source_endpoint, target_endpoint, color='orange', weight=weight, binding=True)
 				continue
 			if binding_data['failed']:
 				if binding in last_bindings:
 					s.comment("just failed binding")
-					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
+					s.arrow(source_endpoint, target_endpoint, color='red', weight=weight, binding=True)
 				continue
 			s.comment("binding " + binding)
-			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
+			s.arrow(source_endpoint, target_endpoint,
 				  color=('black' if (binding in last_bindings) else 'purple' ), weight=weight, binding=True)
 			new_last_bindings.append(binding)
 
@@ -269,12 +288,12 @@ class Emitter:
 		log ('results..' + '[' + str(s.step) + ']')
 		#last_result = root_frame
 		for i, result_data in enumerate(query(('uri','value'),
-			"""WHERE GRAPH ?g0 
+			"""WHERE {GRAPH ?g0 
 			{
 				?uri rdf:type kbdbg:result.
 				FILTER NOT EXISTS {?uri kbdbg:was_ubound true}.
 				?uri rdf:value ?value.
-			}."""+step_magic(0))):
+			}."""+step_magic(0)+'}')):
 			result_uri = result_data['uri']
 			value = result_data['value']
 			result_node = gv_escape(result_uri)
@@ -483,18 +502,17 @@ def run(start, end, workers):
 	check_futures()
 
 def frame_query(id=''):
-	return """SELECT ?{id}frame WHERE
-			{
-				GRAPH ?g{id}1 {
+	return ("""
+				GRAPH ?g{id}1 {{
 					?{id}frame rdf:type kbdbg:frame
-				}.""" + step_magic(id+'1') + """
-				FILTER NOT EXISTS {
+				}}.""" + step_magic(id+'1') + """
+				FILTER NOT EXISTS {{
 					GRAPH ?g{id}2 
-					{
+					{{
 						?{id}frame kbdbg:is_finished true
-					}.""" + step_magic(id+'2') + """
-				}
-			}"""
+					}}.""" + step_magic(id+'2') + """
+				}}.
+			""").format(id=id)
 
 def work(identification, graph_name, step_to_do, redis_fn):
 	global redis_connection, strict_redis_connection, sparql_server, step, step_graph
@@ -514,7 +532,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	frames_list = list(query(('frame','parent', 'is_for_rule'),
 	"""WHERE
 	{
-		{"""+frame_query()+"""}
+		{SELECT ?frame WHERE{"""+frame_query()+"""}}
 		OPTIONAL {?frame kbdbg:has_parent ?parent}.
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))

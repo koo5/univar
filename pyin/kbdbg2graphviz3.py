@@ -177,25 +177,20 @@ class Emitter:
 
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 
-		bnode_list = list(query(('bnode','parent', 'items'),
+		bnode_list = list(query(('bnode','frame', 'items'),
 		"""WHERE
 		{
-			{
-				SELECT (?frame AS ?parent) WHERE
-				{
-					GRAPH ?g {
-						?frame rdf:type kbdbg:frame
-					}.""" + step_magic() + """
-					FILTER NOT EXISTS {
-						GRAPH ?gg 
-						{
-							?frame kbdbg:is_finished true
-						}.""" + step_magic('gg') + """
-					}
-				}
-			}
-			?bnode kbdbg:has_parent ?frame.
-			?bnode kbdbg:has_items ?items.
+		?bnode kbdbg:has_items ?items.
+		?bnode kbdbg:has_parent ?frame.
+		GRAPH ?g0 {?bnode rdf:type kbdbg:bnode}.
+		"""+step_magic(0)+"""
+		GRAPH ?g1 {?frame rdf:type kbdbg:frame}.
+		"""+step_magic(1)+"""
+		FILTER NOT EXISTS
+        {
+			GRAPH ?g2{?frame kbdbg:is_finished true}.
+			"""+step_magic(2)+"""
+		}
 		}"""))
 
 		for bnode_data in bnode_list:
@@ -420,13 +415,14 @@ def emit_terms_by_items( tag, text, items, is_head):
 		emit_term(tag, text, is_head, term_idx, item)
 
 
-def step_magic(graph_var_name='g'):
+def step_magic(id=0):
 	return """
-	  BIND  (STR(?"""+graph_var_name+""") AS ?strg).
-	  FILTER (STRSTARTS(?strg, """+'"'+graph_name_start+'"'+""")).
-	  BIND  (STRAFTER(?strg, "_") AS ?step).
-	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
-	"""
+	  BIND  (STR(?g{id}) AS ?strg{id}).
+	  FILTER (STRSTARTS(?strg{id}, "{graph_name_start}")).
+	  BIND  (STRAFTER(?strg{id}, "_") AS ?step{id}).
+	  FILTER (?step{id} < "{maxstep}").
+	  """.format(id=id,graph_name_start=graph_name_start,
+				  maxstep=str(step+1).rjust(10,'0'))
 
 futures = []
 global_start = None
@@ -512,14 +508,14 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		{
 			SELECT ?frame WHERE
 			{
-				GRAPH ?g {
+				GRAPH ?g1 {
 					?frame rdf:type kbdbg:frame
-				}.""" + step_magic() + """
+				}.""" + step_magic(1) + """
 				FILTER NOT EXISTS {
-					GRAPH ?gg 
+					GRAPH ?g2 
 					{
 						?frame kbdbg:is_finished true
-					}.""" + step_magic('gg') + """
+					}.""" + step_magic(2) + """
 				}
 			}
 		}

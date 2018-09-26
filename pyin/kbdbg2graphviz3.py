@@ -40,7 +40,7 @@ logger.addHandler(gv_handler)
 logger=logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 console = logging.StreamHandler()
-console.setFormatter(logging.Formatter('%(asctime)s %(message)s.'))
+console.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 logger.addHandler(console)
 logger.debug("hi")
 log=logger.debug
@@ -71,9 +71,10 @@ def profile(func, args=(), note=''):
 def query(vars, q):
 	if isinstance(vars, str):
 		vars = (vars,)
-	q = 'SELECT '+' '.join('?'+x for x in vars)+' ' + q
-	log(q)
-	for i in profile(sparql_server.query, (prefixes+q,))['results']['bindings']:
+	q2 = prefixes + 'SELECT '+' '.join('?'+x for x in vars)+' ' + q
+	log(q2)
+	rrr= profile(sparql_server.query, (q2,))['results']['bindings']
+	for i in rrr:
 		r = {}
 		for k in vars:
 			if k in i:
@@ -147,6 +148,7 @@ class Emitter:
 
 	def generate_gv_image(s, frames_list):
 		log ('frames.. ' + '[' + str(s.step) + ']')
+		log(str(frames_list))
 		root_frame = None
 		#current_result = None
 		last_frame = None
@@ -165,6 +167,9 @@ class Emitter:
 			#	arrow(result_node, f)
 
 		return
+
+
+
 
 		log ('bnodes.. ' + '[' + str(s.step) + ']')
 		if s.step == 51:
@@ -326,6 +331,7 @@ select *
 		if not frame_data['parent']:
 			r += 'root=true, pin=true, pos="1000,100!", margin="10,0.055" , '#40
 			isroot = True
+
 		frame = frame_data['frame']
 		return gv_escape(frame), r + ' label=<' + s.get_frame_html_label(frame_data, isroot) + ">]"
 
@@ -342,8 +348,11 @@ select *
 
 	@staticmethod
 	def _get_frame_html_label(rule, isroot):
-			rule_data = query_one(('head','body'),
-						'{OPTIONAL {<'+rule+'> kbdbg:has_original_head ?head.}. OPTIONAL { <'+rule+'> kbdbg:has_body ?body.}}')
+			rule_data = query_one(('original_head', 'head','body'),
+				'{OPTIONAL {<'+rule+"""> kbdbg:has_original_head ?original_head.}. 
+				OPTIONAL { <"""+rule+"""> kbdbg:has_head ?head.}
+				OPTIONAL { <"""+rule+"""> kbdbg:has_body ?body.}}""")
+			body_items = list(query('item', '{<'+rule_data['body']+'> rdf:rest*/rdf:first ?item.}'))
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
@@ -353,12 +362,18 @@ select *
 						text(frame_name_template_var_name)
 					with tag("td", border=border_width):
 						text("{")
-					emit_terms(tag, text, rule_data['head'], True)
+					if len(body_items):
+						emit_terms(tag, text, rule_data['original_head'], True)
+					else:
+						emit_term(tag, text, True, 0, rule_data['head'])
 					with tag("td", border=border_width):
-						text("} <= {")
-						emit_terms(tag, text, rule_data['body'], False)
-					with tag("td", border=border_width):
-						text('}')
+						text("}")
+					if len(body_items):
+						with tag("td", border=border_width):
+							text(" <= {")
+						emit_terms_by_items(tag, text, body_items, False)
+						with tag("td", border=border_width):
+							text('}')
 			return doc.getvalue()
 
 	def arrow(s,x,y,color='black',weight=1, binding=False):
@@ -380,7 +395,6 @@ def port_name(is_in_head, term_idx, arg_idx):
 def emit_term(tag, text, is_in_head, term_idx, term):
 	term_data = query_one(('pred', 'args'), '{<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}')
 	pred = term_data['pred']
-	"""collect in one step"""
 	args_list = list(query('item', '{<'+term_data['args']+'> rdf:rest*/rdf:first ?item.}'))
 	if len(args_list ) == 2:
 		def arrrr(arg_idx):
@@ -408,17 +422,18 @@ def emit_term(tag, text, is_in_head, term_idx, term):
 
 def emit_terms( tag, text, uri, is_head):
 	if uri == None: return
+	items = list(query('item', '{<'+uri+'> rdf:rest*/rdf:first ?item.}'))
+	emit_terms_by_items( tag, text, items, is_head)
 
-	"""collect in one query"""
-	items = profile(list, (Collection(step_graph, URIRef(uri)),))
+
+def emit_terms_by_items( tag, text, items, is_head):
 	for term_idx, item in enumerate(items):
 		emit_term(tag, text, is_head, term_idx, item)
 
 
-
-def step_magic():
+def step_magic(graph_var_name='g'):
 	return """
-	  BIND  (STR(?g) AS ?strg).
+	  BIND  (STR(?"""+graph_var_name+""") AS ?strg).
 	  FILTER (STRSTARTS(?strg, """+'"'+graph_name_start+'"'+""")).
 	  BIND  (STRAFTER(?strg, "_") AS ?step).
 	  FILTER (?step < """+'"'+str(step+1).rjust(10,'0')+'").'+"""
@@ -502,11 +517,27 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
 
-	frames_list = list(query(('frame','parent', 'is_for_rule'), "{GRAPH ?g {?frame rdf:type kbdbg:frame}." + step_magic() +
-	"""OPTIONAL {?frame kbdbg:has_parent ?parent}.
-	?frame kbdbg:is_for_rule ?is_for_rule. 
-	FILTER NOT EXISTS {?frame kbdbg:is_finished true}.}"""))
-
+	frames_list = list(query(('frame','parent', 'is_for_rule'),
+	"""WHERE
+	{
+		{
+			SELECT ?frame WHERE
+			{
+				GRAPH ?g {
+					?frame rdf:type kbdbg:frame
+				}.""" + step_magic() + """
+				FILTER NOT EXISTS {
+					GRAPH ?gg 
+					{
+						?frame kbdbg:is_finished true
+					}.""" + step_magic('gg') + """
+				}
+			}
+		}
+		OPTIONAL {?frame kbdbg:has_parent ?parent}.
+		?frame kbdbg:is_for_rule ?is_for_rule. 
+	}"""))
+	log(frames_list)
 	if len(frames_list) == 0:
 		log('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])
@@ -543,8 +574,8 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	if len(stats):
 		print('stats:')
-		for i in stats:
-			print(i)
+		for elapsed, func, args, note in stats[:3]:
+			print(elapsed,args)
 		#stats.clear()
 
 	redis_connection._cleanup()

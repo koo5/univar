@@ -194,7 +194,7 @@ class Emitter:
 		}"""))
 
 		for bnode_data in bnode_list:
-			bnode, parent, items_uri  = bnode_data['bnode'],bnode_data['parent'],bnode_data['items']
+			bnode, parent, items_uri  = bnode_data['bnode'],bnode_data['frame'],bnode_data['items']
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
 				with tag('tr'):
@@ -220,57 +220,63 @@ class Emitter:
 		log ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
-		"""
-		
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
+		for binding_data in query(
+				('x','source','target','source_is_bnode','target_is_bnode','unbound','failed'
 
-select * 
-{
-	  ?x rdf:type kbdbg:binding.
-      FILTER NOT EXISTS {?x kbdbg:was_unbound true}.
-      #FILTER NOT EXISTS {?x kbdbg:failed true}.
-      OPTIONAL {?x kbdbg:failed ?failed}.
-      ?x kbdbg:has_source ?source.
-      ?x kbdbg:has_target ?target.
-      OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
-      OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
-      ?source kbdbg:term_idx ?source_term_idx.
-      ?target kbdbg:term_idx ?target_term_idx.
-      OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
-      OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
-      OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
-      OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
-}
-		
-		"""
-		for binding in subjects(RDF.type, kbdbg.binding):
+		,"""WHERE 
+		{
+		?x rdf:type kbdbg:binding.
+		OPTIONAL {?x kbdbg:was_unbound ?unbound}.
+		OPTIONAL {?x kbdbg:failed ?failed}.
+		?x kbdbg:has_source ?source.
+		?x kbdbg:has_target ?target.
+		?source kbdbg:has_frame ?source_frame.
+		?target kbdbg:has_frame ?target_frame.
+		"""+frame_query('source_')+"""
+		"""+frame_query('target_')+"""		
+		OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+		OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+		?source kbdbg:term_idx ?source_term_idx.
+		?target kbdbg:term_idx ?target_term_idx.
+		OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+		OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+		}"""):
 			weight = 1
-			source_uri = value(binding, kbdbg.has_source)
-			target_uri = value(binding, kbdbg.has_target)
-			if value(source_uri, kbdbg.is_bnode, default=False) and value(target_uri, kbdbg.is_bnode, default=False):
+			source_uri = binding_data['source']
+			target_uri = binding_data['target']
+			if binding_data['source_is_bnode'] and binding_data['target_is_bnode']:
 				weight = 0
-			if value(binding, kbdbg.was_unbound) == rdflib.Literal(True):
-				if (binding.n3() in last_bindings):
+			if binding_data['unbound']:
+				if binding in last_bindings:
 					s.comment("just unbound binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', weight=weight, binding=True)
 				continue
-			if value(binding, kbdbg.failed) == rdflib.Literal(True):
-				if (binding.n3() in last_bindings):
+			if binding_data['failed']:
+				if binding in last_bindings:
 					s.comment("just failed binding")
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
 				continue
-			s.comment("binding " + binding.n3())
+			s.comment("binding " + binding)
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),
-				  color=('black' if (binding.n3() in last_bindings) else 'purple' ), weight=weight, binding=True)
-			new_last_bindings.append(binding.n3())
+				  color=('black' if (binding in last_bindings) else 'purple' ), weight=weight, binding=True)
+			new_last_bindings.append(binding)
 
 		put_last_bindings(s.step, new_last_bindings)
 		del new_last_bindings
 
 		log ('results..' + '[' + str(s.step) + ']')
-		last_result = root_frame
-		for i, result_uri in enumerate(subjects(RDF.type, kbdbg.result)):
+		#last_result = root_frame
+		for i, result_data in enumerate(query(('uri','value'),
+			"""WHERE GRAPH ?g0 
+			{
+				?uri rdf:type kbdbg:result.
+				FILTER NOT EXISTS {?uri kbdbg:was_ubound true}.
+				?uri rdf:value ?value.
+			}."""+step_magic(0))):
+			result_uri = result_data['uri']
+			value = result_data['value']
 			result_node = gv_escape(result_uri)
 			r = result_node + ' [cellborder=2, shape=none, label=<'
 			(doc, tag, text) = yattag.Doc().tagtext()
@@ -278,36 +284,27 @@ select *
 				with tag('tr'):
 					with tag("td"):
 						text('RESULT'+str(i) +' ')
-					s.emit_terms(tag, text, value(result_uri, RDF.value), 'result')
+					s.emit_terms(tag, text, value, 'result')
 			r += doc.getvalue()+ '>]'
 			s.gv(r)
-			false = rdflib.Literal(False)
+			#false = rdflib.Literal(False)
 			#if g.value(result_uri, kbdbg.was_unbound, default = false) == false:
 				#current_result = result_node
 				#arrow_width = 2
 			#else:
 				#arrow_width = 1
-			if last_result:
-				s.arrow(last_result, result_node, color='yellow', weight=100)
-			last_result = result_node
+			#if last_result:
+			#	s.arrow(last_result, result_node, color='yellow', weight=100)
+			#last_result = result_node
 
-	def gv_endpoint(s, uri):
-		"""merge? is_bnode, is_in_head, . get term_idx, arg_idx"""
-		if(value(uri, kbdbg.is_bnode, default=False)):
-			term_idx = value(uri, kbdbg.term_idx, default=' $\=st #-* -')
-			port = gv_escape(term_idx)
-			#if port == 'gv0121_y': #gv01080049_l1':
-			#	print('x')
-			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" + port
+	def gv_endpoint(s, frame, is_bnode, is_in_head, term_idx, arg_idx):
+		if is_bnode:
+			return gv_escape(frame) + ":" + gv_escape(term_idx)
 		else:
-			x = value(uri, kbdbg.is_in_head, default=False)
-			is_in_head = (x == rdflib.Literal(True))
-			term_idx = value(uri, kbdbg.term_idx, default=0)
-			arg_idx  = value(uri, kbdbg.arg_idx, None)
 			if arg_idx == None:
-				return gv_escape(str(value(uri, kbdbg.has_frame)))
+				return gv_escape(frame)
 			port = port_name(is_in_head, term_idx, arg_idx)
-			return gv_escape(str(value(uri, kbdbg.has_frame))) + ":" +port
+			return gv_escape(frame) + ":" +port
 
 	def get_frame_gv(s, i, frame_data):#"""pass parent here"""
 		r = ' [shape=none, margin=0, '
@@ -485,7 +482,19 @@ def run(start, end, workers):
 		worker_pool.shutdown()
 	check_futures()
 
-
+def frame_query(id=''):
+	return """SELECT ?{id}frame WHERE
+			{
+				GRAPH ?g{id}1 {
+					?{id}frame rdf:type kbdbg:frame
+				}.""" + step_magic(id+'1') + """
+				FILTER NOT EXISTS {
+					GRAPH ?g{id}2 
+					{
+						?{id}frame kbdbg:is_finished true
+					}.""" + step_magic(id+'2') + """
+				}
+			}"""
 
 def work(identification, graph_name, step_to_do, redis_fn):
 	global redis_connection, strict_redis_connection, sparql_server, step, step_graph
@@ -505,20 +514,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	frames_list = list(query(('frame','parent', 'is_for_rule'),
 	"""WHERE
 	{
-		{
-			SELECT ?frame WHERE
-			{
-				GRAPH ?g1 {
-					?frame rdf:type kbdbg:frame
-				}.""" + step_magic(1) + """
-				FILTER NOT EXISTS {
-					GRAPH ?g2 
-					{
-						?frame kbdbg:is_finished true
-					}.""" + step_magic(2) + """
-				}
-			}
-		}
+		{"""+frame_query()+"""}
 		OPTIONAL {?frame kbdbg:has_parent ?parent}.
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))

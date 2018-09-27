@@ -68,9 +68,26 @@ def profile(func, args=(), note=''):
 	return r
 
 
-def fetch_list(vars, list_uri, additional):
-	return query(vars, 'WHERE {<'+list_uri+'> rdf:rest*/rdf:first ?item.' +
-				 additional + '}')
+def fetch_list(vars, list_uri, **kwargs):
+	return query(vars, 'WHERE { ' + list_subquery(list_uri, **kwargs) + '}')
+
+def list_subquery(start, additional='', upper_bound=2147483647):
+	return """
+						{    
+							SELECT ?cell WHERE 
+							{
+								SERVICE bd:alp 
+								{ 
+									<""" + start + """> rdf:rest ?cell. 
+									hint:Prior hint:alp.pathExpr true .
+									hint:Group hint:alp.lowerBound 0 .
+									hint:Group hint:alp.upperBound """+str(upper_bound)+""" .
+								}
+							}
+						}
+						?cell rdf:first ?item.
+	""" + additional
+
 
 def query(vars, q):
 	if isinstance(vars, str):
@@ -200,8 +217,8 @@ class Emitter:
 				with tag('tr'):
 					with tag('td', border=1):
 						text(shorten(bnode))
-				items = fetch_list(('item','name','value'), items_uri,
-					"""	?item kbdbg:has_name ?name.
+				items = fetch_list(('name','value'), items_uri,
+					additional="""?item kbdbg:has_name ?name.
                 		?item kbdbg:has_value ?value.""")
 				for i in items:
 					with tag('tr'):
@@ -352,7 +369,7 @@ class Emitter:
 				'{OPTIONAL {<'+rule+"""> kbdbg:has_original_head ?original_head.}. 
 				OPTIONAL { <"""+rule+"""> kbdbg:has_head ?head.}
 				OPTIONAL { <"""+rule+"""> kbdbg:has_body ?body.}}""")
-			body_items = list(query('item', '{<'+rule_data['body']+'> rdf:rest*/rdf:first ?item.}'))
+			body_items = list(fetch_list(('item', '{<'+rule_data['body']+'> rdf:rest*/rdf:first ?item.}'))
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
@@ -440,6 +457,7 @@ def step_magic(id=0):
 	  """.format(id=id, graph_name_start=graphs_name_start,
 				 maxstep=str(step+1).rjust(10,'0'))
 
+
 futures = []
 global_start = None
 
@@ -460,17 +478,7 @@ def run(start, end, workers):
 	step_to_submit = -1
 	done = False
 	while not done:
-		step_list_data = list(query(('to','item'),
-			""" {{    
-			SELECT ?to WHERE {
-			SERVICE bd:alp { 
-			<""" + graph_list_position + """> rdf:rest ?to. 
-			hint:Prior hint:alp.pathExpr true .
-			hint:Group hint:alp.lowerBound 0 .
-			hint:Group hint:alp.upperBound 100 .
-			}}}
-			?to rdf:first ?item.
-			}"""))
+		step_list_data = list(fetch_list(('cell','item'),graph_list_position, upper_bound=50))
 		if len(step_list_data ) == 0: break
 		graph_list_position = step_list_data [-1]['to']
 		for rrr in step_list_data[:-1] :

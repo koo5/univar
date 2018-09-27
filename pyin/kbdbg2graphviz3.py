@@ -437,8 +437,8 @@ def step_magic(id=0):
 	  FILTER (STRSTARTS(?strg{id}, "{graph_name_start}")).
 	  BIND  (STRAFTER(?strg{id}, "_") AS ?step{id}).
 	  FILTER (?step{id} < "{maxstep}").
-	  """.format(id=id,graph_name_start=graph_name_start,
-				  maxstep=str(step+1).rjust(10,'0'))
+	  """.format(id=id, graph_name_start=graphs_name_start,
+				 maxstep=str(step+1).rjust(10,'0'))
 
 futures = []
 global_start = None
@@ -448,33 +448,32 @@ global_start = None
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--workers', type=click.IntRange(0, 65536), default=32)
 def run(start, end, workers):
-	global global_start, graph_name_start, sparql_server
+	global global_start, graphs_name_start, sparql_server
 	global_start = start
 	sparql_server = sparql.SPARQLServer(sparql_uri)
-
 	redis_fn = redislite.Redis().db
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
-
-	graph_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
-	identification = fix_up_identification(graph_name_start)
-	graph_list_position = graph_name_start
+	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
+	identification = fix_up_identification(graphs_name_start)
+	graph_list_position = graphs_name_start
 	step_to_submit = -1
-	while True:
-		step_graph_positions = list(query(('to','item'),
+	done = False
+	while not done:
+		step_list_data = list(query(('to','item'),
 			""" {{    
 			SELECT ?to WHERE {
 			SERVICE bd:alp { 
-			<"""+graph_name_start+"""> rdf:rest ?to. 
+			<""" + graph_list_position + """> rdf:rest ?to. 
 			hint:Prior hint:alp.pathExpr true .
 			hint:Group hint:alp.lowerBound 0 .
 			hint:Group hint:alp.upperBound 100 .
 			}}}
 			?to rdf:first ?item.
 			}"""))
-		if len(step_graph_positions) == 0: break
-		graph_list_position = step_graph_positions[-1]['to']
-		for rrr in step_graph_positions:
+		if len(step_list_data ) == 0: break
+		graph_list_position = step_list_data [-1]['to']
+		for rrr in step_list_data[:-1] :
 			step_graph_uri = rrr['item']
 			step_to_submit+=1
 			if step_to_submit < start - 1:
@@ -482,6 +481,7 @@ def run(start, end, workers):
 				continue
 			if step_to_submit > end and end != -1:
 				log ("ending")
+				done = True
 				break
 			args = (identification, step_graph_uri, step_to_submit, redis_fn)
 			if not workers:
@@ -496,7 +496,6 @@ def run(start, end, workers):
 				log('submitted ' )
 				check_futures()
 			log('loop ' )
-
 	if workers:
 		worker_pool.shutdown()
 	check_futures()

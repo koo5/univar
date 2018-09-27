@@ -44,6 +44,7 @@ console.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 logger.addHandler(console)
 logger.debug("hi")
 log=logger.debug
+info = logger.info
 
 default_graph = 'http://kbd.bg/#runs'
 
@@ -121,7 +122,7 @@ def query_one(vars, q):
 	return l[0]
 
 def get_last_bindings(step):
-	log ('get last bindings...' + '[' + str(step) + ']')
+	info ('get last bindings...' + '[' + str(step) + ']')
 	if step == 0:
 		return []
 	if step == global_start - 1:
@@ -171,7 +172,7 @@ class Emitter:
 		s.gv('//'+text)
 
 	def generate_gv_image(s, frames_list):
-		log ('frames.. ' + '[' + str(s.step) + ']')
+		info ('frames.. ' + '[' + str(s.step) + ']')
 		#log(str(frames_list))
 		root_frame = None
 		#current_result = None
@@ -192,7 +193,7 @@ class Emitter:
 			#	arrow(result_node, f)
 
 
-		log ('bnodes.. ' + '[' + str(s.step) + ']')
+		info ('bnodes.. ' + '[' + str(s.step) + ']')
 
 		bnode_list = list(query(('bnode','frame', 'items'),
 		"""WHERE
@@ -234,7 +235,7 @@ class Emitter:
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
 		last_bindings = get_last_bindings(s.step)
-		log ('bindings...' + '[' + str(s.step) + ']')
+		info ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []
 		for binding_data in query(
@@ -300,7 +301,7 @@ class Emitter:
 		put_last_bindings(s.step, new_last_bindings)
 		del new_last_bindings
 
-		log ('results..' + '[' + str(s.step) + ']')
+		info ('results..' + '[' + str(s.step) + ']')
 		#last_result = root_frame
 		for i, result_data in enumerate(query(('uri','value'),
 			"""WHERE {GRAPH ?g0 
@@ -460,12 +461,15 @@ futures = []
 global_start = None
 
 @click.command()
+@click.option('--quiet', type=click.BOOL, default=False)
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--workers', type=click.IntRange(0, 65536), default=32)
-def run(start, end, workers):
+def run(quiet, start, end, workers):
 	global global_start, graphs_name_start, sparql_server
 	global_start = start
+	if quiet:
+		logger.setLevel(logging.INFO)
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_fn = redislite.Redis().db
 	if workers:
@@ -483,17 +487,17 @@ def run(start, end, workers):
 			step_graph_uri = rrr['item']
 			step_to_submit+=1
 			if step_to_submit < start - 1:
-				log ("skipping ["+str(step_to_submit) + ']')
+				info ("skipping ["+str(step_to_submit) + ']')
 				continue
 			if step_to_submit > end and end != -1:
-				log ("ending")
+				info ("ending")
 				done = True
 				break
 			args = (identification, step_graph_uri, step_to_submit, redis_fn)
 			if not workers:
 				work(*args)
 			else:
-				log('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+				info('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 				if len(futures) > workers:
 					time.sleep(len(futures) - workers)
 				fut = worker_pool.submit(work, *args)
@@ -523,7 +527,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	global redis_connection, strict_redis_connection, sparql_server, step, step_graph
 	step = step_to_do
 
-	log('work ' + '[' + str(step) + ']')
+	info('work ' + '[' + str(step) + ']')
 
 	#for Collections
 	step_graph = ConjunctiveGraph(sparqlstore.SPARQLStore(sparql_uri), graph_name)
@@ -542,7 +546,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
 	if len(frames_list) == 0:
-		log('no frames.' + '[' + str(step) + ']')
+		info('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])
 		return
 
@@ -558,13 +562,13 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	e.gv("digraph frame"+str(step) + "{  ")#splines=ortho;#gv("pack=true")
 	e.generate_gv_image(frames_list)
 	e.gv("}")
-	log ('}..' + '[' + str(step) + ']')
+	info ('}..' + '[' + str(step) + ']')
 	gv_output_file.close()
 
 	if (step == global_start - 1):
 		return
 
-	log('convert..' + '[' + str(step) + ']')
+	info('convert..' + '[' + str(step) + ']')
 	#cmd, args = subprocess.check_output, ("convert", '-regard-warnings', "-extent", '6000x3000',  gv_output_file_name, '-gravity', 'NorthWest', '-background', 'white', gv_output_file_name + '.svg')
 	cmd, args = subprocess.check_output, ("dot", '-Tsvg',  gv_output_file_name, '-O')
 	try:
@@ -572,13 +576,14 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		if r != b"":
 			raise RuntimeError('[' + str(step) + '] ' + str(r))
 	except subprocess.CalledProcessError as e:
-		log ('[' + str(step) + ']' + str(e.output))
-	log('convert done.' + '[' + str(step) + ']')
+		info ('[' + str(step) + ']' + str(e.output))
+		raise e
+	info('convert done.' + '[' + str(step) + ']')
 
 	if len(stats):
-		print('stats:')
+		info('stats:')
 		for elapsed, func, args, note in stats[:3]:
-			print(elapsed,args)
+			info(elapsed,args)
 		#stats.clear()
 
 	redis_connection._cleanup()

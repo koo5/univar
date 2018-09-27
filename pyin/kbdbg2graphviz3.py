@@ -244,7 +244,8 @@ class Emitter:
 
 		,"""WHERE 
 		{
-		?x rdf:type kbdbg:binding.
+		GRAPH ?gbinding {?x rdf:type kbdbg:binding.}.
+		"""+step_magic('binding ')+"""
 		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound ?unbound}.
 		"""+step_magic('binding_unbound ')+"""
 		}.
@@ -255,8 +256,6 @@ class Emitter:
 		?x kbdbg:has_target ?target.
 		?source kbdbg:has_frame ?source_frame.
 		?target kbdbg:has_frame ?target_frame.
-		"""+frame_query('source_')+"""
-		"""+frame_query('target_')+"""		
 		OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
 		OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
 		?source kbdbg:term_idx ?source_term_idx.
@@ -290,9 +289,8 @@ class Emitter:
 					s.arrow(source_endpoint, target_endpoint, color='orange', weight=weight, binding=True)
 				continue
 			if binding_data['failed']:
-				if binding in last_bindings:
-					s.comment("just failed binding")
-					s.arrow(source_endpoint, target_endpoint, color='red', weight=weight, binding=True)
+				s.comment("just failed binding")
+				s.arrow(source_endpoint, target_endpoint, color='red', weight=weight, binding=True)
 				continue
 			s.comment("binding " + binding)
 			s.arrow(source_endpoint, target_endpoint,
@@ -369,7 +367,7 @@ class Emitter:
 				'{OPTIONAL {<'+rule+"""> kbdbg:has_original_head ?original_head.}. 
 				OPTIONAL { <"""+rule+"""> kbdbg:has_head ?head.}
 				OPTIONAL { <"""+rule+"""> kbdbg:has_body ?body.}}""")
-			body_items = list(fetch_list(('item', '{<'+rule_data['body']+'> rdf:rest*/rdf:first ?item.}'))
+			body_items = list(fetch_list(('item',), rule_data['body']))
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
@@ -412,7 +410,7 @@ def port_name(is_in_head, term_idx, arg_idx):
 def emit_term(tag, text, is_in_head, term_idx, term):
 	term_data = query_one(('pred', 'args'), '{<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}')
 	pred = term_data['pred']
-	args_list = list(query('item', '{<'+term_data['args']+'> rdf:rest*/rdf:first ?item.}'))
+	args_list = list(fetch_list(('item',), term_data['args']))
 	if len(args_list ) == 2:
 		def arrrr(arg_idx):
 			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
@@ -439,7 +437,7 @@ def emit_term(tag, text, is_in_head, term_idx, term):
 
 def emit_terms( tag, text, uri, is_head):
 	if uri == None: return
-	items = list(query('item', '{<'+uri+'> rdf:rest*/rdf:first ?item.}'))
+	items = list(fetch_list(('item',),uri))
 	emit_terms_by_items( tag, text, items, is_head)
 
 
@@ -480,7 +478,7 @@ def run(start, end, workers):
 	while not done:
 		step_list_data = list(fetch_list(('cell','item'),graph_list_position, upper_bound=50))
 		if len(step_list_data ) == 0: break
-		graph_list_position = step_list_data [-1]['to']
+		graph_list_position = step_list_data [-1]['cell']
 		for rrr in step_list_data[:-1] :
 			step_graph_uri = rrr['item']
 			step_to_submit+=1

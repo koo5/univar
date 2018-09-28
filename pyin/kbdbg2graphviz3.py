@@ -121,18 +121,6 @@ def query_one(vars, q):
 		raise 666
 	return l[0]
 
-def get_last_bindings(step):
-	info ('get last bindings...' + '[' + str(step) + ']')
-	if step == 0:
-		return []
-	if step == global_start - 1:
-		return []
-	sss = step - 1
-	lb = redis_connection.blpop([sss])
-	return [x.decode() for x in lb]
-
-def put_last_bindings(step, new_last_bindings):
-	redis_connection.lpush(step, new_last_bindings)
 
 
 def tell_if_is_last_element(x):
@@ -609,6 +597,19 @@ def check_futures():
 			futures.remove(f)
 		else:
 			return
+import json
+def get_last_bindings(step):
+	info ('get last bindings...' + '[' + str(step) + ']')
+	if step == 0:
+		return []
+	if step == global_start - 1:
+		return []
+	sss = step - 1
+	lb = json.loads(redis_connection.blpop([sss])[1])
+	return [x for x in lb]#.decode()
+
+def put_last_bindings(step, new_last_bindings):
+	redis_connection.lpush(step, json.dumps(new_last_bindings))
 
 
 if __name__ == '__main__':

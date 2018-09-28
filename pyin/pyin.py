@@ -309,6 +309,7 @@ class Var(AtomVar):
 def success(msg, orig, uri = None):
 		if uri == None:
 			uri = bn()
+		log(uri)
 		emit_binding(uri, orig)
 		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 		step()
@@ -335,6 +336,8 @@ def emit_binding(uri, _x_y):
 
 def emit_arg(x):
 	r = bn()
+	if r == ':bn192':
+		log('x')
 	kbdbg(r + " rdf:type kbdbg:arg")
 	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if type(x.is_in_head) == bool:

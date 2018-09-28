@@ -466,7 +466,10 @@ def run(quiet, start, end, workers):
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
 	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
-	identification = fix_up_identification(graphs_name_start)
+	identification0 = query_one('y', "{<"+graphs_name_start+"> kbdbg:has_run_identification ?y}")
+	path='runs/'+fix_up_identification(identification0)
+	os.system('mkdir -p '+path)
+	identification = path+'/'+fix_up_identification(graphs_name_start)
 	graph_list_position = graphs_name_start
 	step_to_submit = -1
 	done = False

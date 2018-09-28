@@ -438,6 +438,7 @@ class Rule(Kbdbgable):
 			head_uri = ":"+singleton.kbdbg_name + "Head"
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 			emit_term(singleton.head, head_uri)
+			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head_idx ' + str(head_idx))
 		try:
 			emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
 		except KeyError:

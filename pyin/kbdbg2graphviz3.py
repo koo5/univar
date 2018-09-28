@@ -355,10 +355,13 @@ class Emitter:
 
 	@staticmethod
 	def _get_frame_html_label(rule, isroot):
-			rule_data = query_one(('original_head', 'head','body'),
-				'{OPTIONAL {<'+rule+"""> kbdbg:has_original_head ?original_head.}. 
-				OPTIONAL { <"""+rule+"""> kbdbg:has_head ?head.}
-				OPTIONAL { <"""+rule+"""> kbdbg:has_body ?body.}}""")
+			rule_data = query_one(('original_head', 'head','head_idx','body'),
+				"""{
+				OPTIONAL {<"""+rule+"""> kbdbg:has_original_head ?original_head} 
+				OPTIONAL {<"""+rule+"""> kbdbg:has_head ?head}
+				OPTIONAL {<"""+rule+"""> kbdbg:has_head_idx ?head_idx}
+				OPTIONAL {<"""+rule+"""> kbdbg:has_body ?body}
+				}""")
 			body_items = list(fetch_list(('item',), rule_data['body']))
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
@@ -372,7 +375,7 @@ class Emitter:
 					if len(body_items):
 						emit_terms(tag, text, rule_data['original_head'], True)
 					else:
-						emit_term(tag, text, True, 0, rule_data['head'])
+						emit_term(tag, text, True, rule_data['head_idx'], rule_data['head'])
 					with tag("td", border=border_width):
 						text("}")
 					if len(body_items):

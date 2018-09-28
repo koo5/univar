@@ -128,11 +128,11 @@ def get_last_bindings(step):
 	if step == global_start - 1:
 		return []
 	sss = step - 1
-	return redis_connection.blpop([sss])
+	lb = redis_connection.blpop([sss])
+	return [x.decode() for x in lb]
 
 def put_last_bindings(step, new_last_bindings):
 	redis_connection.lpush(step, new_last_bindings)
-
 
 
 def tell_if_is_last_element(x):
@@ -237,7 +237,7 @@ class Emitter:
 		last_bindings = get_last_bindings(s.step)
 		info ('bindings...' + '[' + str(s.step) + ']')
 
-		new_last_bindings = []
+		new_last_bindings = []#redis_collections.List()
 		for binding_data in query(
 				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
 				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
@@ -284,20 +284,23 @@ class Emitter:
 				binding_data['target_is_in_head'],
 				binding_data['target_term_idx'],
 				binding_data['target_arg_idx'])
-			if binding_data['unbound']:
+			if binding_data['unbound'] and not binding_data['failed']:
+				log(binding + ' is unbound')
+				log(binding + ' is in last_bindings:'+str(binding in last_bindings))
+				log('last_bindings:'+str(last_bindings))
 				if binding in last_bindings:
 					s.comment("just unbound binding")
 					s.arrow(source_endpoint, target_endpoint, color='orange', weight=weight, binding=True)
-				continue
-			if binding_data['failed']:
+			elif binding_data['failed'] and not binding_data['unbound']:
 				s.comment("just failed binding")
 				s.arrow(source_endpoint, target_endpoint, color='red', weight=weight, binding=True)
-				continue
-			s.comment("binding " + binding)
-			s.arrow(source_endpoint, target_endpoint,
-				  color=('black' if (binding in last_bindings) else 'purple' ), weight=weight, binding=True)
-			new_last_bindings.append(binding)
+			elif not binding_data['failed'] and not binding_data['unbound']:
+				s.comment("binding " + binding)
+				s.arrow(source_endpoint, target_endpoint,
+					  color=('black' if (binding in last_bindings) else 'purple' ), weight=weight, binding=True)
+				new_last_bindings.append(binding)
 
+		log('new_last_bindings:'+str(new_last_bindings))
 		put_last_bindings(s.step, new_last_bindings)
 		del new_last_bindings
 
@@ -464,7 +467,7 @@ global_start = None
 @click.option('--quiet', type=click.BOOL, default=False)
 @click.option('--start', type=click.IntRange(0, None), default=0)
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
-@click.option('--workers', type=click.IntRange(0, 65536), default=32)
+@click.option('--workers', type=click.IntRange(0, 65536), default=16)
 def run(quiet, start, end, workers):
 	global global_start, graphs_name_start, sparql_server
 	global_start = start
@@ -579,16 +582,17 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		info ('[' + str(step) + ']' + str(e.output))
 		raise e
 	info('convert done.' + '[' + str(step) + ']')
-
-	if len(stats):
-		info('stats:')
-		for elapsed, func, args, note in stats[:3]:
-			info(elapsed,args)
-		#stats.clear()
-
+	#print_stats()
 	redis_connection._cleanup()
 	strict_redis_connection._cleanup()
 
+
+def print_stats():
+	if len(stats):
+		info('stats:')
+		for elapsed, func, args, note in stats[:3]:
+			for l in str((elapsed,args)).splitlines():
+				info(l)
 
 
 def available_cpus():

@@ -1,15 +1,15 @@
-import itertools
+#import itertools
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
-import time
-import sys
+#import time
+#import sys
 import os
 import logging
 import urllib.parse
 from collections import defaultdict, OrderedDict
-from ordered_rdflib_store import OrderedStore
-from common import shorten, traverse, join_generators
+#from ordered_rdflib_store import OrderedStore
+from common import shorten#, traverse, join_generators
 
 dbg = True
 nolog = False
@@ -17,49 +17,12 @@ nokbdbg = False
 
 kbdbg_prefix = URIRef('http://kbd.bg/#')
 
-# #OUTPUT:
-# lines starting with "#" are n3 comments.
-# "#RESULT:" lines are for univar fronted/runner/tester ("tau")
-# the rest of the comment lines are random noise
-
 log, kbdbg_text = 666,666
 
-def init_logging():
-	global log, kbdbg_text
-
-	logging.getLogger('pymantic.sparql').setLevel(logging.INFO)
-
-	formatter = logging.Formatter('#%(message)s')
-	console_debug_out = logging.StreamHandler()
-	console_debug_out.setFormatter(formatter)
-	
-	logger1=logging.getLogger()
-	logger1.addHandler(console_debug_out)
-	logger1.setLevel(logging.DEBUG)#INFO)#
-
-	try:
-		os.unlink(kbdbg_file_name)
-	except FileNotFoundError:
-		pass
-	kbdbg_out = logging.FileHandler(kbdbg_file_name)
-	kbdbg_out.setLevel(logging.DEBUG)
-	kbdbg_out.setFormatter(logging.Formatter('%(message)s.'))
-	logger2=logging.getLogger("kbdbg")
-	logger2.addHandler(kbdbg_out)
-
-	log, kbdbg_text = logger1.debug, logger2.info
-
-	nokbdbg or kbdbg_text("@prefix kbdbg: <http://kbd.bg/#> ")
-	nokbdbg or kbdbg_text("@prefix : <file:///#> ")
-	nokbdbg or kbdbg_text("@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ")
-	print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
-
-
-
 prefixes = """
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
-PREFIX : <file:///#> 
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+prefix kbdbg: <http://kbd.bg/#> 
+prefix : <file:///#> 
 """
 
 pool = None
@@ -68,18 +31,13 @@ futures = []
 to_submit_default = ''
 to_submit_graph = ''
 
-def check_futures():
-	while True:
-		if len(futures) == 0: return
-		f = futures[0]
-		if f.done():
-			futures.remove(f)
-		else:
-			return
 
 def kbdbg(text, default = False):
 	global to_submit_default, to_submit_graph
-	kbdbg_text(text)
+	if default:
+		kbdbg_text(text)
+	else:
+		kbdbg_text(text.ljust(100) + '<'+step_graph_name(global_step_counter)+'>' )
 	if pool:
 		if default:
 			to_submit_default += text+'. '
@@ -112,7 +70,7 @@ def kbdbg_graph_first():
 global_step_counter = 0
 def step():
 	global global_step_counter
-	kbdbg_text("#step"+str(global_step_counter) + " a kbdbg:step")
+	kbdbg_text("#step"+str(global_step_counter))
 	submit_kbdbg()
 	kbdbg_graph_first()
 	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
@@ -352,8 +310,8 @@ def success(msg, orig, uri = None):
 		if uri == None:
 			uri = bn()
 		emit_binding(uri, orig)
-		step()
 		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
+		step()
 		yield msg
 		kbdbg(uri + " kbdbg:was_unbound true")
 		step()
@@ -361,14 +319,13 @@ def success(msg, orig, uri = None):
 def fail(msg, orig, uri = None):
 		if uri == None:
 			uri = bn()
-		if uri == ':bn167':
-			print(uri)
 		emit_binding(uri, orig)
 		kbdbg(uri + " kbdbg:failed true")
 		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 		while False:
 			yield msg
 		step()
+		kbdbg(uri + " kbdbg:was_unbound true")
 
 def emit_binding(uri, _x_y):
 	_x, _y = _x_y
@@ -518,7 +475,7 @@ class Rule(Kbdbgable):
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 
-		existentials = get_existentials(singleton.original_head_triples, singleton.body)
+		existentials = get_existentials_names(singleton.original_head_triples, singleton.body)
 		def desc():
 			return ("#vvv\n#" + #str(singleton) + "\n" +
 			kbdbg_name.n3() + '\n' +
@@ -623,8 +580,7 @@ class Rule(Kbdbgable):
 				return True
 		nolog or log ("..no ep match")
 
-def get_existentials(heads, body):
-	"""gets all the names of existentials"""
+def get_existentials_names(heads, body):
 	vars = []
 	for head in heads:
 		if head:
@@ -779,3 +735,40 @@ def emit_term(t, uri):
 	kbdbg(uri + " kbdbg:has_args " + emit_list(t.args))
 	return uri
 
+def check_futures():
+	while True:
+		if len(futures) == 0: return
+		f = futures[0]
+		if f.done():
+			futures.remove(f)
+		else:
+			return
+
+def init_logging():
+	global log, kbdbg_text
+
+	logging.getLogger('pymantic.sparql').setLevel(logging.INFO)
+
+	formatter = logging.Formatter('#%(message)s')
+	console_debug_out = logging.StreamHandler()
+	console_debug_out.setFormatter(formatter)
+
+	logger1=logging.getLogger()
+	logger1.addHandler(console_debug_out)
+	logger1.setLevel(logging.DEBUG)#INFO)#
+
+	try:
+		os.unlink(kbdbg_file_name)
+	except FileNotFoundError:
+		pass
+	kbdbg_out = logging.FileHandler(kbdbg_file_name)
+	kbdbg_out.setLevel(logging.DEBUG)
+	kbdbg_out.setFormatter(logging.Formatter('%(message)s'))
+	logger2=logging.getLogger("kbdbg")
+	logger2.addHandler(kbdbg_out)
+
+	log, kbdbg_text = logger1.debug, logger2.info
+
+	for line in prefixes.strip().splitlines():
+		kbdbg_text('@'+line)
+	#print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")

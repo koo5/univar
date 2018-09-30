@@ -43,7 +43,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	pyin.this = this
 	identification = common.fix_up_identification(identification)
-	fn = 'kbdbg'+identification+'.n3'
+	fn = 'kbdbg'+identification+'.nq'
 	outpath = common.kbdbg_file_path(fn)
 	pyin.kbdbg_file_name = common.kbdbg_file_name(fn)
 	pyin._rules_file_name = pyin.kbdbg_file_name + '_rules'
@@ -54,13 +54,13 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	pyin.init_logging()
 	log = pyin.log
 	if sparql_uri != '':
-		server.update("""
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-		PREFIX kbdbg: <http://kbd.bg/#> 
-		PREFIX : <file:///#> 
-		WITH """ + default_graph + """
-		DELETE {kbdbg:latest kbdbg:is ?x} 
-		INSERT {kbdbg:latest kbdbg:is <""" + this + ">} WHERE {}""")
+		new = """kbdbg:latest kbdbg:is <""" + this + ">"
+		pyin.kbdbg(new, default=True)
+		uuu = (pyin.prefixes +
+		#WITH """ + default_graph + """
+		"""DELETE {kbdbg:latest kbdbg:is ?x} WHERE {kbdbg:latest kbdbg:is ?x}""")
+		server.update(uuu)
+		pyin.kbdbg_text('#'+uuu)
 
 	if identification != "":
 		pyin.kbdbg('<'+this +"> kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
@@ -143,12 +143,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		pyin.kbdbg_text('#result: ' + r)
 
 	if sparql_uri != '':
-		server.update("""
-		PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-		PREFIX kbdbg: <http://kbd.bg/#> 
-		PREFIX : <file:///#>
-		WITH """ + default_graph + """ 
-		INSERT {""" + this + " kbdbg:is kbdbg:done} WHERE {}""")
+		pyin.kbdbg("<" + this + "> kbdbg:is kbdbg:done", default=True)
 		pyin.flush_sparql_updates()
 
 	if visualize:

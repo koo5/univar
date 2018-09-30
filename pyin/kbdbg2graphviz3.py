@@ -23,6 +23,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pymantic import sparql
 from sortedcontainers import SortedList
 from common import shorten, fix_up_identification
+from common import pyin_prefixes as prefixes
 
 sparql_uri = 'http://localhost:9999/blazegraph/sparql'
 
@@ -55,11 +56,6 @@ border_width = 1
 
 stats = SortedList(key=lambda x: -x[0])
 
-prefixes = """
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX kbdbg: <http://kbd.bg/#> 
-PREFIX : <file:///#> 
-"""
 
 
 def profile(func, args=(), note=''):
@@ -441,22 +437,27 @@ def run(quiet, start, end, workers):
 			if step_to_submit < start - 1:
 				info ("skipping ["+str(step_to_submit) + ']')
 				continue
-			if step_to_submit > end and end != -1:
+			if range_start == None:
+				range_start = step_to_submit
+			range_end = step_to_submit
+			if range_end - range_start == 1000 or (range_end >= end and end != -1):
+				args = (identification, step_graph_uri, range_start, range_end, redis_fn)
+				if not workers:
+					work(*args)
+				else:
+					info('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+					if len(futures) > workers:
+						time.sleep(len(futures) - workers)
+					fut = worker_pool.submit(work, *args)
+					fut.step = step_to_submit
+					futures.append(fut)
+					log('submitted ' )
+					check_futures()
+				range_start = range_end + 1
+			if range_start > end and end != -1:
 				info ("ending")
 				done = True
 				break
-			args = (identification, step_graph_uri, step_to_submit, redis_fn)
-			if not workers:
-				work(*args)
-			else:
-				info('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
-				if len(futures) > workers:
-					time.sleep(len(futures) - workers)
-				fut = worker_pool.submit(work, *args)
-				fut.step = step_to_submit
-				futures.append(fut)
-				log('submitted ' )
-				check_futures()
 			log('loop ' )
 	if workers:
 		worker_pool.shutdown()
@@ -475,21 +476,12 @@ def frame_query(id=''):
 				}}.
 			""").format(id=id)
 
-def work(identification, graph_name, step_to_do, redis_fn):
-	global redis_connection, strict_redis_connection, sparql_server, step, step_graph
-	step = step_to_do
-
-	info('work ' + '[' + str(step) + ']')
-
-	#for Collections
-	step_graph = ConjunctiveGraph(sparqlstore.SPARQLStore(sparql_uri), graph_name)
-
+def work(identification, graph_name, _range_start, _range_end, redis_fn):
+	global redis_connection, strict_redis_connection, sparql_server, step, range_start, range_end
+	range_start, range_end = _range_start, _range_end
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_connection = redislite.Redis(redis_fn)
 	strict_redis_connection = redislite.StrictRedis(redis_fn)
-
-	gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
-
 
 	frames_list = list(query(('frame','parent', 'is_for_rule'),
 	"""WHERE
@@ -553,6 +545,12 @@ def work(identification, graph_name, step_to_do, redis_fn):
 				FILTER NOT EXISTS {?uri kbdbg:was_ubound true}.
 				?uri rdf:value ?value.
 			}."""+step_magic(0)+'}'))
+
+
+	for i in range(range_start, range_end + 1):
+		step = i
+		info('work ' + '[' + str(step) + ']')
+		gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
 
 
 	if len(frames_list) == 0:

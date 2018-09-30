@@ -7,6 +7,7 @@ import urllib.parse
 from collections import defaultdict, OrderedDict
 from common import shorten#, traverse, join_generators
 from time import sleep
+from common import pyin_prefixes as prefixes
 
 dbg = True
 nolog = False
@@ -16,11 +17,6 @@ log, kbdbg_text = 666,666
 pool = None
 futures = []
 
-prefixes = """
-prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-prefix kbdbg: <http://kbd.bg/#> 
-prefix : <file:///#> 
-"""
 
 to_submit_default = ''
 to_submit_graph = ''

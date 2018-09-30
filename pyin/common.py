@@ -29,3 +29,9 @@ def kbdbg_file_name(fn):
 
 def fix_up_identification(i):
 	return "".join([ch if ch.isalnum() else "_" for ch in i])
+
+pyin_prefixes = """
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+prefix kbdbg: <http://kbd.bg/#> 
+prefix : <file:///#> 
+"""

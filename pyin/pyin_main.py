@@ -27,7 +27,7 @@ pyin.default_graph = default_graph
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
 @click.option('--visualize', default=False)
-@click.option('--sparql_uri', default='')#http://192.168.122.108:9999/blazegraph/sparql
+@click.option('--sparql_uri', default='', help='for example http://localhost:9999/blazegraph/sparql')
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
@@ -38,7 +38,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	if sparql_uri != '':
 		pyin.pool = ThreadPoolExecutor()#max_workers = , thread_name_prefix='sparql_updater'
 		server = sparql.SPARQLServer(sparql_uri)
-		server.update("""CLEAR GRAPHS""")
+		#server.update("""CLEAR GRAPHS""")
 		pyin.server = server
 	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	pyin.this = this

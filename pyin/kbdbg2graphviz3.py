@@ -3,10 +3,7 @@
 
 
 import time
-import redislite, redis_collections
 import click
-from common import shorten, fix_up_identification
-import html as html_module
 import os
 import sys
 import logging
@@ -14,6 +11,9 @@ import urllib.parse
 import subprocess
 import yattag
 import rdflib
+import json
+import html as html_module
+import redislite, redis_collections
 from rdflib import ConjunctiveGraph, Graph, URIRef, Literal
 from rdflib.namespace import Namespace
 from rdflib.namespace import RDF
@@ -22,6 +22,7 @@ from non_retarded_collection import Collection
 from concurrent.futures import ProcessPoolExecutor
 from pymantic import sparql
 from sortedcontainers import SortedList
+from common import shorten, fix_up_identification
 
 sparql_uri = 'http://localhost:9999/blazegraph/sparql'
 
@@ -159,7 +160,7 @@ class Emitter:
 	def comment(s, text):
 		s.gv('//'+text)
 
-	def generate_gv_image(s, frames_list):
+	def do_frames(s,frames_list):
 		info ('frames.. ' + '[' + str(s.step) + ']')
 		#log(str(frames_list))
 		root_frame = None
@@ -180,26 +181,10 @@ class Emitter:
 			#if i == 0 and current_result:
 			#	arrow(result_node, f)
 
-
+	def do_bnodes(s,bnodes_list):
 		info ('bnodes.. ' + '[' + str(s.step) + ']')
 
-		bnode_list = list(query(('bnode','frame', 'items'),
-		"""WHERE
-		{
-		?bnode kbdbg:has_items ?items.
-		?bnode kbdbg:has_parent ?frame.
-		GRAPH ?g0 {?bnode rdf:type kbdbg:bnode}.
-		"""+step_magic(0)+"""
-		GRAPH ?g1 {?frame rdf:type kbdbg:frame}.
-		"""+step_magic(1)+"""
-		FILTER NOT EXISTS
-        {
-			GRAPH ?g2{?frame kbdbg:is_finished true}.
-			"""+step_magic(2)+"""
-		}
-		}"""))
-
-		for bnode_data in bnode_list:
+		for bnode_data in bnodes_list:
 			bnode, parent, items_uri  = bnode_data['bnode'],bnode_data['frame'],bnode_data['items']
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
@@ -222,38 +207,12 @@ class Emitter:
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
+	def do_bindings(s,bindings_list):
 		last_bindings = get_last_bindings(s.step)
 		info ('bindings...' + '[' + str(s.step) + ']')
 
 		new_last_bindings = []#redis_collections.List()
-		for binding_data in query(
-				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
-				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
-				'source_arg_idx','target_arg_idx','unbound','failed')
-
-		,"""WHERE 
-		{
-		GRAPH ?gbinding {?x rdf:type kbdbg:binding.}.
-		"""+step_magic('binding ')+"""
-		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound ?unbound}.
-		"""+step_magic('binding_unbound ')+"""
-		}.
-		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed ?failed}
-		"""+step_magic('binding_failed ')+"""
-		}.
-		?x kbdbg:has_source ?source.
-		?x kbdbg:has_target ?target.
-		?source kbdbg:has_frame ?source_frame.
-		?target kbdbg:has_frame ?target_frame.
-		OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
-		OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
-		?source kbdbg:term_idx ?source_term_idx.
-		?target kbdbg:term_idx ?target_term_idx.
-		OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
-		OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
-		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
-		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
-		}"""):
+		for binding_data in bindings_list:
 			binding = binding_data['x']
 			weight = 1
 			source_uri = binding_data['source']
@@ -292,15 +251,10 @@ class Emitter:
 		put_last_bindings(s.step, new_last_bindings)
 		del new_last_bindings
 
+	def do_results(s,results_list):
 		info ('results..' + '[' + str(s.step) + ']')
 		#last_result = root_frame
-		for i, result_data in enumerate(query(('uri','value'),
-			"""WHERE {GRAPH ?g0 
-			{
-				?uri rdf:type kbdbg:result.
-				FILTER NOT EXISTS {?uri kbdbg:was_ubound true}.
-				?uri rdf:value ?value.
-			}."""+step_magic(0)+'}')):
+		for i, result_data in enumerate(results_list):
 			result_uri = result_data['uri']
 			value = result_data['value']
 			result_node = gv_escape(result_uri)
@@ -322,6 +276,7 @@ class Emitter:
 			#if last_result:
 			#	s.arrow(last_result, result_node, color='yellow', weight=100)
 			#last_result = result_node
+
 
 	def gv_endpoint(s, frame, is_bnode, is_in_head, term_idx, arg_idx):
 		if is_bnode:
@@ -535,6 +490,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 
 	gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
 
+
 	frames_list = list(query(('frame','parent', 'is_for_rule'),
 	"""WHERE
 	{
@@ -542,6 +498,63 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		OPTIONAL {?frame kbdbg:has_parent ?parent}.
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
+
+	bnodes_list = list(query(('bnode','frame', 'items'),
+		"""WHERE
+		{
+		?bnode kbdbg:has_items ?items.
+		?bnode kbdbg:has_parent ?frame.
+		GRAPH ?g0 {?bnode rdf:type kbdbg:bnode}.
+		"""+step_magic(0)+"""
+		GRAPH ?g1 {?frame rdf:type kbdbg:frame}.
+		"""+step_magic(1)+"""
+		FILTER NOT EXISTS
+        {
+			GRAPH ?g2{?frame kbdbg:is_finished true}.
+			"""+step_magic(2)+"""
+		}
+		}"""))
+
+
+	bindings_list = list(
+			query(
+				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
+				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
+				'source_arg_idx','target_arg_idx','unbound','failed')
+
+		,"""WHERE 
+		{
+		GRAPH ?gbinding {?x rdf:type kbdbg:binding.}.
+		"""+step_magic('binding ')+"""
+		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound ?unbound}.
+		"""+step_magic('binding_unbound ')+"""
+		}.
+		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed ?failed}
+		"""+step_magic('binding_failed ')+"""
+		}.
+		?x kbdbg:has_source ?source.
+		?x kbdbg:has_target ?target.
+		?source kbdbg:has_frame ?source_frame.
+		?target kbdbg:has_frame ?target_frame.
+		OPTIONAL {?source kbdbg:is_bnode ?source_is_bnode.}.
+		OPTIONAL {?target kbdbg:is_bnode ?target_is_bnode.}.
+		?source kbdbg:term_idx ?source_term_idx.
+		?target kbdbg:term_idx ?target_term_idx.
+		OPTIONAL {?source kbdbg:is_in_head ?source_is_in_head.}.
+		OPTIONAL {?target kbdbg:is_in_head ?target_is_in_head.}.
+		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
+		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
+		}"""))
+
+	results_list = list(query(('uri','value'),
+			"""WHERE {GRAPH ?g0 
+			{
+				?uri rdf:type kbdbg:result.
+				FILTER NOT EXISTS {?uri kbdbg:was_ubound true}.
+				?uri rdf:value ?value.
+			}."""+step_magic(0)+'}'))
+
+
 	if len(frames_list) == 0:
 		info('no frames.' + '[' + str(step) + ']')
 		put_last_bindings(step, [])
@@ -557,7 +570,12 @@ def work(identification, graph_name, step_to_do, redis_fn):
 	gv_output_file = open(gv_output_file_name, 'w')
 	e = Emitter(gv_output_file, step)
 	e.gv("digraph frame"+str(step) + "{  ")#splines=ortho;#gv("pack=true")
-	e.generate_gv_image(frames_list)
+
+	e.do_frames(frames_list)
+	e.do_bnodes(bnodes_list)
+	e.do_results(results_list)
+	e.do_bindings(bindings_list)
+
 	e.gv("}")
 	info ('}..' + '[' + str(step) + ']')
 	gv_output_file.close()
@@ -576,7 +594,7 @@ def work(identification, graph_name, step_to_do, redis_fn):
 		info ('[' + str(step) + ']' + str(e.output))
 		raise e
 	info('convert done.' + '[' + str(step) + ']')
-	#print_stats()
+	print_stats()
 	redis_connection._cleanup()
 	strict_redis_connection._cleanup()
 
@@ -585,7 +603,8 @@ def print_stats():
 	if len(stats):
 		info('stats:')
 		for elapsed, func, args, note in stats[:3]:
-			for l in str((elapsed,args)).splitlines():
+			info(str(elapsed)+':')
+			for l in args[0].splitlines():
 				info(l)
 
 
@@ -603,7 +622,7 @@ def check_futures():
 			futures.remove(f)
 		else:
 			return
-import json
+
 def get_last_bindings(step):
 	info ('get last bindings...' + '[' + str(step) + ']')
 	if step == 0:

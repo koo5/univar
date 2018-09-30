@@ -1,32 +1,26 @@
-#import itertools
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
-#import time
-#import sys
 import os
 import logging
 import urllib.parse
 from collections import defaultdict, OrderedDict
-#from ordered_rdflib_store import OrderedStore
 from common import shorten#, traverse, join_generators
+from time import sleep
 
 dbg = True
 nolog = False
 nokbdbg = False
-
 kbdbg_prefix = URIRef('http://kbd.bg/#')
-
 log, kbdbg_text = 666,666
+pool = None
+futures = []
 
 prefixes = """
 prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
 prefix kbdbg: <http://kbd.bg/#> 
 prefix : <file:///#> 
 """
-
-pool = None
-futures = []
 
 to_submit_default = ''
 to_submit_graph = ''
@@ -44,17 +38,33 @@ def kbdbg(text, default = False):
 		else:
 			to_submit_graph += text+'. '
 
+all_updates = prefixes
+
 def submit_kbdbg():
-	global to_submit_default, to_submit_graph
-	if to_submit_default != '':
-		txt = prefixes + "INSERT DATA {Graph " + default_graph + " {" + to_submit_default +"}}"
-		futures.append(pool.submit(server.update, txt))
-		log(txt)
-	if to_submit_graph != '':
-		txt = prefixes + "INSERT DATA {Graph <" + step_graph_name(global_step_counter) + "> {" + to_submit_graph +'}}'
-		futures.append(pool.submit(server.update, txt))
+	global to_submit_default, to_submit_graph, all_updates
+
 	check_futures()
+
+	qs = pool._work_queue.qsize()
+	while qs > 100:
+		print("sleeping "+str(qs - 100))
+		sleep (qs - 100)
+		qs = pool._work_queue.qsize()
+
+	if to_submit_default != '':
+		all_updates +="INSERT DATA {Graph " + default_graph + " {" + to_submit_default +"}};"
+	if to_submit_graph != '':
+		all_updates +="INSERT DATA {Graph <" + step_graph_name(global_step_counter) + "> {" + to_submit_graph +'}};'
+
 	to_submit_default, to_submit_graph = '',''
+
+	if len(all_updates) > 100000:
+		flush_sparql_updates()
+
+def flush_sparql_updates():
+	global all_updates
+	futures.append(pool.submit(server.update, all_updates))
+	all_updates = prefixes
 
 def step_graph_name(idx):
 	return this + '_' + str(idx).rjust(10,'0')
@@ -71,11 +81,12 @@ global_step_counter = 0
 def step():
 	global global_step_counter
 	kbdbg_text("#step"+str(global_step_counter))
-	submit_kbdbg()
+	if pool:
+		submit_kbdbg()
 	kbdbg_graph_first()
 	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
 	global_step_counter += 1
-
+	#if step % 10000 == 0:
 
 
 bnode_counter = 0
@@ -158,9 +169,9 @@ class Locals(OrderedDict):
 		s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
 			if type(v) == Var:
-				s[k] = Var(v.debug_name + "_clone", s)
+				s[k] = Var(v.debug_name + "_clone", weakref(s))
 			else:
-				s[k] = Atom(v.value, s)
+				s[k] = Atom(v.value, weakref(s))
 
 	def new(s, kbdbg_frame):
 		nolog or log("cloning " + str(s))
@@ -214,10 +225,10 @@ class AtomVar(Kbdbgable):
 
 	def recursive_clone(s):
 		if type(s) == Atom:
-			r = Atom(s.value, s.debug_locals if dbg else None)
+			r = Atom(s.value, s.debug_locals)
 		else:
 			assert type(s) == Var
-			r = Var(s.debug_name if dbg else None, s.debug_locals if dbg else None)
+			r = Var(s.debug_name, s.debug_locals)
 		if dbg:
 			r.kbdbg_name = s.kbdbg_name
 		return r
@@ -253,19 +264,19 @@ class Var(AtomVar):
 		if dbg:
 			super().__init__(debug_name, debug_locals)
 		s.bound_to = None
-		s.bnode = None
+		s.bnode = lambda: None
 
 	def str(s, shortener = lambda x:x):
 		if type(s.kbdbg_name) == URIRef:
 			xxx = shortener(s.kbdbg_name.n3())
 		else:
 			xxx = shortener(s.kbdbg_name)
-		if s.bnode:
+		if s.bnode():
 			xxx += '['
-			for k,v in s.bnode.items():
+			for k,v in s.bnode().items():
 				if v != s:
 					xxx += str(shortener(k)) + ' --->>> '
-					if (type(v) == Var) and v.bnode and (s in v.bnode.values()):
+					if (type(v) == Var) and v.bnode() and (s in v.bnode().values()):
 						xxx += '[recursive]'
 					else:
 					    xxx += shortener(str(v))
@@ -275,7 +286,7 @@ class Var(AtomVar):
 		# + " in " + str(s.debug_locals())
 	def ___short__str__(s):
 		r = ''
-		if s.bnode:
+		if s.bnode():
 			r +=  '[bnode]'
 		if s.bound_to:
 			return r + ' = ' + (s.bound_to.__short__str__())
@@ -286,8 +297,8 @@ class Var(AtomVar):
 		r = super().recursive_clone()
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
-		r.bnode = s.bnode
-		if s.bnode:
+		r.bnode = weakref(s.bnode()) if s.bnode() else lambda: None
+		if s.bnode():
 			r.is_a_bnode_from_original_rule = s.is_a_bnode_from_original_rule
 			r.is_from_name = s.is_from_name
 		return r
@@ -296,7 +307,7 @@ class Var(AtomVar):
 		assert x.bound_to == None
 		x.bound_to = y
 		msg = "bound " + str(x) + " to " + str(y)
-		nolog or log(msg)
+		log(msg)
 		uri = bn()
 		emit_binding(uri, orig)
 		step()
@@ -375,9 +386,9 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
 		r = success("same things", xy)
-	elif type(val_x) == Var and not val_x.bnode:
+	elif type(val_x) == Var and not val_x.bnode():
 		r = val_x.bind_to(val_y, xy)
-	elif type(val_y) == Var and not val_y.bnode:
+	elif type(val_y) == Var and not val_y.bnode():
 		r = val_y.bind_to(val_x, yx)
 
 	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
@@ -429,6 +440,7 @@ class Rule(Kbdbgable):
 		singleton.original_head_triples = original_head[:]
 		singleton.locals_template = singleton.make_locals(singleton.original_head_triples, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
+		singleton.existentials = get_existentials_names(singleton.original_head_triples, singleton.body)
 
 		with open(_rules_file_name, 'a') as ru:
 			ru.write(singleton.kbdbg_name + ":"+ singleton.__str__(shorten) + '\n')
@@ -466,6 +478,9 @@ class Rule(Kbdbgable):
 		return locals
 
 	def rule_unify(singleton, parent, args):
+		#snapshot1 = tracemalloc.take_snapshot()
+		#objgraph.show_growth(limit=3)
+
 		Rule.last_frame_id += 1
 		frame_id = Rule.last_frame_id
 		depth = 0
@@ -479,7 +494,7 @@ class Rule(Kbdbgable):
 		if parent:
 			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
 
-		existentials = get_existentials_names(singleton.original_head_triples, singleton.body)
+
 		def desc():
 			return ("#vvv\n#" + #str(singleton) + "\n" +
 			kbdbg_name.n3() + '\n' +
@@ -491,14 +506,14 @@ class Rule(Kbdbgable):
 
 		log ("entering:" + desc())
 
-		for e in existentials:
-			locals[e].bnode = locals
+		for e in singleton.existentials:
+			locals[e].bnode = weakref(locals)
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
 			locals[e].is_from_name = e
 
 		incoming_bnode_unifications = []
 
-		if len(existentials):
+		if len(singleton.existentials):
 			locals.emit()
 
 		while True:
@@ -541,9 +556,9 @@ class Rule(Kbdbgable):
 				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
-					if vv != v and type(vv) == Var and vv.bnode and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
+					if vv != v and type(vv) == Var and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
 						log('its a bnode')
-						b = vv.bnode
+						b = vv.bnode()
 						for k,v in b.items():
 							if not is_var(k): continue
 							incoming_bnode_unifications.append((
@@ -562,6 +577,17 @@ class Rule(Kbdbgable):
 				yield locals
 				log ("re-entering " + desc() + " for more results")
 		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
+
+		"""
+		gc.collect()
+		snapshot2 = tracemalloc.take_snapshot()
+		top_stats = snapshot2.compare_to(snapshot1, 'lineno')
+		log("[ Top 5 differences ]")
+		for stat in top_stats[:50]:
+			log(stat)
+		"""
+		#print("[ Top ]")
+		objgraph.show_growth()
 
 
 	def match(s, parent = None, args=[]):
@@ -608,9 +634,9 @@ def ep_match(args_a, args_b):
 		if type(a) != type(b):
 			return
 		if type(a) == Var:
-			if a.bnode and not b.bnode or b.bnode and not a.bnode:
+			if a.bnode() and not b.bnode() or b.bnode() and not a.bnode():
 				return
-			if a.bnode and b.bnode:
+			if a.bnode() and b.bnode():
 				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule or a.is_from_name != b.is_from_name:
 					return
 		if type(a) == Atom and b.value != a.value:
@@ -647,6 +673,7 @@ def query(input_rules, input_query):
 		preds[r.head.pred].append(r)
 	query_rule = Rule([], None, input_query)
 	step()
+#	tracemalloc.start()
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
 		kbdbg(uri + " rdf:type kbdbg:result")
@@ -660,14 +687,15 @@ def query(input_rules, input_query):
 				if a in printed: continue
 				if a not in locals:	continue
 				v = get_value(locals[a])
-				if type(v) == Var and v.bnode:
+				if type(v) == Var and v.bnode():
 					log(str(a) + ':')
-					log(print_bnode(v.bnode))
+					log(print_bnode(v.bnode()))
 					printed.append(a)
 
 		#log(print_proof(..))
 
 		kbdbg(uri + " kbdbg:was_unbound true")
+	flush_sparql_updates()
 
 #def print_proof(indent, rules, substs):
 #	for rule in rules:
@@ -740,6 +768,9 @@ def emit_term(t, uri):
 	return uri
 
 def check_futures():
+	log('len(futures):'+str(len(futures)))
+	#log('len(futures):'+str(len(pool.)))
+
 	while True:
 		if len(futures) == 0: return
 		f = futures[0]
@@ -776,3 +807,11 @@ def init_logging():
 	for line in prefixes.strip().splitlines():
 		kbdbg_text('@'+line)
 	#print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
+
+#import gc
+#gc.set_debug(gc.DEBUG_LEAK)
+
+
+#import tracemalloc
+#import gc
+import objgraph

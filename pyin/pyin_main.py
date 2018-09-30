@@ -36,7 +36,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	base = 'file://'  + base
 	global server, this
 	if sparql_uri != '':
-		pyin.pool = ThreadPoolExecutor(8)#max_workers = , thread_name_prefix='sparql_updater'
+		pyin.pool = ThreadPoolExecutor()#max_workers = , thread_name_prefix='sparql_updater'
 		server = sparql.SPARQLServer(sparql_uri)
 		server.update("""CLEAR GRAPHS""")
 		pyin.server = server
@@ -149,6 +149,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		PREFIX : <file:///#>
 		WITH """ + default_graph + """ 
 		INSERT {""" + this + " kbdbg:is kbdbg:done} WHERE {}""")
+		pyin.flush_sparql_updates()
 
 	if visualize:
 		os.system('pypy3.5 -O pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)

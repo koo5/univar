@@ -27,6 +27,9 @@ from common import pyin_prefixes as prefixes
 
 sparql_uri = 'http://localhost:9999/blazegraph/sparql'
 
+range_start = '666'
+range_end= '666'
+
 redis_connection = None
 strict_redis_connection = None
 
@@ -92,7 +95,15 @@ def query(vars, q):
 		vars = (vars,)
 	q2 = prefixes + 'SELECT '+' '.join('?'+x for x in vars)+' ' + q
 	log(q2)
+	#try:
 	rrr= profile(sparql_server.query, (q2,))['results']['bindings']
+	#except sparql.SPARQLQueryException as e:
+	#	log('exception:')
+	#	from IPython import embed;embed()
+	#	for k,v in e.items():
+	#		log(k)
+	#		for l in v.splitlines():
+	#			log(l)
 	for i in rrr:
 		r = {}
 		for k in vars:
@@ -203,7 +214,7 @@ class Emitter:
 			s.gv(gv_escape(bnode) + ' [shape=none, cellborder=2, label=<' + doc.getvalue()+ '>]')
 			s.arrow(gv_escape(parent), gv_escape(bnode), color='yellow', weight=100)
 
-	def do_bindings(s,bindings_list):
+	def do_bindings(s, bindings_list):
 		#global just_unbound_bindings
 		info ('bindings...' + sss)
 
@@ -211,7 +222,7 @@ class Emitter:
 			binding = binding_data['x']
 			weight = 1
 
-			binding_failed, binding_unbound = idk(binding_data, 'binding_failed'), idk(binding_data, 'binding_unbound')
+			binding_failed, binding_unbound = idk(binding_data, 'stepbinding_failed'), idk(binding_data, 'stepbinding_unbound')
 
 			source_uri = binding_data['source']
 			target_uri = binding_data['target']
@@ -404,7 +415,7 @@ def step_magic(id=0):
 	  BIND  (STRAFTER(?strg{id}, "_") AS ?step{id}).
 	  FILTER (?step{id} < "{maxstep}").
 	  """.format(id=id, graph_name_start=graphs_name_start,
-				 maxstep=str(step+1).rjust(10,'0'))
+				 maxstep=str(range_end+1).rjust(10,'0'))
 
 
 futures = []
@@ -432,6 +443,7 @@ def run(quiet, start, end, workers):
 	graph_list_position = graphs_name_start
 	step_to_submit = -1
 	done = False
+	range_start = None
 	while not done:
 		step_list_data = list(fetch_list(('cell','item'),graph_list_position, upper_bound=50))
 		if len(step_list_data ) == 0: break
@@ -445,7 +457,7 @@ def run(quiet, start, end, workers):
 			if range_start == None:
 				range_start = step_to_submit
 			range_end = step_to_submit
-			if range_end - range_start == 1000 or (range_end >= end and end != -1):
+			if range_end - range_start == 30 or (range_end >= end and end != -1):
 				args = (identification, step_graph_uri, range_start, range_end, redis_fn)
 				if not workers:
 					work(*args)
@@ -463,7 +475,7 @@ def run(quiet, start, end, workers):
 				info ("ending")
 				done = True
 				break
-			log('loop ' )
+			log('loop' )
 	if workers:
 		worker_pool.shutdown()
 	check_futures()
@@ -490,7 +502,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 	redis_connection = redislite.Redis(redis_fn)
 	strict_redis_connection = redislite.StrictRedis(redis_fn)
 
-	range_frames_list = list(query(('frame','parent', 'is_for_rule', 'g_finished'),
+	range_frames_list = list(query(('frame','parent', 'is_for_rule', 'step_finished'),
 	"""WHERE
 	{
 		{SELECT ?frame WHERE{"""+frame_query()+"""}}
@@ -498,7 +510,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
 
-	range_bnodes_list = list(query(('bnode','frame', 'items', 'gexists', 'gfinished'),
+	range_bnodes_list = list(query(('bnode','frame', 'items', 'stepexists', 'stepfinished'),
 		"""WHERE
 		{
 		?bnode kbdbg:has_items ?items.
@@ -512,28 +524,28 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		}"""))
 
 	#checkme
-	range_results_list = list(query(('uri','value', 'gunbound'),
+	range_results_list = list(query(('uri','value', 'stepunbound'),
 			"""WHERE {GRAPH ?g0 
 			{
 				?uri rdf:type kbdbg:result.
 				?uri rdf:value ?value.
-			}."""+step_magic(0)+"""}
-			OPTIONAL {GRAPH ?gunbound {?uri kbdbg:was_ubound true}.}."""))
+			}."""+step_magic(0)+"""
+			OPTIONAL {GRAPH ?gunbound {?uri kbdbg:was_ubound true}.}.}"""))
 
 	range_bindings_list = list(
 			query(
 				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
 				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
-				'source_arg_idx','target_arg_idx','unbound','gbinding_unbound','failed', 'gbinding_failed')
+				'source_arg_idx','target_arg_idx','stepbinding_unbound','stepbinding_failed')
 		,"""WHERE 
 		{
 		GRAPH ?gbinding {?x rdf:type kbdbg:binding.}.
-		"""+step_magic('binding ')+"""
-		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound ?unbound}.
-		"""+step_magic('binding_unbound ')+"""
+		"""+step_magic('binding')+"""
+		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound true}.
+		"""+step_magic('binding_unbound')+"""
 		}.
-		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed ?failed}
-		"""+step_magic('binding_failed ')+"""
+		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed true}
+		"""+step_magic('binding_failed')+"""
 		}.
 		?x kbdbg:has_source ?source.
 		?x kbdbg:has_target ?target.
@@ -558,7 +570,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 
 		frames_list = []
 		for f in range_frames_list:
-			g_finished = idk(range_frames_list, 'g_finished')
+			g_finished = idk(f, 'step_finished')
 			if g_finished == None or g_finished > step:
 				frames_list.append(f)
 
@@ -568,13 +580,13 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 
 		bnodes_list = []
 		for b in range_bnodes_list:
-			gfinished = idk(range_bnodes_list, 'gfinished')
+			gfinished = idk(b, 'stepfinished')
 			if gfinished == None or gfinished > step:
 				bnodes_list.append(b)
 
 		results_list = []
 		for r in range_results_list:
-			gunbound = idk(range_results_list, 'gunbound')
+			gunbound = idk(r , 'stepunbound')
 			if gunbound == None or gunbound > step:
 				results_list.append(r)
 
@@ -590,7 +602,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		e.do_frames(frames_list)
 		e.do_bnodes(bnodes_list)
 		e.do_results(results_list)
-		e.do_bindings(bindings_list)
+		e.do_bindings(range_bindings_list)
 
 		e.gv("}")
 		info ('}..' + '[' + str(step) + ']')

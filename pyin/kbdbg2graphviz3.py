@@ -69,25 +69,25 @@ def profile(func, args=(), note=''):
 	return r
 
 
-def fetch_list(vars, list_uri, **kwargs):
+def query_list(vars, list_uri, **kwargs):
 	return query(vars, 'WHERE { ' + list_subquery(list_uri, **kwargs) + '}')
 
-def list_subquery(start, additional='', upper_bound=2147483647):
+def list_subquery(start, additional='', upper_bound=2147483647, graph='???'):
 	return """
 						{    
 							SELECT ?cell WHERE 
 							{
 								SERVICE bd:alp 
 								{ 
-									<""" + start + """> rdf:rest ?cell. 
+									GRAPH <"""+graph+'> {<' + start + """> rdf:rest ?cell. 
 									hint:Prior hint:alp.pathExpr true .
 									hint:Group hint:alp.lowerBound 0 .
 									hint:Group hint:alp.upperBound """+str(upper_bound)+""" .
 								}
 							}
 						}
-						?cell rdf:first ?item.
-	""" + additional
+						GRAPH <"""+graph+"""> {?cell rdf:first ?item.
+	""" + additional + '}'
 
 
 def query(vars, q):
@@ -189,18 +189,18 @@ class Emitter:
 			#	arrow(result_node, f)
 
 	def do_bnodes(s,bnodes_list):
-		info ('bnodes.. ' + sss)
+		info ('bnodes.. ' + ss)
 
 		for bnode_data in bnodes_list:
-			bnode, parent, items_uri  = bnode_data['bnode'],bnode_data['frame'],bnode_data['items']
+			bnode, parent, items_uri, gexists  = bnode_data['bnode'],bnode_data['frame'],bnode_data['items'],bnode_data['gexists']
 			(doc, tag, text) = yattag.Doc().tagtext()
 			with tag("table", border=0, cellspacing=0):
 				with tag('tr'):
 					with tag('td', border=1):
 						text(shorten(bnode))
-				items = fetch_list(('name','value'), items_uri,
-					additional="""?item kbdbg:has_name ?name.
-                		?item kbdbg:has_value ?value.""")
+				items = query_list(('name', 'value'), items_uri,
+								   additional="""?item kbdbg:has_name ?name.
+                		?item kbdbg:has_value ?value.""", graph=gexists)
 				for i in items:
 					with tag('tr'):
 						name = i['name']
@@ -314,22 +314,28 @@ class Emitter:
 		rule = frame['is_for_rule']
 		params = (rule, isroot)
 		try:
-			template = s.frame_templates[params]
+			while True:
+				template = s.frame_templates[params]
+				if template == 'pending...':
+					time.sleep(1)
+				else:
+					break
 		except KeyError:
+			s.frame_templates[params] = 'pending...'
 			template = s._get_frame_html_label(*params)
 			s.frame_templates[params] = template
 		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame['frame'])))
 
 	@staticmethod
 	def _get_frame_html_label(rule, isroot):
-			rule_data = query_one(('original_head', 'head','head_idx','body'),
+			rule_data = query_one(('original_head', 'head','head_idx','body','gexists'),
 				"""{
 				OPTIONAL {<"""+rule+"""> kbdbg:has_original_head ?original_head} 
 				OPTIONAL {<"""+rule+"""> kbdbg:has_head ?head}
 				OPTIONAL {<"""+rule+"""> kbdbg:has_head_idx ?head_idx}
 				OPTIONAL {<"""+rule+"""> kbdbg:has_body ?body}
 				}""")
-			body_items = list(fetch_list(('item',), rule_data['body']))
+			body_items = list(query_list(('item',), rule_data['body']))
 			doc, tag, text = yattag.Doc().tagtext()
 			with tag("table", border=1, cellborder=0, cellpadding=0, cellspacing=0):
 				with tag("tr"):
@@ -370,9 +376,9 @@ def port_name(is_in_head, term_idx, arg_idx):
 			)
 
 def emit_term(tag, text, is_in_head, term_idx, term):
-	term_data = query_one(('pred', 'args'), '{<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}')
+	term_data = query_one(('pred', 'args'), '{'+step_magic() + ' GRAPH ?g0 {<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}}')
 	pred = term_data['pred']
-	args_list = list(fetch_list(('item',), term_data['args']))
+	args_list = list(query_list(('item',), term_data['args']))
 	if len(args_list ) == 2:
 		def arrrr(arg_idx):
 			with tag('td', port=port_name(is_in_head, term_idx, arg_idx), border=border_width):
@@ -397,9 +403,9 @@ def emit_term(tag, text, is_in_head, term_idx, term):
 		with tag("td", border=border_width):
 			text(').')
 
-def emit_terms( tag, text, uri, is_head):
+def emit_terms( tag, text, uri, is_head, graph):
 	if uri == None: return
-	items = list(fetch_list(('item',),uri))
+	items = list(query_list(('item',), uri))
 	emit_terms_by_items( tag, text, items, is_head)
 
 
@@ -445,7 +451,7 @@ def run(quiet, start, end, workers):
 	done = False
 	range_start = None
 	while not done:
-		step_list_data = list(fetch_list(('cell','item'),graph_list_position, upper_bound=50))
+		step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=50))
 		if len(step_list_data ) == 0: break
 		graph_list_position = step_list_data [-1]['cell']
 		for rrr in step_list_data[:-1] :
@@ -510,7 +516,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
 
-	range_bnodes_list = list(query(('bnode','frame', 'items', 'stepexists', 'stepfinished'),
+	range_bnodes_list = list(query(('gexists','bnode','frame','items','stepexists','stepfinished'),
 		"""WHERE
 		{
 		?bnode kbdbg:has_items ?items.

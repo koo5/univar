@@ -450,6 +450,7 @@ def run(quiet, start, end, workers):
 		logger.setLevel(logging.INFO)
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_fn = redislite.Redis().db
+	info('redis is '+redis_fn)
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
 	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
@@ -475,7 +476,7 @@ def run(quiet, start, end, workers):
 			if range_start == None:
 				range_start = step_to_submit
 			range_end = step_to_submit
-			if range_end - range_start == 300 or (range_end >= end and end != -1):
+			if range_end - range_start == 1000 or (range_end >= end and end != -1):
 				args = (identification, step_graph_uri, range_start, range_end, redis_fn)
 				if not workers:
 					work(*args)
@@ -544,7 +545,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		"""+step_magic('_created')+"""
 		OPTIONAL {
 			GRAPH ?g_finished{?frame kbdbg:is_finished true}.
-			"""+step_magic('_finished')+"""
+			"""+step_bind('_finished')+"""
 		}
 		}"""))
 
@@ -612,9 +613,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 			if step_finished == None:
 				step_created = idk_created(b, 'step_created')
 				if step_created != None:
-					frames_list.append(f)
-
-				bnodes_list.append(b)
+					bnodes_list.append(b)
 
 		results_list = []
 		for r in range_results_list:
@@ -656,7 +655,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		secs_per_frame = str(elapsed/frames_done_count)
 		info('done ' + str(frames_done_count) + ' frames in ' + str(elapsed) + 'secs (' + secs_per_frame + 'secs/frame')
 
-	print_stats()
+	#print_stats()
 	redis_connection._cleanup()
 	strict_redis_connection._cleanup()
 

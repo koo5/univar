@@ -484,22 +484,36 @@ def run(quiet, start, end, workers):
 			if range_start == None:
 				range_start = step_to_submit
 			range_end = step_to_submit
-			if range_end - range_start == 1000 or (range_end >= end and end != -1):
+			if range_end - range_start == 10000 or (range_end >= end and end != -1):
 				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
 				if not workers:
 					work(*args)
 				else:
-					check_futures()
+					if check_futures() == 'end':
+						info ("ending")
+						done = True
+						break
+
 					while len(futures) > workers+1:
-						time.sleep(1)
-						check_futures()
-					info('submit ' + '[' + str(step_to_submit) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+						info('sleeping')
+						time.sleep(10)
+						if check_futures() == 'end':
+							info ("ending")
+							done = True
+							break
+
+					info('submit ' + str(range_start)+'-'+str(range_end) + ' (queue size: ' + str(len(futures)) + ')' )
 					fut = worker_pool.submit(work, *args)
 					fut.step = step_to_submit
 					futures.append(fut)
 					log('submitted ' )
 					time.sleep(secs_per_frame)
-					check_futures()
+
+					if check_futures() == 'end':
+						info ("ending")
+						done = True
+						break
+
 				range_start = range_end + 1
 			if range_start > end and end != -1:
 				info ("ending")
@@ -507,8 +521,12 @@ def run(quiet, start, end, workers):
 				break
 			log('loop' )
 	if workers:
+		while len(futures) != 0:
+			check_futures()
+			info('waiting for workers to end')
+			time.sleep(10)
 		worker_pool.shutdown()
-	check_futures()
+		check_futures()
 
 def frame_query(id=''):
 	return ("""
@@ -664,6 +682,11 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		secs_per_frame = str(elapsed/frames_done_count)
 		info('done ' + str(frames_done_count) + ' frames in ' + str(elapsed) + 'secs (' + secs_per_frame + 'secs/frame')
 
+	while len(futures) != 0:
+		check_futures()
+		time.sleep(10)
+
+
 	#print_stats()
 	redis_connection._cleanup()
 	strict_redis_connection._cleanup()
@@ -690,8 +713,9 @@ def check_futures():
 		if f.done():
 			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)
-			if f.ressult() == 'end':
-				exit()
+			if f.result() == 'end':
+				info ('found the end'+ss)
+				return 'end'
 		else:
 			return
 

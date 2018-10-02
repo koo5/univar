@@ -1,0 +1,10 @@
+add option to render full original heads of rules in kbdbg images
+#subclass n3 parser(?) and tweak list syntax parsing to produce better names and order
+try to make RDR work, if this fails, at least try to change kbdbg to query with standard sparql
+take care of displaying the right value of changing value of bnodes/locals - probably not necessary now
+
+
+
+
+use persistent redis file, key by full run identification
+emit bnode text as precomputed_text, move the computing function to common

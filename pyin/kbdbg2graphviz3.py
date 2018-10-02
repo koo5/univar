@@ -464,7 +464,7 @@ def run(quiet, start, end, workers):
 	range_start = None
 	start_time = time.perf_counter()
 	while not done:
-		step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=50))
+		step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
 		if len(step_list_data ) == 0: break
 		graph_list_position = step_list_data [-1]['cell']
 		for rrr in step_list_data[:-1] :

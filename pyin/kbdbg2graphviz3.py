@@ -159,6 +159,7 @@ class Emitter:
 
 	def __init__(s, gv_output_file):
 		s.gv_output_file = gv_output_file
+		s.last_bindings = []
 
 	def gv(s, text):
 		s.gv_output_file.write(text + '\n')
@@ -235,16 +236,31 @@ class Emitter:
 
 	def do_bindings(s, bindings_list):
 		info ('bindings...' + ss)
+		new_last_bindings = []
+
+		def arrr(color):
+			se = x_endpoint('source')
+			te = x_endpoint('target')
+			s.arrow(se, te, color=color, weight=weight, binding=True)
+			new_last_bindings.append((se,te,color))
+
+		def x_endpoint(x):
+			return s.gv_endpoint(
+					binding_data[x+'_frame'],
+					binding_data[x+'_is_bnode'],
+					binding_data[x+'_is_in_head'],
+					binding_data[x+'_term_idx'],
+					binding_data[x+'_arg_idx'])
 
 		for binding_data in bindings_list:
 			binding = binding_data['x']
 			weight = 1
 
-			binding_failed = idk_destroyed(binding_data, 'stepbinding_failed')
-			binding_unbound = idk_destroyed(binding_data, 'stepbinding_unbound')
 			binding_created = idk_created(binding_data, 'stepbinding_created')
 			if binding_created == None:
 				continue
+			binding_failed = idk_destroyed(binding_data, 'stepbinding_failed')
+			binding_unbound = idk_destroyed(binding_data, 'stepbinding_unbound')
 
 			source_uri = binding_data['source']
 			target_uri = binding_data['target']
@@ -252,32 +268,23 @@ class Emitter:
 			if binding_data['source_is_bnode'] and binding_data['target_is_bnode']:
 				weight = 0
 
-			source_endpoint = s.gv_endpoint(
-				binding_data['source_frame'],
-				binding_data['source_is_bnode'],
-				binding_data['source_is_in_head'],
-				binding_data['source_term_idx'],
-				binding_data['source_arg_idx'])
-			target_endpoint = s.gv_endpoint(
-				binding_data['target_frame'],
-				binding_data['target_is_bnode'],
-				binding_data['target_is_in_head'],
-				binding_data['target_term_idx'],
-				binding_data['target_arg_idx'])
-
 			if (binding_unbound != None) and (binding_failed == None):
-				log(binding + ' is unbound')
+				#log(binding + ' is unbound')
 				if binding_unbound == step:
 					s.comment("just unbound binding")
-					s.arrow(source_endpoint, target_endpoint, color='orange', weight=weight, binding=True)
+					arrr('orange')
 			elif (binding_failed != None) and (binding_unbound == None):
 				if binding_failed == step:
 					s.comment("just failed binding")
-					s.arrow(source_endpoint, target_endpoint, color='red', weight=weight, binding=True)
+					arrr('red')
 			elif (binding_failed == None) and (binding_unbound == None):
 				s.comment("binding " + binding)
-				s.arrow(source_endpoint, target_endpoint,
-					  color=('black' if (step == binding_created) else 'purple' ), weight=weight, binding=True)
+				arrr('black' if (step == binding_created) else 'purple' )
+
+		if new_last_bindings == s.last_bindings:
+			return 'end'
+		s.last_bindings = new_last_bindings
+
 
 	def do_results(s,results_list):
 		info ('results..' + '[' + str(step) + ']')
@@ -329,6 +336,7 @@ class Emitter:
 		except KeyError:
 			info(params + ' not found in template cache..' + ss)
 			frame_templates[params] = 'pending...'
+			info(params + ' set.')
 			template = s._get_frame_html_label(rule, isroot)
 			frame_templates[params] = template
 		return template.replace(frame_name_template_var_name,html_module.escape(shorten(frame['frame'])))
@@ -464,11 +472,11 @@ def run(quiet, start, end, workers):
 	range_start = None
 	start_time = time.perf_counter()
 	while not done:
-		step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
-		if len(step_list_data ) == 0: break
-		graph_list_position = step_list_data [-1]['cell']
-		for rrr in step_list_data[:-1] :
-			step_graph_uri = rrr['item']
+		#step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
+		#if len(step_list_data ) == 0: break
+		#graph_list_position = step_list_data [-1]['cell']
+		#for rrr in step_list_data[:-1] :
+			#step_graph_uri = rrr['item']
 			step_to_submit+=1
 			if step_to_submit < start - 1:
 				info ("skipping ["+str(step_to_submit) + ']')
@@ -477,7 +485,7 @@ def run(quiet, start, end, workers):
 				range_start = step_to_submit
 			range_end = step_to_submit
 			if range_end - range_start == 1000 or (range_end >= end and end != -1):
-				args = (identification, step_graph_uri, range_start, range_end, redis_fn)
+				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
 				if not workers:
 					work(*args)
 				else:
@@ -525,8 +533,8 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_connection = redislite.Redis(redis_fn)
 	strict_redis_connection = redislite.StrictRedis(redis_fn)
-	frame_templates = redis_collections.Dict(redis=strict_redis_connection,writeback=True)
-	bnode_strings = redis_collections.Dict(redis=strict_redis_connection,writeback=True)
+	frame_templates = redis_collections.Dict(key='frames',redis=strict_redis_connection,writeback=True)
+	bnode_strings = redis_collections.Dict(key='bnodes',redis=strict_redis_connection,writeback=True)
 
 	range_frames_list = list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
 	"""WHERE
@@ -588,7 +596,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""))
 
-
+	last_bindings = []
 	for i in range(range_start, range_end + 1):
 		step = i
 		ss = '[' + str(step) + ']'
@@ -633,7 +641,8 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		e.do_frames(frames_list)
 		e.do_bnodes(bnodes_list)
 		e.do_results(results_list)
-		e.do_bindings(range_bindings_list)
+		if e.do_bindings(range_bindings_list) == 'end':
+			return 'end'
 
 		e.gv("}")
 		info ('}..' + '[' + str(step) + ']')
@@ -650,7 +659,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 			info ('[' + str(step) + ']' + str(e.output))
 			raise e
 		info('convert done.' + '[' + str(step) + ']')
-		frames_done_count = frames_done_count + 1
+		frames_done_count = redis_connection.incr('frames_done_count')
 		elapsed = time.perf_counter() - start_time
 		secs_per_frame = str(elapsed/frames_done_count)
 		info('done ' + str(frames_done_count) + ' frames in ' + str(elapsed) + 'secs (' + secs_per_frame + 'secs/frame')
@@ -681,6 +690,8 @@ def check_futures():
 		if f.done():
 			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)
+			if f.ressult() == 'end':
+				exit()
 		else:
 			return
 

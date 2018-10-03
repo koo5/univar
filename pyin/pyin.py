@@ -34,7 +34,7 @@ def kbdbg(text, default = False):
 		else:
 			to_submit_graph += text+'. '
 
-all_updates = prefixes
+all_updates = ''
 
 def submit_kbdbg():
 	global to_submit_graph, all_updates
@@ -57,11 +57,12 @@ def submit_kbdbg():
 
 def flush_sparql_updates():
 	global all_updates, to_submit_default
-	futures.append(pool.submit(server.update, all_updates))
+	futures.append(pool.submit(server.update, prefixes + all_updates))
+	all_updates = ''
 	if to_submit_default != '':
-		futures.append(pool.submit(server.update, "INSERT DATA {Graph " + default_graph + " {" + to_submit_default +"}};"))
+		futures.append(pool.submit(server.update, prefixes + "INSERT DATA {Graph " + default_graph + " {" + to_submit_default +"}};"))
 		to_submit_default = ''
-	all_updates = prefixes
+
 
 def step_graph_name(idx):
 	return this + '_' + str(idx).rjust(10,'0')

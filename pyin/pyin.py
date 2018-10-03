@@ -57,6 +57,7 @@ def submit_kbdbg():
 
 def flush_sparql_updates():
 	global all_updates, to_submit_default
+	if not pool: return
 	futures.append(pool.submit(server.update, prefixes + all_updates))
 	all_updates = ''
 	if to_submit_default != '':

@@ -1,3 +1,17 @@
+x
+y
+pyin/__pycache__/
+kb_for_external.nq
+kb_for_external_raw.n3
+*gv
+*svg
+dummy
+query_for_external.nq
+query_for_external_raw.n3
+
+
+
+runs
 venv
 cpython3
 *.orig

@@ -50,7 +50,7 @@ def submit_kbdbg():
 	if to_submit_graph != '':
 		all_updates +="INSERT DATA {Graph <" + step_graph_name(global_step_counter) + "> {" + to_submit_graph +'}};'
 
-	to_submit_graph = '',''
+	to_submit_graph = ''
 
 	if len(all_updates) > 100000:
 		flush_sparql_updates()

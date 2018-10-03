@@ -6,5 +6,11 @@ take care of displaying the right value of changing value of bnodes/locals - pro
 
 
 
-use persistent redis file, key by full run identification
-emit bnode text as precomputed_text, move the computing function to common
+use persistent redis file in run directory
+run directory named by full identification
+emit bnode text in pyin as precomputed_text, move the computing function to common
+https://wiki.blazegraph.com/wiki/index.php/QueryOptimization
+try other triplestores
+
+
+

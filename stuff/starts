@@ -1,0 +1,15 @@
+steps 370
+
+pycharm pypy
+6:60
+
+
+cpython
+5:46
+
+
+cpython --workers 16
+5:58
+
+
+(cpython3) koom@koom-KVM ~/univar> time chrt -b 0 python3 pyin/kbdbg2graphviz.py  --workers 16  --end 370  kbdbgtests_agda_listform_tau_1.n3

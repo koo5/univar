@@ -1,0 +1,29 @@
+@prefix : <http://jmv.fr#>.
+
+kb
+
+# clone a list by a forward recursion - design pattern
+
+:l0 :first :v0 ;
+    :rest  :l1 .
+:l1 :first :v1 ;
+    :rest  :l2 .
+:l2 :first :v2 ;
+    :rest  :nil .
+
+# initial condition
+:l0c :clone_of :l0 .
+
+{
+  ?L :first ?F .
+  ?L :rest  ?R .
+  ?LC :clone_of ?L .
+} => {
+  ?LC :first ?F .
+  ?LC :rest ?RC .
+  ?RC :clone_of ?R .
+} .
+fin.
+query
+?a :clone_of ?b.
+fin.

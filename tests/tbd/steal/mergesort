@@ -1,0 +1,39 @@
+
+mergesort([], []).
+mergesort([A], [A]).
+mergesort([A,B|Rest], Sorted) :-
+split([A,B|Rest], L1, L2),
+mergesort(L1, SortedL1),
+mergesort(L2, SortedL2),
+merge(SortedL1, SortedL2, Sorted).
+
+
+merge(A, [], A).
+merge([], B, B).
+merge([A|RestAs], [B|RestBs],
+A < B,
+merge(RestAs, [B|RestBs],
+merge([A|RestAs], [B|RestBs],
+B =< A,
+merge([A|RestAs], RestBs,
+[A|Merged]) :-
+Merged).
+[B|Merged]) :-
+Merged).
+
+
+split([], [], []).
+split([A], [A], []).
+split([A,B|Rest], [A|RestA], [B|RestB]) :-
+split(Rest, RestA, RestB).
+
+
+
+
+
+
+
+
+
+#Prolog and Natural-Language Analysis
+#F. C. N. Pereira and S. M. Shieber 1987

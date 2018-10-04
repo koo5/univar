@@ -710,6 +710,7 @@ def check_futures():
 		if len(futures) == 0: return
 		f = futures[0]
 		log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+		f.result()
 		if f.done():
 			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)

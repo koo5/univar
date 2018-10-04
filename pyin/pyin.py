@@ -25,9 +25,9 @@ to_submit_graph = ''
 def kbdbg(text, default = False):
 	global to_submit_default, to_submit_graph
 	if default:
-		kbdbg_text(text)
+		kbdbg_text(text+'.')
 	else:
-		kbdbg_text(text.ljust(100) + '<'+step_graph_name(global_step_counter)+'>' )
+		kbdbg_text(text+'.')#.ljust(100) + '<'+step_graph_name(global_step_counter)+'>' )# i think ill just output the sparql alongside
 	if pool:
 		if default:
 			to_submit_default += text+'. '
@@ -773,6 +773,7 @@ def check_futures():
 	while True:
 		if len(futures) == 0: return
 		f = futures[0]
+		f.result()
 		if f.done():
 			futures.remove(f)
 		else:
@@ -804,7 +805,7 @@ def init_logging():
 	log, kbdbg_text = logger1.debug, logger2.info
 
 	for line in prefixes.strip().splitlines():
-		kbdbg_text('@'+line)
+		kbdbg_text('@'+line+'.')
 	#print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 #import gc

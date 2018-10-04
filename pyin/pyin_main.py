@@ -43,7 +43,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	pyin.this = this
 	identification = common.fix_up_identification(identification)
-	fn = 'kbdbg'+identification+'.nq'
+	fn = 'kbdbg'+identification+'.n3'
 	outpath = common.kbdbg_file_path(fn)
 	pyin.kbdbg_file_name = common.kbdbg_file_name(fn)
 	pyin._rules_file_name = pyin.kbdbg_file_name + '_rules'

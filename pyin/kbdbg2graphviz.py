@@ -191,7 +191,7 @@ class Emitter:
 				with tag('tr'):
 					with tag("td"):
 						text('RESULT'+str(i) +' ')
-					s.emit_terms(tag, text, s.g.value(result_uri, RDF.value), 'result')
+					emit_terms(s.g, tag, text, s.g.value(result_uri, RDF.value), 'result')
 			r += doc.getvalue()+ '>]'
 			s.gv(r)
 			false = rdflib.Literal(False)
@@ -408,6 +408,7 @@ def check_futures():
 		if len(futures) == 0: return
 		f = futures[0]
 		log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+		f.result()
 		if f.done():
 			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)

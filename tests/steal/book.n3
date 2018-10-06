@@ -1,0 +1,15 @@
+@prefix     : <http://example.com#> .
+
+:DiamondAge :writeBy :NealStephenson .
+:Neuromancer :writeBy :WilliamGibson .
+:NealStephenson a :scifiWriter .
+:Neuromancer a :book .
+:DiamondAge a :book .
+:MazeOfDeath :writeBy :PhilipKDick .
+:WilliamGibson a :scifiWriter .
+:PhilipKDick a :scifiWriter .
+:PlayerOfGames a :book .
+:Ubik a :book .
+:MazeOfDeath a :book .
+:PlayerOfGames :writeBy :IainBanks .
+

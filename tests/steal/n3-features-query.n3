@@ -1,0 +1,24 @@
+@prefix     : <http://examples#> .
+@prefix e: <http://eulersharp.sourceforge.net/2003/03swap/log-rules#> .
+
+# returns poppy
+{ ?X isRed true . }
+=>
+{ ?X isRed true . } .
+
+# returns dandelion
+{ ?X isRed ?REDNESS . 
+?REDNESS log:notEqualTo true .
+} 
+=>
+{ ?X isRed ?REDNESS . } .
+
+# returns poppy, dandelion
+( { ?X isRed true .}
+  { ?X isYellow true . }
+)!e:disjunction
+# CAUTION: syntax: ! must not be wrapped in spaces
+=>
+{ 
+?X :partOf :myResult . 
+} .

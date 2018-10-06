@@ -1,0 +1,8 @@
+# Saved by EulerGUI on Tue Sep 07 18:38:19 CEST 2010
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <http://eulergui.sf.net/examples> .
+kb
+:project <http://eulergui.sf.net/ontology/project.owl.n3#hasN3Query> <./catch_allQ.n3> .
+:project <http://www.w3.org/2002/07/owl#imports> <./BloodPressure.n3> .
+:project a owl:Ontology .
+fin.

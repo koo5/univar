@@ -1,0 +1,17 @@
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://protege.org/ontologies/DateTimeExample.owl#> .
+
+# This example shows how to reason with xsd:dataTime , by considering them as strings 
+# NOTE: the OWL was posted by Timothy Redmond on the Protégé list
+# 2011-05-11 works only with Euler
+
+{ ?P a :Person ; :hasBirthday ?B .
+  ?B string:notGreaterThan "1964-12-31T23:59:59" .
+  "1946-01-01T00:00:00" string:notGreaterThan ?B .
+} => {
+  ?P a :BabyBoomer.
+}.
+
+#test data
+:y :hasBirthday "1960-12-31T23:59:59" ; a :Person .

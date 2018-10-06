@@ -27,3 +27,9 @@ fin.
 query
 ?a :clone_of ?b.
 fin.
+
+##result: <http://jmv.fr#l0c> <http://jmv.fr#clone_of> <http://jmv.fr#l0>.
+##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#l1>.
+##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#l2>.
+##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#nil>.
+#pyin 3 hours

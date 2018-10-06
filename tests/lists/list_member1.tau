@@ -1,0 +1,53 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+
+#— Existence of lists
+#added dummy body to force ?X to be existential.
+{?L rdf:first ?X. ?L rdf:rest rdf:nil.} <= {?X rdf:type ?type}. 
+{?X rdf:type ?type. ?L rdf:rest [ ] } => { [ ] rdf:first ?X; rdf:rest ?L }.
+
+{?l rdf:first ?elem. ?l rdf:rest ?rest} => {?l a rdf:List}.
+
+# try to reproduce in N3 logic the classic definition of member/2 in Prolog
+# member(X,[X|R]).
+# X == FIRST , R == LIST
+# @forAll :FIRST, :LIST .  ?FIRST :member1 ?LIST .  ?LIST rdf:first ?FIRST .
+
+{
+  ?LIST a rdf:List .
+  ?LIST rdf:first ?FIRST .
+} => {
+  ?FIRST :member1 ?LIST .
+} .
+
+# member(X,[Y|R]) :- member(X,R).
+@forAll :X, :R, :Y .
+{
+  ?X a rdf:List .
+  ?X :member1 ?R .
+} => { 
+  ?R1 a rdf:List .
+  ?R1 rdf:first ?Y .
+  ?R1 rdf:rest  ?R .
+  ?X :member1 ?R1 .
+} .
+
+#{ # test
+#  :one :member1 ( :one :two ).
+#} => {
+#  :test :result (:one :member1 ( :one :two ))
+#} .
+
+:one a :number.
+:two a :number.
+
+fin.
+query
+:one :member1 ( :one :two ).
+fin.
+shouldbe
+:one :member1 ( :one :two ).
+fin.
+
+#step 127 is where it has constructed the right list and invokes member1

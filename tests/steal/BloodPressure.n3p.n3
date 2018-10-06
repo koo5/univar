@@ -1,0 +1,15 @@
+# Saved by EulerGUI on Wed Nov 11 11:58:34 CET 2015 from file:/home/jmv/src/eulergui/eulergui/examples/BloodPressure.n3p
+@prefix owl:  <http://www.w3.org/2002/07/owl#>.
+@prefix eg:  <http://eulergui.sourceforge.net/engine.owl#>.
+@prefix proj:  <http://eulergui.sf.net/ontology/project.owl.n3#>.
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix void:  <http://rdfs.org/ns/void#>.
+kb
+<> <http://www.w3.org/2002/07/owl#imports> <popup-java2.n3> .
+<> <http://www.w3.org/2002/07/owl#imports> <popup-java.n3> .
+<> <http://www.w3.org/2002/07/owl#imports> <BloodPressure.n3> .
+<> <http://eulergui.sf.net/ontology/project.owl.n3#hasN3Query> <catch_allQ.n3> .
+<catch_allQ.n3> <http://eulergui.sf.net/ontology/project.owl.n3#isMainQuery> true .
+<> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<popup-java.n3> :isActivated false .
+fin.

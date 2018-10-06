@@ -1,0 +1,16 @@
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix e: <http://eulersharp.sourceforge.net/2003/03swap/log-rules#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+
+# This example creates properties from rules present in the same run
+
+{ # 
+ ?A => ?C .
+ ?A log:includes { ?SA ?PA ?OA } .
+ ?C log:includes { ?SC ?PC ?OC } .
+} => {
+  ?PA a rdfs:Property .
+  ?PC a rdfs:Property .
+} .
+
+

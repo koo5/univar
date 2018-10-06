@@ -1,0 +1,47 @@
+@prefix : <http://eulergui.sf.net/example#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#>.
+@prefix eg: <http://eulergui.sourceforge.net/engine.owl#> .
+
+# just a toy ontology, to support a demo of a form with computations
+
+:Mobile a owl:Class ;
+  rdfs:label "Mobile" .
+
+:hasX a owl:DatatypeProperty ;
+  rdfs:domain :Mobile ;
+  rdfs:range xsd:double  ;
+  rdfs:label "x" .
+  
+ :hasXAcceleration a owl:DatatypeProperty ;
+  rdfs:domain :Mobile ;
+  rdfs:range xsd:double  ;
+  rdfs:label "X Acceleration".
+  
+:hasElapsedTime a owl:DatatypeProperty ;
+  rdfs:domain :Mobile ;
+  rdfs:range xsd:double  ;
+  rdfs:label "t".
+  
+{
+  ?M :hasXAcceleration ?G.
+  ?M :hasElapsedTime ?T.
+  ( 0.5 ?G ?T ?T ) math:product ?X.
+} => {
+  ?M :hasX ?X.
+  _:d eg:trace ( "Acceleration computed" ?G ?T ?X ).
+}.
+
+###### facts ######
+:creamTart a :Mobile ;
+  :hasXAcceleration 20.0 ;
+  :hasElapsedTime 0.3 .
+  
+#### GUI spec ####
+@prefix app: <http://jmvanel.free.fr/ontology/software_applications.owl#> .
+:GUI a app:SoftwareApplication ;
+  app:editedClass :Mobile ;
+  app:platform app:Java ;
+  app:name "Accelerated Mobile".

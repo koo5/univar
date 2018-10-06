@@ -75,6 +75,7 @@ def tau(command, files, only_id):
 					echo(l)
 					echo('please make sense and try again')
 					fail()
+					exit()
 			else:
 				if l_stripped == 'fin.':
 					if mode == Mode.kb:
@@ -141,7 +142,7 @@ def tau(command, files, only_id):
 		if buffer != []:
 			echo('file not ended properly?')
 			fail()
-
+			exit()
 
 def parse(data, identifier, publicID):
 	try:

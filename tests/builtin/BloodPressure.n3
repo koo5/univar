@@ -1,0 +1,21 @@
+# From prefix.cc
+
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+
+@prefix math: <http://www.w3.org/2000/10/swap/math#>.
+@prefix : <http://eulergui.sourceforge.net/examples#> .
+kb
+{ :BloodPressure :val ?x.
+  ?x math:greaterThan 70
+} => { :Service112 :alert "true" } .
+
+:BloodPressure :val 72 .
+fin.
+query
+:Service112 :alert ?x.
+fin.
+shouldbe
+# infer that
+:Service112 :alert "true".
+fin.
+thatsall

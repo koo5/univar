@@ -69,48 +69,67 @@ generator_failed_quickly:
 			goto func_start + g;
 		frame = g;
 		goto continue_complex_unification;
+new_generator_succeeded:
+		frame.generators[depth] = new_generator;
+generator_succeeded:
+		if depth == len(args) - 1:
+			incoming_bnode_unifications = []
+			for k,v in locals.items():
+				vv = get_value(v)
+				if vv != v and type(vv) == Var and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
+				log('its a bnode')
+				b = vv.bnode()
+				for k,v in b.items():
+				if not is_var(k): continue
+				incoming_bnode_unifications.append((
+				Arg(k, locals[k], locals.kbdbg_name, k, 0, 'bnode'),
+				Arg(k, b[k], b.kbdbg_name, k, 0, 'bnode')))
+
+			if len(incoming_bnode_unifications):
+			max_depth = len(args) + len(incoming_bnode_unifications) - 1
+			depth++;
+			goto create_generator;
+			else:
+			max_depth = len(args) + len(singleton.body) - 1
 		
+		if (++depth < max_depth):
+			goto create_generator;
+		else:
+			frame.next_state = try_generator;
+			frame = frame.parent;
+			goto on_child_success;
+
+
+
+unify:
+		if (unification_source.type() == bound)
+		{
+			if (unification_target.type() == bound)
+				unification_source,unification_target = get_value_multi(unification_source.bound_to(),unification_target.bound_to());
+			else
+				unification_source = get_value(unification_source);
+		}
+		else
+			if (unification_target.type() == bound)
+				unification_target = get_value(unification_target.bound_to());
 		
-		
-		
-generator_succeded:
-	log ("back in " + desc() + "\n# from sub-rule")
-	if depth == len(args) - 1:
-	incoming_bnode_unifications = []
-	for k,v in locals.items():
-	vv = get_value(v)
-	if vv != v and type(vv) == Var and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
-	log('its a bnode')
-	b = vv.bnode()
-	for k,v in b.items():
-	if not is_var(k): continue
-	incoming_bnode_unifications.append((
-	Arg(k, locals[k], locals.kbdbg_name, k, 0, 'bnode'),
-	Arg(k, b[k], b.kbdbg_name, k, 0, 'bnode')))
-
-
-	if len(incoming_bnode_unifications):
-	max_depth = len(args) + len(incoming_bnode_unifications) - 1
-	depth++;
-	goto create_generator;
-	else:
-	max_depth = len(args) + len(singleton.body) - 1
-	if (depth < max_depth):
-	depth++;
-	goto create_generator;
-	else:
-	frame.next_state = try_generator;
-		frame = frame.parent;
-		goto on_child_success;
-kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
-
-
-
-
-
-
-
-
+		switch (unification_source.type())
+		{
+			case unbound:
+				unification_source.bind_to(unification_target);
+				*new_generator = &&unbind_source_var;
+				goto new_generator_succeeded;
+			case constant:
+				if (unification_sourc!==unification_target)
+					goto generator_failed_quickly;
+				*new_generator = 1;
+				goto new_generator_succeeded;
+			
+				
+					
+		}
+	
+	
 
 
 
@@ -150,18 +169,6 @@ unification_unbind_source:
 
 
 
-unify:
-	switch((source.type() << 3) || target.type())
-	{
-		case unification_bound_bound:
-
-
-
-
-	}
-
-
-
 
 
 
@@ -184,7 +191,66 @@ unify:
 
 
 
+
+
+
+
+/*takes two things which may even be bound*/
 get_value_multi(x,y)
+{
+	if (x.type() != bound)
+		return TwoThings{x, get_value(y)};
+	else
+		x = x.bound_to();
+	if (y.type() == bound)
+		y = *y;
+	if (x.type() == bound)
+	{
+		 if (y.type() == bound)
+			 return get_value_multi(x,y);
+		 return get_value(x), y;
+	}
+	return x, get_value(y);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+get_value_multi(x,y)
+{
+	if (x.type() == bound)
+		x = *x;
+	if (y.type() == bound)
+		y = *y;
+	if (x.type() == bound)
+	{
+		 if (y.type() == bound)
+			 return get_value_multi(x,y);
+		 return get_value(x), y;
+	}
+	return x, get_value(y);
+}
+
+
+
+
+
+
+get_value_multi_with_check(x,y)
 {
 	if (x.type() == bound)
 		x = *x;
@@ -242,4 +308,19 @@ class OneWord
 {
 
 };
+
+
+
+
+
+unify:
+	switch((unification_source.type() << 3) || unification_target.type())
+	{
+		case unification_bound_bound:
+			unification_source,unification_target = get_value_multi(unification_source,unification_target);
+			goto unify;
+		case unification_bound_:
+			unification_source,unification_target = get_value_multi(unification_source,unification_target);
+			goto unify;
+
 

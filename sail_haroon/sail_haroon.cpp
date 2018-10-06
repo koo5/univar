@@ -28,7 +28,7 @@ class Frame{
 
 void everything()
 {
-
+func_start:
 create_and_try_generator:
 
 	if (frame.depth < frame.rule.args_len)
@@ -63,8 +63,16 @@ try_generator:
 
 generator_failed_quickly:
 		if (frame.depth-- == 0)
-		goto rule_done;
-		goto create_generator;
+			goto rule_done;
+		g = frame.generators[depth];
+		if (g < 256)
+			goto func_start + g;
+		frame = g;
+		goto continue_complex_unification;
+		
+		
+		
+		
 generator_succeded:
 	log ("back in " + desc() + "\n# from sub-rule")
 	if depth == len(args) - 1:

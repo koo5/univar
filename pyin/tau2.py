@@ -195,7 +195,7 @@ def do_results_comparison(a, b):
 	return True
 
 def timestamp():
-	return str(round(time.clock(), 3)).ljust(10) + ' '
+	return str(round(time.time(), 3)).ljust(10) + ' '
 
 def success():
 	echo(timestamp()+identification+":test:PASS")

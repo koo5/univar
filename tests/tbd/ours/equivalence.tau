@@ -20,7 +20,8 @@ kb
 fin.
 
 query
-?WHAT :eq ?WHATELSE. :nada :eq :null.
+#?WHAT :eq ?WHATELSE. 
+:nada :eq :null.
 fin.
 
 #expected matches:

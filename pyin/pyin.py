@@ -113,14 +113,10 @@ def printify(iterable, separator, shortener = lambda x:x):
 	return r
 
 
-class Triple():
+class Triple(object):
 	def __init__(s, pred, args):
 		s.pred = pred
 		s.args = args
-		for a in args:
-			if isinstance(a, rdflib.URIRef):
-				if '?' in str(a):
-					raise 666
 
 	def str(s, shortener = lambda x:x):
 		if len(s.args) == 2:
@@ -131,7 +127,7 @@ class Graph(list):
 	def str(s, shortener = lambda x:x):
 		return "{" + printify(s, ". ", shortener) + "}"
 
-class Arg:
+class Arg(object):
 	def __init__(s, uri, thing, frame, term_idx, arg_idx, is_in_head):
 		s.uri = uri
 		assert(isinstance(uri, rdflib.term.Identifier))
@@ -146,7 +142,7 @@ class Arg:
 		s.is_in_head = is_in_head
 		#assert(isinstance(is_in_head, (bool, str)))
 
-class Kbdbgable():
+class Kbdbgable(object):
 	last_instance_debug_id = 0
 	def __init__(s):
 		s.__class__.last_instance_debug_id += 1
@@ -162,9 +158,7 @@ class EpHead(Kbdbgable):
 
 
 class Locals(OrderedDict):
-
 	bnode_or_locals = 'bnode'
-
 	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
 		OrderedDict.__init__(s)
 		s.debug_id = debug_id

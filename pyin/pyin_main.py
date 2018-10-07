@@ -139,7 +139,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		for triple in result:
 			r += triple.str()
 		print(' RESULT :' + r)
-		pyin.kbdbg_text('#result: ' + r)
+		nolog or pyin.kbdbg_text('#result: ' + r)
 
 	if sparql_uri != '':
 		pyin.kbdbg("<" + this + "> kbdbg:is kbdbg:done", default=True)

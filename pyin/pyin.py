@@ -697,7 +697,7 @@ def emit_list(l, uri=None):
 		uri = bn()
 	r = uri
 	for idx, i in enumerate(l):
-		if isinstance(i, (unicode, str)):
+		if type(i) in (unicode, str):
 			v = i
 		elif isinstance(i, rdflib.Variable):
 			v = rdflib.Literal('?' + str(i)).n3()

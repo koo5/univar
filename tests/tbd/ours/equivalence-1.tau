@@ -4,18 +4,18 @@ kb
 #0 :a Nat.
 #nada :a Nat.
 
-0 :eq zero.
-nada :eq 0.
+:a0 :eq :zero.
+:nada :eq :a0.
 
 #The three defining properties of an equivalence relation:
 #Reflexivity
-#{?x :a Nat} => {?x :eq ?x}.
+#{?x :a :Nat} => {?x :eq ?x}.
 
 #Symmetry
-#{?x :a Nat. ?y :a Nat. ?x :eq ?y} => {?y :eq ?x}.
+#{?x :a :Nat. ?y :a :Nat. ?x :eq ?y} => {?y :eq ?x}.
 
 #Transitivity
-#{?x :a Nat. ?y :a Nat. ?z :a Nat. ?x :eq ?y. ?y :eq ?z} => {?x :eq ?z}.
+#{?x :a :Nat. ?y :a :Nat. ?z :a :Nat. ?x :eq ?y. ?y :eq ?z} => {?x :eq ?z}.
 
 {?x :eq ?y} => {?y :eq ?x}.
 

@@ -3,7 +3,10 @@ from rdflib import URIRef
 import rdflib
 import os
 import logging
-import urllib.parse
+try:
+	from urllib.parse import quote_plus
+except ImportError:
+	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
 from common import shorten#, traverse, join_generators
 from time import sleep
@@ -99,7 +102,7 @@ def printify(iterable, separator, shortener = lambda x:x):
 	r = ""
 	last = len(iterable) - 1
 	for i, x in enumerate(iterable):
-		if type(x) == str:
+		if isinstance(x, (str,unicode)):
 			r += shortener(x)
 		else:
 			r += x.str(shortener)
@@ -113,7 +116,7 @@ class Triple():
 		s.pred = pred
 		s.args = args
 		for a in args:
-			if type(a) == rdflib.URIRef:
+			if isinstance(a, rdflib.URIRef):
 				if '?' in str(a):
 					raise 666
 
@@ -150,7 +153,7 @@ class Kbdbgable():
 
 class EpHead(Kbdbgable):
 	def __init__(s):
-		super().__init__()
+		Kbdbgable.__init__(s)
 		s.kbdbg_name = ':' + s.kbdbg_name
 		s.kbdbg_name = URIRef
 		s.items = []
@@ -161,13 +164,13 @@ class Locals(OrderedDict):
 	bnode_or_locals = 'bnode'
 
 	def __init__(s, initializer, debug_rule, debug_id = 0, kbdbg_frame=None):
-		super().__init__()
+		OrderedDict.__init__(s)
 		s.debug_id = debug_id
 		s.debug_last_instance_id = 0
 		s.debug_rule = weakref(debug_rule)
 		s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
-			if type(v) == Var:
+			if isinstance(v,Var):
 				s[k] = Var(v.debug_name + "_clone", weakref(s))
 			else:
 				s[k] = Atom(v.value, weakref(s))
@@ -181,7 +184,11 @@ class Locals(OrderedDict):
 	def __str__(s):
 		r = (s.bnode_or_locals + str(s.debug_id) + " of " + str(s.debug_rule()))
 		if len(s):
-			r += ":\n#" + printify([k.n3() + ": " + (str(v)) for k, v in s.items()], ", ")
+			rr = []
+			for k, v in s.items():
+				kk = k.n3()
+				rr.append(str(kk) + ": " + str(v))
+			r += ":\n#" + printify(rr, ", ")
 		return r
 
 	def emit(s):
@@ -202,16 +209,16 @@ class Locals(OrderedDict):
 		kbdbg(rdflib.URIRef(s.kbdbg_name).n3() + " kbdbg:has_items " + emit_list(items))
 
 	def __short__str__(s):
-		return "["+printify([str(k) + ": " + (v.__short__str__()) for k, v in s.items() if (type(k) != URIRef)], ", ")+']'
+		return "["+printify([str(k) + ": " + (v.__short__str__()) for k, v in s.items() if (not isinstance(k, URIRef))], ", ")+']'
 
 
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
 		if dbg:
-			super().__init__()
+			Kbdbgable.__init__(s)
 			s.debug_name = debug_name
-			if type(debug_locals) == weakref:
+			if isinstance(debug_locals, weakref):
 				s.debug_locals = debug_locals
 			elif debug_locals == None:
 				s.debug_locals = None
@@ -220,13 +227,13 @@ class AtomVar(Kbdbgable):
 			if s.debug_locals != None:
 				s.kbdbg_name = s.debug_locals().kbdbg_frame
 			assert(debug_name)
-			s.kbdbg_name += "_" + urllib.parse.quote_plus(debug_name)
+			s.kbdbg_name += "_" + quote_plus(debug_name)
 
 	def recursive_clone(s):
-		if type(s) == Atom:
+		if isinstance(s, Atom):
 			r = Atom(s.value, s.debug_locals)
 		else:
-			assert type(s) == Var
+			assert isinstance(s,Var)
 			r = Var(s.debug_name, s.debug_locals)
 		if dbg:
 			r.kbdbg_name = s.kbdbg_name
@@ -238,12 +245,11 @@ class AtomVar(Kbdbgable):
 
 class Atom(AtomVar):
 	def __init__(s, value, debug_locals=None):
-		if dbg:
-			super().__init__(value, debug_locals)
+		AtomVar.__init__(s,value, debug_locals)
 		assert(isinstance(value, rdflib.term.Identifier))
 		s.value = value
 	def str(s, shortener = lambda x:x):
-		if type(s.kbdbg_name) == URIRef:
+		if isinstance(s.kbdbg_name, URIRef):
 			xxx = s.kbdbg_name.n3()
 		else:
 			xxx= s.kbdbg_name
@@ -253,20 +259,19 @@ class Atom(AtomVar):
 	def rdf_str(s):
 		return '"'+str(s.value)+'")'
 	def recursive_clone(s):
-		r = super().recursive_clone()
+		r = AtomVar.recursive_clone(s)
 		r.value = s.value
 		return r
 
 
 class Var(AtomVar):
 	def __init__(s, debug_name=None, debug_locals=None):
-		if dbg:
-			super().__init__(debug_name, debug_locals)
+		AtomVar.__init__(s,debug_name, debug_locals)
 		s.bound_to = None
 		s.bnode = lambda: None
 
 	def str(s, shortener = lambda x:x):
-		if type(s.kbdbg_name) == URIRef:
+		if isinstance(s.kbdbg_name,URIRef):
 			xxx = shortener(s.kbdbg_name.n3())
 		else:
 			xxx = shortener(s.kbdbg_name)
@@ -275,7 +280,7 @@ class Var(AtomVar):
 			for k,v in s.bnode().items():
 				if v != s:
 					xxx += str(shortener(k)) + ' --->>> '
-					if (type(v) == Var) and v.bnode() and (s in v.bnode().values()):
+					if isinstance(v, Var) and v.bnode() and (s in v.bnode().values()):
 						xxx += '[recursive]'
 					else:
 					    xxx += shortener(str(v))
@@ -293,7 +298,7 @@ class Var(AtomVar):
 			return r + '(free)'
 
 	def recursive_clone(s):
-		r = super().recursive_clone()
+		r = AtomVar.recursive_clone(s)
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
 		r.bnode = weakref(s.bnode()) if s.bnode() else lambda: None
@@ -350,16 +355,16 @@ def emit_arg(x):
 		log('x')
 	kbdbg(r + " rdf:type kbdbg:arg")
 	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
-	if type(x.is_in_head) == bool:
+	if isinstance(x.is_in_head, bool):
 		if x.is_in_head:
 			kbdbg(r + " kbdbg:is_in_head true")
 	else:
 		if x.is_in_head == 'bnode':
 			kbdbg(r + ' kbdbg:is_bnode true')
 	if x.term_idx != None:
-		if type(x.term_idx) == int:
+		if isinstance(x.term_idx, int):
 			t = str(x.term_idx)
-		elif type(x.term_idx) == rdflib.Variable:
+		elif isinstance(x.term_idx, rdflib.Variable):
 			t = rdflib.Literal('?' + str(x.term_idx)).n3()
 		else:
 			t = rdflib.Literal(x.term_idx).n3()
@@ -385,20 +390,15 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
 		r = success("same things", xy)
-	elif type(val_x) == Var and not val_x.bnode():
+	elif isinstance(val_x, Var) and not val_x.bnode():
 		r = val_x.bind_to(val_y, xy)
-	elif type(val_y) == Var and not val_y.bnode():
+	elif isinstance(val_y, Var) and not val_y.bnode():
 		r = val_y.bind_to(val_x, yx)
 
-	elif type(val_y) == Var and type(val_x) == Var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
+	elif isinstance(val_y, Var) and isinstance(val_x, Var) and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
 		r = val_y.bind_to(val_x, yx)
 
-	#elif type(val_x) == Var and type(val_y) == Atom :
-	#	r = val_x.bind_to(val_y, xy)
-	#elif type(val_y) == Var and type(val_x) == Atom:
-	#	r = val_y.bind_to(val_x, yx)
-
-	elif type(val_x) == Atom and type(val_y) == Atom:
+	elif isinstance(val_x, Atom) and isinstance(val_y, Atom):
 		if val_x.value == val_y.value:
 			r = success("same consts", xy)
 		else:
@@ -408,7 +408,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	return r
 
 def get_value(x):
-	if type(x) == Atom:
+	if isinstance(x, Atom):
 		return x
 	v = x.bound_to
 	if v:
@@ -417,15 +417,15 @@ def get_value(x):
 		return x
 
 def is_var(x):
-	return type(x) == rdflib.Variable
+	return isinstance(x, rdflib.Variable)
 
 
 class Rule(Kbdbgable):
 	last_frame_id = 0
 	emitted_formulas = {}
 	def __init__(singleton, original_head, head_idx, body=Graph()):
-		super().__init__()
-		assert type(head_idx) == int or head_idx == None
+		Kbdbgable.__init__(singleton)
+		assert isinstance(head_idx, (int, NoneType))
 		singleton.head_idx = head_idx
 		if head_idx != None:
 			singleton.head = original_head[head_idx]
@@ -540,7 +540,8 @@ class Rule(Kbdbgable):
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
-				generators[depth].__next__()
+				#generators[depth].__next__()
+				generators[depth].next()
 			except StopIteration:
 				nolog or log ("back")
 				generators.pop()
@@ -555,7 +556,7 @@ class Rule(Kbdbgable):
 				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
-					if vv != v and type(vv) == Var and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
+					if vv != v and isinstance(vv, Var) and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
 						log('its a bnode')
 						b = vv.bnode()
 						for k,v in b.items():
@@ -586,7 +587,7 @@ class Rule(Kbdbgable):
 			log(stat)
 		"""
 		#print("[ Top ]")
-		objgraph.show_growth()
+		#objgraph.show_growth()
 
 
 	def match(s, parent = None, args=[]):
@@ -630,15 +631,17 @@ def ep_match(args_a, args_b):
 	for i in range(len(args_a)):
 		a = args_a[i].thing
 		b = args_b[i].thing
-		if type(a) != type(b):
+		#log("YYY %s %s", str(type(a)), str(type(b)))
+		#log("YYY %s %s", str(a.__class__), str(b.__class__))
+		if a.__class__ != b.__class__:
 			return
-		if type(a) == Var:
+		if isinstance(a, Var):
 			if a.bnode() and not b.bnode() or b.bnode() and not a.bnode():
 				return
 			if a.bnode() and b.bnode():
 				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule or a.is_from_name != b.is_from_name:
 					return
-		if type(a) == Atom and b.value != a.value:
+		if isinstance(a, Atom) and b.value != a.value:
 			return
 	nolog or log("EP!")
 	return True
@@ -686,7 +689,7 @@ def query(input_rules, input_query):
 				if a in printed: continue
 				if a not in locals:	continue
 				v = get_value(locals[a])
-				if type(v) == Var and v.bnode():
+				if isinstance(v, Var) and v.bnode():
 					log(str(a) + ':')
 					log(print_bnode(v.bnode()))
 					printed.append(a)
@@ -706,7 +709,7 @@ def emit_list(l, uri=None):
 		uri = bn()
 	r = uri
 	for idx, i in enumerate(l):
-		if type(i) == str:
+		if isinstance(i, (unicode, str)):
 			v = i
 		elif isinstance(i, rdflib.Variable):
 			v = rdflib.Literal('?' + str(i)).n3()
@@ -715,7 +718,7 @@ def emit_list(l, uri=None):
 		else:
 			v = rdflib.URIRef(i.identifier).n3()
 		kbdbg(uri + " rdf:first " + v)
-		if type(i) == rdflib.BNode:
+		if isinstance(i, rdflib.BNode):
 			kbdbg(i.n3() + ' kbdbg:comment "thats a bnode from the kb input graph, a subj or an obj of an implication. fixme."')
 		if idx != len(l) - 1:
 			uri2 = uri + "X"
@@ -743,9 +746,9 @@ def substitute(node, locals):
 		v = get_value(locals[node])
 		#if type(v) == Var and v.bnode:
 		#	log(print_bnode(v.bnode))
-		if type(v) == Var:
+		if isinstance(v, Var):
 			r = node
-		elif type(v) == Atom:
+		elif isinstance(v, Atom):
 			r = v.value
 		else:
 			assert False
@@ -814,4 +817,5 @@ def init_logging():
 
 #import tracemalloc
 #import gc
-import objgraph
+#import objgraph
+#from IPython import embed; embed();exit()

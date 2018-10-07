@@ -24,7 +24,7 @@ pyin.default_graph = default_graph
 @click.argument('kb', type=click.File('rb'))
 @click.argument('goal', type=click.File('rb'))
 @click.option('--nokbdbg', default=False)
-@click.option('--nolog', default=False)
+@click.option('--nolog', default=False, type=bool)
 @click.option('--visualize', default=False)
 @click.option('--sparql_uri', default='', help='for example http://localhost:9999/blazegraph/sparql')
 @click.option('--identification', default="")

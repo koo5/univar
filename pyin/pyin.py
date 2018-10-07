@@ -166,7 +166,7 @@ class Locals(OrderedDict):
 		s.debug_rule = weakref(debug_rule)
 		s.kbdbg_frame = kbdbg_frame
 		for k,v in initializer.items():
-			if isinstance(v,Var):
+			if type(v) is Var:
 				s[k] = Var(nolog or (v.debug_name + "_clone"), nolog or weakref(s))
 			else:
 				s[k] = Atom(v.value, nolog or weakref(s))
@@ -195,7 +195,7 @@ class Locals(OrderedDict):
 			if not is_var(k): continue
 			uri = bn()
 			items.append(uri)
-			if isinstance(k, rdflib.Variable):
+			if type(k) is rdflib.Variable:
 				sss = k.n3()
 			else:
 				sss = k
@@ -225,16 +225,6 @@ class AtomVar(Kbdbgable):
 			assert(debug_name)
 			s.kbdbg_name += "_" + quote_plus(debug_name)
 
-	def recursive_clone(s):
-		if isinstance(s, Atom):
-			r = Atom(s.value, nolog or s.debug_locals)
-		else:
-			assert isinstance(s,Var)
-			r = Var(nolog or s.debug_name, nolog or s.debug_locals)
-		if not nolog:
-			r.kbdbg_name = s.kbdbg_name
-		return r
-
 	def __short__str__(s):
 		return get_value(s).___short__str__()
 
@@ -255,8 +245,10 @@ class Atom(AtomVar):
 	def rdf_str(s):
 		return '"'+str(s.value)+'")'
 	def recursive_clone(s):
-		r = AtomVar.recursive_clone(s)
+		r = Atom(s.value, nolog or s.debug_locals)
 		r.value = s.value
+		if not nolog:
+			r.kbdbg_name = s.kbdbg_name
 		return r
 
 
@@ -295,7 +287,9 @@ class Var(AtomVar):
 			return r + '(free)'
 
 	def recursive_clone(s):
-		r = AtomVar.recursive_clone(s)
+		r = Var(nolog or s.debug_name, nolog or s.debug_locals)
+		if not nolog:
+			r.kbdbg_name = s.kbdbg_name
 		if s.bound_to:
 			r.bound_to = s.bound_to.recursive_clone()
 		r.bnode = weakref(s.bnode()) if s.bnode() else lambda: None
@@ -389,26 +383,25 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	yx = (arg_y, arg_x)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
-		r = success("same things", xy)
-	elif isinstance(val_x, Var) and not val_x.bnode():
-		r = val_x.bind_to(val_y, xy)
-	elif isinstance(val_y, Var) and not val_y.bnode():
-		r = val_y.bind_to(val_x, yx)
-
-	elif isinstance(val_y, Var) and isinstance(val_x, Var) and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
-		r = val_y.bind_to(val_x, yx)
-
-	elif isinstance(val_x, Atom) and isinstance(val_y, Atom):
+		return success("same things", xy)
+	x_is_var = type(val_x) is Var
+	y_is_var = type(val_y) is Var
+	if x_is_var and not val_x.bnode():
+		return val_x.bind_to(val_y, xy)
+	elif y_is_var and not val_y.bnode():
+		return val_y.bind_to(val_x, yx)
+	elif y_is_var and x_is_var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
+		return val_y.bind_to(val_x, yx)
+	elif type(val_x) is Atom and type(val_y) is Atom:
 		if val_x.value == val_y.value:
-			r = success("same consts", xy)
+			return success("same consts", xy)
 		else:
-			r = fail(nolog or ("different consts: %s %s" % (val_x.value, val_y.value)), xy)
+			return fail(nolog or ("different consts: %s %s" % (val_x.value, val_y.value)), xy)
 	else:
-		r = fail(nolog or ("different things: %s %s" % (val_x, val_y)), xy)
-	return r
+		return fail(nolog or ("different things: %s %s" % (val_x, val_y)), xy)
 
 def get_value(x):
-	if isinstance(x, Atom):
+	if type(x) is Atom:
 		return x
 	v = x.bound_to
 	if v:
@@ -417,7 +410,7 @@ def get_value(x):
 		return x
 
 def is_var(x):
-	return isinstance(x, rdflib.Variable)
+	return type(x) is rdflib.Variable
 
 
 class Rule(Kbdbgable):
@@ -480,6 +473,7 @@ class Rule(Kbdbgable):
 	def rule_unify(singleton, parent, args):
 		#snapshot1 = tracemalloc.take_snapshot()
 		#objgraph.show_growth(limit=3)
+		PY3 = sys.version_info.major == 3
 		depth = 0
 		generators = []
 		if not nolog:
@@ -531,13 +525,13 @@ class Rule(Kbdbgable):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), nolog or thing.debug_locals().kbdbg_frame, body_item_index, arg_idx, False))
 					generator = pred(triple.pred, nolog or kbdbg_name, bi_args)
-				generators.append(generator)
+				if PY3:
+					generators.append(generator.__next__)
+				else:
+					generators.append(generator.next)
 				nolog or log("generators:%s", generators)
 			try:
-				if sys.version_info.major == 3:
-					generators[depth].__next__()
-				else:
-					generators[depth].next()
+				generators[depth]()
 			except StopIteration:
 				nolog or log ("back")
 				generators.pop()
@@ -553,7 +547,7 @@ class Rule(Kbdbgable):
 				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
-					if vv != v and isinstance(vv, Var) and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
+					if vv != v and type(vv) is Var and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
 						nolog or log('its a bnode')
 						b = vv.bnode()
 						for k,v in b.items():
@@ -631,13 +625,13 @@ def ep_match(args_a, args_b):
 		#log("YYY %s %s", str(a.__class__), str(b.__class__))
 		if a.__class__ != b.__class__:
 			return
-		if isinstance(a, Var):
+		if type(a) is Var:
 			if a.bnode() and not b.bnode() or b.bnode() and not a.bnode():
 				return
 			if a.bnode() and b.bnode():
 				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule or a.is_from_name != b.is_from_name:
 					return
-		if isinstance(a, Atom) and b.value != a.value:
+		if type(a) is Atom and b.value != a.value:
 			return
 	nolog or log("EP!")
 	return True

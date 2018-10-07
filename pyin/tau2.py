@@ -4,6 +4,8 @@
 
 import time
 import common
+from rdflib.plugins.parsers import notation3
+notation3.RDFSink.newList = common.newList
 import subprocess
 import click
 from click import echo, style

@@ -8,11 +8,11 @@ import datetime
 import rdflib
 from ordered_rdflib_store import OrderedStore
 import click
+from rdflib.namespace import RDF
 import common
 from common import shorten
-from rdflib.namespace import RDF
 from rdflib.plugins.parsers import notation3
-
+notation3.RDFSink.newList = common.newList
 
 server, this = None, None
 
@@ -30,7 +30,6 @@ pyin.default_graph = default_graph
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
-	notation3.RDFSink.newList = newList
 	#print('base', base)
 	base = 'file://'  + base
 	global server, this
@@ -153,6 +152,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	if sparql_uri != '':
 		pyin.pool.shutdown()
 
+"""
 def reorder_lists(g):
 	r = Graph()
 	backburner = []
@@ -164,47 +164,7 @@ def reorder_lists(g):
 	for t in backburner:
 		r.append(t)
 	return r
-
-
-def newList(self, n, f):
-	nil = self.newSymbol('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')
-
-	if len(n) == 0 or not n:
-		return nil
-
-	first = self.newSymbol(
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
-	rest = self.newSymbol(
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
-
-	if hasattr(self.graph, 'last_n3_syntax_list_id'):
-		list_id = self.graph.last_n3_syntax_list_id + 1
-	else:
-		list_id = 0
-	self.graph.last_n3_syntax_list_id = list_id
-
-	def make_bnode(idx):
-		return rdflib.BNode('l' + str(list_id) + '_' + str(idx))
-
-	r = None
-	next = None
-	for idx, i in enumerate(n):
-		if next == None:
-			a = make_bnode(idx)
-		else:
-			a = next
-		if r == None:
-			r = a
-		self.makeStatement((f, first, a, i))
-		if idx == len(n) - 1:
-			next = nil
-		else:
-			next = make_bnode(idx + 1)
-		self.makeStatement((f, rest, a, next))
-
-	return r
-
-
+"""
 
 
 

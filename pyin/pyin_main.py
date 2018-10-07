@@ -61,7 +61,7 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		pyin.kbdbg_text('#'+uuu)
 
 	if identification != "":
-		pyin.kbdbg('<'+this +"> kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
+		nolog or pyin.kbdbg('<'+this +"> kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
 
 	kb_stream, goal_stream = kb, goal
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
@@ -70,13 +70,14 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier=base)
 	kb_graph.parse(kb_stream, format='n3', publicID=base)
 
-	log('---kb:')
-	for l in kb_graph.serialize(format='n3').splitlines():
-		log(l.decode('utf8'))
-	log('---kb quads:')
-	for l in kb_conjunctive.serialize(format='nquads').splitlines():
-		log(l.decode('utf8'))
-	log('---')
+	if not nolog:
+		log('---kb:')
+		for l in kb_graph.serialize(format='n3').splitlines():
+			log(l.decode('utf8'))
+		log('---kb quads:')
+		for l in kb_conjunctive.serialize(format='nquads').splitlines():
+			log(l.decode('utf8'))
+		log('---')
 
 	def fixup3(o):
 		if isinstance(o, rdflib.Graph):
@@ -119,14 +120,15 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
 	goal = Graph()
-
-	log('---goal:')
-	for l in goal_rdflib_graph.serialize(format='n3').splitlines():
-		log(l.decode('utf8'))
-	log('---goal nq:')
-	for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
-		log(l.decode('utf8'))
-	log('---')
+	
+	if not nolog:
+		log('---goal:')
+		for l in goal_rdflib_graph.serialize(format='n3').splitlines():
+			log(l.decode('utf8'))
+		log('---goal nq:')
+		for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
+			log(l.decode('utf8'))
+		log('---')
 
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))

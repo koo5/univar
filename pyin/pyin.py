@@ -446,22 +446,23 @@ class Rule(Kbdbgable):
 		with open(_rules_file_name, 'a') as ru:
 			ru.write(singleton.kbdbg_name + ":"+ singleton.__str__(shorten) + '\n')
 
-		kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
-		if singleton.head:
-			head_uri = ":"+singleton.kbdbg_name + "Head"
-			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
-			emit_term(singleton.head, head_uri)
-			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head_idx ' + str(head_idx))
-		try:
-			emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
-		except KeyError:
-			emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), ':'+singleton.kbdbg_name + "Body")
-		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
-		try:
-			emitted_original_head = Rule.emitted_formulas[singleton.original_head]
-		except KeyError:
-			emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), ':'+singleton.kbdbg_name + "OriginalHead")
-		kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
+		nolog or kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
+		if not nolog:
+			if singleton.head:
+				head_uri = ":"+singleton.kbdbg_name + "Head"
+				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
+				emit_term(singleton.head, head_uri)
+				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head_idx ' + str(head_idx))
+			try:
+				emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
+			except KeyError:
+				emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), ':'+singleton.kbdbg_name + "Body")
+			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
+			try:
+				emitted_original_head = Rule.emitted_formulas[singleton.original_head]
+			except KeyError:
+				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), ':'+singleton.kbdbg_name + "OriginalHead")
+			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
 		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
@@ -674,8 +675,9 @@ def query(input_rules, input_query):
 		uri = ":result" + str(i)
 		nolog or kbdbg(uri + " rdf:type kbdbg:result")
 		terms = [substitute_term(term, locals) for term in input_query]
-		result_terms_uri = emit_list(emit_terms(terms))
-		nolog or kbdbg(uri + " rdf:value " + result_terms_uri)
+		if not nolog:
+			result_terms_uri = emit_list(emit_terms(terms))
+			kbdbg(uri + " rdf:value " + result_terms_uri)
 		yield terms
 		if not nolog:
 			printed = []

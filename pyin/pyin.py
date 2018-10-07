@@ -389,7 +389,6 @@ def unify(_x, _y):
 def unify2(arg_x, arg_y, val_x, val_y):
 	xy = (arg_x, arg_y)
 	yx = (arg_y, arg_x)
-
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
 		r = success("same things", xy)
@@ -405,9 +404,9 @@ def unify2(arg_x, arg_y, val_x, val_y):
 		if val_x.value == val_y.value:
 			r = success("same consts", xy)
 		else:
-			r = fail("different consts: %s %s" % (val_x.value, val_y.value), xy)
+			r = fail(nolog or ("different consts: %s %s" % (val_x.value, val_y.value)), xy)
 	else:
-		r = fail("different things: %s %s" % (val_x, val_y), xy)
+		r = fail(nolog or ("different things: %s %s" % (val_x, val_y)), xy)
 	return r
 
 def get_value(x):
@@ -590,6 +589,7 @@ class Rule(Kbdbgable):
 		for arg in args:
 			assert arg.thing == get_value(arg.thing)
 			head.items.append(Arg(arg.uri, arg.thing.recursive_clone(), nolog or arg.thing.debug_locals().kbdbg_frame, arg.term_idx, arg.arg_idx, arg.is_in_head))
+
 		s.ep_heads.append(head)
 		for i in s.rule_unify(parent, args):
 			s.ep_heads.pop()
@@ -643,12 +643,11 @@ def ep_match(args_a, args_b):
 
 
 def pred(p, parent, args):
-	for a in args:
-		assert(isinstance(a, Arg))
-		assert(isinstance(a.thing, (AtomVar, )))
-		assert get_value(a.thing) == a.thing
-
 	if not nolog:
+		for a in args:
+			assert(isinstance(a, Arg))
+			assert(isinstance(a.thing, (AtomVar, )))
+			assert get_value(a.thing) == a.thing
 		if p not in preds:
 			log (str(p) + " not in preds")
 			for i in preds:

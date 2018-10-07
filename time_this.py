@@ -2,15 +2,18 @@
 # -*- coding: utf-8 -*-
 
 best = 6666666666
-import time, os
+import time, os, sys
 global_start = time.time()
-
-while True:
+r=0
+count = 0
+while r == 0 and count < 6:
 	start = time.time()
-	print(os.system('./timed.sh'))
+	r = os.system(sys.argv[1])
+	count += 1
 	elapsed = time.time() - start
-	if elapsed < best:
-		best = elapsed
+	if r == 0:
+		if elapsed < best:
+			best = elapsed
 	print ("elapsed:", elapsed)
 	print("best:", best)
 	if time.time() - global_start > 360:

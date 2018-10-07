@@ -12,9 +12,7 @@ from common import shorten#, traverse, join_generators
 from time import sleep
 from common import pyin_prefixes as prefixes
 
-dbg = True
 nolog = False
-nokbdbg = False
 kbdbg_prefix = URIRef('http://kbd.bg/#')
 log, kbdbg_text = 666,666
 pool = None
@@ -153,9 +151,9 @@ class Kbdbgable():
 
 class EpHead(Kbdbgable):
 	def __init__(s):
-		Kbdbgable.__init__(s)
-		s.kbdbg_name = ':' + s.kbdbg_name
-		s.kbdbg_name = URIRef
+		if not nolog:
+			Kbdbgable.__init__(s)
+			s.kbdbg_name = ':' + s.kbdbg_name
 		s.items = []
 
 
@@ -215,7 +213,7 @@ class Locals(OrderedDict):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
-		if dbg:
+		if not nolog:
 			Kbdbgable.__init__(s)
 			s.debug_name = debug_name
 			if isinstance(debug_locals, weakref):
@@ -235,7 +233,7 @@ class AtomVar(Kbdbgable):
 		else:
 			assert isinstance(s,Var)
 			r = Var(s.debug_name, s.debug_locals)
-		if dbg:
+		if not nolog:
 			r.kbdbg_name = s.kbdbg_name
 		return r
 
@@ -310,38 +308,44 @@ class Var(AtomVar):
 	def bind_to(x, y, orig):
 		assert x.bound_to == None
 		x.bound_to = y
-		msg = "bound " + str(x) + " to " + str(y)
-		log(msg)
-		uri = bn()
-		emit_binding(uri, orig)
-		step()
+		if not nolog:
+			msg = "bound " + str(x) + " to " + str(y)
+			nolog or log(msg)
+			uri = bn()
+			emit_binding(uri, orig)
+			step()
 		yield msg
 		x.bound_to = None
-		kbdbg(uri + " kbdbg:was_unbound true")
-		step()
+		if not nolog:
+			kbdbg(uri + " kbdbg:was_unbound true")
+			step()
 
 
 def success(msg, orig, uri = None):
-		if uri == None:
-			uri = bn()
-		log(uri)
-		emit_binding(uri, orig)
-		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
-		step()
+		if not nolog:
+			if uri == None:
+				uri = bn()
+			log(uri)
+			emit_binding(uri, orig)
+			kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
+			step()
 		yield msg
-		kbdbg(uri + " kbdbg:was_unbound true")
-		step()
+		if not nolog:
+			kbdbg(uri + " kbdbg:was_unbound true")
+			step()
 
 def fail(msg, orig, uri = None):
-		if uri == None:
-			uri = bn()
-		emit_binding(uri, orig)
-		kbdbg(uri + " kbdbg:failed true")
-		kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
+		if not nolog:
+			if uri == None:
+				uri = bn()
+			emit_binding(uri, orig)
+			kbdbg(uri + " kbdbg:failed true")
+			kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
 		while False:
 			yield msg
-		step()
-		kbdbg(uri + " kbdbg:was_unbound true")
+		if not nolog:
+			step()
+			kbdbg(uri + " kbdbg:was_unbound true")
 
 def emit_binding(uri, _x_y):
 	_x, _y = _x_y
@@ -351,8 +355,6 @@ def emit_binding(uri, _x_y):
 
 def emit_arg(x):
 	r = bn()
-	if r == ':bn192':
-		log('x')
 	kbdbg(r + " rdf:type kbdbg:arg")
 	kbdbg(r + " kbdbg:has_frame " + x.frame.n3())
 	if isinstance(x.is_in_head, bool):
@@ -387,7 +389,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	xy = (arg_x, arg_y)
 	yx = (arg_y, arg_x)
 
-	log("unify " + str(val_x) + " with " + str(val_y))
+	nolog or log("unify " + str(val_x) + " with " + str(val_y))
 	if id(val_x) == id(val_y):
 		r = success("same things", xy)
 	elif isinstance(val_x, Var) and not val_x.bnode():
@@ -479,44 +481,37 @@ class Rule(Kbdbgable):
 	def rule_unify(singleton, parent, args):
 		#snapshot1 = tracemalloc.take_snapshot()
 		#objgraph.show_growth(limit=3)
-
-		Rule.last_frame_id += 1
-		frame_id = Rule.last_frame_id
 		depth = 0
 		generators = []
-		kbdbg_name = rdflib.URIRef(singleton.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
+		if not nolog:
+			Rule.last_frame_id += 1
+			frame_id = Rule.last_frame_id
+			kbdbg_name = rdflib.URIRef(singleton.kbdbg_name + "Frame"+str(frame_id),base=kbdbg_prefix)
 		locals = singleton.locals_template.new(kbdbg_name)
-		locals.kbdbg_name = URIRef(kbdbg_name + ("_locals"))
-		uuu = kbdbg_name.n3()
-		kbdbg(uuu + " rdf:type kbdbg:frame")
-		kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
-		if parent:
-			kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
-
-
-		def desc():
-			return ("#vvv\n#" + #str(singleton) + "\n" +
-			kbdbg_name.n3() + '\n' +
-			"#args:" + str(args) + "\n" +
-			"#locals:" + locals.__short__str__() + "\n" +
-			"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#entering^^^")
-
+		if not nolog:
+			locals.kbdbg_name = URIRef(kbdbg_name + ("_locals"))
+			uuu = kbdbg_name.n3()
+			kbdbg(uuu + " rdf:type kbdbg:frame")
+			kbdbg(uuu + " kbdbg:is_for_rule :"+singleton.kbdbg_name)
+			if parent:
+				kbdbg(uuu + " kbdbg:has_parent " + parent.n3())
+			def desc():
+				return ("#vvv\n#" + #str(singleton) + "\n" +
+				kbdbg_name.n3() + '\n' +
+				"#args:" + str(args) + "\n" +
+				"#locals:" + locals.__short__str__() + "\n" +
+				"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#entering^^^")
 		max_depth = len(args)  + len(singleton.body) - 1
-
-		log ("entering:" + desc())
-
+		nolog or log ("entering:" + desc())
 		for e in singleton.existentials:
 			locals[e].bnode = weakref(locals)
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
 			locals[e].is_from_name = e
-
 		incoming_bnode_unifications = []
-
-		if len(singleton.existentials):
-			locals.emit()
-
+		if not nolog:
+			if len(singleton.existentials):
+				locals.emit()
 		while True:
-
 			if len(generators) <= depth:
 				if depth < len(args):
 					arg_index = depth
@@ -547,44 +542,43 @@ class Rule(Kbdbgable):
 				generators.pop()
 				depth-=1
 				if depth == -1:
-					nolog or log ("rule done")
-					step()
+					if not nolog:
+						log ("rule done")
+						step()
 					break
 				continue
-			log ("back in " + desc() + "\n# from sub-rule")
+			nolog or log ("back in " + desc() + "\n# from sub-rule")
 			if depth == len(args) - 1:
 				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
 					if vv != v and isinstance(vv, Var) and vv.bnode() and vv.is_a_bnode_from_original_rule == singleton.original_head and k == vv.is_from_name:
-						log('its a bnode')
+						nolog or log('its a bnode')
 						b = vv.bnode()
 						for k,v in b.items():
 							if not is_var(k): continue
 							incoming_bnode_unifications.append((
 								Arg(k, locals[k], locals.kbdbg_name, k, 0, 'bnode'),
 								Arg(k, b[k], b.kbdbg_name, k, 0, 'bnode')))
-
-
 				if len(incoming_bnode_unifications):
 					max_depth = len(args) + len(incoming_bnode_unifications) - 1
 				else:
 					max_depth = len(args) + len(singleton.body) - 1
 			if (depth < max_depth):
-				log ("down")
+				nolog or log ("down")
 				depth+=1
 			else:
 				yield locals
-				log ("re-entering " + desc() + " for more results")
-		kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
+				nolog or log ("re-entering " + desc() + " for more results")
+		nolog or kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
 		"""
 		gc.collect()
 		snapshot2 = tracemalloc.take_snapshot()
 		top_stats = snapshot2.compare_to(snapshot1, 'lineno')
-		log("[ Top 5 differences ]")
+		nolog or log("[ Top 5 differences ]")
 		for stat in top_stats[:50]:
-			log(stat)
+			nolog or log(stat)
 		"""
 		#print("[ Top ]")
 		#objgraph.show_growth()
@@ -606,7 +600,7 @@ class Rule(Kbdbgable):
 		nolog or log ("ep check: %s vs..", args)
 		for head in s.ep_heads:
 			if ep_match(args, head.items):
-				kbdbg(bn() + ' rdf:type kbdbg:ep_match')
+				nolog or kbdbg(bn() + ' rdf:type kbdbg:ep_match')
 				return True
 		nolog or log ("..no ep match")
 
@@ -623,7 +617,7 @@ def get_existentials_names(heads, body):
 			if is_var(j):
 				if j in vars:
 					vars.remove(j)
-	log ("existentials:" + ' '.join(v.n3() for v in vars))
+	nolog or log ("existentials:" + ' '.join(v.n3() for v in vars))
 	return vars
 
 def ep_match(args_a, args_b):
@@ -653,11 +647,12 @@ def pred(p, parent, args):
 		assert(isinstance(a.thing, (AtomVar, )))
 		assert get_value(a.thing) == a.thing
 
-	if p not in preds:
-		log (str(p) + " not in preds")
-		for i in preds:
-			log("is " + str(i) + "?")
-			log(i == p)
+	if not nolog:
+		if p not in preds:
+			log (str(p) + " not in preds")
+			for i in preds:
+				log("is " + str(i) + "?")
+				log(i == p)
 
 	for rule in preds[p]:
 		if(rule.find_ep(args)):
@@ -667,42 +662,39 @@ def pred(p, parent, args):
 
 def query(input_rules, input_query):
 	global preds, dbg
-	dbg = not nolog or not nokbdbg
-	kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
-	kbdbg_graph_first()
+	nolog or kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
+	nolog or kbdbg_graph_first()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
 	query_rule = Rule([], None, input_query)
-	step()
+	nolog or step()
 #	tracemalloc.start()
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
-		kbdbg(uri + " rdf:type kbdbg:result")
+		nolog or kbdbg(uri + " rdf:type kbdbg:result")
 		terms = [substitute_term(term, locals) for term in input_query]
 		result_terms_uri = emit_list(emit_terms(terms))
-		kbdbg(uri + " rdf:value " + result_terms_uri)
+		nolog or kbdbg(uri + " rdf:value " + result_terms_uri)
 		yield terms
-		printed = []
-		for t in terms:
-			for a in t.args:
-				if a in printed: continue
-				if a not in locals:	continue
-				v = get_value(locals[a])
-				if isinstance(v, Var) and v.bnode():
-					log(str(a) + ':')
-					log(print_bnode(v.bnode()))
-					printed.append(a)
-
+		if not nolog:
+			printed = []
+			for t in terms:
+				for a in t.args:
+					if a in printed: continue
+					if a not in locals:	continue
+					v = get_value(locals[a])
+					if isinstance(v, Var) and v.bnode():
+						log(str(a) + ':')
+						log(print_bnode(v.bnode()))
+						printed.append(a)
 		#log(print_proof(..))
-
-		kbdbg(uri + " kbdbg:was_unbound true")
-	flush_sparql_updates()
+		nolog or kbdbg(uri + " kbdbg:was_unbound true")
+	nolog or flush_sparql_updates()
 
 #def print_proof(indent, rules, substs):
 #	for rule in rules:
 #		log(' '*indent +
-
 
 def emit_list(l, uri=None):
 	if uri == None:
@@ -770,8 +762,8 @@ def emit_term(t, uri):
 	return uri
 
 def check_futures():
-	log('len(futures):'+str(len(futures)))
-	#log('len(futures):'+str(len(pool.)))
+	nolog or log('len(futures):'+str(len(futures)))
+	#nolog or log('len(futures):'+str(len(pool.)))
 
 	while True:
 		if len(futures) == 0: return

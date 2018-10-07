@@ -49,7 +49,6 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	subprocess.call(['rm', '-f', pyin._rules_file_name])
 	os.system('mkdir -p '+outpath)
 	pyin.nolog = nolog
-	pyin.nokbdbg = nokbdbg
 	pyin.init_logging()
 	log = pyin.log
 	if sparql_uri != '':

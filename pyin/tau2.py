@@ -93,13 +93,15 @@ def tau(command, files, only_id):
 						write_out('query_for_external_raw.n3')
 						set_new_identification()
 						identify()
-						r = subprocess.run(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
-							universal_newlines=True, stdout=subprocess.PIPE)
-						if r.returncode != 0:
+						try:
+							r = subprocess.Popen(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
+											 universal_newlines=True, stdout=subprocess.PIPE)
+						except CalledProcessError as e:
 							fail()
 							print_kwrite_link()
 						else:
-							for output_line in r.stdout.splitlines():
+							ssss = r.stdout
+							for output_line in ssss.read().splitlines():
 								echo(output_line)
 								result_marker = ' RESULT :'
 								if output_line.startswith(result_marker):

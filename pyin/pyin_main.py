@@ -184,7 +184,7 @@ def newList(self, n, f):
 	self.graph.last_n3_syntax_list_id = list_id
 
 	def make_bnode(idx):
-		return rdflib.BNode('l' + str(list_id) + '.' + str(idx))
+		return rdflib.BNode('l' + str(list_id) + '_' + str(idx))
 
 	r = None
 	next = None

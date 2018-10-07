@@ -1,6 +1,7 @@
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
+import sys
 import os
 import logging
 try:
@@ -17,6 +18,9 @@ kbdbg_prefix = URIRef('http://kbd.bg/#')
 log, kbdbg_text = 666,666
 pool = None
 futures = []
+
+if sys.version_info.major == 3:
+	unicode = str
 
 
 to_submit_default = ''
@@ -536,8 +540,10 @@ class Rule(Kbdbgable):
 				generators.append(generator)
 				nolog or log("generators:%s", generators)
 			try:
-				#generators[depth].__next__()
-				generators[depth].next()
+				if sys.version_info.major == 3:
+					generators[depth].__next__()
+				else:
+					generators[depth].next()
 			except StopIteration:
 				nolog or log ("back")
 				generators.pop()
@@ -801,8 +807,9 @@ def init_logging():
 
 	log, kbdbg_text = logger1.debug, logger2.info
 
-	for line in prefixes.strip().splitlines():
-		kbdbg_text('@'+line+'.')
+	if not nolog:
+		for line in prefixes.strip().splitlines():
+			kbdbg_text('@'+line+'.')
 	#print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
 #import gc

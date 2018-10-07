@@ -797,7 +797,7 @@ def init_logging():
 
 	try:
 		os.unlink(kbdbg_file_name)
-	except FileNotFoundError:
+	except:
 		pass
 	kbdbg_out = logging.FileHandler(kbdbg_file_name)
 	kbdbg_out.setLevel(logging.DEBUG)

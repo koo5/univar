@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -7,7 +7,7 @@ import common
 import subprocess
 import click
 from click import echo, style
-from enum import Enum, auto
+from enum import Enum
 import rdflib
 from rdflib import URIRef, BNode, Variable
 from rdflib.plugins.parsers import notation3
@@ -16,10 +16,10 @@ from itertools import chain
 
 
 class Mode(Enum):
-	none = auto()
-	kb = auto()
-	query = auto()
-	shouldbe = auto()
+	none = 0
+	kb = 1
+	query = 2
+	shouldbe = 3
 
 query_number = 6666666
 identification = '?'
@@ -193,7 +193,7 @@ def do_results_comparison(a, b):
 	return True
 
 def timestamp():
-	return str(round(time.perf_counter(), 3)).ljust(10) + ' '
+	return str(round(time.clock(), 3)).ljust(10) + ' '
 
 def success():
 	echo(timestamp()+identification+":test:PASS")

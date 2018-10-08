@@ -145,12 +145,18 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		pyin.kbdbg("<" + this + "> kbdbg:is kbdbg:done", default=True)
 		pyin.flush_sparql_updates()
 
-	if visualize:
-		os.system('pypy3.5 -O pyin/kbdbg2graphviz.py ' + pyin.kbdbg_file_name)
-
 
 	if sparql_uri != '':
 		pyin.pool.shutdown()
+
+
+if __name__ == "__main__":
+	query_from_files()
+
+
+
+
+
 
 """
 def reorder_lists(g):
@@ -167,8 +173,5 @@ def reorder_lists(g):
 """
 
 
-
-if __name__ == "__main__":
-	query_from_files()
 
 #from IPython import embed; embed()

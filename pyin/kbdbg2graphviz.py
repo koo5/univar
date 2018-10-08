@@ -169,9 +169,9 @@ class Emitter:
 					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='orange', weight=weight, binding=True)
 				continue
 			if g.value(binding, kbdbg.failed) == rdflib.Literal(True):
-				if (binding.n3() in last_bindings):
-					s.comment("just failed binding")
-					s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
+				#if (binding.n3() in last_bindings):
+				s.comment("just failed binding")
+				s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri), color='red', weight=weight, binding=True)
 				continue
 			s.comment("binding " + binding.n3())
 			s.arrow(s.gv_endpoint(source_uri), s.gv_endpoint(target_uri),

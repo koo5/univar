@@ -219,7 +219,6 @@ def write_out(fn):
 	buffer = grab_buffer()
 	with open(fn, 'w') as f:
 		f.write(buffer)
-	graph = parse(data=grab_buffer(), identifier='file://'+base, publicID='file://'+base)
 	mode = Mode.none
 
 def print_kwrite_link():

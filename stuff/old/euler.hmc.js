@@ -1,3 +1,6 @@
+http://eulersharp.sourceforge.net/2006/02swap/socrates.html
+
+
 
 
 /*

@@ -673,3 +673,6 @@ void make_locals(Locals &locals, Locals &consts, locals_map &lm, locals_map &cm,
 
 
 http://www.cplusplus.com/reference/thread/thread/
+
+smil svg or different animations
+one step for whole triple

@@ -306,12 +306,12 @@ class Var(AtomVar):
 			nolog or log(msg)
 			uri = bn()
 			emit_binding(uri, orig)
-			step()
+			#step()
 		yield nolog or msg
 		x.bound_to = None
 		if not nolog:
 			kbdbg(uri + " kbdbg:was_unbound true")
-			step()
+			#step()
 
 
 def success(msg, orig, uri = None):
@@ -321,11 +321,11 @@ def success(msg, orig, uri = None):
 			log(uri)
 			emit_binding(uri, orig)
 			kbdbg(uri + " kbdbg:message " + rdflib.Literal(msg).n3())
-			step()
+			#step()
 		yield msg
 		if not nolog:
 			kbdbg(uri + " kbdbg:was_unbound true")
-			step()
+			#step()
 
 def fail(msg, orig, uri = None):
 		if not nolog:
@@ -337,7 +337,7 @@ def fail(msg, orig, uri = None):
 		while False:
 			yield msg
 		if not nolog:
-			step()
+			#step()
 			kbdbg(uri + " kbdbg:was_unbound true")
 
 def emit_binding(uri, _x_y):
@@ -524,6 +524,7 @@ class Rule(Kbdbgable):
 					for arg_idx, uri in enumerate(triple.args):
 						thing = locals[uri]
 						bi_args.append(Arg(uri, get_value(thing), nolog or thing.debug_locals().kbdbg_frame, body_item_index, arg_idx, False))
+					step()
 					generator = pred(triple.pred, nolog or kbdbg_name, bi_args)
 				if PY3:
 					generators.append(generator.__next__)
@@ -601,18 +602,18 @@ class Rule(Kbdbgable):
 		nolog or log ("..no ep match")
 
 def get_existentials_names(heads, body):
-	vars = []
-	for head in heads:
-		if head:
-			for i_idx, i in enumerate(head.args):
-				if is_var(i):
-					if i not in vars:
-						vars.append(i)
+	body_vars = []
 	for i in body:
 		for j in i.args:
 			if is_var(j):
-				if j in vars:
-					vars.remove(j)
+				body_vars.append(j)
+	vars = set()
+	for head in heads:
+		if head:
+			for i in head.args:
+				if is_var(i) and i not in body_vars: #and i.islower()
+					vars.add(i)
+	vars = list(vars)
 	nolog or log ("existentials:" + ' '.join(v.n3() for v in vars))
 	return vars
 

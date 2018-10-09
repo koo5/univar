@@ -84,11 +84,12 @@ def kbdbg_graph_first():
 global_step_counter = 0
 def step():
 	global global_step_counter
-	kbdbg_text("#step"+str(global_step_counter))
-	if pool:
-		submit_kbdbg()
-	kbdbg_graph_first()
-	kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
+	if not nolog:
+		kbdbg_text("#step"+str(global_step_counter))
+		if pool:
+			submit_kbdbg()
+		kbdbg_graph_first()
+		kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
 	global_step_counter += 1
 	#if step % 10000 == 0:
 
@@ -611,7 +612,7 @@ def get_existentials_names(heads, body):
 	for head in heads:
 		if head:
 			for i in head.args:
-				if is_var(i) and i not in body_vars: #and i.islower()
+				if is_var(i) and i not in body_vars and i.islower():
 					vars.add(i)
 	vars = list(vars)
 	nolog or log ("existentials:" + ' '.join(v.n3() for v in vars))

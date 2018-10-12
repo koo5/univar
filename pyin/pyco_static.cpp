@@ -1,7 +1,10 @@
+#include <string>
+
+using namespace std;
+
 typedef unsigned long nodeid;
 nodeid last_nodeid = 0;
-
-map<nodeid, string> cppdict;
+map<nodeid, string> strings;
 
 enum ThingType {BOUND, CONST, BOUND_BNODE, UNBOUND_BNODE, UNBOUND};
 
@@ -39,3 +42,27 @@ struct cpppred_state
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct coro_state
+{
+    int entry=0;
+}
+
+
+
+
+#include "pyco_output.cpp"

@@ -26,8 +26,5 @@ kb
 } .
 fin.
 query
-:l0c :clone_of ?b.
-fin.
-query
-?a :clone_of ?b.
+{:l0c :clone_of ?b.} => {:l0c :clone_of ?b.}.
 fin.

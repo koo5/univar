@@ -1,0 +1,15 @@
+@prefix ppl: <http://example.org/people#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+kb
+ppl:Cindy foaf:knows ppl:John.
+{
+    ppl:Cindy foaf:knows ppl:John.
+}
+=>
+{
+    ppl:John foaf:knows ppl:Cindy.
+}.
+fin.
+query
+{ ?a ?b ?c. } => { ?a ?b ?c. }.
+fin.

@@ -1,0 +1,29 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file:///> .
+
+
+kb
+
+:stuff :is (:banana :pie :slice).
+:stuff :is (:dog :bark :recording).
+:stuff :is (:empirical :evidence :impeachment).
+:stuff :is (:something :tediously :long).
+:stuff :is :stuff.
+fin.
+
+#21 euler.js-style steps
+
+query
+#{ ?a ?b ?c. } => { ?a ?b ?c. }.
+#{:stuff :is ?wat.} => {:stuff :is ?wat.}.
+#{:stuff :is ?wat.} => {:oukie :doukie :koukie}.
+#{?l0 rdf:rest ?L1.} => {:oukie :doukie :koukie}.
+fin.
+
+#{ ?a ?b ?c. } => { ?a ?b ?c. }.
+#?l0 rdf:rest ?l1. #?l1 rdf:rest ?l2. ?l2 rdf:first :long.
+
+#3 euler.js-style steps
+#query
+#?l2 rdf:first :long. ?l1 rdf:rest ?l2. ?l0 rdf:rest ?l1. 
+#fin.

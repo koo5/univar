@@ -2,7 +2,7 @@
 
 """PYthon does the input, C++ is the Output"""
 
-import cgen as c
+import cgen
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
@@ -28,47 +28,33 @@ if sys.version_info.major == 3:
 	unicode = str
 
 
-def query(input_rules, input_query):
+def pred_func_declaration(pred_name):
+	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
+
+def generate_cpp(input_rules, input_query):
 	out('#include "pyco_static.cpp"')
-	for r in input_rules+input_query:
-		"static " + r.kbdbg_name + "(cpppred_state & __restrict__ state);"
-	for r in input_rules+input_query:
-		void cppout_pred(string name, vector<Rule> rs)
+	for pred,rules in preds.items():
+		out(pred_func_declaration(pred_name)+';')
+	for pred,rules in preds.items():
+		do_pred(name, rules)
 
-def cppout_pred(name, rules):
-{
-	cppout_consts(name, rs);
-
-	out << "\n" << preddect(name);
-	out << "{\n";
-	for (pos_t i = 0; i < rs.size(); i++) {
-		if (rs[i].head && rs[i].body && rs[i].body->size())
-			out << "static ep_t ep" << i << ";\n";
-	}
-
-	size_t max_body_len = 0;
-	for (auto rule:rs) {
-		if (rule.body && max_body_len < rule.body->size())
-			max_body_len = rule.body->size();
-	}
-
-	for (size_t j = 0; j < max_body_len; j++)
-		out << "int entry" << j << ";\n";
-
-
+def do_pred(pred_name, rules):
+	for rule in rules:
+		rule.consts, rule.locals_map, rule.consts_map = make_locals(locals_template, r.head, r.body, false);
+	for i, rule in emunerate(rules):
+		out("/*const*/static Locals consts_of_rule_" + str(i) + " = " << things_literals(rule.consts))
+		if len(rule.body):
+			out("static ep_t ep" + str(i))
+	out(pred_func_declaration(pred_name))
+	function_block = cgen.Block()
+	#function_block.append(cgen.Statement(
+	max_body_len = max([len(r.body) for r in rules])
 	if (name == "cppout_query")
-	{
 		out << "static int counter = 0;\n";
 		out << "static vector<Thing> prev_results;";
-	}
-
-
-
 	out << "char uuus;(void)uuus;\n";
 	out << "char uuuo;(void)uuuo;\n";
-
 	int label = 0;
-
 	out << "switch(entry){\n";
 
 	//case 0:

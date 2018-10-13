@@ -1,0 +1,62 @@
+@prefix : <http://jmv.fr#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix func: <http://www.w3.org/2007/rif-builtin-function#>.
+
+kb
+
+:hello_world_grammar :value ("hello" " " "world" :unlimited_exclamation_marks).
+#:hello_world_grammar :is_parse_of "hello world!!!".
+
+
+#sentence --> noun_phrase, verb_phrase.
+#Which will be translated to:
+#sentence(L0,LREMAINDER):-
+#   noun_phrase(L0,L1),verb_phrase(L1,LREMAINDER).
+
+hello_world(string, start, end) <= {hello(string, start, ?m0). world(string, ?m0, end)}.
+
+? is "7". “7″^^xsd:integer
+
+
+
+{?x is_parse_of (?string ?start ?end). ?x a digit. ?x value .
+
+
+#?x is_parse_of "7". ?x a digit. ?x value 7.
+
+
+{?tree :is_parse_of (?string ?grammar ?start ?end)} <= {
+	?grammar a rdf:List. ?grammar rdf:first ?first. ?literal a rdf:Literal. ?literal string:has_len ?len.
+	?end math:is_sum_of (?len "-1").
+	?literal string:is_substr_of (?string ?start ?end)
+}.
+
+
+{?tree :is_parse_of (?string ?grammar ?start ?end)} <= {
+	?grammar a rdf:List. ?grammar rdf:first ?first. ?literal a rdf:Literal. ?literal string:has_len ?len.
+	?end math:is_sum_of (?len "-1").
+	?literal string:is_substr_of (?string ?start ?end)
+}.
+
+
+
+
+{:result :is ?p} <= {:hello_world_grammar :value ?x. ?p :is_parse_of ("hello world!!!" ?x).}.
+
+fin.
+
+query
+{:l0c :clone_of ?b.} => {:l0c :clone_of ?b.}.
+fin.
+
+
+
+?input ?remainder
+
+
+
+
+
+
+
+# https://en.wikibooks.org/wiki/Prolog/Definite_Clause_Grammars

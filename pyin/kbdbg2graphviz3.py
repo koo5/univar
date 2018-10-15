@@ -11,6 +11,7 @@ However, from the viewpoint of a semantic desktop, it seems that
 we should put each triple into its own (uniquely-named) graph a-priori.
 Thats the only way to avoid having to remodel your data as soon as you want to for
 example just annotate some triple. In RDR sytax, for example: <<:frame7 rdf:type :variable> :comment "seems like a bug introduced in version bla bla>.
+or: https://ebiquity.umbc.edu/_file_directory_/papers/178.pdf
 
 Once you have each triple in its own graph, you have to tie them together with more triples:
 :graphForTriple7 is_part_of :graphForStep0
@@ -20,13 +21,23 @@ and we also need:
 must be better than extracting it from the name:)
 
 
+now for two practical issues: a better triplestore is needed, blazegraph is flaky, especially under
+parallel load. Or at least more ram is needed. Or a triplestore on aws.
 
-one thing im still split on is if we should 
+into this ties a small change, if we avoid running multiple workers in parallel, we should at least
+leave the file/convert io to another thread.
+
+but most importantly, this script breaks at a few tens of hundreds of thousands of steps because it
+always has to fetch all frames and bindings etc existing
 
 
 
-unique names:
-one-huge-triplestore,
+
+
+
+
+
+
 """
 
 import time
@@ -455,6 +466,21 @@ def emit_terms_by_items( tag, text, items, is_head):
 	for term_idx, item in enumerate(items):
 		emit_term(tag, text, is_head, term_idx, item)
 
+
+def idk_destroyed(data, key):
+	x = data[key]
+	if x == None: return None
+	r = int(x)
+	if r > step: return None
+	return r
+
+def idk_created(data, key):
+	x = data[key]
+	if x == None: return None
+	r = int(x)
+	if r > step: return None
+	return r
+
 def step_bind(id):
 	return """
 	  BIND  (STR(?g{id}) AS ?strg{id}).
@@ -468,93 +494,6 @@ def step_magic(id=0):
 	  """.format(id=id, graph_name_start=graphs_name_start,
 				 maxstep=str(range_end+1).rjust(10,'0')))
 
-
-secs_per_frame = 30
-futures = []
-global_start = None
-
-@click.command()
-@click.option('--quiet', type=click.BOOL, default=False)
-@click.option('--start', type=click.IntRange(0, None), default=0)
-@click.option('--end', type=click.IntRange(-1, None), default=-1)
-@click.option('--workers', type=click.IntRange(0, 65536), default=(os.cpu_count() or 1))
-def run(quiet, start, end, workers):
-	global global_start, graphs_name_start, sparql_server,start_time
-	global_start = start
-	if quiet:
-		logger.setLevel(logging.INFO)
-	sparql_server = sparql.SPARQLServer(sparql_uri)
-	redis_fn = redislite.Redis().db
-	info('redis is '+redis_fn)
-	if workers:
-		worker_pool = ProcessPoolExecutor(max_workers = workers)
-	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
-	identification0 = query_one('y', "{<"+graphs_name_start+"> kbdbg:has_run_identification ?y}")
-	path='runs/'+fix_up_identification(identification0)
-	os.system('mkdir -p '+path)
-	identification = path+'/'+fix_up_identification(graphs_name_start)
-	graph_list_position = graphs_name_start
-	step_to_submit = -1
-	done = False
-	range_start = None
-	start_time = time.perf_counter()
-	while not done:
-		#step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
-		#if len(step_list_data ) == 0: break
-		#graph_list_position = step_list_data [-1]['cell']
-		#for rrr in step_list_data[:-1] :
-			#step_graph_uri = rrr['item']
-			step_to_submit+=1
-			if step_to_submit < start - 1:
-				info ("skipping ["+str(step_to_submit) + ']')
-				continue
-			if range_start == None:
-				range_start = step_to_submit
-			range_end = step_to_submit
-			if range_end - range_start == 10000 or (range_end >= end and end != -1):
-				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
-				if not workers:
-					work(*args)
-				else:
-					if check_futures() == 'end':
-						info ("ending")
-						done = True
-						break
-
-					while len(futures) > workers+1:
-						info('sleeping')
-						time.sleep(10)
-						if check_futures() == 'end':
-							info ("ending")
-							done = True
-							break
-
-					info('submit ' + str(range_start)+'-'+str(range_end) + ' (queue size: ' + str(len(futures)) + ')' )
-					fut = worker_pool.submit(work, *args)
-					fut.step = step_to_submit
-					futures.append(fut)
-					log('submitted ' )
-					time.sleep(secs_per_frame)
-
-					if check_futures() == 'end':
-						info ("ending")
-						done = True
-						break
-
-				range_start = range_end + 1
-			if range_start > end and end != -1:
-				info ("ending")
-				done = True
-				break
-			log('loop' )
-	if workers:
-		while len(futures) != 0:
-			check_futures()
-			info('waiting for workers to end')
-			time.sleep(10)
-		worker_pool.shutdown()
-		check_futures()
-
 def frame_query(id=''):
 	return ("""
 				GRAPH ?g{id}_created {{
@@ -564,7 +503,7 @@ def frame_query(id=''):
 					GRAPH ?g{id}_finished {{
 						?{id}frame kbdbg:is_finished true
 					}}.""" +
-			step_magic(id+'_finished') +
+			step_bind(id+'_finished') +
 			"""
 				}}.
 			""").format(id=id)
@@ -759,19 +698,91 @@ def check_futures():
 #	redis_connection.lpush(step, json.dumps(new_last_bindings))
 
 
-def idk_destroyed(data, key):
-	x = data[key]
-	if x == None: return None
-	r = int(x)
-	if r > step: return None
-	return r
+secs_per_frame = 30
+futures = []
+global_start = None
 
-def idk_created(data, key):
-	x = data[key]
-	if x == None: return None
-	r = int(x)
-	if r > step: return None
-	return r
+@click.command()
+@click.option('--quiet', type=click.BOOL, default=False)
+@click.option('--start', type=click.IntRange(0, None), default=0)
+@click.option('--end', type=click.IntRange(-1, None), default=-1)
+@click.option('--workers', type=click.IntRange(0, 65536), default=(os.cpu_count() or 1))
+def run(quiet, start, end, workers):
+	global global_start, graphs_name_start, sparql_server,start_time
+	global_start = start
+	if quiet:
+		logger.setLevel(logging.INFO)
+	sparql_server = sparql.SPARQLServer(sparql_uri)
+	redis_fn = redislite.Redis().db
+	info('redis is '+redis_fn)
+	if workers:
+		worker_pool = ProcessPoolExecutor(max_workers = workers)
+	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
+	identification0 = query_one('y', "{<"+graphs_name_start+"> kbdbg:has_run_identification ?y}")
+	path='runs/'+fix_up_identification(identification0)
+	os.system('mkdir -p '+path)
+	identification = path+'/'+fix_up_identification(graphs_name_start)
+	graph_list_position = graphs_name_start
+	step_to_submit = -1
+	done = False
+	range_start = None
+	start_time = time.perf_counter()
+	while not done:
+		#step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
+		#if len(step_list_data ) == 0: break
+		#graph_list_position = step_list_data [-1]['cell']
+		#for rrr in step_list_data[:-1] :
+			#step_graph_uri = rrr['item']
+			step_to_submit+=1
+			if step_to_submit < start - 1:
+				info ("skipping ["+str(step_to_submit) + ']')
+				continue
+			if range_start == None:
+				range_start = step_to_submit
+			range_end = step_to_submit
+			if range_end - range_start == 10000 or (range_end >= end and end != -1):
+				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
+				if not workers:
+					work(*args)
+				else:
+					if check_futures() == 'end':
+						info ("ending")
+						done = True
+						break
+
+					while len(futures) > workers+1:
+						info('sleeping')
+						time.sleep(10)
+						if check_futures() == 'end':
+							info ("ending")
+							done = True
+							break
+
+					info('submit ' + str(range_start)+'-'+str(range_end) + ' (queue size: ' + str(len(futures)) + ')' )
+					fut = worker_pool.submit(work, *args)
+					fut.step = step_to_submit
+					futures.append(fut)
+					log('submitted ' )
+					time.sleep(secs_per_frame)
+
+					if check_futures() == 'end':
+						info ("ending")
+						done = True
+						break
+
+				range_start = range_end + 1
+			if range_start > end and end != -1:
+				info ("ending")
+				done = True
+				break
+			log('loop' )
+	if workers:
+		while len(futures) != 0:
+			check_futures()
+			info('waiting for workers to end')
+			time.sleep(10)
+		worker_pool.shutdown()
+		check_futures()
 
 
 if __name__ == '__main__':
@@ -798,3 +809,8 @@ if __name__ == '__main__':
 			#if last_result:
 			#	s.arrow(last_result, result_node, color='yellow', weight=100)
 			#last_result = result_node
+
+
+
+
+# https://openproceedings.org/2016/conf/edbt/paper-168.pdf

@@ -8,35 +8,7 @@ __all__ = ['Collection']
 
 class Collection(object):
     __doc__ = format_doctest_out("""
-    See "Emulating container types":
-    https://docs.python.org/reference/datamodel.html#emulating-container-types
-
-    >>> from rdflib.graph import Graph
-    >>> from pprint import pprint
-    >>> listName = BNode()
-    >>> g = Graph('IOMemory')
-    >>> listItem1 = BNode()
-    >>> listItem2 = BNode()
-    >>> g.add((listName, RDF.first, Literal(1)))
-    >>> g.add((listName, RDF.rest, listItem1))
-    >>> g.add((listItem1, RDF.first, Literal(2)))
-    >>> g.add((listItem1, RDF.rest, listItem2))
-    >>> g.add((listItem2, RDF.rest, RDF.nil))
-    >>> g.add((listItem2, RDF.first, Literal(3)))
-    >>> c = Collection(g,listName)
-    >>> pprint([term.n3() for term in c])
-    [%(u)s'"1"^^<http://www.w3.org/2001/XMLSchema#integer>',
-     %(u)s'"2"^^<http://www.w3.org/2001/XMLSchema#integer>',
-     %(u)s'"3"^^<http://www.w3.org/2001/XMLSchema#integer>']
-
-    >>> Literal(1) in c
-    True
-    >>> len(c)
-    3
-    >>> c._get_container(1) == listItem1
-    True
-    >>> c.index(Literal(2)) == 1
-    True
+    A tweak of rdflib Connection. This one doesnt update the store when its created.
     """)
 
     def __init__(self, graph, uri):

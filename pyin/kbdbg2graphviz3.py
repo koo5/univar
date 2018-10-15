@@ -1,6 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+
+here i use complex queries to leave the hard work on the server side, and more importantly,
+avoid so many round-trips. This was my first serious use of sparql, what i would do differently now:
+avoid using a part of a graph name to store the step id,
+save the step id in its own triple: graph has_step step.
+However, from the viewpoint of a semantic desktop, it seems that
+we should put each triple into its own (uniquely-named) graph a-priori.
+Thats the only way to avoid having to remodel your data as soon as you want to for
+example just annotate some triple. In RDR sytax, for example: <<:frame7 rdf:type :variable> :comment "seems like a bug introduced in version bla bla>.
+
+Once you have each triple in its own graph, you have to tie them together with more triples:
+:graphForTriple7 is_part_of :graphForStep0
+
+and we also need:
+:graphForStep0 has_step 0,
+must be better than extracting it from the name:)
+
+
+
+one thing im still split on is if we should 
+
+
+
+unique names:
+one-huge-triplestore,
+"""
 
 import time
 import click

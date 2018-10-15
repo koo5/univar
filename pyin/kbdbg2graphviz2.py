@@ -2,6 +2,17 @@
 # -*- coding: utf-8 -*-
 
 
+"""
+this is a naive change from kbdbg2graphviz.py,
+everything goes through triples(), except collections,
+which use Graph with sparqlstore.SPARQLStore.
+
+So, we use a sparqlstore like we did the in-memory store in kbdbg2graphviz.py.
+This means we have a lot of queries, and its unusably slow
+"""
+
+
+
 import time
 import redislite, redis_collections
 import click

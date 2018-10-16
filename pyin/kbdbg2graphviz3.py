@@ -27,18 +27,10 @@ parallel load. Or at least more ram is needed. Or a triplestore on aws.
 into this ties a small change, if we avoid running multiple workers in parallel, we should at least
 leave the file/convert io to another thread.
 
-but most importantly, this script breaks at a few tens of hundreds of thousands of steps because it
-always has to fetch all frames and bindings etc existing
-
-
-
-
-
-
-
-
-
 """
+
+
+
 
 
 import time
@@ -65,7 +57,10 @@ from common import shorten, fix_up_identification
 from common import pyin_prefixes as prefixes
 from collections import defaultdict
 
+
 sparql_uri = 'http://localhost:9999/blazegraph/sparql'
+are_other_graphs_present = False
+
 
 range_start = '666'
 range_end= '666'
@@ -469,11 +464,11 @@ def step_bind(id):
 	  """.format(id=id)
 
 def step_magic(id=0):
-	return step_bind(id)+("""
-	  FILTER (STRSTARTS(?strg{id}, "{graph_name_start}")).
+	return step_bind(id)+((("""
+	  FILTER (STRSTARTS(?strg{id}, "{graph_name_start}")).""" if are_other_graphs_present else "")+"""
 	  FILTER (?step{id} <= "{maxstep}").
-	  FILTER (?step{id} >= "{minstep}").
-	  """.format(id=id, graph_name_start=graphs_name_start,
+	  """ + ("""(FILTER (?step{id} >= "{minstep}").""" if range_start != 0 else ""))
+	  .format(id=id, graph_name_start=graphs_name_start,
 				maxstep=str(range_end).rjust(10,'0'),
 				minstep=str(range_start).rjust(10,'0')
 						  ))
@@ -568,14 +563,16 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""))
 
-	redis_save('checkpoint'+str(range_end), filter_out_irrelevant_stuff(range_end, raw))
+	current_step = range_end
+	redis_save('checkpoint'+str(range_end), filter_out_irrelevant_stuff(raw))
+	current_step = '666'
 
 	last_bindings = raw['bindings'][:]
 	for i in range(range_start, range_end + 1):
 		current_step = i
 		ss = '[' + str(current_step) + ']'
 		info('work ' + ss)
-		state = filter_out_irrelevant_stuff(current_step, raw)
+		state = filter_out_irrelevant_stuff(raw)
 		if len(state['frames']) == 0:
 			info('no frames.' + ss)
 			continue
@@ -638,11 +635,11 @@ def only_existing(range_list):
 				r.append(b)
 	return r
 
-def filter_out_irrelevant_stuff(step, raw):
+def filter_out_irrelevant_stuff(raw):
 	result = defaultdict(list)
 	result['frames'] = only_existing(raw['frames'])
 	result['bnodes'] = only_existing(raw['bnodes'])
-	for r in range_results_list:
+	for r in raw['results']:
 		step_unbound = relevant(r['step_unbound'])
 		if step_unbound == None:
 			result['results'].append(r)
@@ -720,6 +717,7 @@ def run(quiet, start, end, workers):
 	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
 	identification0 = query_one('y', "{<"+graphs_name_start+"> kbdbg:has_run_identification ?y}")
 	path='runs/'+fix_up_identification(identification0)
+	info ('output path:'+path)
 	os.system('mkdir -p '+path)
 	identification = path+'/'+fix_up_identification(graphs_name_start)
 	graph_list_position = graphs_name_start
@@ -727,7 +725,7 @@ def run(quiet, start, end, workers):
 	done = False
 	range_start = None
 	start_time = time.perf_counter()
-	range_size = 20000
+	range_size = 200000
 	while not done:
 		step_to_submit+=1
 		if step_to_submit < start - 1:

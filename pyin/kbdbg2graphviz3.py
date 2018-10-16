@@ -40,6 +40,7 @@ always has to fetch all frames and bindings etc existing
 
 """
 
+
 import time
 import click
 import os
@@ -62,6 +63,7 @@ from pymantic import sparql
 from sortedcontainers import SortedList
 from common import shorten, fix_up_identification
 from common import pyin_prefixes as prefixes
+from collections import defaultdict
 
 sparql_uri = 'http://localhost:9999/blazegraph/sparql'
 
@@ -191,7 +193,7 @@ def gv_escape(string):
 
 
 frame_name_template_var_name = '%frame_name_template_var_name%'
-step = '666'
+current_step = '666'
 
 class Emitter:
 
@@ -274,8 +276,6 @@ class Emitter:
 
 	def do_bindings(s, bindings_list):
 		info ('bindings...' + ss)
-		new_last_bindings = []
-
 		def arrr(color):
 			se = x_endpoint('source')
 			te = x_endpoint('target')
@@ -293,39 +293,27 @@ class Emitter:
 		for binding_data in bindings_list:
 			binding = binding_data['x']
 			weight = 1
-
-			binding_created = idk_created(binding_data, 'stepbinding_created')
-			if binding_created == None:
-				continue
-			binding_failed = idk_destroyed(binding_data, 'stepbinding_failed')
-			binding_unbound = idk_destroyed(binding_data, 'stepbinding_unbound')
-
+			binding_created = relevant(binding_data['stepbinding_created'])
+			binding_failed = relevant(binding_data['stepbinding_failed'])
+			binding_unbound = relevant(binding_data['stepbinding_unbound'])
 			source_uri = binding_data['source']
 			target_uri = binding_data['target']
-
 			if binding_data['source_is_bnode'] and binding_data['target_is_bnode']:
 				weight = 0
-
 			if (binding_unbound != None) and (binding_failed == None):
-				#log(binding + ' is unbound')
-				if binding_unbound == step:
+				if binding_unbound == current_step:
 					s.comment("just unbound binding")
 					arrr('orange')
 			elif (binding_failed != None) and (binding_unbound == None):
-				if binding_failed == step:
+				if binding_failed == current_step:
 					s.comment("just failed binding")
 					arrr('red')
 			elif (binding_failed == None) and (binding_unbound == None):
 				s.comment("binding " + binding)
-				arrr('black' if (step == binding_created) else 'purple' )
-
-		if new_last_bindings == s.last_bindings:
-			return 'end'
-		s.last_bindings = new_last_bindings
-
+				arrr('black' if (current_step == binding_created) else 'purple' )
 
 	def do_results(s,results_list):
-		info ('results..' + '[' + str(step) + ']')
+		info ('results..' + '[' + str(current_step) + ']')
 		#last_result = root_frame
 		for i, result_data in enumerate(results_list):
 			result_uri = result_data['uri']
@@ -467,19 +455,13 @@ def emit_terms_by_items( tag, text, items, is_head):
 		emit_term(tag, text, is_head, term_idx, item)
 
 
-def idk_destroyed(data, key):
-	x = data[key]
-	if x == None: return None
-	r = int(x)
-	if r > step: return None
-	return r
-
-def idk_created(data, key):
-	x = data[key]
-	if x == None: return None
-	r = int(x)
-	if r > step: return None
-	return r
+def relevant(event_step):
+"""return None if this thing happened after current step or outside the range of the query,
+otherwise return the step"""
+	if event_step == None: return None
+	r = int(event_step)
+	if r > current_step: return None
+	return event_step
 
 def step_bind(id):
 	return """
@@ -512,7 +494,7 @@ frames_done_count = 0
 
 
 def work(identification, graph_name, _range_start, _range_end, redis_fn):
-	global redis_connection, strict_redis_connection, sparql_server, step, range_start, range_end, ss, just_unbound_bindings,frames_done_count,frame_templates,bnode_strings
+	global redis_connection, strict_redis_connection, sparql_server, current_step, range_start, range_end, ss, just_unbound_bindings,frames_done_count,frame_templates,bnode_strings
 	range_start, range_end = _range_start, _range_end
 	sparql_server = sparql.SPARQLServer(sparql_uri)
 	redis_connection = redislite.Redis(redis_fn)
@@ -520,7 +502,13 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 	frame_templates = redis_collections.Dict(key='frames',redis=strict_redis_connection,writeback=True)
 	bnode_strings = redis_collections.Dict(key='bnodes',redis=strict_redis_connection,writeback=True)
 
-	range_frames_list = list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
+	if range_start == 0:
+		checkpoint = defaultdict(list)
+	else:
+		checkpoint = redis_load('checkpoint'+str(range_start - 1))
+	raw = {}
+
+	raw['frames'] = list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
 	"""WHERE
 	{
 		"""+frame_query()+"""
@@ -528,7 +516,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
 
-	range_bnodes_list = list(query(('bnode','frame','items','step_created','step_finished'),
+	raw['bnodes'] = list(query(('bnode','frame','items','step_created','step_finished'),
 		"""WHERE
 		{
 		?bnode kbdbg:has_items ?items.
@@ -541,8 +529,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		}
 		}"""))
 
-	#checkme
-	range_results_list = list(query(('uri','value', 'step_unbound'),
+	raw['results'] = list(query(('uri','value', 'step_unbound'),
 			"""WHERE {GRAPH ?g_created 
 			{
 				?uri rdf:type kbdbg:result.
@@ -551,7 +538,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 			OPTIONAL {GRAPH ?g_unbound {?uri kbdbg:was_ubound true}.}.""" +
 			step_bind('_unbound')+'}'))
 
-	range_bindings_list = list(
+	raw['bindings'] = list(
 			query(
 				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
 				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
@@ -580,83 +567,89 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""))
 
-	last_bindings = []
+
+	redis_save('checkpoint'+str(range_end), filter_out_irrelevant_stuff(range_end, raw))
+
+	last_bindings = checkpoint['bindings']
 	for i in range(range_start, range_end + 1):
-		step = i
-		ss = '[' + str(step) + ']'
+		current_step = i
+		ss = '[' + str(current_step) + ']'
 		info('work ' + ss)
-		gv_output_file_name = identification + '_' + str(step).zfill(7) + '.gv'
-
-		frames_list = []
-		for f in range_frames_list:
-			step_finished = idk_destroyed(f, 'step_finished')
-			if step_finished == None:
-				step_created = idk_created(f, 'step_created')
-				if step_created != None:
-					frames_list.append(f)
-
-		if len(frames_list) == 0:
+		state = filter_out_irrelevant_stuff(current_step, raw)
+		if len(state['frames']) == 0:
 			info('no frames.' + ss)
 			continue
+		if last_bindings == state['bindings']:
+			return 'end'
 
-		bnodes_list = []
-		for b in range_bnodes_list:
-			step_finished = idk_destroyed(b, 'step_finished')
-			if step_finished == None:
-				step_created = idk_created(b, 'step_created')
-				if step_created != None:
-					bnodes_list.append(b)
+		e = Emitter()
+		e.gv("digraph frame"+str(current_step) + "{  ")#splines=ortho;#gv("pack=true")
+		e.do_frames(state['frames'])
+		e.do_bnodes(state['bnodes'])
+		e.do_results(state['results'])
+		e.do_bindings(state['bindings'])
+		e.gv("}")
+		info ('}..' + ss)
 
-		results_list = []
-		for r in range_results_list:
-			step_unbound = idk_created(r , 'step_unbound')
-			if step_unbound == None:
-				results_list.append(r)
+		graphviz_workers.submit(output, (ss,
+										 identification + '_' + str(current_step).zfill(7) + '.gv',
+										 e.output)
+		check_futures2(graphviz_futures)
+	#print_stats()
+	redis_connection._cleanup()
+	strict_redis_connection._cleanup()
 
+def output(ss, gv_output_file_name, output)
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:
 			pass
-
 		gv_output_file = open(gv_output_file_name, 'w')
-		e = Emitter(gv_output_file)
-		e.gv("digraph frame"+str(step) + "{  ")#splines=ortho;#gv("pack=true")
-
-		e.do_frames(frames_list)
-		e.do_bnodes(bnodes_list)
-		e.do_results(results_list)
-		if e.do_bindings(range_bindings_list) == 'end':
-			return 'end'
-
-		e.gv("}")
-		info ('}..' + '[' + str(step) + ']')
+		gv_output_file.write(output)
 		gv_output_file.close()
-
-		info('convert..' + '[' + str(step) + ']')
-
+		info('convert..' + ss)
 		cmd, args = subprocess.check_output, ("dot", '-Tsvg',  gv_output_file_name, '-O')
 		try:
 			r = cmd(args, stderr=subprocess.STDOUT)
 			if r != b"":
-				raise RuntimeError('[' + str(step) + '] ' + str(r))
+				raise RuntimeError(ss + str(r))
 		except subprocess.CalledProcessError as e:
-			info ('[' + str(step) + ']' + str(e.output))
+			info (ss + str(e.output))
 			raise e
-		info('convert done.' + '[' + str(step) + ']')
+		info('convert done.' + ss)
 		frames_done_count = redis_connection.incr('frames_done_count')
 		elapsed = time.perf_counter() - start_time
 		secs_per_frame = str(elapsed/frames_done_count)
 		info('done ' + str(frames_done_count) + ' frames in ' + str(elapsed) + 'secs (' + secs_per_frame + 'secs/frame')
 
-	while len(futures) != 0:
-		check_futures()
-		time.sleep(10)
+def only_existing(range_list):
+	r = []
+	for b in range_list:
+		step_finished = relevant(b['step_finished'])
+		if step_finished == None:
+			step_created = relevant(b['step_created'])
+			if step_created != None:
+				r.append(b)
+	return r
 
-
-	#print_stats()
-	redis_connection._cleanup()
-	strict_redis_connection._cleanup()
-
+def filter_out_irrelevant_stuff(step, range_frames_list,range_bnodes_list,range_results_list,range_bindings_list):
+	result = defaultdict(list)
+	result['frames'] = only_existing(raw['frames'])
+	result['bnodes'] = only_existing(raw['bnodes'])
+	for r in range_results_list:
+		step_unbound = relevant(r['step_unbound'])
+		if step_unbound == None:
+			result['results'].append(r)
+	for binding_data in raw['bindings']:
+		binding_created = relevant(binding_data['stepbinding_created'])
+		if binding_created == None:	continue
+		binding_failed = relevant(binding_data['stepbinding_failed'])
+		binding_unbound = relevant(binding_data['stepbinding_unbound'])
+		if binding_failed != None and binding_failed < current_step or
+			binding_unbound != None and binding_unbound < current_step:
+			continue
+		result['bindings'].append(binding_data)
+	return results
 
 def print_stats():
 	if len(stats):
@@ -666,19 +659,21 @@ def print_stats():
 			for l in args[0].splitlines():
 				info(l)
 
-
 def available_cpus():
 	return len(os.sched_getaffinity(0))
 
 def check_futures():
-	log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
+	return check_futures2(futures, do_log=True)
+
+def check_futures2(futures, do_log=False):
+	do_log or log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
 	while True:
 		if len(futures) == 0: return
 		f = futures[0]
-		log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+		do_log or log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 		f.result()
 		if f.done():
-			log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+			do_log or log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)
 			if f.result() == 'end':
 				info ('found the end'+ss)
@@ -686,16 +681,11 @@ def check_futures():
 		else:
 			return
 
-#def get_last_bindings(step):
-#	info ('get last bindings...' + '[' + str(step) + ']')
-#	if step == 0 or step == global_start - 1:
-#		return []
-#	sss = step - 1
-#	lb = json.loads(redis_connection.blpop([sss])[1])
-#	return [x for x in lb]#.decode()
+def redis_load(key):
+	return json.loads(redis_connection.blpop([key])[1])
 
-#def put_last_bindings(step, new_last_bindings):
-#	redis_connection.lpush(step, json.dumps(new_last_bindings))
+def redis_save(key, value):
+	redis_connection.lpush(key, json.dumps(value))
 
 
 secs_per_frame = 30
@@ -708,6 +698,8 @@ global_start = None
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--workers', type=click.IntRange(0, 65536), default=(os.cpu_count() or 1))
 def run(quiet, start, end, workers):
+	if start:
+		raise Exception("--start functionality needs updating")
 	global global_start, graphs_name_start, sparql_server,start_time
 	global_start = start
 	if quiet:
@@ -717,6 +709,7 @@ def run(quiet, start, end, workers):
 	info('redis is '+redis_fn)
 	if workers:
 		worker_pool = ProcessPoolExecutor(max_workers = workers)
+	graphviz_pool = ProcessPoolExecutor(max_workers = 128)
 	graphs_name_start = query_one('x', "{kbdbg:latest kbdbg:is ?x}")
 	identification0 = query_one('y', "{<"+graphs_name_start+"> kbdbg:has_run_identification ?y}")
 	path='runs/'+fix_up_identification(identification0)
@@ -727,12 +720,11 @@ def run(quiet, start, end, workers):
 	done = False
 	range_start = None
 	start_time = time.perf_counter()
+	step_size = 20
 	while not done:
-		#step_list_data = list(query_list(('cell', 'item'), graph_list_position, upper_bound=2500))
-		#if len(step_list_data ) == 0: break
-		#graph_list_position = step_list_data [-1]['cell']
-		#for rrr in step_list_data[:-1] :
-			#step_graph_uri = rrr['item']
+		step_size = step_size * 5
+		if step_size >= 50000:
+			step_size = 50000
 			step_to_submit+=1
 			if step_to_submit < start - 1:
 				info ("skipping ["+str(step_to_submit) + ']')
@@ -740,7 +732,7 @@ def run(quiet, start, end, workers):
 			if range_start == None:
 				range_start = step_to_submit
 			range_end = step_to_submit
-			if range_end - range_start == 10000 or (range_end >= end and end != -1):
+			if range_end - range_start == step_size or (range_end >= end and end != -1):
 				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
 				if not workers:
 					work(*args)
@@ -783,6 +775,14 @@ def run(quiet, start, end, workers):
 			time.sleep(10)
 		worker_pool.shutdown()
 		check_futures()
+
+	while len(graphviz_futures) != 0:
+		check_futures()
+			info('waiting for workers to end')
+			time.sleep(10)
+		worker_pool.shutdown()
+
+		check_futures2(graphviz_futures)
 
 
 if __name__ == '__main__':

@@ -416,7 +416,7 @@ def port_name(is_in_head, term_idx, arg_idx):
 			)
 
 def emit_term(tag, text, is_in_head, term_idx, term):
-	term_data = query_one(('pred', 'args'), '{'+step_magic() + ' GRAPH ?g0 {<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}}')
+	term_data = query_one(('pred', 'args'), '{<'+term+'> kbdbg:has_pred ?pred. <'+term+'> kbdbg:has_args ?args.}')
 	pred = term_data['pred']
 	args_list = list(query_list(('item',), term_data['args']))
 	if len(args_list ) == 2:
@@ -471,9 +471,12 @@ def step_bind(id):
 def step_magic(id=0):
 	return step_bind(id)+("""
 	  FILTER (STRSTARTS(?strg{id}, "{graph_name_start}")).
-	  FILTER (?step{id} < "{maxstep}").
+	  FILTER (?step{id} <= "{maxstep}").
+	  FILTER (?step{id} >= "{minstep}").
 	  """.format(id=id, graph_name_start=graphs_name_start,
-				 maxstep=str(range_end+1).rjust(10,'0')))
+				maxstep=str(range_end).rjust(10,'0'),
+				minstep=str(range_start).rjust(10,'0')
+						  ))
 
 def frame_query(id=''):
 	return ("""
@@ -546,10 +549,10 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		GRAPH ?gbinding_created {?x rdf:type kbdbg:binding.}.
 		"""+step_magic('binding_created')+"""
 		OPTIONAL {GRAPH ?gbinding_unbound {?x kbdbg:was_unbound true}.
-		"""+step_magic('binding_unbound')+"""
+		"""+step_bind('binding_unbound')+"""
 		}.
 		OPTIONAL {GRAPH ?gbinding_failed  {?x kbdbg:failed true}.
-		"""+step_magic('binding_failed')+"""
+		"""+step_bind('binding_failed')+"""
 		}.
 		?x kbdbg:has_source ?source.
 		?x kbdbg:has_target ?target.
@@ -590,6 +593,11 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		info ('}..' + ss)
 
 		args = (ss, identification + '_' + str(current_step).zfill(7) + '.gv', e.output)
+		while len(graphviz_futures) > 10000:
+			info('sleeping')
+			time.sleep(10)
+			check_futures2(graphviz_futures)
+
 		graphviz_futures.append(graphviz_workers.submit(output, *args))
 		check_futures2(graphviz_futures)
 
@@ -630,7 +638,7 @@ def only_existing(range_list):
 				r.append(b)
 	return r
 
-def filter_out_irrelevant_stuff(step, range_frames_list,range_bnodes_list,range_results_list,range_bindings_list):
+def filter_out_irrelevant_stuff(step, raw):
 	result = defaultdict(list)
 	result['frames'] = only_existing(raw['frames'])
 	result['bnodes'] = only_existing(raw['bnodes'])
@@ -719,7 +727,7 @@ def run(quiet, start, end, workers):
 	done = False
 	range_start = None
 	start_time = time.perf_counter()
-	range_size = 20
+	range_size = 20000
 	while not done:
 		step_to_submit+=1
 		if step_to_submit < start - 1:
@@ -756,8 +764,8 @@ def run(quiet, start, end, workers):
 					break
 			range_start = range_end + 1
 			range_size = range_size * 5
-			if range_size >= 50000:
-				range_size = 50000
+			if range_size >= 100000:
+				range_size = 100000
 
 		if range_start > end and end != -1:
 			info ("ending")

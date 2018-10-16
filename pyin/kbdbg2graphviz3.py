@@ -197,12 +197,11 @@ current_step = '666'
 
 class Emitter:
 
-	def __init__(s, gv_output_file):
-		s.gv_output_file = gv_output_file
-		s.last_bindings = []
+	def __init__(s):
+		s.output = ''
 
 	def gv(s, text):
-		s.gv_output_file.write(text + '\n')
+		s.output += (text + '\n')
 
 	def comment(s, text):
 		s.gv('//'+text)
@@ -502,10 +501,10 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 	frame_templates = redis_collections.Dict(key='frames',redis=strict_redis_connection,writeback=True)
 	bnode_strings = redis_collections.Dict(key='bnodes',redis=strict_redis_connection,writeback=True)
 
-	if range_start == 0:
-		raw = defaultdict(list)
-	else:
-		raw = redis_load('checkpoint'+str(range_start - 1))
+	raw = defaultdict(list)
+	#todo limit queries with range_start, then uncomment this
+	#if range_start != 0:
+	#	raw = redis_load('checkpoint'+str(range_start - 1))
 
 	raw['frames'] += list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
 	"""WHERE
@@ -565,7 +564,6 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""))
-	#todo limit queries with range_start
 
 	redis_save('checkpoint'+str(range_end), filter_out_irrelevant_stuff(range_end, raw))
 

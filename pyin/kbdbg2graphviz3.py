@@ -503,12 +503,11 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 	bnode_strings = redis_collections.Dict(key='bnodes',redis=strict_redis_connection,writeback=True)
 
 	if range_start == 0:
-		checkpoint = defaultdict(list)
+		raw = defaultdict(list)
 	else:
-		checkpoint = redis_load('checkpoint'+str(range_start - 1))
-	raw = {}
+		raw = redis_load('checkpoint'+str(range_start - 1))
 
-	raw['frames'] = list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
+	raw['frames'] += list(query(('frame','parent', 'is_for_rule', 'step_finished', 'step_created'),
 	"""WHERE
 	{
 		"""+frame_query()+"""
@@ -516,7 +515,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		?frame kbdbg:is_for_rule ?is_for_rule. 
 	}"""))
 
-	raw['bnodes'] = list(query(('bnode','frame','items','step_created','step_finished'),
+	raw['bnodes'] += list(query(('bnode','frame','items','step_created','step_finished'),
 		"""WHERE
 		{
 		?bnode kbdbg:has_items ?items.
@@ -529,7 +528,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		}
 		}"""))
 
-	raw['results'] = list(query(('uri','value', 'step_unbound'),
+	raw['results'] += list(query(('uri','value', 'step_unbound'),
 			"""WHERE {GRAPH ?g_created 
 			{
 				?uri rdf:type kbdbg:result.
@@ -538,7 +537,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 			OPTIONAL {GRAPH ?g_unbound {?uri kbdbg:was_ubound true}.}.""" +
 			step_bind('_unbound')+'}'))
 
-	raw['bindings'] = list(
+	raw['bindings'] += list(
 			query(
 				('x','source','target','source_frame','target_frame','source_is_bnode','target_is_bnode',
 				 'source_term_idx','target_term_idx','source_is_in_head','target_is_in_head',
@@ -566,11 +565,11 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		OPTIONAL {?source kbdbg:arg_idx ?source_arg_idx.}.
 		OPTIONAL {?target kbdbg:arg_idx ?target_arg_idx.}.
 		}"""))
-
+	#todo limit queries with range_start
 
 	redis_save('checkpoint'+str(range_end), filter_out_irrelevant_stuff(range_end, raw))
 
-	last_bindings = checkpoint['bindings']
+	last_bindings = raw['bindings'][:]
 	for i in range(range_start, range_end + 1):
 		current_step = i
 		ss = '[' + str(current_step) + ']'
@@ -582,6 +581,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		if last_bindings == state['bindings']:
 			return 'end'
 
+		#todo make emitter save data to output, not to file
 		e = Emitter()
 		e.gv("digraph frame"+str(current_step) + "{  ")#splines=ortho;#gv("pack=true")
 		e.do_frames(state['frames'])
@@ -721,54 +721,51 @@ def run(quiet, start, end, workers):
 	done = False
 	range_start = None
 	start_time = time.perf_counter()
-	step_size = 20
+	range_size = 20
 	while not done:
-		step_size = step_size * 5
-		if step_size >= 50000:
-			step_size = 50000
-			step_to_submit+=1
-			if step_to_submit < start - 1:
-				info ("skipping ["+str(step_to_submit) + ']')
-				continue
-			if range_start == None:
-				range_start = step_to_submit
-			range_end = step_to_submit
-			if range_end - range_start == step_size or (range_end >= end and end != -1):
-				args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
-				if not workers:
-					work(*args)
-				else:
+		step_to_submit+=1
+		if step_to_submit < start - 1:
+			info ("skipping ["+str(step_to_submit) + ']')
+			continue
+		if range_start == None:
+			range_start = step_to_submit
+		range_end = step_to_submit
+		if range_end - range_start == range_size or (range_end >= end and end != -1):
+			args = (identification, 'step_graph_uri', range_start, range_end, redis_fn)
+			if not workers:
+				work(*args)
+			else:
+				if check_futures() == 'end':
+					info ("ending")
+					done = True
+					break
+				while len(futures) > workers+1:
+					info('sleeping')
+					time.sleep(10)
 					if check_futures() == 'end':
 						info ("ending")
 						done = True
 						break
+				info('submit ' + str(range_start)+'-'+str(range_end) + ' (queue size: ' + str(len(futures)) + ')' )
+				fut = worker_pool.submit(work, *args)
+				fut.step = step_to_submit
+				futures.append(fut)
+				log('submitted ' )
+				time.sleep(secs_per_frame)
+				if check_futures() == 'end':
+					info ("ending")
+					done = True
+					break
+			range_start = range_end + 1
+			range_size = range_size * 5
+			if range_size >= 50000:
+				range_size = 50000
 
-					while len(futures) > workers+1:
-						info('sleeping')
-						time.sleep(10)
-						if check_futures() == 'end':
-							info ("ending")
-							done = True
-							break
-
-					info('submit ' + str(range_start)+'-'+str(range_end) + ' (queue size: ' + str(len(futures)) + ')' )
-					fut = worker_pool.submit(work, *args)
-					fut.step = step_to_submit
-					futures.append(fut)
-					log('submitted ' )
-					time.sleep(secs_per_frame)
-
-					if check_futures() == 'end':
-						info ("ending")
-						done = True
-						break
-
-				range_start = range_end + 1
-			if range_start > end and end != -1:
-				info ("ending")
-				done = True
-				break
-			log('loop' )
+		if range_start > end and end != -1:
+			info ("ending")
+			done = True
+			break
+		log('loop' +str(step_to_submit))
 	if workers:
 		while len(futures) != 0:
 			check_futures()

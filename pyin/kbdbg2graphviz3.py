@@ -166,7 +166,7 @@ def query(vars, q):
 def query_one(vars, q):
 	l = list(query(vars, q))
 	if len(l) != 1:
-		raise 666
+		raise Exception ("wanted one result, got "+str(l))
 	return l[0]
 
 
@@ -456,8 +456,8 @@ def emit_terms_by_items( tag, text, items, is_head):
 
 
 def relevant(event_step):
-"""return None if this thing happened after current step or outside the range of the query,
-otherwise return the step"""
+	"""return None if this thing happened after current step or outside the range of the query,
+	otherwise return the step"""
 	if event_step == None: return None
 	r = int(event_step)
 	if r > current_step: return None
@@ -591,15 +591,15 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		e.gv("}")
 		info ('}..' + ss)
 
-		graphviz_workers.submit(output, (ss,
-										 identification + '_' + str(current_step).zfill(7) + '.gv',
-										 e.output)
+		args = (ss, identification + '_' + str(current_step).zfill(7) + '.gv', e.output)
+		graphviz_futures.append(graphviz_workers.submit(output, *args))
 		check_futures2(graphviz_futures)
+
 	#print_stats()
 	redis_connection._cleanup()
 	strict_redis_connection._cleanup()
 
-def output(ss, gv_output_file_name, output)
+def output(ss, gv_output_file_name, output):
 		try:
 			os.unlink(gv_output_file_name)
 		except FileNotFoundError:
@@ -645,8 +645,8 @@ def filter_out_irrelevant_stuff(step, range_frames_list,range_bnodes_list,range_
 		if binding_created == None:	continue
 		binding_failed = relevant(binding_data['stepbinding_failed'])
 		binding_unbound = relevant(binding_data['stepbinding_unbound'])
-		if binding_failed != None and binding_failed < current_step or
-			binding_unbound != None and binding_unbound < current_step:
+		if (binding_failed != None and binding_failed < current_step or
+			binding_unbound != None and binding_unbound < current_step):
 			continue
 		result['bindings'].append(binding_data)
 	return results
@@ -690,6 +690,7 @@ def redis_save(key, value):
 
 secs_per_frame = 30
 futures = []
+graphviz_futures = []
 global_start = None
 
 @click.command()
@@ -777,13 +778,10 @@ def run(quiet, start, end, workers):
 		check_futures()
 
 	while len(graphviz_futures) != 0:
-		check_futures()
-			info('waiting for workers to end')
-			time.sleep(10)
-		worker_pool.shutdown()
-
 		check_futures2(graphviz_futures)
-
+		info('waiting for graphviz workers to end')
+		time.sleep(2)
+	graphviz_pool.shutdown()
 
 if __name__ == '__main__':
 	run()

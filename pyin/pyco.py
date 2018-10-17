@@ -59,67 +59,83 @@ def do_pred(pred_name, rules):
 			out("static ep_t ep" + str(i))
 	out(pred_func_declaration(pred_name))
 	max_body_len = max([len(r.body) for r in rules])
-	label = 0;
-	out << "case "<< label++ << ":\n";
+	label = 1
+	out ("case" +str(label) + ":")
+	label += 1
 	if(max_body_len)
-		out("state.states.resize(" + str(max_body_len) + ");")
-	PUSH = ".push_back(thingthingpair(state.s, state.o));\n";
+		out("state.states.resize(" + str(max_states_len) + ");")
 	for rule in rules:
-		has_body = len(rule.body) != 0;
-		lm, cm, locals_template, consts = rule.locals_map, rule.consts_map, rule.locals_template, rule.consts
+		label = do_rule(rule, label)
 
-		if(len(locals_template)
-			out("state.locals = " + things_literals(locals_template) + ";")
+def do_rule(rule,label):
+	PUSH = ".push_back(thingthingpair(state.s, state.o));\n";
+	has_body = len(rule.body) != 0;
+	lm, cm, locals_template, consts = rule.locals_map, rule.consts_map, rule.locals_template, rule.consts
+	if(len(locals_template)
+		out("state.locals = " + things_literals(locals_template) + ";")
+	function_block = cgen.Block()
+	block = function_block
+	if rule.head:
+		head = rule.head
+		head_args_len = len(head.args)
+		head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
+		head_arg_storages = (x[0] for x in head_arg_infos)
+		head_arg_indexes = (x[1] for x in head_arg_infos)
+		head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
+		local_param_s = param(hsk, hsi, name, i)
+		local_param_o = param(hok, hoi, name, i)
+		for arg_i in range(len(head.args)):
+			new_block = cgen.Block()
+			block.append(new_block)
+			block = new_block
+			block.append(cgen.Statement(
+				"state.states[" + str(arg_i) + '] = unify(' +
+				'state.incoming['+str(arg_id)+'], ',
+				thing_expression(head_arg_storages[arg_id], rule_index)
+			block.append(cgen.Line('while unify_coro(&state.states[' + str(arg_i) + ']))'))
+	inner_block = block
+	if (has_body):
+		block.append(cgen.Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
+		new_inner_block = cgen.Block()
+		inner_block.append(new_inner_block)
+		inner_block = new_inner_block
+		inner_block.append(cgen.Line("ep" +str(i)+ PUSH))
+		inner_block.append(cgen.Statement("state.entry = " +str(label)))
+		create_bnode_block(inner_block)
 
 
-		block = cgen.Block()
+def emit_unification(block, a, b, state_index):
+	block.append(cgen.Statement(
+		"state.states[" + str(state_index) + '] = unify(' + a + ',' + b + ')'))
+	block.append(cgen.Line('while unify_coro(&state.states[' + str(state_index) + ']))'))
 
-		if rule.head:
-			head = rule.head
-			head_args_len = len(head.args)
-			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
-			head_arg_storages = (x[0] for x in head_arg_infos)
-			head_arg_indexes = (x[1] for x in head_arg_infos)
-			head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
-			local_param_s = param(hsk, hsi, name, i)
-			local_param_o = param(hok, hoi, name, i)
 
-			for arg_i in range(len(head.args)):
-				block.append(cgen.Statement(
-					"state.incomings_unify_coros[" + str(arg_i) + '] = get_unify_coro(' +
-					'state.incoming['+str(arg_id)+'], '
-					thing_expression(head_arg_storages[arg_id],
-									 rule_index)
+def create_bnode_block(inner_block):
+	for arg in head.args:
+		if arg in rule.existentials:
+			local = find_local(arg)
+			inner_block.append(cgen.Statement(
+				'Thing vv = get_value('+local+')')
+			inner_block.append(cgen.Line(
+				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))')
+			inner_block = nest(inner_block)
+			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
+			for local in locals:
+				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',
 
-			if (hst == NODE):
-				out << "if (unify_with_const(state.s, " << param(hsk, hsi, name, i) << ")){\n";
-			elif (hst == UNBOUND):
-				out << "uuus = unify_with_var(state.s, " << param(hsk, hsi, name, i) << ");\n";
-				out << "if (uuus & 1){ state.su.magic = uuus;\n";
-			elif (hst == BNODE):
-				out << "state.su.c = unify_with_bnode(state.s, " << param(hsk, hsi, name, i) << ");\n";
-				out << "if(state.su.c()){\n";
 
-			if (hot == NODE)
-				out << "if (unify_with_const(state.o, " << param(hok, hoi, name, i) << ")){\n";
-			else if (hot == UNBOUND)
-			{
-				out << "uuuo = unify_with_var(state.o, " << param(hok, hoi, name, i) << ");\n";
-				out << "if (uuuo & 1){ state.ou.magic = uuuo;\n";
-			}
-			else
-			{
-				out << "state.ou.c = unify(state.o, " << param(hok, hoi, name, i) << ");\n";
-				out << "if(state.ou.c()){\n";
-			}
-		}
-		//if it's a kb rule (not the query) with non-empty body, then after the suc/ouc coros succeed, we'll check to see if there's an ep-hit
-		if (rule.head && has_body) {
-			out << "if (!cppout_find_ep(&ep" << i << ", state.s, state.o)){\n";
-			out << "ep" << i << PUSH;
-		}
 
-		out << "entry = " << label << ";\n";
+
+
+			for local in rule.locals:
+				new_inner_block = cgen.Block()
+				inner_block.append(new_inner_block)
+				inner_block = new_inner_block
+				inner_block.append(
+
+
+
+
 
 
 		//if it's the query or a kb rule with non-empty body: (existing?)

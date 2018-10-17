@@ -24,7 +24,8 @@ struct Thing
         struct
         {
             BnodeOrigin bnode_origin;
-            Locals *bindings;
+            Locals *locals;
+            Thing *binding;
         };
     };
 };

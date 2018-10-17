@@ -519,7 +519,7 @@ void cppout_pred(string name, vector<Rule> rs)
 						
 			
 					out << "if(prev_results.size() == 2){";
-out << "	if (are_equal(prev_results[0], *bisx) && are_equal(prev_results[1], *biox) && (counter % 1024))goto skip;";
+                    out << "	if (are_equal(prev_results[0], *bisx) && are_equal(prev_results[1], *biox) && (counter % 1024))goto skip;";
 					out << "	prev_results[0] = *bisx;      prev_results[1] = *biox;}";
 					out << "else {prev_results.push_back(*bisx);prev_results.push_back(*biox);}";
 			}

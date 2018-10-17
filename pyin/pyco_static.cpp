@@ -19,13 +19,13 @@ struct Thing
     ThingType type;
     union
     {
+        Thing *binding;
+        nodeid const_value;
         struct
         {
             BnodeOrigin bnode_origin;
-            BnodeIndex binding;
+            Locals *bindings;
         };
-        nodeid const_value;
-        Thing *binding;
     };
 };
 

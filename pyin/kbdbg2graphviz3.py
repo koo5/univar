@@ -303,7 +303,7 @@ class Emitter:
 					arrr('red')
 			elif (binding_failed == None) and (binding_unbound == None):
 				s.comment("binding " + binding)
-				arrr('black' if (current_step == binding_created) else 'purple' )
+				arrr('green' if (current_step == binding_created) else 'purple' )
 
 	def do_results(s,results_list):
 		info ('results..' + '[' + str(current_step) + ']')

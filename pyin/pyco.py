@@ -38,81 +38,67 @@ def generate_cpp(input_rules, input_query):
 	for pred,rules in preds.items():
 		do_pred(name, rules)
 
+
+def consts_of_rule(rule_index):
+	return "consts_of_rule_" + str(rule_index)
+								 "
+def thing_expression(storage, thing_index, rule_index):
+	#if (storage == INCOMING):
+	#	return "state.incoming["+str(incoming_index)+']';
+	if (storage == LOCAL):
+		return "(&state.locals["+str(thing_index)+"])";
+	if (key == CONST):
+		return "(&"_consts_of_rule(rule_index) + "[" + str(thing_index)+"])";
+
 def do_pred(pred_name, rules):
 	for rule in rules:
-		rule.consts, rule.locals_map, rule.consts_map = make_locals(locals_template, r.head, r.body, false);
+		rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(r.head, r.body, false)
 	for i, rule in emunerate(rules):
-		out("/*const*/static Locals consts_of_rule_" + str(i) + " = " << things_literals(rule.consts))
+		out("/*const*/static Locals " + consts_of_rule(i) + " = " << things_literals(rule.consts))
 		if len(rule.body):
 			out("static ep_t ep" + str(i))
 	out(pred_func_declaration(pred_name))
-	function_block = cgen.Block()
-	#function_block.append(cgen.Statement(
 	max_body_len = max([len(r.body) for r in rules])
-	if (name == "cppout_query")
-		out << "static int counter = 0;\n";
-		out << "static vector<Thing> prev_results;";
-	out << "char uuus;(void)uuus;\n";
-	out << "char uuuo;(void)uuuo;\n";
-	int label = 0;
-	out << "switch(entry){\n";
-
-	//case 0:
+	label = 0;
 	out << "case "<< label++ << ":\n";
-
 	if(max_body_len)
-		out << "state.states.resize(" << max_body_len << ");\n";
+		out("state.states.resize(" + str(max_body_len) + ");")
+	PUSH = ".push_back(thingthingpair(state.s, state.o));\n";
+	for rule in rules:
+		has_body = len(rule.body) != 0;
+		lm, cm, locals_template, consts = rule.locals_map, rule.consts_map, rule.locals_template, rule.consts
+
+		if(len(locals_template)
+			out("state.locals = " + things_literals(locals_template) + ";")
 
 
+		block = cgen.Block()
 
-	const string PUSH = ".push_back(thingthingpair(state.s, state.o));\n";
+		if rule.head:
+			head = rule.head
+			head_args_len = len(head.args)
+			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
+			head_arg_storages = (x[0] for x in head_arg_infos)
+			head_arg_indexes = (x[1] for x in head_arg_infos)
+			head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
+			local_param_s = param(hsk, hsi, name, i)
+			local_param_o = param(hok, hoi, name, i)
 
+			for arg_i in range(len(head.args)):
+				block.append(cgen.Statement(
+					"state.incomings_unify_coros[" + str(arg_i) + '] = get_unify_coro(' +
+					'state.incoming['+str(arg_id)+'], '
+					thing_expression(head_arg_storages[arg_id],
+									 rule_index)
 
-	int i = 0;
-	//loop over all kb rules for the pred
-	for (Rule rule:rs)
-	{
-		bool has_body = rule.body && rule.body->size();
-
-		out << "//rule " << i << ":\n";
-		//out << "// "<<<<":\n";
-		//out << "case " << label << ":\n";
-
-
-		locals_map lm, cm;
-		Locals locals_template;
-		Locals consts;
-		make_locals(locals_template, consts, lm, cm, rule.head, rule.body, false);
-
-		if(locals_template.size())
-			out << "state.locals = " << things_literals(locals_template) << ";\n";
-
-		//if it's a kb rule and not the query then we'll
-		//make join'd unify-coros for the subject & object of the head
-
-		PredParam hsk, hok; //key
-		ThingType hst, hot; //type
-		pos_t hsi, hoi;     //index
-
-		if (rule.head) {
-
-			hsk = find_thing(dict[rule.head->subj], hsi, lm, cm);//sets hs
-			hok = find_thing(dict[rule.head->object], hoi, lm, cm);
-			hst = get_type(fetch_thing(dict[rule.head->subj  ], locals_template, consts, lm, cm));
-			hot = get_type(fetch_thing(dict[rule.head->object], locals_template, consts, lm, cm));
-
-			if (hst == NODE)
+			if (hst == NODE):
 				out << "if (unify_with_const(state.s, " << param(hsk, hsi, name, i) << ")){\n";
-			else if (hst == UNBOUND)
-			{
+			elif (hst == UNBOUND):
 				out << "uuus = unify_with_var(state.s, " << param(hsk, hsi, name, i) << ");\n";
 				out << "if (uuus & 1){ state.su.magic = uuus;\n";
-			}
-			else
-			{
-				out << "state.su.c = unify(state.s, " << param(hsk, hsi, name, i) << ");\n";
+			elif (hst == BNODE):
+				out << "state.su.c = unify_with_bnode(state.s, " << param(hsk, hsi, name, i) << ");\n";
 				out << "if(state.su.c()){\n";
-			}
 
 			if (hot == NODE)
 				out << "if (unify_with_const(state.o, " << param(hok, hoi, name, i) << ")){\n";

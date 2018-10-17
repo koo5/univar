@@ -274,7 +274,6 @@ class Emitter:
 			se = x_endpoint('source')
 			te = x_endpoint('target')
 			s.arrow(se, te, color=color, weight=weight, binding=True)
-			new_last_bindings.append((se,te,color))
 
 		def x_endpoint(x):
 			return s.gv_endpoint(
@@ -455,7 +454,7 @@ def relevant(event_step):
 	if event_step == None: return None
 	r = int(event_step)
 	if r > current_step: return None
-	return event_step
+	return r
 
 def step_bind(id):
 	return """
@@ -576,8 +575,10 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 		if len(state['frames']) == 0:
 			info('no frames.' + ss)
 			continue
-		if last_bindings == state['bindings']:
-			return 'end'
+
+		#wont work with euler-style steps
+		#if last_bindings == state['bindings']:
+		#	return 'end'
 
 		#todo make emitter save data to output, not to file
 		e = Emitter()
@@ -595,7 +596,7 @@ def work(identification, graph_name, _range_start, _range_end, redis_fn):
 			time.sleep(10)
 			check_futures2(graphviz_futures)
 
-		graphviz_futures.append(graphviz_workers.submit(output, *args))
+		graphviz_futures.append(graphviz_pool.submit(output, *args))
 		check_futures2(graphviz_futures)
 
 	#print_stats()
@@ -652,7 +653,7 @@ def filter_out_irrelevant_stuff(raw):
 			binding_unbound != None and binding_unbound < current_step):
 			continue
 		result['bindings'].append(binding_data)
-	return results
+	return result
 
 def print_stats():
 	if len(stats):
@@ -669,17 +670,17 @@ def check_futures():
 	return check_futures2(futures, do_log=True)
 
 def check_futures2(futures, do_log=False):
-	do_log or log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
+	if do_log: log('check_futures ' + ' (queue size: ' + str(len(futures)) + ')' )
 	while True:
 		if len(futures) == 0: return
 		f = futures[0]
-		do_log or log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+		if do_log: log('futu ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 		f.result()
 		if f.done():
-			do_log or log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
+			if do_log: log('remove ' + '[' + str(f.step) + ']' + ' (queue size: ' + str(len(futures)) + ')' )
 			futures.remove(f)
 			if f.result() == 'end':
-				info ('found the end'+ss)
+				info ('found the end')
 				return 'end'
 		else:
 			return
@@ -695,6 +696,7 @@ secs_per_frame = 30
 futures = []
 graphviz_futures = []
 global_start = None
+graphviz_pool= 666
 
 @click.command()
 @click.option('--quiet', type=click.BOOL, default=False)
@@ -702,9 +704,9 @@ global_start = None
 @click.option('--end', type=click.IntRange(-1, None), default=-1)
 @click.option('--workers', type=click.IntRange(0, 65536), default=(os.cpu_count() or 1))
 def run(quiet, start, end, workers):
+	global global_start, graphs_name_start, sparql_server,start_time,graphviz_pool
 	if start:
 		raise Exception("--start functionality needs updating")
-	global global_start, graphs_name_start, sparql_server,start_time
 	global_start = start
 	if quiet:
 		logger.setLevel(logging.INFO)

@@ -45,6 +45,16 @@ def thing_expression(storage, thing_index, rule_index):
 
 
 class Emitter(object):
+	@staticmethod
+	def push_ep(rule):
+		return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
+
+	def label(s):
+		s.label += 1
+		return Line("case" +str(s.label) + ":")
+
+
+
 	def generate_cpp(input_rules, input_query):
 		for pred,rules in preds.items():
 			for rule in rules:
@@ -58,11 +68,8 @@ class Emitter(object):
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		]))
 
-	def label(s):
-		return Line("case" +str(label) + ":")
-
 	def pred(s, pred_name, rules):
-		s.label = 0
+		s.label = -1
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection(
@@ -75,49 +82,35 @@ class Emitter(object):
 				Lines(s.rule(rule) for rule in rules))
 		)
 
-	@staticmethod
-	def push_ep(rule):
-		return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
-
-	def rule(r):
+	def rule0(r):
 		return Lines([
 			Statement("state.locals = " + things_literals(r.locals_template)) if len(r.locals_template) else Line(),
-			s.head(r) if r.head else s.body0(r)
+			s.rule1(r)
 			])
 
-	def head(s, r):
-		head = r.head
-		head_args_len = len(head.args)
-		head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
-		head_arg_storages = (x[0] for x in head_arg_infos)
-		head_arg_indexes = (x[1] for x in head_arg_infos)
-		head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
-		local_param_s = param(hsk, hsi, name, i)
-		local_param_o = param(hok, hoi, name, i)
-
-		return s.unify_incoming_with_local(
-
-		for arg_i in range(len(head.args)):
-			new_block = cgen.Block()
-			block.append(new_block)
-			block = new_block
-			block.append(cgen.Statement(
-				"state.states[" + str(arg_i) + '] = unify(' +
-				'state.incoming['+str(arg_id)+'], ',
-				thing_expression(head_arg_storages[arg_id], rule_index)
-			block.append(cgen.Line('while unify_coro(&state.states[' + str(arg_i) + ']))'))
-	inner_block = block
-	if (has_body):
-		block.append(cgen.Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
-		new_inner_block = cgen.Block()
-		inner_block.append(new_inner_block)
-		inner_block = new_inner_block
-		inner_block.append(cgen.Line("ep" +str(i)+ PUSH))
-		inner_block.append(cgen.Statement("state.entry = " +str(label)))
-		create_bnode_block(inner_block)
+	def rule1(s, r):
+		b = Block()
+		if r.head:
+			r.head_args_len = len(head.args)
+			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
+			r.head_arg_storages = (x[0] for x in head_arg_infos)
+			r.head_arg_indexes = (x[1] for x in head_arg_infos)
+			r.head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
+			local_param_s = param(hsk, hsi, name, i)
+			local_param_o = param(hok, hoi, name, i)
+			for arg_i in range(len(head.args)):
+				b.append(unify(
+					'state.incoming['+str(arg_i)+'], ',
+					thing_expression(head_arg_storages[arg_i], rule.debug_id)))
+				b = nest(b)
+		if (has_body):
+			b.append(Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
+			b = nest(b)
+			b.append(push_ep(r))
+			create_bnode_block(inner_block)
 
 
-def emit_unification(block, a, b, state_index):
+def unify(block, a, b, state_index):
 	block.append(cgen.Statement(
 		"state.states[" + str(state_index) + '] = unify(' + a + ',' + b + ')'))
 	block.append(cgen.Line('while unify_coro(&state.states[' + str(state_index) + ']))'))

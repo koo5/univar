@@ -2,7 +2,9 @@
 
 """PYthon does the input, C++ is the Output"""
 
-import cgen
+from cgen import *
+Lines = Collection
+
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
@@ -27,21 +29,12 @@ futures = []
 if sys.version_info.major == 3:
 	unicode = str
 
-
 def pred_func_declaration(pred_name):
 	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
 
-def generate_cpp(input_rules, input_query):
-	out('#include "pyco_static.cpp"')
-	for pred,rules in preds.items():
-		out(pred_func_declaration(pred_name)+';')
-	for pred,rules in preds.items():
-		do_pred(name, rules)
-
-
 def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
-								 "
+
 def thing_expression(storage, thing_index, rule_index):
 	#if (storage == INCOMING):
 	#	return "state.incoming["+str(incoming_index)+']';
@@ -50,27 +43,45 @@ def thing_expression(storage, thing_index, rule_index):
 	if (key == CONST):
 		return "(&"_consts_of_rule(rule_index) + "[" + str(thing_index)+"])";
 
-def do_pred(pred_name, rules):
-	for rule in rules:
-		rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(r.head, r.body, false)
-	for i, rule in emunerate(rules):
-		out("/*const*/static Locals " + consts_of_rule(i) + " = " << things_literals(rule.consts))
-		if len(rule.body):
-			out("static ep_t ep" + str(i))
-	out(pred_func_declaration(pred_name))
-	max_body_len = max([len(r.body) for r in rules])
-	label = 1
-	out ("case" +str(label) + ":")
-	label += 1
-	if(max_body_len)
-		out("state.states.resize(" + str(max_states_len) + ");")
-	for rule in rules:
-		label = do_rule(rule, label)
 
-def do_rule(rule,label):
-	PUSH = ".push_back(thingthingpair(state.s, state.o));\n";
-	has_body = len(rule.body) != 0;
-	lm, cm, locals_template, consts = rule.locals_map, rule.consts_map, rule.locals_template, rule.consts
+class Emitter(object):
+	def generate_cpp(input_rules, input_query):
+		for pred,rules in preds.items():
+			for rule in rules:
+				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
+				rule.has_body = len(rule.body) != 0
+
+		print(Module([
+			Line('#include "pyco_static.cpp"'),
+			Lines(Statement("static ep_t ep" + str(i)) for rule in rules),
+			Lines([Statement(pred_func_declaration(pred_name))) for pred_name in preds.keys()]),
+			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
+		]))
+
+	def label(s):
+		return Line("case" +str(label) + ":")
+
+	def pred(s, pred_name, rules):
+		s.label = 0
+		max_body_len = max(len(r.body) for r in rules)
+		max_states_len = max(r.max_states_len for r in rules)
+		return Collection(
+			Lines([Statement("/*const*/static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules]),
+			Line(pred_func_declaration(pred_name)),
+			Block(
+				Statement('goto case'+str(state.entry),
+				s.label(),
+				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()
+				Lines(s.rule(rule) for rule in rules))
+		)
+
+	@staticmethod
+	def push_ep(rule):
+		return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
+
+
+	def rule(r):
+		return Lines([
 	if(len(locals_template)
 		out("state.locals = " + things_literals(locals_template) + ";")
 	function_block = cgen.Block()
@@ -121,53 +132,32 @@ def create_bnode_block(inner_block):
 			inner_block = nest(inner_block)
 			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
 			for local in locals:
-				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',
+				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
+				inner_block = nest(inner_block)
 
 
+def do_label(s):
+	s.block.append(cgen.Statement('entry'))
 
+def do_body(rule, block):
+	for triple_index, triple in enumerate(rule.body):
+		inner_block.append(cgen.Statement('//body item ' +str(j)+)
+		substate_expr = "state.states[" +str(j) + "]"
 
+		pos_t i1, i2; //positions
+		nodeid s = dict[bi->subj];
+		nodeid o = dict[bi->object];
+		PredParam sk, ok;
+		sk = find_thing(s, i1, lm, cm);
+		ok = find_thing(o, i2, lm, cm);
+		ThingType bist = get_type(fetch_thing(s, locals_template, consts, lm, cm));
+		ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));
 
-			for local in rule.locals:
-				new_inner_block = cgen.Block()
-				inner_block.append(new_inner_block)
-				inner_block = new_inner_block
-				inner_block.append(
+		for arg_idx in range(len(triple.args)):
+			s.statement(substate + ".incoming["+str(arg_idx)+"] = " +
+				maybe_getval(bist, param(sk, i1, name, i)) << ";\n";
 
-
-
-
-
-
-		//if it's the query or a kb rule with non-empty body: (existing?)
-		if(has_body) {
-			size_t j = 0;
-			for (pquad bi: *rule.body) {
-				out << "//body item" << j << "\n";
-				out << "entry" << j << " = 0;\n";
-
-				stringstream ss;
-				ss << "state.states[" << j << "]";
-				string substate = ss.str();
-
-
-
-				//set up the subject and object
-				pos_t i1, i2; //positions
-				nodeid s = dict[bi->subj];
-				nodeid o = dict[bi->object];
-				PredParam sk, ok;
-				sk = find_thing(s, i1, lm, cm);
-				ok = find_thing(o, i2, lm, cm);
-				ThingType bist = get_type(fetch_thing(s, locals_template, consts, lm, cm));
-				ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));
-
-
-				out << substate << ".s = " <<
-					maybe_getval(bist, param(sk, i1, name, i)) << ";\n";
-				out << substate << ".o = " <<
-					maybe_getval(biot, param(ok, i2, name, i)) << ";\n";
-
-				out << "do{\n";
+		out << "do{\n";
 
 				if (has(rules, dict[bi->pred]))
 					out << "entry" << j << "=" << predname(dict[bi->pred]) << "(" << substate << ", entry" << j << ");\n";
@@ -179,86 +169,9 @@ def create_bnode_block(inner_block):
 			}
 		}
 
-		if (name == "cppout_query") {
-		//would be nice to also write out the head of the rule, and do this for all rules, not just query
-			out << "{";
-
-
-
-			if (rule.body->size() == 1)
-			{
-
-
-				pquad bi = (*rule.body).front();
-				pos_t i1, i2;//s and o positions
-				nodeid s = dict[bi->subj];
-				nodeid o = dict[bi->object];
-				PredParam sk, ok;
-				sk = find_thing(s, i1, lm, cm);
-				ok = find_thing(o, i2, lm, cm);
-				out << "Thing * bisx, * biox;\n";
-				out << "bisx = getValue(" << param(sk, i1, name, i) << ");\n";
-				out << "biox = getValue(" << param(ok, i2, name, i) << ");\n";
-
-
-					out << "if(prev_results.size() == 2){";
-out << "	if (are_equal(prev_results[0], *bisx) && are_equal(prev_results[1], *biox) && (counter % 1024))goto skip;";
-					out << "	prev_results[0] = *bisx;      prev_results[1] = *biox;}";
-					out << "else {prev_results.push_back(*bisx);prev_results.push_back(*biox);}";
-			}
-
-
-
-
-			out << "if (!silent) dout << unifys << \" unifys \"  ;\n";
-			out << "if (!silent) dout << \" RESULT \" << counter << \": \";\n";
-
-			ASSERT(rule.body);
-
-			for (pquad bi: *rule.body) {
-
-				pos_t i1, i2;//s and o positions
-				nodeid s = dict[bi->subj];
-				nodeid o = dict[bi->object];
-				PredParam sk, ok;
-				sk = find_thing(s, i1, lm, cm);
-				ok = find_thing(o, i2, lm, cm);
-				out << "{Thing * bis, * bio;\n";
-				out << "bis = getValue(" << param(sk, i1, name, i) << ");\n";
-				out << "bio = getValue(" << param(ok, i2, name, i) << ");\n";
-
-				out << "Thing n1; if (is_unbound(*bis)) {bis = &n1; n1 = create_node(" << ensure_cppdict(dict[bi->subj]) << ");};\n";
-				out << "Thing n2; if (is_unbound(*bio)) {bio = &n2; n2 = create_node(" << ensure_cppdict(dict[bi->object]) << ");};\n";
-
-				out << "if (!silent) dout << str(bis) << \" " << bi->pred->tostring() << " \" << str(bio) << \".\";};\n";
-
-			}
-			out << "if (!silent) dout << \"\\n\";}\n";
-
-			out << "skip:;";
-
-
-		}
-
-
-
-		if (name == "cppout_query")
-			out << "counter++;\n";
-
-
-		if (rule.head && has_body) {
-			out << "ASSERT(ep" << i << ".size());\n ep" << i << ".pop_back();\n\n";
-		}
-
-
-		/*mm keeping entry on stack for as long as the func is running
-		is a good thing, (unless we start jumping into funcs and need to avoid
-		any stack state), but we shouldnt save and restore entry's en masse
-		around yield, but right after a pred func call returns.
-		i think theres anyway not much to be gained from this except the
-		top query function doesnt have to do the stores and loads at all
-		..except maybe some memory traffic saving?*/
-		if(has_body) {
+		if (rule.head and has_body):
+			s.statement("ASSERT(ep" +str(rule_index)+ ".size());ep" +str(rule_index)+ ".pop_back()")
+		if(has_body):
 			size_t j = 0;
 			for (pquad bi: *rule.body) {
 				stringstream ss;
@@ -393,6 +306,22 @@ while (unify(state.args[0], state.result_thing))
 		}}	
 		
 		"""
+
+
+
+string maybe_getval(ThingType t, string what)
+{
+	stringstream ss;
+	bool yes = (t != NODE);
+	if (yes)
+		ss << "getValue_nooffset(";
+	ss << what;
+	if (yes)
+		ss << ")";
+	return ss.str();
+}
+
+
 
 
 

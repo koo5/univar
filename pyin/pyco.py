@@ -79,15 +79,14 @@ class Emitter(object):
 	def push_ep(rule):
 		return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
 
-
 	def rule(r):
 		return Lines([
-	if(len(locals_template)
-		out("state.locals = " + things_literals(locals_template) + ";")
-	function_block = cgen.Block()
-	block = function_block
-	if rule.head:
-		head = rule.head
+			Statement("state.locals = " + things_literals(r.locals_template)) if len(r.locals_template) else Line(),
+			s.head(r) if r.head else s.body0(r)
+			])
+
+	def head(s, r):
+		head = r.head
 		head_args_len = len(head.args)
 		head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
 		head_arg_storages = (x[0] for x in head_arg_infos)
@@ -95,6 +94,9 @@ class Emitter(object):
 		head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
 		local_param_s = param(hsk, hsi, name, i)
 		local_param_o = param(hok, hoi, name, i)
+
+		return s.unify_incoming_with_local(
+
 		for arg_i in range(len(head.args)):
 			new_block = cgen.Block()
 			block.append(new_block)

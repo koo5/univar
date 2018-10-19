@@ -97,31 +97,26 @@ class Emitter(object):
 		return b
 
 
-	def body_triples_block(s, rule):
+	def body_triples_block(s, r):
+		do_ep = (r.head and has_body)
 		b = Block()
 		b.append(Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
 		b = nest(b)
-		b.append(push_ep(r))
-
-
-def do_body(rule, block):
-	b = Block()
-	do_ep = (rule.head and has_body)
-	for body_triple_index, triple in enumerate(rule.body):
-		b = nest_body_triple_block(b)
-	if do_ep:
-		b.append(Lines([
-			Statement("ASSERT(ep" +str(rule_index)+ ".size())'"),
-			Statement("ep" +str(rule_index)+ ".pop_back()")]))
-	b.append(do_yield())
-	if do_ep:
-	b.append(ep_push(rule))
+		if do_ep:
+			b.append(push_ep(r))
+		for body_triple_index, triple in enumerate(r.body):
+			b = nest_body_triple_block(b)
+		if do_ep:
+			b.append(Lines([
+				Statement("ASSERT(ep" +str(rule_index)+ ".size())'"),
+				Statement("ep" +str(rule_index)+ ".pop_back()")]))
+		b.append(do_yield())
+		if do_ep:
+			b.append(ep_push(rule))
 
 
 def nest_body_triple_block(b)
-
-		b.append(cgen.Statement('//body item ' +str(body_triple_index)))
-
+		b.append(Statement('//body item ' +str(body_triple_index)))
 		substate = "state.states[" +str(body_triple_index) + "]"
 
 		pos_t i1, i2; //positions
@@ -134,57 +129,16 @@ def nest_body_triple_block(b)
 		ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));
 
 		for arg_idx in range(len(triple.args)):
-			s.statement(substate + ".incoming["+str(arg_idx)+"] = " +
-				maybe_getval(bist, param(sk, i1, name, i)) << ";\n";
+			b.append(Statement(
+				substate + ".incoming["+str(arg_idx)+"]="+maybe_getval(bist, param(sk, i1, name, i))))
 
-		out << "do{\n";
-
-				if (has(rules, dict[bi->pred]))
-					out << "entry" << j << "=" << predname(dict[bi->pred]) << "(" << substate << ", entry" << j << ");\n";
-				else
-					out << "entry" << j << " = -1;\n";
-
-				out << "if(" << "entry" << j << " == -1) break;\n";
-				j++;
-			}
-		}
-
-
-
-
-
-
-
-
-
-		if(rule.body)
-			for (pos_t closing = 0; closing < rule.body->size(); closing++)
-				out << "}while(true);\n";
-
-		if (rule.head && has_body)
-			out << "ASSERT(ep" << i << ".size());\nep" << i << ".pop_back();\n}\n";
-
-		if (rule.head) {
-			if (hot == NODE)
-				out << "unbind_from_const(state.o);\n";
-			else if (hot == UNBOUND)
-				out << "unbind_from_var(state.ou.magic, state.o, " << param(hok, hoi, name, i) << ");\n";
-			else
-				out << "state.ou.c();//unbind\n";
-			out << "}\n";
-			if (hst == NODE)
-				out << "unbind_from_const(state.s);\n";
-			else if (hst == UNBOUND)
-				out << "unbind_from_var(state.su.magic, state.s, " << param(hsk, hsi, name, i) << ");\n";
-			else
-				out << "state.su.c();//unbind\n";
-			out << "}\n";
-		}
-		i++;
-	}
-	out << "}return -1;}\n\n";
-}
-
+		b.append(Line("do"))
+		b = nest(b)
+		if triple.pred in preds:
+			b.append(Call(pred_func_name(triple.pred), substate))
+		else
+			b.append(Statement('break'))
+		b.append(Line("while(true)"))
 
 
 

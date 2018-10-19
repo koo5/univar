@@ -9,7 +9,7 @@ try:
 except ImportError:
 	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
-from common import shorten#, traverse, join_generators
+from common import shorten
 from time import sleep
 from common import pyin_prefixes as prefixes
 
@@ -254,6 +254,11 @@ class Atom(AtomVar):
 
 
 class Var(AtomVar):
+	"""
+	doc:
+	besides constants and variables, we have a new type of Thing, we use the Var class, but
+	we set three new attributes on it: .bnode, .is_a_bnode_from_original_rule, .is_from_name
+	"""
 	def __init__(s, debug_name=None, debug_locals=None):
 		if not nolog:
 			AtomVar.__init__(s,debug_name, debug_locals)
@@ -380,6 +385,12 @@ def unify(_x, _y):
 	return unify2(_x, _y, x, y)
 
 def unify2(arg_x, arg_y, val_x, val_y):
+	"""
+	doc:
+	in addition to the usual stuff:
+	a bnode binds to another bnode, if they both come from the same original rule, and from the same variable name
+	variables bind to bnodes just like to constants, constants and variables dont unify
+	"""
 	xy = (arg_x, arg_y)
 	yx = (arg_y, arg_x)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
@@ -415,6 +426,7 @@ def is_var(x):
 
 
 class Rule(Kbdbgable):
+
 	last_frame_id = 0
 	emitted_formulas = {}
 	def __init__(singleton, original_head, head_idx, body=Graph()):
@@ -428,6 +440,11 @@ class Rule(Kbdbgable):
 		singleton.body = body
 		if body == None:
 			singleton.body = []
+		"""	doc:
+		I call original-rule the possibly-multiple-triples-in-head rule that is our input,
+		original_head is the original rule's head
+		A rule has a set of existentials, which are all the vars that dont appear in the body, only in the head.
+		"""
 		singleton.original_head = id(original_head)
 		singleton.original_head_ref = original_head #prevent gc
 		singleton.original_head_triples = original_head[:]
@@ -472,8 +489,6 @@ class Rule(Kbdbgable):
 		return locals
 
 	def rule_unify(singleton, parent, args):
-		#snapshot1 = tracemalloc.take_snapshot()
-		#objgraph.show_growth(limit=3)
 		PY3 = sys.version_info.major == 3
 		depth = 0
 		generators = []
@@ -497,6 +512,15 @@ class Rule(Kbdbgable):
 				"#depth:"+ str(depth) + "/" + str(max_depth)+"\n#entering^^^")
 		max_depth = len(args)  + len(singleton.body) - 1
 		nolog or log ("entering:" + desc())
+		"""
+		doc:
+		when a rule with existentials is invoked, its locals are set up as usual, except that bnodes
+		are Vars with 3 new attributes: 
+		
+		the .bnode attribute points to locals of the rule that created the bnode.
+		each locals contain all the existentials of the original rule, even those that didnt appear in that
+		particular rule's head
+		"""
 		for e in singleton.existentials:
 			locals[e].bnode = weakref(locals)
 			locals[e].is_a_bnode_from_original_rule = singleton.original_head
@@ -508,6 +532,11 @@ class Rule(Kbdbgable):
 		while True:
 			if len(generators) <= depth:
 				if depth < len(args):
+					"""
+					doc:
+					A rule with existentials first unifies the incoming arguments with its local variables as usual.
+					This means that if some of the parameters are bnodes from same original_rule, from same name,
+					then the local bnode binds to the incoming one."""
 					arg_index = depth
 					head_uriref = singleton.head.args[arg_index]
 					head_thing = locals[head_uriref]
@@ -546,6 +575,13 @@ class Rule(Kbdbgable):
 				continue
 			nolog or log ("back in " + desc() + "\n# from sub-rule")
 			if depth == len(args) - 1:
+				"""	
+				After rule head unifications, local bnodes are checked to see if they are bound to incoming bnodes.
+				If so, the body is not entered, and instead, the locals of the bnode are unified the this rule's locals.
+				then we yield.
+				
+				if no incoming bnodes are found after head unification, we proceed with the body as usual.
+				"""
 				incoming_bnode_unifications = []
 				for k,v in locals.items():
 					vv = get_value(v)
@@ -569,16 +605,6 @@ class Rule(Kbdbgable):
 				nolog or log ("re-entering " + desc() + " for more results")
 		nolog or kbdbg(kbdbg_name.n3() + " kbdbg:is_finished true")
 
-		"""
-		gc.collect()
-		snapshot2 = tracemalloc.take_snapshot()
-		top_stats = snapshot2.compare_to(snapshot1, 'lineno')
-		nolog or log("[ Top 5 differences ]")
-		for stat in top_stats[:50]:
-			nolog or log(stat)
-		"""
-		#print("[ Top ]")
-		#objgraph.show_growth()
 
 
 	def match(s, parent = None, args=[]):
@@ -633,6 +659,7 @@ def ep_match(args_a, args_b):
 			if a.bnode() and b.bnode():
 				if a.is_a_bnode_from_original_rule != b.is_a_bnode_from_original_rule or a.is_from_name != b.is_from_name:
 					return
+				"""doc:	two bnodes with same original rule and same name make an ep match"""
 		if type(a) is Atom and b.value != a.value:
 			return
 	nolog or log("EP!")
@@ -802,11 +829,31 @@ def init_logging():
 			kbdbg_text('@'+line+'.')
 	#print("#this should be first line of merged stdout+stderr after @prefix lines, use PYTHONUNBUFFERED=1")
 
+
+
+
+
+
+
+
+
+
 #import gc
 #gc.set_debug(gc.DEBUG_LEAK)
-
 
 #import tracemalloc
 #import gc
 #import objgraph
 #from IPython import embed; embed();exit()
+#snapshot1 = tracemalloc.take_snapshot()
+#objgraph.show_growth(limit=3)
+
+# gc.collect()
+# snapshot2 = tracemalloc.take_snapshot()
+# top_stats = snapshot2.compare_to(snapshot1, 'lineno')
+# nolog or log("[ Top 5 differences ]")
+# for stat in top_stats[:50]:
+# 	nolog or log(stat)
+
+#print("[ Top ]")
+#objgraph.show_growth()

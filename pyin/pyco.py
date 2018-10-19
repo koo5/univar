@@ -29,33 +29,19 @@ futures = []
 if sys.version_info.major == 3:
 	unicode = str
 
-def pred_func_declaration(pred_name):
-	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
-
-def consts_of_rule(rule_index):
-	return "consts_of_rule_" + str(rule_index)
-
-def thing_expression(storage, thing_index, rule_index):
-	#if (storage == INCOMING):
-	#	return "state.incoming["+str(incoming_index)+']';
-	if (storage == LOCAL):
-		return "(&state.locals["+str(thing_index)+"])";
-	if (key == CONST):
-		return "(&"_consts_of_rule(rule_index) + "[" + str(thing_index)+"])";
-
 
 class Emitter(object):
-	@staticmethod
-	def push_ep(rule):
-		return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
 
 	def label(s):
 		s.label += 1
 		return Line("case" +str(s.label) + ":")
 
-
-
 	def generate_cpp(input_rules, input_query):
+
+		if do_builtins:
+			import pyco_builtins
+			pyco_builtins.add_builtins()
+
 		for pred,rules in preds.items():
 			for rule in rules:
 				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
@@ -103,41 +89,40 @@ class Emitter(object):
 					'state.incoming['+str(arg_i)+'], ',
 					thing_expression(head_arg_storages[arg_i], rule.debug_id)))
 				b = nest(b)
-		if (has_body):
-			b.append(Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
-			b = nest(b)
-			b.append(push_ep(r))
-			create_bnode_block(inner_block)
+		b.append(s.find_incoming_existentials(r))
+		b.append(If(
+			'have_incoming_existentials',
+			s.existentials_unification_block(r),
+			s.body_triples_block(r))
+		return b
 
 
-def unify(block, a, b, state_index):
-	block.append(cgen.Statement(
-		"state.states[" + str(state_index) + '] = unify(' + a + ',' + b + ')'))
-	block.append(cgen.Line('while unify_coro(&state.states[' + str(state_index) + ']))'))
+	def body_triples_block(s, rule):
+		b = Block()
+		b.append(Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
+		b = nest(b)
+		b.append(push_ep(r))
 
-
-def create_bnode_block(inner_block):
-	for arg in head.args:
-		if arg in rule.existentials:
-			local = find_local(arg)
-			inner_block.append(cgen.Statement(
-				'Thing vv = get_value('+local+')')
-			inner_block.append(cgen.Line(
-				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))')
-			inner_block = nest(inner_block)
-			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
-			for local in locals:
-				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
-				inner_block = nest(inner_block)
-
-
-def do_label(s):
-	s.block.append(cgen.Statement('entry'))
 
 def do_body(rule, block):
-	for triple_index, triple in enumerate(rule.body):
-		inner_block.append(cgen.Statement('//body item ' +str(j)+)
-		substate_expr = "state.states[" +str(j) + "]"
+	b = Block()
+	do_ep = (rule.head and has_body)
+	for body_triple_index, triple in enumerate(rule.body):
+		b = nest_body_triple_block(b)
+	if do_ep:
+		b.append(Lines([
+			Statement("ASSERT(ep" +str(rule_index)+ ".size())'"),
+			Statement("ep" +str(rule_index)+ ".pop_back()")]))
+	b.append(do_yield())
+	if do_ep:
+	b.append(ep_push(rule))
+
+
+def nest_body_triple_block(b)
+
+		b.append(cgen.Statement('//body item ' +str(body_triple_index)))
+
+		substate = "state.states[" +str(body_triple_index) + "]"
 
 		pos_t i1, i2; //positions
 		nodeid s = dict[bi->subj];
@@ -164,37 +149,13 @@ def do_body(rule, block):
 			}
 		}
 
-		if (rule.head and has_body):
-			s.statement("ASSERT(ep" +str(rule_index)+ ".size());ep" +str(rule_index)+ ".pop_back()")
-		if(has_body):
-			size_t j = 0;
-			for (pquad bi: *rule.body) {
-				stringstream ss;
-				ss << "state.states[" << j << "]";
-				string substate = ss.str();
-				out << substate << ".entry = " << "entry" << j++ << ";\n";
-			}
-		}
 
 
-		out << "return entry;\n";
-		out << "case " << label++ << ":;\n";
 
 
-		if(has_body) {
-			size_t j = 0;
-			for (pquad bi: *rule.body) {
-				stringstream ss;
-				ss << "state.states[" << j << "]";
-				string substate = ss.str();
-				out << "entry" << j++ << " = " << substate << ".entry;\n";
-			}
-		}
 
 
-		if (rule.head && has_body) {
-			out << "ep" << i << PUSH;
-		}
+
 
 		if(rule.body)
 			for (pos_t closing = 0; closing < rule.body->size(); closing++)
@@ -227,80 +188,19 @@ def do_body(rule, block):
 
 
 
-
-
-
-
-
-if do_builtins:
-	add_builtins()
-
-
-
-
-
-
-
-#http://www.cplusplus.com/reference/thread/thread/
-#smil svg or different animations
-
-
-def add_builtins():
-	global builtins
-	builtins = []
-
-	out.write(
-"""
-//#include <string>
-""")
-
-	_builtins = (
-	(
-"""
-(input)"x" is a substring of (input)"xyx" spanning from position (input)0 to position (input)0.
-""",
-"""
-"x" string_builtins:is_a_substring_of ("xyx" 0 0).
-""",
-"""
-Thing result_thing;
-""",
-"""
-o_list = get_list_items_values(o);
-hay = o_list[0].const_value();
-state.result_thing = new_const_thing(str.substr (o_list[1],o_list[2]));
-while (unify(state.args[0], state.result_thing))
-	yield;
-"""
-	),)
-
-	for doc,example,state,code in _builtins:
-		g = rdflib.Graph(store=OrderedStore())
-		g.bind("string_builtins", "file://autonomic.net")
-		g.parse(example)
-		_,predicate,_ = list(g.triples((None,None,None)))[0]
-		cpp_name = predicate.replace(':','__')
-		builtins[predicate] = cpp_name
-		out.write("""
-		void {cpp_name}(coro_state *state_ptr)
-		{{
-			coro_state &state = *state_ptr;
-			Thing s;
-			Thing o;
-			
-			goto state.entry;
-			l0:
-				s = get_value(state.args[0]);
-				o = get_value(state.args[1]);
-				
-				
-				
-			{body}
-		
-		
-		}}	
-		
-		"""
+def create_bnode_block(inner_block):
+	for arg in head.args:
+		if arg in rule.existentials:
+			local = find_local(arg)
+			inner_block.append(cgen.Statement(
+				'Thing vv = get_value('+local+')')
+			inner_block.append(cgen.Line(
+				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))')
+			inner_block = nest(inner_block)
+			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
+			for local in locals:
+				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
+				inner_block = nest(inner_block)
 
 
 
@@ -318,5 +218,41 @@ string maybe_getval(ThingType t, string what)
 
 
 
+def unify(block, a, b, state_index):
+	block.append(cgen.Statement(
+		"state.states[" + str(state_index) + '] = unify(' + a + ',' + b + ')'))
+	block.append(cgen.Line('while unify_coro(&state.states[' + str(state_index) + ']))'))
 
 
+def do_yield(s):
+	return Lines(
+		[
+			s.set_entry(),
+			Statement('return state.entry'),
+			s.label()
+		]
+	)
+
+def set_entry(s):
+	s.block.append(cgen.Statement('entry = case' + str(s.label)))
+
+def label(s):
+	s.label += 1
+	s.block.append(cgen.Statement('case' + str(s.label)))
+
+def pred_func_declaration(pred_name):
+	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
+
+def consts_of_rule(rule_index):
+	return "consts_of_rule_" + str(rule_index)
+
+def thing_expression(storage, thing_index, rule_index):
+	#if (storage == INCOMING):
+	#	return "state.incoming["+str(incoming_index)+']';
+	if (storage == LOCAL):
+		return "(&state.locals["+str(thing_index)+"])";
+	if (key == CONST):
+		return "(&"_consts_of_rule(rule_index) + "[" + str(thing_index)+"])";
+
+def push_ep(rule):
+	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")

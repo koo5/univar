@@ -2,29 +2,15 @@
 
 """PYthon does the input, C++ is the Output"""
 
+import click
 from cgen import *
 Lines = Collection
-
-from weakref import ref as weakref
-from rdflib import URIRef
-import rdflib
 import sys
 import os
-import logging
-try:
-	from urllib.parse import quote_plus
-except ImportError:
-	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
-from common import shorten#, traverse, join_generators
-from time import sleep
-from common import pyin_prefixes as prefixes
+import common
+from common import shorten
 
-nolog = False
-kbdbg_prefix = URIRef('http://kbd.bg/#')
-log, kbdbg_text = 666,666
-pool = None
-futures = []
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -210,3 +196,24 @@ def thing_expression(storage, thing_index, rule_index):
 
 def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
+
+
+
+
+
+
+
+
+
+
+@click.command()
+@click.argument('kb', type=click.File('rb'))
+@click.argument('goal', type=click.File('rb'))
+@click.option('--identification', default="")
+@click.option('--base', default="")
+def query_from_files(kb, goal, identification, base):
+	common.load(kb, goal, identification, base)
+
+if __name__ == "__main__":
+	query_from_files()
+

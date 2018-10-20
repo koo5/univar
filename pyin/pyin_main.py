@@ -11,8 +11,6 @@ import click
 from rdflib.namespace import RDF
 import common
 from common import shorten
-from rdflib.plugins.parsers import notation3
-notation3.RDFSink.newList = common.newList
 
 server, this = None, None
 
@@ -156,24 +154,6 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 if __name__ == "__main__":
 	query_from_files()
 
-
-
-
-
-
-"""
-def reorder_lists(g):
-	r = Graph()
-	backburner = []
-	for t in g:
-		if t.pred == RDF.first:
-			backburner.append(t)
-		else:
-			r.append(t)
-	for t in backburner:
-		r.append(t)
-	return r
-"""
 
 
 

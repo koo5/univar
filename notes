@@ -20,3 +20,17 @@ https://llvm.org/pubs/2005-06-12-MSP-PointerCompSlides.pdf
 env LD_PRELOAD=/home/koom/univar/libmarpa/dist/.libs/libmarpa.so  valgrind ./tau  --lambdas 0   --external ./pyin_runner.sh  run tests/simple/superman.tau     2>&1 | grep RESULT
 
 
+
+"""
+def reorder_lists(g):
+	r = Graph()
+	backburner = []
+	for t in g:
+		if t.pred == RDF.first:
+			backburner.append(t)
+		else:
+			r.append(t)
+	for t in backburner:
+		r.append(t)
+	return r
+"""

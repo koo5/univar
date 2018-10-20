@@ -85,9 +85,10 @@ def newList(self, n, f):
 
 
 
-	common.load(kb, goal, identification, base)
-
+def set_up(nolog, identification, base):
 	base = 'file://'  + base
+	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
+	pyin.this = this
 	identification = common.fix_up_identification(identification)
 	fn = 'kbdbg'+identification+'.n3'
 	outpath = common.kbdbg_file_path(fn)
@@ -95,6 +96,14 @@ def newList(self, n, f):
 	pyin._rules_file_name = pyin.kbdbg_file_name + '_rules'
 	subprocess.call(['rm', '-f', pyin._rules_file_name])
 	os.system('mkdir -p '+outpath)
+	pyin.nolog = nolog
+	pyin.init_logging()
+	log = pyin.log
+	return identification, base, this
+
+
+def load(kb, goal, identification, base):
+
 	kb_stream, goal_stream = kb, goal
 	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 	store = OrderedStore()
@@ -154,23 +163,4 @@ def newList(self, n, f):
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
 
-	for result in query(rules, goal):
-		print ()
-
-		r = ''
-		for triple in result:
-			r += triple.str()
-		print(' RESULT :' + r)
-		print(' step :' + str(pyin.global_step_counter))
-		nolog or pyin.kbdbg_text('#result: ' + r)
-	print(' steps :' + str(pyin.global_step_counter))
-
-
-	if sparql_uri != '':
-		pyin.kbdbg("<" + this + "> kbdbg:is kbdbg:done", default=True)
-		pyin.flush_sparql_updates()
-
-
-	if sparql_uri != '':
-		pyin.pool.shutdown()
 

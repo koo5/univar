@@ -9,7 +9,7 @@ import sys
 import os
 from collections import defaultdict, OrderedDict
 import common
-from common import shorten
+import pyco_builtins
 
 
 if sys.version_info.major == 3:
@@ -17,15 +17,14 @@ if sys.version_info.major == 3:
 
 
 class Emitter(object):
+	do_builtins = False
 
 	def label(s):
 		s.label += 1
 		return Line("case" +str(s.label) + ":")
 
 	def generate_cpp(input_rules, input_query):
-
-		if do_builtins:
-			import pyco_builtins
+		if s.do_builtins:
 			pyco_builtins.add_builtins()
 
 		for pred,rules in preds.items():
@@ -36,7 +35,7 @@ class Emitter(object):
 		print(Module([
 			Line('#include "pyco_static.cpp"'),
 			Lines(Statement("static ep_t ep" + str(i)) for rule in rules),
-			Lines([Statement(pred_func_declaration(pred_name))) for pred_name in preds.keys()]),
+			Lines((Statement(pred_func_declaration(pred_name))) for pred_name in preds.keys()),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		]))
 
@@ -44,7 +43,7 @@ class Emitter(object):
 		s.label = -1
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
-		return Collection(
+		return Collection((
 			Lines([Statement("/*const*/static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules]),
 			Line(pred_func_declaration(pred_name)),
 			Block(
@@ -52,7 +51,8 @@ class Emitter(object):
 				s.label(),
 				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()
 				Lines(s.rule(rule) for rule in rules))
-		)
+			)
+		))
 
 	def rule0(r):
 		return Lines([
@@ -79,7 +79,7 @@ class Emitter(object):
 		b.append(If(
 			'have_incoming_existentials',
 			s.existentials_unification_block(r),
-			s.body_triples_block(r))
+			s.body_triples_block(r)))
 		return b
 
 
@@ -144,17 +144,18 @@ def create_bnode_block(inner_block):
 
 
 
-string maybe_getval(ThingType t, string what)
-{
-	stringstream ss;
-	bool yes = (t != NODE);
-	if (yes)
-		ss << "getValue_nooffset(";
-	ss << what;
-	if (yes)
-		ss << ")";
-	return ss.str();
-}
+def maybe_getval(t, what):
+	"""
+	wrap what in get_value() if t != NONE
+	"""
+	r = ''
+	yes = (t != NODE)
+	if (yes):
+		r += "get_value("
+	r += what
+	if (yes):
+		r += ")"
+	return r
 
 
 
@@ -212,7 +213,11 @@ def push_ep(rule):
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, identification, base):
+	identification, base, this = common.set_up(True, identification, base)
 	common.load(kb, goal, identification, base)
+	e = Emitter()
+	e.generate_cpp(input_rules, input_query)
+
 
 if __name__ == "__main__":
 	query_from_files()

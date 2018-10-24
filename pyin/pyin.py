@@ -1,17 +1,20 @@
+import datetime, subprocess, os, sys, logging
+from time import sleep
+import datetime
 from weakref import ref as weakref
 from rdflib import URIRef
 import rdflib
-import sys
-import os
-import logging
+from ordered_rdflib_store import OrderedStore
 try:
 	from urllib.parse import quote_plus
 except ImportError:
 	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
-from common import shorten
-from time import sleep
 from common import pyin_prefixes as prefixes
+from common import shorten
+import common
+
+
 
 nolog = False
 kbdbg_prefix = URIRef('http://kbd.bg/#')
@@ -431,7 +434,7 @@ class Rule(Kbdbgable):
 	emitted_formulas = {}
 	def __init__(singleton, original_head, head_idx, body=Graph()):
 		Kbdbgable.__init__(singleton)
-		assert isinstance(head_idx, (int, NoneType))
+		assert type(head_idx) == int or head_idx == None
 		singleton.head_idx = head_idx
 		if head_idx != None:
 			singleton.head = original_head[head_idx]
@@ -832,6 +835,81 @@ def init_logging():
 
 
 
+
+def set_up(nolog, identification, base):
+	base = 'file://'  + base
+	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
+	identification = common.fix_up_identification(identification)
+	fn = 'kbdbg'+identification+'.n3'
+	outpath = common.kbdbg_file_path(fn)
+	kbdbg_fn = common.kbdbg_file_name(fn)
+	rules_fn = kbdbg_fn + '_rules'
+	subprocess.call(['rm', '-f', rules_fn])
+	os.system('mkdir -p '+outpath)
+	return kbdbg_fn, rules_fn, identification, base, this
+
+
+def load(kb, goal, identification, base):
+
+	kb_stream, goal_stream = kb, goal
+	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
+	store = OrderedStore()
+	kb_graph = rdflib.Graph(store=store, identifier=base)
+	kb_conjunctive = rdflib.ConjunctiveGraph(store=store, identifier=base)
+	kb_graph.parse(kb_stream, format='n3', publicID=base)
+	if not nolog:
+		log('---kb:')
+		for l in kb_graph.serialize(format='n3').splitlines():
+			log(l.decode('utf8'))
+		log('---kb quads:')
+		for l in kb_conjunctive.serialize(format='nquads').splitlines():
+			log(l.decode('utf8'))
+		log('---')
+	def fixup3(o):
+		if isinstance(o, rdflib.Graph):
+			return URIRef(o.identifier)
+		return o
+	def fixup2(o):
+		if type(o) == rdflib.BNode:
+			return rdflib.Variable(str(o))
+		return o
+	def fixup(spo):
+		s,p,o = spo
+		return (fixup2(s), fixup2(p), fixup2(o))
+	rules = []
+	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
+	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
+	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
+		_t = Triple(p, [s, o])
+		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
+		if p == implies:
+			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
+			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
+			body = Graph()
+			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
+				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
+			if len(head_triples_triples) > 1:
+				with open(_rules_file_name, 'a') as ru:
+					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")
+			for head_triple_idx in range(len(head_triples_triples)):
+				rules.append(Rule(head_triples_triples, head_triple_idx, body))
+
+	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
+	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
+	goal = Graph()
+
+	if not nolog:
+		log('---goal:')
+		for l in goal_rdflib_graph.serialize(format='n3').splitlines():
+			log(l.decode('utf8'))
+		log('---goal nq:')
+		for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
+			log(l.decode('utf8'))
+		log('---')
+
+	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
+		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
+	return rules, goal
 
 
 

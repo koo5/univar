@@ -6,11 +6,9 @@ import click
 from cgen import *
 Lines = Collection
 import sys
-import os
-from collections import defaultdict, OrderedDict
 import common
 import pyco_builtins
-
+import pyin
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -23,7 +21,7 @@ class Emitter(object):
 		s.label += 1
 		return Line("case" +str(s.label) + ":")
 
-	def generate_cpp(input_rules, input_query):
+	def generate_cpp(s, input_rules, input_query):
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
 
@@ -49,7 +47,7 @@ class Emitter(object):
 			Block(
 				Statement('goto case'+str(state.entry),
 				s.label(),
-				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()
+				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line(),
 				Lines(s.rule(rule) for rule in rules))
 			)
 		))
@@ -67,7 +65,15 @@ class Emitter(object):
 			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
 			r.head_arg_storages = (x[0] for x in head_arg_infos)
 			r.head_arg_indexes = (x[1] for x in head_arg_infos)
-			r.head_arg_types = get_type(fetch_thing(rule.head.args[i], locals_template, consts, lm, cm)) for i in range(head_args_len)
+			r.head_arg_types = (
+				get_type
+				(
+					fetch_thing
+					(
+						rule.head.args[i], locals_template, consts, lm, cm
+					)
+				)
+				for i in range(head_args_len))
 			local_param_s = param(hsk, hsi, name, i)
 			local_param_o = param(hok, hoi, name, i)
 			for arg_i in range(len(head.args)):
@@ -101,18 +107,18 @@ class Emitter(object):
 			b.append(ep_push(rule))
 
 
-def nest_body_triple_block(b)
+def nest_body_triple_block(b):
 		b.append(Statement('//body item ' +str(body_triple_index)))
 		substate = "state.states[" +str(body_triple_index) + "]"
 
-		pos_t i1, i2; //positions
+		"""pos_t i1, i2; //positions
 		nodeid s = dict[bi->subj];
 		nodeid o = dict[bi->object];
 		PredParam sk, ok;
 		sk = find_thing(s, i1, lm, cm);
 		ok = find_thing(o, i2, lm, cm);
 		ThingType bist = get_type(fetch_thing(s, locals_template, consts, lm, cm));
-		ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));
+		ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));"""
 
 		for arg_idx in range(len(triple.args)):
 			b.append(Statement(
@@ -122,7 +128,7 @@ def nest_body_triple_block(b)
 		b = nest(b)
 		if triple.pred in preds:
 			b.append(Call(pred_func_name(triple.pred), substate))
-		else
+		else:
 			b.append(Statement('break'))
 		b.append(Line("while(true)"))
 
@@ -133,9 +139,9 @@ def create_bnode_block(inner_block):
 		if arg in rule.existentials:
 			local = find_local(arg)
 			inner_block.append(cgen.Statement(
-				'Thing vv = get_value('+local+')')
+				'Thing vv = get_value('+local+')'))
 			inner_block.append(cgen.Line(
-				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))')
+				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))'))
 			inner_block = nest(inner_block)
 			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
 			for local in locals:
@@ -191,9 +197,9 @@ def thing_expression(storage, thing_index, rule_index):
 	#if (storage == INCOMING):
 	#	return "state.incoming["+str(incoming_index)+']';
 	if (storage == LOCAL):
-		return "(&state.locals["+str(thing_index)+"])";
+		return "(&state.locals["+str(thing_index)+"])"
 	if (key == CONST):
-		return "(&"_consts_of_rule(rule_index) + "[" + str(thing_index)+"])";
+		return "(&_consts_of_rule(rule_index)" + "[" + str(thing_index)+"])"
 
 def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
@@ -213,10 +219,12 @@ def push_ep(rule):
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, identification, base):
-	identification, base, this = common.set_up(True, identification, base)
-	common.load(kb, goal, identification, base)
+	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
+	pyin.init_logging()
+	common.log = pyin.log
+	rules, goal = pyin.load(kb, goal, identification, base)
 	e = Emitter()
-	e.generate_cpp(input_rules, input_query)
+	e.generate_cpp(rules, goal)
 
 
 if __name__ == "__main__":

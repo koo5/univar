@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 from pymantic import sparql
 from concurrent.futures import ThreadPoolExecutor
-import subprocess
 import pyin
 from pyin import *
-import datetime
 import rdflib
-from ordered_rdflib_store import OrderedStore
 import click
-from rdflib.namespace import RDF
 import common
-from common import shorten
 
 server, this = None, None
 
@@ -30,7 +25,12 @@ pyin.default_graph = default_graph
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
 	global server, this
 
-	identification, base, this = common.set_up(nolog, identification, base)
+	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = set_up(nolog, identification, base)
+	pyin.this = this
+	pyin.nolog = nolog
+	common.nolog = nolog
+	pyin.init_logging()
+	common.log = pyin.log
 
 	if sparql_uri != '':
 		pyin.pool = ThreadPoolExecutor()#max_workers = , thread_name_prefix='sparql_updater'

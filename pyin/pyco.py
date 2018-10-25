@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-"""PYthon does the input, C++ is the Output"""
+"""PYthon does the input, C++ is the Output
+we use pyin for the Rule class to hold data, and for various bits of shared code
+
+"""
 
 import click
 from cgen import *
@@ -9,10 +12,37 @@ import sys
 import common
 import pyco_builtins
 import pyin
+from collections import defaultdict, OrderedDict
 
 if sys.version_info.major == 3:
 	unicode = str
 
+
+def make_locals(rule):
+		locals_template = []
+		consts = []
+		locals_map = {}
+		consts_map = {}
+		for triple in ([rule.head] if rule.head else []) + rule.body:
+			for a in triple.args:
+				if pyin.is_var(a):
+					locals_map[a] = len(locals_template)
+					locals_template.append(pyin.Var(a))
+				else:
+					consts_map[a] = len(consts)
+					consts.append(pyin.Atom(a))
+		return locals_template,	consts, locals_map, consts_map
+
+def vars_in_original_head(rule):
+	result = set()
+	for triple in rule.original_head_triples:
+		for a in triple.args:
+			if pyin.is_var(a):
+				result.add(a)
+	return result
+
+def max_number_of_existentials_in_single_original_head_triple(rule):
+	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
 class Emitter(object):
 	do_builtins = False
@@ -29,16 +59,24 @@ class Emitter(object):
 			for rule in rules:
 				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
 				rule.has_body = len(rule.body) != 0
+				rule.max_states_len = len(rule.head.args) + max(
+					len(rule.body),
+					len(vars_in_original_head(rule)) * max_number_of_existentials_in_single_original_head_triple(rule))
 
 		print(Module([
 			Line('#include "pyco_static.cpp"'),
-			Lines(Statement("static ep_t ep" + str(i)) for rule in rules),
-			Lines((Statement(pred_func_declaration(pred_name))) for pred_name in preds.keys()),
+			Lines([
+				Statement(
+					"static ep_t ep" + str(rule.debug_id)
+				) for rule in rules
+			]),
+			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		]))
 
 	def pred(s, pred_name, rules):
 		s.label = -1
+
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection((
@@ -48,7 +86,7 @@ class Emitter(object):
 				Statement('goto case'+str(state.entry),
 				s.label(),
 				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line(),
-				Lines(s.rule(rule) for rule in rules))
+				Lines(s.rule0(rule) for rule in rules))
 			)
 		))
 
@@ -207,22 +245,21 @@ def push_ep(rule):
 
 
 
-
-
-
-
-
-
 @click.command()
 @click.argument('kb', type=click.File('rb'))
 @click.argument('goal', type=click.File('rb'))
 @click.option('--identification', default="")
 @click.option('--base', default="")
 def query_from_files(kb, goal, identification, base):
+	global preds
+	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
 	pyin.init_logging()
 	common.log = pyin.log
 	rules, goal = pyin.load(kb, goal, identification, base)
+	for rule in rules:
+		preds[rule.head.pred].append(rule)
+
 	e = Emitter()
 	e.generate_cpp(rules, goal)
 

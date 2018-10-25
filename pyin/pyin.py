@@ -1,4 +1,4 @@
-import datetime, subprocess, os, sys, logging
+import subprocess, os, sys, logging
 from time import sleep
 import datetime
 from weakref import ref as weakref

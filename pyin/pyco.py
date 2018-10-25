@@ -13,10 +13,18 @@ import common
 import pyco_builtins
 import pyin
 from collections import defaultdict, OrderedDict
+import rdflib
 
 if sys.version_info.major == 3:
 	unicode = str
 
+codes = dict()
+def string2code(atom):
+	if atom in codes:
+		return codes[atom]
+	result = len(codes)
+	codes[atom] = result
+	return result
 
 def make_locals(rule):
 		locals_template = []
@@ -43,6 +51,34 @@ def vars_in_original_head(rule):
 
 def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
+
+def thing_literal(thing):
+	UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
+	if type(thing) == pyin.Var and not thing.is_bnode:
+		t = '"UNBOUND"'
+	elif type(thing) == pyin.Atom:
+		t = '"CONST"'
+	elif thing.is_bnode:
+		t = '"UNBOUND_BNODE"'
+	else: assert False
+
+	if type(thing) == pyin.Atom:
+		v = str(string2code(thing))
+	else:
+		v = '0'
+
+	return '{' + t + ',' + v + ',0}'
+	
+
+
+def things_literals(things):
+	r = '['
+	for i, thing in enumerate(things):
+		r += thing_literal(thing))
+		if i != len(things) -1:
+			r += ','
+	r += ']'
+	return r
 
 class Emitter(object):
 	do_builtins = False

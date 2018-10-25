@@ -6,13 +6,14 @@ typedef unsigned long nodeid;
 nodeid last_nodeid = 0;
 map<nodeid, string> strings;
 
-enum ThingType {BOUND, CONST, BOUND_BNODE, UNBOUND_BNODE, UNBOUND};
+enum ThingType {BOUND, UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE};
+/*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
 
 typedef unsigned BnodeOrigin;
 typedef unsigned BnodeIndex;
 typedef vector<Thing> Locals;
 
-map<BnodeIndex,Locals> bnodes;
+//map<BnodeIndex,Locals> bnodes;
 
 struct Thing
 {

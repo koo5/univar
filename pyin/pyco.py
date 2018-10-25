@@ -18,12 +18,12 @@ import rdflib
 if sys.version_info.major == 3:
 	unicode = str
 
-codes = dict()
+codes = list()
 def string2code(atom):
 	if atom in codes:
-		return codes[atom]
+		return codes
 	result = len(codes)
-	codes[atom] = result
+	codes.append(result)
 	return result
 
 def make_locals(rule):
@@ -35,11 +35,14 @@ def make_locals(rule):
 			for a in triple.args:
 				if pyin.is_var(a):
 					locals_map[a] = len(locals_template)
-					locals_template.append(pyin.Var(a))
+					v = pyin.Var(a)
+					v.is_bnode = v in rule.existentials
+					locals_template.append(v)
+
 				else:
 					consts_map[a] = len(consts)
 					consts.append(pyin.Atom(a))
-		return locals_template,	consts, locals_map, consts_map
+		return locals_map, consts_map, locals_template,	consts
 
 def vars_in_original_head(rule):
 	result = set()
@@ -53,7 +56,7 @@ def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
 def thing_literal(thing):
-	UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
+	#UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
 	if type(thing) == pyin.Var and not thing.is_bnode:
 		t = '"UNBOUND"'
 	elif type(thing) == pyin.Atom:
@@ -68,13 +71,12 @@ def thing_literal(thing):
 		v = '0'
 
 	return '{' + t + ',' + v + ',0}'
-	
 
 
 def things_literals(things):
 	r = '['
 	for i, thing in enumerate(things):
-		r += thing_literal(thing))
+		r += thing_literal(thing)
 		if i != len(things) -1:
 			r += ','
 	r += ']'
@@ -84,8 +86,9 @@ class Emitter(object):
 	do_builtins = False
 
 	def label(s):
-		s.label += 1
-		return Line("case" +str(s.label) + ":")
+		s._label += 1
+		s.state_index = 0
+		return Line("case" +str(s._label) + ":")
 
 	def generate_cpp(s, input_rules, input_query):
 		if s.do_builtins:
@@ -111,32 +114,33 @@ class Emitter(object):
 		]))
 
 	def pred(s, pred_name, rules):
-		s.label = -1
+		s._label = -1
 
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
-		return Collection((
-			Lines([Statement("/*const*/static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules]),
-			Line(pred_func_declaration(pred_name)),
+		return Collection([
+			Lines(
+				[Statement("/*const*/static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules]
+			),
+			Line(
+				pred_func_declaration(pred_name)
+			),
 			Block(
-				Statement('goto case'+str(state.entry),
-				s.label(),
-				Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line(),
-				Lines(s.rule0(rule) for rule in rules))
+				[
+					Statement('goto case0 + state.entry;'),
+					s.label(),
+					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
+					Lines([s.rule(rule) for rule in rules])
+				]
 			)
-		))
+		])
 
-	def rule0(r):
-		return Lines([
-			Statement("state.locals = " + things_literals(r.locals_template)) if len(r.locals_template) else Line(),
-			s.rule1(r)
-			])
-
-	def rule1(s, r):
+	def rule(s, r):
 		b = Block()
+		b.append(Statement("state.locals = " + things_literals(r.locals_template)) if len(r.locals_template) else Line())
 		if r.head:
-			r.head_args_len = len(head.args)
-			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(head_args_len))
+			r.head_args_len = len(r.head.args)
+			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(r.head_args_len))
 			r.head_arg_storages = (x[0] for x in head_arg_infos)
 			r.head_arg_indexes = (x[1] for x in head_arg_infos)
 			r.head_arg_types = (
@@ -147,13 +151,11 @@ class Emitter(object):
 						rule.head.args[i], locals_template, consts, lm, cm
 					)
 				)
-				for i in range(head_args_len))
-			local_param_s = param(hsk, hsi, name, i)
-			local_param_o = param(hok, hoi, name, i)
-			for arg_i in range(len(head.args)):
-				b.append(unify(
-					'state.incoming['+str(arg_i)+'], ',
-					thing_expression(head_arg_storages[arg_i], rule.debug_id)))
+				for i in range(r.head_args_len))
+			for arg_i in range(len(r.head.args)):
+				b.append(s.unify(
+					'&state.incoming['+str(arg_i)+'], ',
+					'&'+local_expr(r.head.args[arg_i], r)))
 				b = nest(b)
 		b.append(s.find_incoming_existentials(r))
 		b.append(If(
@@ -162,6 +164,13 @@ class Emitter(object):
 			s.body_triples_block(r)))
 		return b
 
+
+	def unify(s, a, b):
+		r = Lines([
+			Statement("state.states[" + str(s.state_index) + '] = unify(' + a + ',' + b + ')'),
+			Line('while unify_coro(&state.states[' + str(s.state_index) + ']))')])
+		s.state_index += 1
+		return r
 
 	def body_triples_block(s, r):
 		do_ep = (r.head and has_body)
@@ -179,6 +188,25 @@ class Emitter(object):
 		b.append(do_yield())
 		if do_ep:
 			b.append(ep_push(rule))
+
+
+	def find_incoming_existentials(s, r):
+
+	def create_bnode_block(inner_block):
+		b = Block()
+		to_check = [arg in head.args if arg in r.existentials]
+		if len(to_check):
+			b.append(Statement('Thing *local, *value'))
+			for arg in to_check:
+				b.append(Statement('local = ' + '&'+local_expr(arg)))
+				b.append(Statement('value = get_value(local)'))
+				b.append(Line(
+					'if ((value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+'))'))
+				inner_block = nest(inner_block)
+				inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
+				for local in locals:
+					emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
+					inner_block = nest(inner_block)
 
 
 def nest_body_triple_block(b):
@@ -208,21 +236,13 @@ def nest_body_triple_block(b):
 
 
 
-def create_bnode_block(inner_block):
-	for arg in head.args:
-		if arg in rule.existentials:
-			local = find_local(arg)
-			inner_block.append(cgen.Statement(
-				'Thing vv = get_value('+local+')'))
-			inner_block.append(cgen.Line(
-				'if ((vv != v) && (vv.type() == BNODE) && (vv.origin == '+get_origin(rule,arg)+'))'))
-			inner_block = nest(inner_block)
-			inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
-			for local in locals:
-				emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
-				inner_block = nest(inner_block)
 
 
+def local_expr(name, rule):
+	if name in rule.locals_map:
+		return 'state.locals[' + str(rule.locals_map[name]) + ']'
+	elif name in rule.consts_map:
+		return consts_of_rule(rule.debug_id) + '[' + str(rule.consts_map[name])+']'
 
 def maybe_getval(t, what):
 	"""
@@ -239,11 +259,6 @@ def maybe_getval(t, what):
 
 
 
-def unify(block, a, b, state_index):
-	block.append(cgen.Statement(
-		"state.states[" + str(state_index) + '] = unify(' + a + ',' + b + ')'))
-	block.append(cgen.Line('while unify_coro(&state.states[' + str(state_index) + ']))'))
-
 
 def do_yield(s):
 	return Lines(
@@ -255,11 +270,7 @@ def do_yield(s):
 	)
 
 def set_entry(s):
-	s.block.append(cgen.Statement('entry = case' + str(s.label)))
-
-def label(s):
-	s.label += 1
-	s.block.append(cgen.Statement('case' + str(s.label)))
+	s.block.append(cgen.Statement('entry = case' + str(s._label)))
 
 def pred_func_declaration(pred_name):
 	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
@@ -279,6 +290,10 @@ def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
 
 
+def nest(block):
+	b = Block()
+	block.append(b)
+	return b
 
 
 @click.command()
@@ -303,3 +318,13 @@ def query_from_files(kb, goal, identification, base):
 if __name__ == "__main__":
 	query_from_files()
 
+
+
+
+
+"""
+todo:
+consts can be globals, one for each const, no need for per-rule arrays 
+
+
+"""

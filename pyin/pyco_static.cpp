@@ -24,7 +24,7 @@ struct Thing
         nodeid const_value;
         struct
         {
-            BnodeOrigin bnode_origin;
+            BnodeOrigin origin;
             Locals *locals;
             Thing *binding;
         };

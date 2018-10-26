@@ -86,8 +86,7 @@ class Emitter(object):
 	do_builtins = False
 
 	def label(s):
-		s._label += 1
-		s.state_index = 0
+		#s.state_index = 0
 		return Line("case" +str(s._label) + ":")
 
 	def generate_cpp(s, input_rules, input_query):
@@ -115,7 +114,7 @@ class Emitter(object):
 
 	def pred(s, pred_name, rules):
 		s._label = -1
-
+		s.state_index = 0
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
@@ -157,11 +156,8 @@ class Emitter(object):
 					'&state.incoming['+str(arg_i)+'], ',
 					'&'+local_expr(r.head.args[arg_i], r)))
 				b = nest(b)
-		b.append(s.find_incoming_existentials(r))
-		b.append(If(
-			'have_incoming_existentials',
-			s.existentials_unification_block(r),
-			s.body_triples_block(r)))
+		b.append(s.incoming_bnode_block(r))
+		b.append(s.body_triples_block(r))
 		return b
 
 
@@ -173,43 +169,25 @@ class Emitter(object):
 		return r
 
 	def body_triples_block(s, r):
-		do_ep = (r.head and has_body)
+		do_ep = (r.head and r.has_body)
 		b = Block()
-		b.append(Line("if (!cppout_find_ep(&ep"+str(i)+", &state.incomings))"))
+		b.append(Line("if (!cppout_find_ep(&ep"+str(r.debug_id)+", &state.incomings))"))
 		b = nest(b)
 		if do_ep:
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
-			b = nest_body_triple_block(b)
+			b = s.nest_body_triple_block(b)
 		if do_ep:
 			b.append(Lines([
 				Statement("ASSERT(ep" +str(rule_index)+ ".size())'"),
 				Statement("ep" +str(rule_index)+ ".pop_back()")]))
-		b.append(do_yield())
+		b.append(s.do_yield())
 		if do_ep:
 			b.append(ep_push(rule))
 
 
-	def find_incoming_existentials(s, r):
 
-	def create_bnode_block(inner_block):
-		b = Block()
-		to_check = [arg in head.args if arg in r.existentials]
-		if len(to_check):
-			b.append(Statement('Thing *local, *value'))
-			for arg in to_check:
-				b.append(Statement('local = ' + '&'+local_expr(arg)))
-				b.append(Statement('value = get_value(local)'))
-				b.append(Line(
-					'if ((value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+'))'))
-				inner_block = nest(inner_block)
-				inner_block.append(cgen.Statement("Locals *bnode = vv.locals"))
-				for local in locals:
-					emit_unification(inner_block, 'bnode['+get_local_index(arg)+']',)
-					inner_block = nest(inner_block)
-
-
-def nest_body_triple_block(b):
+	def nest_body_triple_block(s, b):
 		b.append(Statement('//body item ' +str(body_triple_index)))
 		substate = "state.states[" +str(body_triple_index) + "]"
 
@@ -236,6 +214,52 @@ def nest_body_triple_block(b):
 
 
 
+	def do_yield(s):
+			return Lines(
+				[
+					s.set_entry(),
+					Statement('return state.entry'),
+					s.label()
+				]
+			)
+
+	def do_end(s):
+			return Lines(
+				[
+					Statement('state.entry = -1'),
+					Statement('return state.entry'),
+				]
+			)
+
+	def incoming_bnode_block(s,r):
+		b = Block()
+		to_check = [arg for arg in r.head.args if arg in r.existentials]
+		if len(to_check) > 1:
+			raise Exception("too many existentials")
+		if len(to_check):
+			b.append(Statement('Thing *local, *value'))
+			for arg in to_check:
+				b.append(Statement('local = ' + '&'+local_expr(arg, r)))
+				b.append(Statement('value = get_value(local)'))
+				#b.append(If('(value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+')',
+				#			s.incoming_bnode_unifications(r)))
+
+	def incoming_bnode_unifications(s, r):
+		outer_block = b = Block()
+		b.append(Statement("Locals *bnode = value.locals"))
+		for key, index in r.locals_template.items():
+			index = str(index)
+			unify('&value['+index+']','&state.locals['+index+']')
+			b = nest(b)
+			b.append(s.do_yield())
+		outer_block.append(s.end())
+		return outer_block
+
+	def set_entry(s):
+		r = Statement('entry = case' + str(s._label))
+		s._label += 1
+		return r
+
 
 
 def local_expr(name, rule):
@@ -260,17 +284,7 @@ def maybe_getval(t, what):
 
 
 
-def do_yield(s):
-	return Lines(
-		[
-			s.set_entry(),
-			Statement('return state.entry'),
-			s.label()
-		]
-	)
 
-def set_entry(s):
-	s.block.append(cgen.Statement('entry = case' + str(s._label)))
 
 def pred_func_declaration(pred_name):
 	return "static " + pred_name + "(cpppred_state & __restrict__ state)"

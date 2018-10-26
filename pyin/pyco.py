@@ -188,13 +188,13 @@ class Emitter(object):
 
 	def body_triples_block(s, r):
 		do_ep = (r.head and r.has_body)
-		b = Block()
+		outer_block = b = Lines()
 		b.append(Line("if (!cppout_find_ep(&ep"+str(r.debug_id)+", &state.incomings))"))
 		b = nest(b)
 		if do_ep:
 			b.append(push_ep(r))
-		#for body_triple_index, triple in enumerate(r.body):
-		#	b = s.nest_body_triple_block(b)
+		for body_triple_index, triple in enumerate(r.body):
+			b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 		if do_ep:
 			b.append(Lines([
 				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())'"),
@@ -202,25 +202,15 @@ class Emitter(object):
 		b.append(s.do_yield())
 		if do_ep:
 			b.append(push_ep(r))
-		return b
+		return outer_block
 
-	def nest_body_triple_block(s, b):
-		b.append(Statement('//body item ' +str(body_triple_index)))
-		substate = "state.states[" +str(body_triple_index) + "]"
-
-		"""pos_t i1, i2; //positions
-		nodeid s = dict[bi->subj];
-		nodeid o = dict[bi->object];
-		PredParam sk, ok;
-		sk = find_thing(s, i1, lm, cm);
-		ok = find_thing(o, i2, lm, cm);
-		ThingType bist = get_type(fetch_thing(s, locals_template, consts, lm, cm));
-		ThingType biot = get_type(fetch_thing(o, locals_template, consts, lm, cm));"""
-
+	def nest_body_triple_block(s, r, b, body_triple_index, triple):
+		b.append(Comment(str(triple)))
+		substate = "state.states["+str(s.state_index)+"]"
 		for arg_idx in range(len(triple.args)):
+			arg = triple.args[arg_idx]
 			b.append(Statement(
-				substate + ".incoming["+str(arg_idx)+"]="+maybe_getval(bist, param(sk, i1, name, i))))
-
+				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
 		b.append(Line("do"))
 		b = nest(b)
 		if triple.pred in preds:
@@ -249,7 +239,7 @@ class Emitter(object):
 			)
 
 	def incoming_bnode_block(s,r):
-		b = Block()
+		b = Lines()
 		to_check = [arg for arg in r.head.args if arg in r.existentials]
 		if len(to_check) > 1:
 			raise Exception("too many existentials")
@@ -274,8 +264,8 @@ class Emitter(object):
 		return outer_block
 
 	def set_entry(s):
-		r = Statement('state.entry = case' + str(s._label))
 		s._label += 1
+		r = Statement('state.entry = case' + str(s._label))
 		return r
 
 

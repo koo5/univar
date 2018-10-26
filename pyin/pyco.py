@@ -55,41 +55,49 @@ def vars_in_original_head(rule):
 def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
-def thing_literal(thing):
-	#UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
-	if type(thing) == pyin.Var and not thing.is_bnode:
-		t = '"UNBOUND"'
-	elif type(thing) == pyin.Atom:
-		t = '"CONST"'
-	elif thing.is_bnode:
-		t = '"UNBOUND_BNODE"'
-	else: assert False
 
-	if type(thing) == pyin.Atom:
-		v = str(string2code(thing))
-	else:
-		v = '0'
-
-	return '{' + t + ',' + v + ',0}'
-
-
-def things_literals(things):
-	r = '['
-	for i, thing in enumerate(things):
-		r += thing_literal(thing)
-		if i != len(things) -1:
-			r += ','
-	r += ']'
-	return r
 
 class Emitter(object):
 	do_builtins = False
+
+	def things_literals(s, things):
+		r = '['
+		for i, thing in enumerate(things):
+			r += s.thing_literal(thing)
+			if i != len(things) -1:
+				r += ','
+		r += ']'
+		return r
+
+	def thing_literal(s, thing):
+		#UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
+		if type(thing) == pyin.Var and not thing.is_bnode:
+			t = 'UNBOUND'
+		elif type(thing) == pyin.Atom:
+			t = 'CONST'
+		elif thing.is_bnode:
+			t = 'UNBOUND_BNODE'
+		else: assert False
+
+		if type(thing) == pyin.Atom:
+			v = '/*'+str(string2code(thing))+'*/' + s.emit_const(thing)
+		else:
+			v = '0'
+		return '{' + t + ',' + v + ',0}'
+
+	def emit_const(s,thing):
+		code = str(string2code(thing))
+		cpp_name = cppize_identifier(str(thing.value))
+		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
+		return cpp_name
 
 	def label(s):
 		#s.state_index = 0
 		return Line("case" +str(s._label) + ":")
 
 	def generate_cpp(s, input_rules, input_query):
+		s.prologue = Lines()
+
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
 
@@ -101,8 +109,8 @@ class Emitter(object):
 					len(rule.body),
 					len(vars_in_original_head(rule)) * max_number_of_existentials_in_single_original_head_triple(rule))
 
-		print(Module([
-			Line('#include "pyco_static.cpp"'),
+		print('#include "pyco_static.cpp"')
+		r = Module([
 			Lines([
 				Statement(
 					"static ep_t ep" + str(rule.debug_id)
@@ -110,7 +118,10 @@ class Emitter(object):
 			]),
 			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
-		]))
+		])
+		print(s.prologue)
+		print(r)
+
 
 	def pred(s, pred_name, rules):
 		s._label = 0
@@ -118,8 +129,9 @@ class Emitter(object):
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
+			Comment(pred_name),
 			Lines(
-				[Statement("static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules] #/*const*/
+				[Statement("static Locals " + consts_of_rule(rule.debug_id) + " = " + s.things_literals(rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
 				pred_func_declaration(pred_name)
@@ -135,31 +147,37 @@ class Emitter(object):
 		])
 
 	def rule(s, r):
-		b = Block()
-		b.append(Statement("state.locals = " + things_literals(r.locals_template)) if len(r.locals_template) else Line())
+		outer_block = b = Lines()
+		b.append(Comment((r)))
+		b.append(Statement("state.locals = " + s.things_literals(r.locals_template)) if len(r.locals_template) else Line())
 		if r.head:
-			r.head_args_len = len(r.head.args)
-			head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(r.head_args_len))
-			r.head_arg_storages = (x[0] for x in head_arg_infos)
-			r.head_arg_indexes = (x[1] for x in head_arg_infos)
-			r.head_arg_types = (
-				get_type
-				(
-					fetch_thing
-					(
-						rule.head.args[i], locals_template, consts, lm, cm
-					)
-				)
-				for i in range(r.head_args_len))
-			for arg_i in range(len(r.head.args)):
-				b.append(s.unify(
-					'&state.incoming['+str(arg_i)+'], ',
-					'&'+local_expr(r.head.args[arg_i], r)))
-				b = nest(b)
+			b = s.head(b, r)
 		b.append(s.incoming_bnode_block(r))
 		b.append(s.body_triples_block(r))
-		return b
+		return outer_block
 
+	def head(s, b, r):
+		r.head_args_len = len(r.head.args)
+		head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(r.head_args_len))
+		r.head_arg_storages = (x[0] for x in head_arg_infos)
+		r.head_arg_indexes = (x[1] for x in head_arg_infos)
+		r.head_arg_types = (
+			get_type
+			(
+				fetch_thing
+				(
+					rule.head.args[i], locals_template, consts, lm, cm
+				)
+			)
+			for i in range(r.head_args_len))
+		for arg_i in range(len(r.head.args)):
+			name_of_local = r.head.args[arg_i]
+			b.append(Comment(name_of_local)),
+			b.append(s.unify(
+				'&state.incoming['+str(arg_i)+']',
+				'&'+local_expr(name_of_local, r)))
+			b = nest(b)
+		return b
 
 	def unify(s, a, b):
 		r = Lines([
@@ -256,7 +274,7 @@ class Emitter(object):
 		return outer_block
 
 	def set_entry(s):
-		r = Statement('entry = case' + str(s._label))
+		r = Statement('state.entry = case' + str(s._label))
 		s._label += 1
 		return r
 
@@ -282,11 +300,11 @@ def maybe_getval(t, what):
 
 
 
-
-
+def cppize_identifier(i):
+	return common.fix_up_identification(common.shorten(i))
 
 def pred_func_declaration(pred_name):
-	pred_name = common.fix_up_identification(common.shorten(pred_name))
+	pred_name = cppize_identifier(pred_name)
 	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
 
 def consts_of_rule(rule_index):

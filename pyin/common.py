@@ -78,8 +78,15 @@ def kbdbg_file_path(fn):
 def kbdbg_file_name(fn):
 	return kbdbg_file_path(fn) + fn
 
+fixed_upings = {}
 def fix_up_identification(i):
-	return "".join([ch if ch.isalnum() else "_" for ch in i])
+	r =  "".join([ch if ch.isalnum() else "_" for ch in i])
+	if r in fixed_upings:
+		if fixed_upings[r] != i:
+			return fix_up_identification(r + "_2")
+	else:
+		fixed_upings[r] = i
+	return r
 
 pyin_prefixes = """
 prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 

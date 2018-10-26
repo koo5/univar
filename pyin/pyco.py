@@ -113,20 +113,20 @@ class Emitter(object):
 		]))
 
 	def pred(s, pred_name, rules):
-		s._label = -1
+		s._label = 0
 		s.state_index = 0
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
 			Lines(
-				[Statement("/*const*/static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules]
+				[Statement("static Locals " + consts_of_rule(rule.debug_id) + " = " + things_literals(rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
 				pred_func_declaration(pred_name)
 			),
 			Block(
 				[
-					Statement('goto case0 + state.entry;'),
+					Statement('goto case0 + state.entry'),
 					s.label(),
 					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
 					Lines([s.rule(rule) for rule in rules])
@@ -175,17 +175,16 @@ class Emitter(object):
 		b = nest(b)
 		if do_ep:
 			b.append(push_ep(r))
-		for body_triple_index, triple in enumerate(r.body):
-			b = s.nest_body_triple_block(b)
+		#for body_triple_index, triple in enumerate(r.body):
+		#	b = s.nest_body_triple_block(b)
 		if do_ep:
 			b.append(Lines([
-				Statement("ASSERT(ep" +str(rule_index)+ ".size())'"),
-				Statement("ep" +str(rule_index)+ ".pop_back()")]))
+				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())'"),
+				Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
 		b.append(s.do_yield())
 		if do_ep:
-			b.append(ep_push(rule))
-
-
+			b.append(push_ep(r))
+		return b
 
 	def nest_body_triple_block(s, b):
 		b.append(Statement('//body item ' +str(body_triple_index)))
@@ -211,7 +210,7 @@ class Emitter(object):
 		else:
 			b.append(Statement('break'))
 		b.append(Line("while(true)"))
-
+		return b
 
 
 	def do_yield(s):
@@ -243,6 +242,7 @@ class Emitter(object):
 				b.append(Statement('value = get_value(local)'))
 				#b.append(If('(value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+')',
 				#			s.incoming_bnode_unifications(r)))
+		return b
 
 	def incoming_bnode_unifications(s, r):
 		outer_block = b = Block()
@@ -259,7 +259,6 @@ class Emitter(object):
 		r = Statement('entry = case' + str(s._label))
 		s._label += 1
 		return r
-
 
 
 def local_expr(name, rule):
@@ -287,6 +286,7 @@ def maybe_getval(t, what):
 
 
 def pred_func_declaration(pred_name):
+	pred_name = common.fix_up_identification(common.shorten(pred_name))
 	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
 
 def consts_of_rule(rule_index):

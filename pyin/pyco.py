@@ -20,6 +20,7 @@ if sys.version_info.major == 3:
 
 codes = list()
 def string2code(atom):
+	atom = str(atom.value)
 	if atom in codes:
 		return codes
 	result = len(codes)
@@ -80,7 +81,7 @@ class Emitter(object):
 		else: assert False
 
 		if type(thing) == pyin.Atom:
-			v = '/*'+str(string2code(thing))+'*/' + s.emit_const(thing)
+			v = s.emit_const(thing)#+'/*'+str(string2code(thing))+'*/'
 		else:
 			v = '0'
 		return '{' + t + ',' + v + ',0}'
@@ -149,7 +150,8 @@ class Emitter(object):
 	def rule(s, r):
 		outer_block = b = Lines()
 		b.append(Comment((r)))
-		b.append(Statement("state.locals = " + s.things_literals(r.locals_template)) if len(r.locals_template) else Line())
+		if len(r.locals_template):
+			b.append(Statement("state.locals = " + s.things_literals(r.locals_template)))
 		if r.head:
 			b = s.head(b, r)
 		b.append(s.incoming_bnode_block(r))
@@ -194,7 +196,8 @@ class Emitter(object):
 		if do_ep:
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
-			b = s.nest_body_triple_block(r, b, body_triple_index, triple)
+			if triple.pred in preds:
+				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 		if do_ep:
 			b.append(Lines([
 				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())'"),
@@ -205,19 +208,15 @@ class Emitter(object):
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
-		b.append(Comment(str(triple)))
+		b.append(Comment(triple.str()))
 		substate = "state.states["+str(s.state_index)+"]"
 		for arg_idx in range(len(triple.args)):
 			arg = triple.args[arg_idx]
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
-		b.append(Line("do"))
+			b.append(Statement(substate + ".entry = 0"))
 		b = nest(b)
-		if triple.pred in preds:
-			b.append(Call(pred_func_name(triple.pred), substate))
-		else:
-			b.append(Statement('break'))
-		b.append(Line("while(true)"))
+		b.append(Line('while('+cppize_identifier(triple.pred) +'(&'+ substate+')'+'!=-1)'))
 		return b
 
 
@@ -287,8 +286,6 @@ def maybe_getval(t, what):
 	if (yes):
 		r += ")"
 	return r
-
-
 
 def cppize_identifier(i):
 	return common.fix_up_identification(common.shorten(i))

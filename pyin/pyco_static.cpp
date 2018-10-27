@@ -45,7 +45,7 @@ typedef Thing ep_t[2];
 struct cpppred_state;
 struct cpppred_state
 {
-    unsigned entry;
+    size_t entry;
     Locals locals;
     Thing incoming[2];
     vector<cpppred_state> states;

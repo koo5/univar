@@ -143,7 +143,7 @@ class Emitter(object):
 			),
 			Block(
 				[
-					Statement('goto *(&&case0 + state.entry)'),
+					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
 					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
 					Lines([s.rule(rule) for rule in rules])

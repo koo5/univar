@@ -1,19 +1,32 @@
 #include <string>
+#include <map>
+#include <vector>
 
 using namespace std;
 
 typedef unsigned long nodeid;
-nodeid last_nodeid = 0;
-map<nodeid, string> strings;
+
 
 enum ThingType {BOUND, UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
 
 typedef unsigned BnodeOrigin;
 typedef unsigned BnodeIndex;
-typedef vector<Thing> Locals;
 
 //map<BnodeIndex,Locals> bnodes;
+
+
+struct Thing;
+
+typedef vector<Thing> Locals;
+
+struct Bnode
+{
+    BnodeOrigin origin;
+    Locals *locals;
+    Thing *binding;
+ };
+
 
 struct Thing
 {
@@ -21,51 +34,26 @@ struct Thing
     union
     {
         Thing *binding;
-        nodeid const_value;
-        struct
-        {
-            BnodeOrigin origin;
-            Locals *locals;
-            Thing *binding;
-        };
+        nodeid string;
+        Bnode bnode;
     };
 };
 
-union unbinder{coro c; char magic;};
+
+typedef Thing ep_t[2];
 
 struct cpppred_state;
 struct cpppred_state
 {
-    int entry=0;
+    unsigned entry;
     Locals locals;
-    unbinder su,ou;
-    Thing *s, *o;
-    vector<cpppred_state> children;
+    Thing incoming[2];
+    vector<cpppred_state> states;
 };
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-struct coro_state
-{
-    int entry=0;
-}
-
-
-
+/*
 unsigned push_string(string);
 	pop_string(string);
 
@@ -78,3 +66,4 @@ unsigned push_string(string);
 		string2codes[string] =
 
 	}
+*/

@@ -8,7 +8,7 @@ we use pyin for the Rule class to hold data, and for various bits of shared code
 import click
 from cgen import *
 Lines = Collection
-import sys
+import sys, os
 import common
 import pyco_builtins
 import pyin
@@ -66,18 +66,18 @@ class Emitter(object):
 	def get_prologue(s):
 		return Lines([
 			s.prologue,
-			Line('vector<string> strings = {'),
-			Lines([Line('"' + string +'",') for string, (cpp_name, code) in s.codes.items()]),
-			Line('};')])
+			Statement('vector<string> strings {' + ",".join(
+				['"'+string+'"' for string,_ in s.codes.items()]
+			) + '}')])
 
 
 	def things_literals(s, things):
-		r = '['
+		r = '{'
 		for i, thing in enumerate(things):
 			r += s.thing_literal(thing)
 			if i != len(things) -1:
 				r += ','
-		r += ']'
+		r += '}'
 		return r
 
 	def thing_literal(s, thing):
@@ -91,10 +91,10 @@ class Emitter(object):
 		else: assert False
 
 		if type(thing) == pyin.Atom:
-			v = s.string2code(thing)
+			v = '.string = ' + s.string2code(thing)
 		else:
-			v = '0'
-		return '{' + t + ',' + v + ',0}'
+			v = '.bound = 0'
+		return 'Thing{' + t + ',' + v + '}'
 
 
 
@@ -104,6 +104,7 @@ class Emitter(object):
 
 	def generate_cpp(s, input_rules, input_query):
 		s.prologue = Lines()
+		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
 
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
@@ -116,7 +117,6 @@ class Emitter(object):
 					len(rule.body),
 					len(vars_in_original_head(rule)) * max_number_of_existentials_in_single_original_head_triple(rule))
 
-		print('#include "pyco_static.cpp"')
 		r = Module([
 			Lines([
 				Statement(
@@ -126,8 +126,7 @@ class Emitter(object):
 			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		])
-		print(s.get_prologue())
-		print(r)
+		return str(s.get_prologue()) + '\n' + str(r)
 
 	def pred(s, pred_name, rules):
 		s._label = 0
@@ -137,14 +136,14 @@ class Emitter(object):
 		return Collection([
 			Comment(pred_name),
 			Lines(
-				[Statement("static Locals " + consts_of_rule(rule.debug_id) + " = " + s.things_literals(rule.consts)) for rule in rules] #/*const*/
+				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
 				pred_func_declaration(pred_name)
 			),
 			Block(
 				[
-					Statement('goto case0 + state.entry'),
+					Statement('goto *(&&case0 + state.entry)'),
 					s.label(),
 					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
 					Lines([s.rule(rule) for rule in rules])
@@ -205,7 +204,7 @@ class Emitter(object):
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 		if do_ep:
 			b.append(Lines([
-				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())'"),
+				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())"),
 				Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
 		b.append(s.do_yield())
 		if do_ep:
@@ -297,7 +296,7 @@ def cppize_identifier(i):
 
 def pred_func_declaration(pred_name):
 	pred_name = cppize_identifier(pred_name)
-	return "static " + pred_name + "(cpppred_state & __restrict__ state)"
+	return "static void " + pred_name + "(cpppred_state & __restrict__ state)"
 
 def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
@@ -337,8 +336,9 @@ def query_from_files(kb, goal, identification, base):
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	e.generate_cpp(rules, goal)
-
+	open("pyco_out.cpp", "w").write(e.generate_cpp(rules, goal))
+	os.system("make pyco")
+	os.system("./pyco")
 
 if __name__ == "__main__":
 	query_from_files()

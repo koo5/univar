@@ -74,3 +74,6 @@ ppjson: ppjson.cpp
 	$(CXX) -std=c++11 ppjson.cpp -oppjson -Wall -ggdb
 dimacs2tau: dimacs2tau.cpp
 	$(CXX) -std=c++11 dimacs2tau.cpp -odimacs2tau -Wall -ggdb
+
+pyco: 
+	$(CXX) -std=c++11 -Wall -ggdb pyco_out.cpp -o pyco

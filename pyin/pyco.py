@@ -214,9 +214,9 @@ class Emitter(object):
 			arg = triple.args[arg_idx]
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
-			b.append(Statement(substate + ".entry = 0"))
-		b = nest(b)
+		b.append(Statement(substate + ".entry = 0"))
 		b.append(Line('while('+cppize_identifier(triple.pred) +'(&'+ substate+')'+'!=-1)'))
+		b = nest(b)
 		return b
 
 

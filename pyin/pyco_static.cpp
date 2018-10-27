@@ -66,5 +66,15 @@ struct coro_state
 
 
 
+unsigned push_string(string);
+	pop_string(string);
 
-#include "pyco_output.cpp"
+	vector<string> strings;
+
+	add_string(string)
+	{
+		if ((it = string2codes.find(string)) != string2codes.end())
+			return *it;
+		string2codes[string] =
+
+	}

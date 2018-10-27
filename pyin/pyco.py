@@ -18,15 +18,6 @@ import rdflib
 if sys.version_info.major == 3:
 	unicode = str
 
-codes = list()
-def string2code(atom):
-	atom = str(atom.value)
-	if atom in codes:
-		return codes
-	result = len(codes)
-	codes.append(result)
-	return result
-
 def make_locals(rule):
 		locals_template = []
 		consts = []
@@ -57,9 +48,28 @@ def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
 
-
 class Emitter(object):
 	do_builtins = False
+	codes = OrderedDict()
+
+	def string2code(s,atom):
+		codes = s.codes
+		atom = str(atom.value)
+		if atom in codes:
+			return codes[atom][0]
+		code = str(len(codes))
+		cpp_name = cppize_identifier(atom)
+		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
+		codes[atom] = cpp_name, code
+		return cpp_name
+
+	def get_prologue(s):
+		return Lines([
+			s.prologue,
+			Line('vector<string> strings = {'),
+			Lines([Line('"' + string +'",') for string, (cpp_name, code) in s.codes.items()]),
+			Line('};')])
+
 
 	def things_literals(s, things):
 		r = '['
@@ -81,16 +91,12 @@ class Emitter(object):
 		else: assert False
 
 		if type(thing) == pyin.Atom:
-			v = s.emit_const(thing)#+'/*'+str(string2code(thing))+'*/'
+			v = s.string2code(thing)
 		else:
 			v = '0'
 		return '{' + t + ',' + v + ',0}'
 
-	def emit_const(s,thing):
-		code = str(string2code(thing))
-		cpp_name = cppize_identifier(str(thing.value))
-		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
-		return cpp_name
+
 
 	def label(s):
 		#s.state_index = 0
@@ -120,9 +126,8 @@ class Emitter(object):
 			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		])
-		print(s.prologue)
+		print(s.get_prologue())
 		print(r)
-
 
 	def pred(s, pred_name, rules):
 		s._label = 0
@@ -324,6 +329,7 @@ def query_from_files(kb, goal, identification, base):
 	global preds
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
+	pyin.nolog = True
 	pyin.init_logging()
 	common.log = pyin.log
 	rules, goal = pyin.load(kb, goal, identification, base)

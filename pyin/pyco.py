@@ -27,14 +27,16 @@ def make_locals(rule):
 		for triple in ([rule.head] if rule.head else []) + rule.body:
 			for a in triple.args:
 				if pyin.is_var(a):
-					locals_map[a] = len(locals_template)
-					v = pyin.Var(a)
-					v.is_bnode = v in rule.existentials
-					locals_template.append(v)
+					if a not in locals_map:
+						locals_map[a] = len(locals_template)
+						v = pyin.Var(a)
+						v.is_bnode = v in rule.existentials
+						locals_template.append(v)
 
 				else:
-					consts_map[a] = len(consts)
-					consts.append(pyin.Atom(a))
+					if a not in consts_map:
+						consts_map[a] = len(consts)
+						consts.append(pyin.Atom(a))
 		return locals_map, consts_map, locals_template,	consts
 
 def vars_in_original_head(rule):
@@ -98,7 +100,7 @@ class Emitter(object):
 		else: assert False
 
 		if type(thing) == pyin.Atom:
-			v = '.string = ' + s.string2code(thing)
+			v = '.string_id = ' + s.string2code(thing)
 		else:
 			v = '.bound = 0'
 		return 'Thing{' + t + ',' + v + '}'
@@ -187,7 +189,7 @@ class Emitter(object):
 				b.append(Line("if (s == Thing{BNODE, "+str(get_bnode_origin(r,  arg))+"})"))
 				b = nest(b)
 				other_arg = todo[1]
-				b.append(s.unify('&state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
+				b.append(s.unify('state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
@@ -195,7 +197,7 @@ class Emitter(object):
 		for arg_i, arg in enumerate(r.head.args):
 			b.append(Comment(arg))
 			b.append(s.unify(
-				'&state.incoming['+str(arg_i)+']',
+				'state.incoming['+str(arg_i)+']',
 				'&'+local_expr(arg, r)))
 			b = nest(b)
 		b.append(s.body_triples_block(r))
@@ -206,7 +208,7 @@ class Emitter(object):
 			Statement("state.states[" + str(s.state_index) + '].entry = 0'),
 			Statement("state.states[" + str(s.state_index) + '].incoming[0] = '+a),
 			Statement("state.states[" + str(s.state_index) + '].incoming[1] = '+b),
-			Line('while unify(&state.states[' + str(s.state_index) + ']))')])
+			Line('while(unify(state.states[' + str(s.state_index) + ']))')])
 		s.state_index += 1
 		return r
 

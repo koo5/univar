@@ -23,21 +23,19 @@ struct Thing;
 
 typedef vector<Thing> Locals;
 
-struct Bnode
-{
-    BnodeOrigin origin;
- };
-
-
 struct Thing
 {
     ThingType type;
     union
     {
         Thing *binding;
-        nodeid string;
-        Bnode bnode;
+        nodeid string_id;
+        BnodeOrigin origin;
     };
+    const bool operator==(const Thing& b)
+    {
+        return this->type == b.type && this->binding == b.binding;
+    }
 };
 
 
@@ -75,6 +73,8 @@ later, for optimalization, we dont need to call this function in every case.
 the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
+#define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
+
 int unify(cpppred_state & __restrict__ state)
 {
     Thing *x = state.incoming[0];
@@ -84,37 +84,35 @@ int unify(cpppred_state & __restrict__ state)
     goto *(((char*)&&case0) + state.entry);
     case0:
     if (x == y)
+        yield(single_success)
+    Thing x_ = *x;
+    Thing y_ = *y;
+    if (x_.type == UNBOUND)
     {
-        //state.msg = "same things";
-        state.entry = single_success;
-        return state.entry;
+		x_.binding = y;
+        yield(unbind_x)
     }
-    else if (x->type() == UNBOUND)
+    if (y_.type == UNBOUND)
     {
-		x->bind(y);
-        state.entry = unbind_x;
-        return state.entry;
+		y_.binding = x;
+        yield(unbind_y)
     }
-    else if (y->type() == UNBOUND)
-    {
-		y->bind(x);
-        state.entry = unbind_y;
-        return state.entry;
-    }
-	elif y_is_var and x_is_var and val_x.is_a_bnode_from_original_rule == val_y.is_a_bnode_from_original_rule and val_x.is_from_name == val_y.is_from_name:
-		return val_y.bind_to(val_x, yx)
-	elif type(val_x) is Atom and type(val_y) is Atom:
-		if val_x.value == val_y.value:
-			return success("same consts", xy)
-		else:
-			return fail(nolog or ("different consts: %s %s" % (val_x.value, val_y.value)), xy)
-	else:
-		return fail(nolog or ("different things: %s %s" % (val_x, val_y)), xy)
-
-
-
+    if ((x_.type == CONST) && (x_ == y_))
+        yield(end)
+    unbind_x:
+        x->binding = 0;
+    single_success:
+        return 0;
+    unbind_y:
+        y->binding = 0;
+    end:
+        return 0;
 }
 
 
-
-
+Thing *get_value(Thing *x)
+{
+    if (x->type == BOUND)
+        return get_value(x->binding);
+    return x;
+}

@@ -41,15 +41,10 @@ import logging
 import urllib.parse
 import subprocess
 import yattag
-import rdflib
 import json
 import html as html_module
 import redislite, redis_collections
-from rdflib import ConjunctiveGraph, Graph, URIRef, Literal
 from rdflib.namespace import Namespace
-from rdflib.namespace import RDF
-from rdflib.plugins.stores import sparqlstore
-from non_retarded_collection import Collection
 from concurrent.futures import ProcessPoolExecutor
 from pymantic import sparql
 from sortedcontainers import SortedList

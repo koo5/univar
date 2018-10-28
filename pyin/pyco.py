@@ -5,6 +5,7 @@ we use pyin for the Rule class to hold data, and for various bits of shared code
 
 """
 
+
 import click
 from cgen import *
 Lines = Collection
@@ -13,7 +14,7 @@ import common
 import pyco_builtins
 import pyin
 from collections import defaultdict, OrderedDict
-import rdflib
+import memoized
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -47,6 +48,12 @@ def vars_in_original_head(rule):
 def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
+bnode_origin_counter = -1
+@memoized.memoized
+def get_bnode_origin(r, name):
+	global bnode_origin_counter
+	bnode_origin_counter += 1
+	return bnode_origin_counter
 
 class Emitter(object):
 	do_builtins = False
@@ -152,43 +159,54 @@ class Emitter(object):
 		])
 
 	def rule(s, r):
+		if len([arg for arg in r.head.args if arg in r.existentials]) > 1:
+			raise Exception("too many existentials")
 		outer_block = b = Lines()
 		b.append(Comment((r)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r.locals_template)))
 		if r.head:
 			b = s.head(b, r)
-		b.append(s.incoming_bnode_block(r))
-		b.append(s.body_triples_block(r))
+		else:
+			b.append(s.body_triples_block(r))
 		return outer_block
 
 	def head(s, b, r):
-		r.head_args_len = len(r.head.args)
-		head_arg_infos = (find_thing(rule.head.args[arg_i], lm, cm) for arg_i in range(r.head_args_len))
-		r.head_arg_storages = (x[0] for x in head_arg_infos)
-		r.head_arg_indexes = (x[1] for x in head_arg_infos)
-		r.head_arg_types = (
-			get_type
-			(
-				fetch_thing
-				(
-					rule.head.args[i], locals_template, consts, lm, cm
-				)
-			)
-			for i in range(r.head_args_len))
-		for arg_i in range(len(r.head.args)):
-			name_of_local = r.head.args[arg_i]
-			b.append(Comment(name_of_local)),
+		outer_block = b
+		todo = []
+		if len(r.existentials):
+			assert len(r.existentials) == 1
+			todo.append(r.existentials[0])
+		for arg in r.head.args:
+			if arg not in todo:
+				todo.append(arg)
+		for arg_i, arg in enumerate(todo):
+			arg_expr = 'state.incoming['+str(arg_i)+']'
+			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
+			if arg in r.existentials:
+				b.append(Line("if (s == Thing{BNODE, "+str(get_bnode_origin(r,  arg))+"})"))
+				b = nest(b)
+				other_arg = todo[1]
+				b.append(s.unify('&state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
+				b = nest(b)
+				b.append(s.do_yield())
+				outer_block.append(Line('else'))
+				b = nest(outer_block)
+		for arg_i, arg in enumerate(r.head.args):
+			b.append(Comment(arg))
 			b.append(s.unify(
 				'&state.incoming['+str(arg_i)+']',
-				'&'+local_expr(name_of_local, r)))
+				'&'+local_expr(arg, r)))
 			b = nest(b)
+		b.append(s.body_triples_block(r))
 		return b
 
 	def unify(s, a, b):
 		r = Lines([
-			Statement("state.states[" + str(s.state_index) + '] = unify(' + a + ',' + b + ')'),
-			Line('while unify_coro(&state.states[' + str(s.state_index) + ']))')])
+			Statement("state.states[" + str(s.state_index) + '].entry = 0'),
+			Statement("state.states[" + str(s.state_index) + '].incoming[0] = '+a),
+			Statement("state.states[" + str(s.state_index) + '].incoming[1] = '+b),
+			Line('while unify(&state.states[' + str(s.state_index) + ']))')])
 		s.state_index += 1
 		return r
 
@@ -246,13 +264,15 @@ class Emitter(object):
 		to_check = [arg for arg in r.head.args if arg in r.existentials]
 		if len(to_check) > 1:
 			raise Exception("too many existentials")
-		if len(to_check):
-			b.append(Statement('Thing *local, *value'))
-			for arg in to_check:
-				b.append(Statement('local = ' + '&'+local_expr(arg, r)))
-				b.append(Statement('value = get_value(local)'))
-				#b.append(If('(value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+')',
-				#			s.incoming_bnode_unifications(r)))
+		if len(to_check) == 0:
+			return b
+
+		b.append(Statement('Thing *local, *value'))
+		for arg in to_check:
+			b.append(Statement('local = ' + '&'+local_expr(arg, r)))
+			b.append(Statement('value = get_value(local)'))
+			#b.append(If('(value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+')',
+			#			s.incoming_bnode_unifications(r)))
 		return b
 
 	def incoming_bnode_unifications(s, r):

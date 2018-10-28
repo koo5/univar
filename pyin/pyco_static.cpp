@@ -10,7 +10,7 @@ using namespace std;
 typedef unsigned long nodeid;
 
 
-enum ThingType {BOUND, UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE};
+enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
 
 typedef unsigned BnodeOrigin;
@@ -116,3 +116,6 @@ Thing *get_value(Thing *x)
         return get_value(x->binding);
     return x;
 }
+
+
+//find_ep

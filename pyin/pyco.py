@@ -102,14 +102,14 @@ class Emitter(object):
 		if type(thing) == pyin.Atom:
 			v = '.string_id = ' + s.string2code(thing)
 		else:
-			v = '.bound = 0'
+			v = '.binding = 0'
 		return 'Thing{' + t + ',' + v + '}'
 
 
 
 	def label(s):
 		#s.state_index = 0
-		return Line("case" +str(s._label) + ":")
+		return Line("case" +str(s._label) + ":;")
 
 	def generate_cpp(s, input_rules, input_query):
 		s.prologue = Lines()
@@ -186,7 +186,7 @@ class Emitter(object):
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
 			if arg in r.existentials:
-				b.append(Line("if (s == Thing{BNODE, "+str(get_bnode_origin(r,  arg))+"})"))
+				b.append(Line("if (*"+arg_expr+" == Thing{BNODE, "+str(get_bnode_origin(r,  arg))+"})"))
 				b = nest(b)
 				other_arg = todo[1]
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
@@ -215,9 +215,9 @@ class Emitter(object):
 	def body_triples_block(s, r):
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
-		b.append(Line("if (!cppout_find_ep(&ep"+str(r.debug_id)+", &state.incomings))"))
-		b = nest(b)
 		if do_ep:
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", &state.incomings))"))
+			b = nest(b)
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
@@ -290,7 +290,7 @@ class Emitter(object):
 
 	def set_entry(s):
 		s._label += 1
-		r = Statement('state.entry = case' + str(s._label))
+		r = Statement('state.entry = ((char*)&&case' + str(s._label) + ') - ((char*)&&case0)')
 		return r
 
 
@@ -318,7 +318,7 @@ def cppize_identifier(i):
 
 def pred_func_declaration(pred_name):
 	pred_name = cppize_identifier(pred_name)
-	return "static void " + pred_name + "(cpppred_state & __restrict__ state)"
+	return "static size_t " + pred_name + "(cpppred_state & __restrict__ state)"
 
 def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)

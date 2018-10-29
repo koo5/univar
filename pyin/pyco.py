@@ -126,10 +126,13 @@ class Emitter(object):
 				all_rules.append(rule)
 				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
 				rule.has_body = len(rule.body) != 0
-				rule.max_states_len = len(rule.head.args) + max(
-					len(rule.body),
-					len(vars_in_original_head(rule)) * max_number_of_existentials_in_single_original_head_triple(rule))
-		del pred,rules
+				""" so, the cpppred_state struct has a vector of states,
+				used for both head-unification and for calling other rules,
+				so this is the number of generators that this rule will need at once, at most"""
+				rule.max_states_len = len(rule.head.args) + len(rule.body)
+				assert len(rule.head.args) == 2
+				#gotcha; is args just the vars? no its args in the meaning of term with args
+		del pred,rules  
 		r = Module([
 			Lines([
 				Statement(

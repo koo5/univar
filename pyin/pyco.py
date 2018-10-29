@@ -6,9 +6,11 @@ we use pyin for the Rule class to hold data, and for various bits of shared code
 """
 
 
-import click
 from cgen import *
+#Module and Collection are both just a bunch of lines, but more appropriate name for my use is...
 Lines = Collection
+
+import click
 import sys, os
 import common
 import pyco_builtins
@@ -111,15 +113,17 @@ class Emitter(object):
 		#s.state_index = 0
 		return Line("case" +str(s._label) + ":;")
 
-	def generate_cpp(s, input_rules, input_query):
+	def generate_cpp(s):
 		s.prologue = Lines()
 		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
 
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
 
+		all_rules = []
 		for pred,rules in preds.items():
 			for rule in rules:
+				all_rules.append(rule)
 				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
 				rule.has_body = len(rule.body) != 0
 				rule.max_states_len = len(rule.head.args) + max(
@@ -130,8 +134,7 @@ class Emitter(object):
 			Lines([
 				Statement(
 					"static ep_t ep" + str(rule.debug_id)
-				) for rule in rules
-			]),
+				) for rule in all_rules]),
 			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		])
@@ -358,7 +361,7 @@ def query_from_files(kb, goal, identification, base):
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	open("pyco_out.cpp", "w").write(e.generate_cpp(rules, goal))
+	open("pyco_out.cpp", "w").write(e.generate_cpp())
 	os.system("make pyco")
 	os.system("./pyco")
 

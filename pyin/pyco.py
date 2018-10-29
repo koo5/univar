@@ -17,6 +17,7 @@ import pyco_builtins
 import pyin
 from collections import defaultdict, OrderedDict
 import memoized
+import rdflib
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -139,9 +140,34 @@ class Emitter(object):
 			Lines([Statement(pred_func_declaration('pred_'+pred_name)+"__attribute__ ((unused))")
 				   for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
-			s.print_result(goal_graph)
+			s.print_result(goal, goal_graph)
 		])
 		return str(s.get_prologue()) + '\n' + str(r)
+
+	def substituted_arg(s, r, arg):
+		if type(arg) == rdflib.Literal:
+			return Statement('cout << "' + str(arg.value) +' "')
+		elif type(arg) == rdflib.Variable:
+			return Block([
+				Statement('Thing *v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
+				If('v->type == CONST',
+					Statement('cout << strings[v->string_id] << " "'),
+					Statement('cout << "' + str(arg) +' "'))
+				])
+		else: ararrr
+
+
+	def print_result(s, r, goal_graph):
+		outer_block = b = Lines()
+		b.append(Line('void print_result(cpppred_state &state)'))
+		b = nest(b)
+		for term in goal_graph:
+			b.append(Statement('cout << " RESULT : "'))
+			b.append(s.substituted_arg(r, term.args[0]))
+			b.append(Statement('cout << "' + str(term.pred) + ' "'))
+			b.append(s.substituted_arg(r, term.args[1]))
+			b.append(Statement('cout << "."'))
+		return outer_block
 
 	def pred(s, pred_name, rules):
 		s._label = 0
@@ -341,6 +367,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	e = Emitter()
 	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
 	os.system("make pyco")
+	print("#ok lets run this")
 	os.system("./pyco")
 
 if __name__ == "__main__":

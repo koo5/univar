@@ -138,6 +138,9 @@ bool find_ep(ep_table *table, ep_head incoming)
     return false;
 }
 
+static size_t query(cpppred_state & __restrict__ state);
+void print_result(cpppred_state &state);
+
 int main (int argc, char *argv[])
 {
     cpppred_state state;

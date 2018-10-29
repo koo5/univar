@@ -166,7 +166,7 @@ class Emitter(object):
 		])
 
 	def rule(s, r):
-		if r.head and len([arg for arg in r.head.args if arg in r.existentials]) > 1:
+		if len(r.existentials) > 1:
 			raise Exception("too many existentials")
 		outer_block = b = Lines()
 		b.append(Comment((r)))
@@ -325,11 +325,12 @@ def nest(block):
 @click.argument('goal', type=click.File('rb'))
 @click.option('--identification', default="")
 @click.option('--base', default="")
-def query_from_files(kb, goal, identification, base):
+@click.option('--nolog', default=False, type=bool)
+def query_from_files(kb, goal, identification, base, nolog):
 	global preds
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
-	pyin.nolog = True
+	pyin.nolog = nolog
 	pyin.init_logging()
 	common.log = pyin.log
 	rules, goal = pyin.load(kb, goal, identification, base)

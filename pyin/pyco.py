@@ -56,13 +56,13 @@ def max_number_of_existentials_in_single_original_head_triple(rule):
 class Emitter(object):
 	do_builtins = False
 	codes = OrderedDict()
-	bnode_origin_counter = -1
+	bnode_origin_counter = 0
 
 	@memoized.memoized
-	def get_bnode_origin(s, r, name):
+	def get_bnode_origin(s, orig_rule_id, name):
 		global bnode_origin_counter
 		assert(type(name) == str)
-		r = 'r'+str(r.debug_id)+'bn'+cppize_identifier(name)
+		r = 'r'+str(orig_rule_id)+'bn'+cppize_identifier(name)
 		s.prologue.append(Statement('static const BnodeOrigin '+r+' = '+str(s.bnode_origin_counter)))
 		s.bnode_origin_counter += 1
 		return r
@@ -104,7 +104,7 @@ class Emitter(object):
 			v = '.string_id = ' + s.string2code(thing)
 		elif thing in r.existentials:
 			t = 'BNODE'
-			v = ".origin = " + s.get_bnode_origin(r, str(thing))
+			v = ".origin = " + s.get_bnode_origin(r.original_head_ref.id, str(thing))
 		return 'Thing{' + t + ',' + v + '}'
 
 	def label(s):
@@ -195,7 +195,7 @@ class Emitter(object):
 				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, arg)+")"))
 				b = nest(b)
 				other_arg = todo[1]
-				b.append(s.unify('state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
+				b.append(s.unify('state.incoming['+str(arg_i)+']', '&'+local_expr(other_arg, r)))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))

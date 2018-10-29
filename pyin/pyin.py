@@ -876,6 +876,7 @@ def load(kb, goal, identification, base):
 		s,p,o = spo
 		return (fixup2(s), fixup2(p), fixup2(o))
 	rules = []
+	head_triples_triples_id = 0
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
 	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
@@ -884,6 +885,8 @@ def load(kb, goal, identification, base):
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
+			head_triples_triples.id=head_triples_triples_id
+			head_triples_triples_id += 1
 			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))

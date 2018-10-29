@@ -48,9 +48,9 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 	if identification != "":
 		nolog or pyin.kbdbg('<'+this +"> kbdbg:has_run_identification " + rdflib.Literal(identification).n3(), True)
 
-	common.load()
+	rules, query_rule, goal_graph = pyin.load(kb, goal, identification, base)
 
-	for result in query(rules, goal):
+	for result in query(rules, query_rule, goal_graph):
 		print ()
 		r = ''
 		for triple in result:

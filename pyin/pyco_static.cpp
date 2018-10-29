@@ -3,6 +3,7 @@
 #include <tuple>
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 #define ASSERT assert
 
@@ -135,8 +136,7 @@ bool find_ep(ep_table *table, ep_head incoming)
         return true;
     }
     return false;
- }
-  while(_a(state.states[0])!=0)
+}
 
 int main (int argc, char *argv[])
 {
@@ -144,6 +144,6 @@ int main (int argc, char *argv[])
     state.entry = 0;
     while(query(state)!=0)
     {
-
-
+        print_result(state);
+    }
 }

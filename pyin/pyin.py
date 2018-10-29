@@ -687,7 +687,7 @@ def pred(p, parent, args):
 		for i in rule.match(parent, args):
 			yield i
 
-def query(input_rules, query_rule):
+def query(input_rules, query_rule, goal_graph):
 	global preds, dbg
 	nolog or kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
 	nolog or kbdbg_graph_first()
@@ -699,7 +699,7 @@ def query(input_rules, query_rule):
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
 		nolog or kbdbg(uri + " rdf:type kbdbg:result")
-		terms = [substitute_term(term, locals) for term in input_query]
+		terms = [substitute_term(term, locals) for term in goal_graph]
 		if not nolog:
 			result_terms_uri = emit_list(emit_terms(terms))
 			kbdbg(uri + " rdf:value " + result_terms_uri)
@@ -912,7 +912,7 @@ def load(kb, goal, identification, base):
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
 	query_rule = Rule([], None, goal)
-	return rules, query_rule
+	return rules, query_rule, goal
 
 
 

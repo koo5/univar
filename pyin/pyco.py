@@ -111,7 +111,7 @@ class Emitter(object):
 		#s.state_index = 0
 		return Line("case" +str(s._label) + ":;")
 
-	def generate_cpp(s, goal):
+	def generate_cpp(s, goal, goal_graph):
 		s.prologue = Lines()
 		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
 		if s.do_builtins:
@@ -138,7 +138,8 @@ class Emitter(object):
 				) for rule in all_rules if rule != goal]),
 			Lines([Statement(pred_func_declaration('pred_'+pred_name)+"__attribute__ ((unused))")
 				   for pred_name in preds.keys()]),
-			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]])
+			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
+			s.print_result(goal_graph)
 		])
 		return str(s.get_prologue()) + '\n' + str(r)
 
@@ -333,12 +334,12 @@ def query_from_files(kb, goal, identification, base, nolog):
 	pyin.nolog = nolog
 	pyin.init_logging()
 	common.log = pyin.log
-	rules, goal = pyin.load(kb, goal, identification, base)
+	rules, query_rule, goal_graph = pyin.load(kb, goal, identification, base)
 	for rule in rules:
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	open("pyco_out.cpp", "w").write(e.generate_cpp(goal))
+	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
 	os.system("make pyco")
 	os.system("./pyco")
 

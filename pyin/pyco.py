@@ -96,7 +96,6 @@ class Emitter(object):
 		return r
 
 	def thing_literal(s, r, thing):
-		#UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
 		if type(thing) == pyin.Var and not thing.is_bnode:
 			t = 'UNBOUND'
 			v = '.binding = (Thing*)0'
@@ -108,39 +107,38 @@ class Emitter(object):
 			v = ".origin = " + s.get_bnode_origin(r, str(thing))
 		return 'Thing{' + t + ',' + v + '}'
 
-
-
 	def label(s):
 		#s.state_index = 0
 		return Line("case" +str(s._label) + ":;")
 
-	def generate_cpp(s):
+	def generate_cpp(s, goal):
 		s.prologue = Lines()
 		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
-
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
-
 		all_rules = []
 		for pred,rules in preds.items():
-			for rule in rules:
-				all_rules.append(rule)
-				rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
-				rule.has_body = len(rule.body) != 0
-				""" so, the cpppred_state struct has a vector of states,
-				used for both head-unification and for calling other rules,
-				so this is the number of generators that this rule will need at once, at most"""
-				rule.max_states_len = len(rule.head.args) + len(rule.body)
-				assert len(rule.head.args) == 2
-				#gotcha; is args just the vars? no its args in the meaning of term with args
-		del pred,rules  
-		r = Module([
+			all_rules.extend(rules)
+		all_rules.append(goal)
+		for rule in all_rules:
+			rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
+			rule.has_body = len(rule.body) != 0
+			""" so, the cpppred_state struct has a vector of states,
+			used for both head-unification and for calling other rules,
+			so this is the number of generators that this rule will need at once, at most"""
+			rule.max_states_len = (len(rule.head.args) if rule.head else 0) + len(rule.body)
+			assert not rule.head or (len(rule.head.args) == 2)
+			#gotcha; is args just the vars? no its args in the meaning of term with args
+		del pred,rules,rule
+		r = Module(
+		[
 			Lines([
 				Statement(
 					"static ep_table ep" + str(rule.debug_id)
-				) for rule in all_rules]),
-			Lines([Statement(pred_func_declaration(pred_name)+"__attribute__ ((unused))") for pred_name in preds.keys()]),
-			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
+				) for rule in all_rules if rule != goal]),
+			Lines([Statement(pred_func_declaration('pred_'+pred_name)+"__attribute__ ((unused))")
+				   for pred_name in preds.keys()]),
+			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]])
 		])
 		return str(s.get_prologue()) + '\n' + str(r)
 
@@ -150,12 +148,12 @@ class Emitter(object):
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
-			Comment(pred_name),
+			Comment(pred_name if pred_name else 'query'),
 			Lines(
 				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
-				pred_func_declaration(pred_name)
+				pred_func_declaration(('pred_'+pred_name) if pred_name else 'query')
 			),
 			Block(
 				[
@@ -168,7 +166,7 @@ class Emitter(object):
 		])
 
 	def rule(s, r):
-		if len([arg for arg in r.head.args if arg in r.existentials]) > 1:
+		if r.head and len([arg for arg in r.head.args if arg in r.existentials]) > 1:
 			raise Exception("too many existentials")
 		outer_block = b = Lines()
 		b.append(Comment((r)))
@@ -248,7 +246,7 @@ class Emitter(object):
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
 		b.append(Statement(substate + ".entry = 0"))
-		b.append(Line('while('+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
+		b.append(Line('while('+cppize_identifier('pred_'+triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
 		return b
 
@@ -339,7 +337,7 @@ def query_from_files(kb, goal, identification, base):
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	open("pyco_out.cpp", "w").write(e.generate_cpp())
+	open("pyco_out.cpp", "w").write(e.generate_cpp(goal))
 	os.system("make pyco")
 	os.system("./pyco")
 

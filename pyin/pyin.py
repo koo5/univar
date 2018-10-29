@@ -687,14 +687,13 @@ def pred(p, parent, args):
 		for i in rule.match(parent, args):
 			yield i
 
-def query(input_rules, input_query):
+def query(input_rules, query_rule):
 	global preds, dbg
 	nolog or kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
 	nolog or kbdbg_graph_first()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	query_rule = Rule([], None, input_query)
 	nolog or step()
 #	tracemalloc.start()
 	for i, locals in enumerate(query_rule.match()):
@@ -909,7 +908,8 @@ def load(kb, goal, identification, base):
 
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
-	return rules, goal
+	query_rule = Rule([], None, goal)
+	return rules, query_rule
 
 
 

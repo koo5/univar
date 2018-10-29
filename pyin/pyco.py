@@ -129,7 +129,7 @@ class Emitter(object):
 				rule.max_states_len = len(rule.head.args) + max(
 					len(rule.body),
 					len(vars_in_original_head(rule)) * max_number_of_existentials_in_single_original_head_triple(rule))
-
+		del pred,rules
 		r = Module([
 			Lines([
 				Statement(
@@ -219,7 +219,7 @@ class Emitter(object):
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
 		if do_ep:
-			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", &state.incomings))"))
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", &state.incoming))"))
 			b = nest(b)
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):

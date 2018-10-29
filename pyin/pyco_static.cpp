@@ -1,5 +1,6 @@
 #include <string>
 #include <map>
+#include <tuple>
 #include <vector>
 #include <cassert>
 
@@ -38,9 +39,9 @@ struct Thing
     }
 };
 
-
-typedef Thing ep_t[2];
-
+typedef pair<Thing,Thing> thingthingpair;
+typedef thingthingpair ep_head;
+typedef vector<ep_head> ep_table;
 struct cpppred_state;
 struct cpppred_state
 {
@@ -79,8 +80,7 @@ int unify(cpppred_state & __restrict__ state)
 {
     Thing *x = state.incoming[0];
     Thing *y = state.incoming[1];
-    ASSERT(x->type != BOUND);
-    ASSERT(y->type != BOUND);
+    ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
     goto *(((char*)&&case0) + state.entry);
     case0:
     if (x == y)
@@ -118,4 +118,22 @@ Thing *get_value(Thing *x)
 }
 
 
-//find_ep
+bool find_ep(ep_table *table, ep_head incoming)
+{//{BOUND, UNBOUND, CONST, BNODE};
+    Thing a,b,x,y;
+    x = incoming.first;
+    y = incoming.second;
+    ASSERT(x.type != BOUND);ASSERT(y.type != BOUND);
+    for (const ep_head head: *table)
+    {
+        a = head.first;
+        b = head.second;
+        ASSERT(a.type != BOUND);ASSERT(b.type != BOUND);
+        if ((a.type != x.type) || (b.type != y.type)) continue;
+        if ((a.type != UNBOUND) && !(a == x)) continue;
+        if ((b.type != UNBOUND) && !(b == y)) continue;
+        return true;
+    }
+    return false;
+ }
+

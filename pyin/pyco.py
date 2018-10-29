@@ -52,16 +52,20 @@ def vars_in_original_head(rule):
 def max_number_of_existentials_in_single_original_head_triple(rule):
 	return max([len([a for a in triple.args if a in rule.existentials]) for triple in rule.original_head_triples])
 
-bnode_origin_counter = -1
-@memoized.memoized
-def get_bnode_origin(r, name):
-	global bnode_origin_counter
-	bnode_origin_counter += 1
-	return bnode_origin_counter
 
 class Emitter(object):
 	do_builtins = False
 	codes = OrderedDict()
+	bnode_origin_counter = -1
+
+	@memoized.memoized
+	def get_bnode_origin(s, r, name):
+		global bnode_origin_counter
+		assert(type(name) == str)
+		r = 'r'+str(r.debug_id)+'bn'+cppize_identifier(name)
+		s.prologue.append(Statement('static const BnodeOrigin '+r+' = '+str(s.bnode_origin_counter)))
+		s.bnode_origin_counter += 1
+		return r
 
 	def string2code(s,atom):
 		codes = s.codes
@@ -82,29 +86,26 @@ class Emitter(object):
 			) + '}')])
 
 
-	def things_literals(s, things):
+	def things_literals(s, r, things):
 		r = '{'
 		for i, thing in enumerate(things):
-			r += s.thing_literal(thing)
+			r += s.thing_literal(r, thing)
 			if i != len(things) -1:
 				r += ','
 		r += '}'
 		return r
 
-	def thing_literal(s, thing):
+	def thing_literal(s, r, thing):
 		#UNBOUND, CONST, BOUND_BNODE, UNBOUND_BNODE
 		if type(thing) == pyin.Var and not thing.is_bnode:
 			t = 'UNBOUND'
+			v = '.binding = (Thing*)0'
 		elif type(thing) == pyin.Atom:
 			t = 'CONST'
-		elif thing.is_bnode:
-			t = 'UNBOUND_BNODE'
-		else: assert False
-
-		if type(thing) == pyin.Atom:
 			v = '.string_id = ' + s.string2code(thing)
-		else:
-			v = '.binding = 0'
+		elif thing in r.existentials:
+			t = 'BNODE'
+			v = ".origin = " + s.get_bnode_origin(r, str(thing))
 		return 'Thing{' + t + ',' + v + '}'
 
 
@@ -136,9 +137,9 @@ class Emitter(object):
 		r = Module([
 			Lines([
 				Statement(
-					"static ep_t ep" + str(rule.debug_id)
+					"static ep_table ep" + str(rule.debug_id)
 				) for rule in all_rules]),
-			Lines([Statement(pred_func_declaration(pred_name)) for pred_name in preds.keys()]),
+			Lines([Statement(pred_func_declaration(pred_name)+"__attribute__ ((unused))") for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in preds.items()])
 		])
 		return str(s.get_prologue()) + '\n' + str(r)
@@ -151,7 +152,7 @@ class Emitter(object):
 		return Collection([
 			Comment(pred_name),
 			Lines(
-				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(rule.consts)) for rule in rules] #/*const*/
+				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
 				pred_func_declaration(pred_name)
@@ -172,11 +173,12 @@ class Emitter(object):
 		outer_block = b = Lines()
 		b.append(Comment((r)))
 		if len(r.locals_template):
-			b.append(Statement("state.locals = " + s.things_literals(r.locals_template)))
+			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
 		if r.head:
 			b = s.head(b, r)
 		else:
 			b.append(s.body_triples_block(r))
+		outer_block.append(Statement('return 0'))
 		return outer_block
 
 	def head(s, b, r):
@@ -192,7 +194,7 @@ class Emitter(object):
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
 			if arg in r.existentials:
-				b.append(Line("if (*"+arg_expr+" == Thing{BNODE, "+str(get_bnode_origin(r,  arg))+"})"))
+				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, arg)+")"))
 				b = nest(b)
 				other_arg = todo[1]
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '&state.locals['+str(r.locals_map[other_arg])+']'))
@@ -221,8 +223,9 @@ class Emitter(object):
 	def body_triples_block(s, r):
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
+		b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
 		if do_ep:
-			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", &state.incoming))"))
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(*state.incoming[0],*state.incoming[1])))"))
 			b = nest(b)
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
@@ -245,10 +248,9 @@ class Emitter(object):
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
 		b.append(Statement(substate + ".entry = 0"))
-		b.append(Line('while('+cppize_identifier(triple.pred) +'(&'+ substate+')'+'!=-1)'))
+		b.append(Line('while('+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
 		return b
-
 
 	def do_yield(s):
 			return Lines(
@@ -266,33 +268,6 @@ class Emitter(object):
 					Statement('return state.entry'),
 				]
 			)
-
-	def incoming_bnode_block(s,r):
-		b = Lines()
-		to_check = [arg for arg in r.head.args if arg in r.existentials]
-		if len(to_check) > 1:
-			raise Exception("too many existentials")
-		if len(to_check) == 0:
-			return b
-
-		b.append(Statement('Thing *local, *value'))
-		for arg in to_check:
-			b.append(Statement('local = ' + '&'+local_expr(arg, r)))
-			b.append(Statement('value = get_value(local)'))
-			#b.append(If('(value != local) && (value.type == BNODE) && (value.origin == '+get_origin(rule,arg)+')',
-			#			s.incoming_bnode_unifications(r)))
-		return b
-
-	def incoming_bnode_unifications(s, r):
-		outer_block = b = Block()
-		b.append(Statement("Locals *bnode = value.locals"))
-		for key, index in r.locals_template.items():
-			index = str(index)
-			unify('&value['+index+']','&state.locals['+index+']')
-			b = nest(b)
-			b.append(s.do_yield())
-		outer_block.append(s.end())
-		return outer_block
 
 	def set_entry(s):
 		s._label += 1
@@ -338,7 +313,7 @@ def thing_expression(storage, thing_index, rule_index):
 		return "(&_consts_of_rule(rule_index)" + "[" + str(thing_index)+"])"
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(state.incoming[0], state.incoming[1]))")
+	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(*state.incoming[0], *state.incoming[1]))")
 
 
 def nest(block):

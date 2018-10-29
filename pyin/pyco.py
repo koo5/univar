@@ -146,13 +146,15 @@ class Emitter(object):
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
-			return Statement('cout << "' + str(arg.value) +' "')
-		elif type(arg) == rdflib.Variable:
-			return Block([
-				Statement('Thing *v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
+			return Statement('cout << "\\\\"' + str(arg) +'\\\\" "')
+		if type(arg) == rdflib.URIRef:
+			return Statement('cout << "<' + str(arg) +'> "')
+		if type(arg) == rdflib.Variable:
+			return Lines([
+				Statement('v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
 				If('v->type == CONST',
 					Statement('cout << strings[v->string_id] << " "'),
-					Statement('cout << "' + str(arg) +' "'))
+					Statement('cout << "?' + str(arg) +' "'))
 				])
 		else: ararrr
 
@@ -161,10 +163,11 @@ class Emitter(object):
 		outer_block = b = Lines()
 		b.append(Line('void print_result(cpppred_state &state)'))
 		b = nest(b)
+		b.append(Statement('cout << " RESULT : "'))
+		b.append(Statement('Thing *v'))
 		for term in goal_graph:
-			b.append(Statement('cout << " RESULT : "'))
 			b.append(s.substituted_arg(r, term.args[0]))
-			b.append(Statement('cout << "' + str(term.pred) + ' "'))
+			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
 			b.append(s.substituted_arg(r, term.args[1]))
 			b.append(Statement('cout << "."'))
 		return outer_block
@@ -248,7 +251,8 @@ class Emitter(object):
 	def body_triples_block(s, r):
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
-		b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
+		if r.head:
+			b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
 		if do_ep:
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(*state.incoming[0],*state.incoming[1])))"))
 			b = nest(b)
@@ -368,7 +372,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
 	os.system("make pyco")
 	print("#ok lets run this")
-	os.system("./pyco")
+	os.system("valgrind ./pyco")
 
 if __name__ == "__main__":
 	query_from_files()

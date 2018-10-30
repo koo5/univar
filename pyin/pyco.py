@@ -68,22 +68,23 @@ class Emitter(object):
 		s.bnode_origin_counter += 1
 		return r
 
-	def string2code(s,atom):
+	def string2code(s,a):
 		codes = s.codes
-		atom = str(atom.value)
+		atom = str(a.value)
 		if atom in codes:
 			return codes[atom][0]
 		code = str(len(codes))
 		cpp_name = cppize_identifier(atom)
 		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
-		codes[atom] = cpp_name, code
+		kind = "URI" if type(a.value) == rdflib.URIRef else "STRING"
+		codes[atom] = kind,cpp_name, code
 		return cpp_name
 
 	def get_prologue(s):
 		return Lines([
 			s.prologue,
-			Statement('vector<string> strings {' + ",".join(
-				['"'+string+'"' for string,_ in s.codes.items()]
+			Statement('vector<Constant> strings {' + ",".join(
+				['Constant('+kind+',"'+string+'")' for string,(kind,_,_) in s.codes.items()]
 			) + '}')])
 
 
@@ -109,7 +110,6 @@ class Emitter(object):
 		return 'Thing{' + t + ',' + v + '}'
 
 	def label(s):
-		#s.state_index = 0
 		return Line("case" +str(s._label) + ":;")
 
 	def generate_cpp(s, goal, goal_graph):
@@ -153,7 +153,10 @@ class Emitter(object):
 			return Lines([
 				Statement('v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
 				If('v->type == CONST',
-					Statement('cout << strings[v->string_id] << " "'),
+					If ('strings[v->string_id].first == URI',
+						Statement('cout << "<" << strings[v->string_id].second << "> "'),
+						Statement('cout << "\\"" << strings[v->string_id].second << "\\" "')
+					),
 					Statement('cout << "?' + str(arg) +' "'))
 				])
 		else: ararrr
@@ -169,7 +172,7 @@ class Emitter(object):
 			b.append(s.substituted_arg(r, term.args[0]))
 			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
 			b.append(s.substituted_arg(r, term.args[1]))
-			b.append(Statement('cout << "."'))
+			b.append(Statement('cout << "."<<endl'))
 		return outer_block
 
 	def pred(s, pred_name, rules):
@@ -212,26 +215,31 @@ class Emitter(object):
 	def head(s, b, r):
 		outer_block = b
 		todo = []
-		if len(r.existentials):
-			assert len(r.existentials) == 1
-			todo.append(r.existentials[0])
-		for arg in r.head.args:
-			if arg not in todo:
-				todo.append(arg)
-		for arg_i, arg in enumerate(todo):
-			arg_expr = 'state.incoming['+str(arg_i)+']'
-			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
+		for arg_i, arg in enumerate(r.head.args):
 			if arg in r.existentials:
+				todo.append((arg_i, arg))
+		for arg_i, arg in enumerate(r.head.args):
+			if arg not in r.existentials:
+				todo.append((arg_i, arg))
+		for arg_i, arg in todo:
+			other_arg_idx, other_arg = todo[1]
+			arg_expr = 'state.incoming['+str(arg_i)+']'
+			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
+			if arg in r.existentials:
+				b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
 				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, arg)+")"))
 				b = nest(b)
-				other_arg = todo[1]
+				b.append(Statement(other_arg_expr+'=get_value('+other_arg_expr+')'))
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '&'+local_expr(other_arg, r)))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
 				b = nest(outer_block)
+		s.state_index = 0
 		for arg_i, arg in enumerate(r.head.args):
 			b.append(Comment(arg))
+			arg_expr = 'state.incoming['+str(arg_i)+']'
+			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
 			b.append(s.unify(
 				'state.incoming['+str(arg_i)+']',
 				'&'+local_expr(arg, r)))
@@ -251,7 +259,7 @@ class Emitter(object):
 	def body_triples_block(s, r):
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
-		if r.head:
+		if r.head and r.has_body:
 			b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
 		if do_ep:
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(*state.incoming[0],*state.incoming[1])))"))
@@ -275,7 +283,7 @@ class Emitter(object):
 		for arg_idx in range(len(triple.args)):
 			arg = triple.args[arg_idx]
 			b.append(Statement(
-				substate + ".incoming["+str(arg_idx)+"]=&"+local_expr(arg, r)))
+				substate + ".incoming["+str(arg_idx)+"]=get_value(&"+local_expr(arg, r)+')'))
 		b.append(Statement(substate + ".entry = 0"))
 		b.append(Line('while('+cppize_identifier('pred_'+triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
@@ -310,7 +318,7 @@ def local_expr(name, rule):
 	elif name in rule.consts_map:
 		return consts_of_rule(rule.debug_id) + '[' + str(rule.consts_map[name])+']'
 
-def maybe_getval(t, what):
+def maybe_get_value(t, what):
 	"""
 	wrap what in get_value() if t != NONE
 	"""

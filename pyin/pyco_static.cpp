@@ -11,6 +11,9 @@ using namespace std;
 
 typedef unsigned long nodeid;
 
+enum ConstantType {URI, STRING};
+
+typedef pair<ConstantType,string> Constant;
 
 enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
@@ -34,7 +37,7 @@ struct Thing
         nodeid string_id;
         BnodeOrigin origin;
     };
-    const bool operator==(const Thing& b)
+	bool operator==(const Thing& b) const
     {
         return this->type == b.type && this->binding == b.binding;
     }
@@ -81,30 +84,32 @@ int unify(cpppred_state & __restrict__ state)
 {
     Thing *x = state.incoming[0];
     Thing *y = state.incoming[1];
-    ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
     goto *(((char*)&&case0) + state.entry);
     case0:
+    ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
     if (x == y)
         yield(single_success)
-    Thing x_ = *x;
-    Thing y_ = *y;
-    if (x_.type == UNBOUND)
+    if (x->type == UNBOUND)
     {
-		x_.binding = y;
+        x->type = BOUND;
+		x->binding = y;
         yield(unbind_x)
     }
-    if (y_.type == UNBOUND)
+    if (y->type == UNBOUND)
     {
-		y_.binding = x;
+        y->type = BOUND;
+		y->binding = x;
         yield(unbind_y)
     }
-    if ((x_.type == CONST) && (x_ == y_))
+    if ((x->type == CONST) && (*x == *y))
         yield(end)
     unbind_x:
+        x->type = UNBOUND;
         x->binding = 0;
     single_success:
         return 0;
     unbind_y:
+        y->type = UNBOUND;
         y->binding = 0;
     end:
         return 0;
@@ -143,6 +148,8 @@ void print_result(cpppred_state &state);
 
 int main (int argc, char *argv[])
 {
+	(void )argc;
+	(void )argv;
     cpppred_state state;
     state.entry = 0;
     while(query(state)!=0)

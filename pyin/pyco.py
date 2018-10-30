@@ -72,7 +72,7 @@ class Emitter(object):
 		codes = s.codes
 		atom = str(a.value)
 		if atom in codes:
-			return codes[atom][0]
+			return codes[atom][1]
 		code = str(len(codes))
 		cpp_name = cppize_identifier(atom)
 		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
@@ -88,14 +88,14 @@ class Emitter(object):
 			) + '}')])
 
 
-	def things_literals(s, r, things):
-		r = '{'
+	def things_literals(s, rule, things):
+		result = '{'
 		for i, thing in enumerate(things):
-			r += s.thing_literal(r, thing)
+			result += s.thing_literal(rule, thing)
 			if i != len(things) -1:
-				r += ','
-		r += '}'
-		return r
+				result += ','
+		result += '}'
+		return result
 
 	def thing_literal(s, r, thing):
 		if type(thing) == pyin.Var and not thing.is_bnode:
@@ -172,7 +172,8 @@ class Emitter(object):
 			b.append(s.substituted_arg(r, term.args[0]))
 			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
 			b.append(s.substituted_arg(r, term.args[1]))
-			b.append(Statement('cout << "."<<endl'))
+			b.append(Statement('cout << "."'))
+		b.append(Statement('cout << endl'))
 		return outer_block
 
 	def pred(s, pred_name, rules):
@@ -232,6 +233,7 @@ class Emitter(object):
 				b.append(Statement(other_arg_expr+'=get_value('+other_arg_expr+')'))
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '&'+local_expr(other_arg, r)))
 				b = nest(b)
+				b.append(Statement('state.incoming['+str(arg_i)+']=get_value(state.incoming['+str(arg_i)+'])'))
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
 				b = nest(outer_block)
@@ -244,14 +246,15 @@ class Emitter(object):
 				'state.incoming['+str(arg_i)+']',
 				'&'+local_expr(arg, r)))
 			b = nest(b)
+			b.append(Statement('state.incoming['+str(arg_i)+']=get_value(state.incoming['+str(arg_i)+'])'))
 		b.append(s.body_triples_block(r))
-		return b
+		return outer_block
 
 	def unify(s, a, b):
 		r = Lines([
 			Statement("state.states[" + str(s.state_index) + '].entry = 0'),
-			Statement("state.states[" + str(s.state_index) + '].incoming[0] = '+a),
-			Statement("state.states[" + str(s.state_index) + '].incoming[1] = '+b),
+			Statement("state.states[" + str(s.state_index) + '].incoming[0] = get_value('+a+')'),
+			Statement("state.states[" + str(s.state_index) + '].incoming[1] = get_value('+b+')'),
 			Line('while(unify(state.states[' + str(s.state_index) + ']))')])
 		s.state_index += 1
 		return r
@@ -341,14 +344,6 @@ def pred_func_declaration(pred_name):
 def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
-def thing_expression(storage, thing_index, rule_index):
-	#if (storage == INCOMING):
-	#	return "state.incoming["+str(incoming_index)+']';
-	if (storage == LOCAL):
-		return "(&state.locals["+str(thing_index)+"])"
-	if (key == CONST):
-		return "(&_consts_of_rule(rule_index)" + "[" + str(thing_index)+"])"
-
 def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(*state.incoming[0], *state.incoming[1]))")
 
@@ -380,6 +375,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
 	os.system("make pyco")
 	print("#ok lets run this")
+	sys.stdout.flush()
 	os.system("valgrind ./pyco")
 
 if __name__ == "__main__":

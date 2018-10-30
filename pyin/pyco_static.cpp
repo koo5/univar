@@ -102,17 +102,15 @@ int unify(cpppred_state & __restrict__ state)
         yield(unbind_y)
     }
     if ((x->type == CONST) && (*x == *y))
-        yield(end)
-    unbind_x:
-        x->type = UNBOUND;
-        x->binding = 0;
+        yield(single_success)
     single_success:
-        return 0;
+	return 0;
+    unbind_x:
+    x->type = UNBOUND;
+    return 0;
     unbind_y:
-        y->type = UNBOUND;
-        y->binding = 0;
-    end:
-        return 0;
+    y->type = UNBOUND;
+    return 0;
 }
 
 

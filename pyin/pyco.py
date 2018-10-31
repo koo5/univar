@@ -194,7 +194,8 @@ class Emitter(object):
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
 					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
-					Lines([s.rule(rule) for rule in rules])
+					Lines([s.rule(rule) for rule in rules]),
+					Statement('return 0')
 				]
 			)
 		])
@@ -210,7 +211,6 @@ class Emitter(object):
 			b = s.head(b, r)
 		else:
 			b.append(s.body_triples_block(r))
-		outer_block.append(Statement('return 0'))
 		return outer_block
 
 	def head(s, b, r):
@@ -233,7 +233,8 @@ class Emitter(object):
 				b.append(Statement(other_arg_expr+'=get_value('+other_arg_expr+')'))
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '&'+local_expr(other_arg, r)))
 				b = nest(b)
-				b.append(Statement('state.incoming['+str(arg_i)+']=get_value(state.incoming['+str(arg_i)+'])'))
+				b.append(Statement('state.incoming[0]=get_value(state.incoming[0])'))
+				b.append(Statement('state.incoming[1]=get_value(state.incoming[1])'))
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
 				b = nest(outer_block)
@@ -246,7 +247,8 @@ class Emitter(object):
 				'state.incoming['+str(arg_i)+']',
 				'&'+local_expr(arg, r)))
 			b = nest(b)
-			b.append(Statement('state.incoming['+str(arg_i)+']=get_value(state.incoming['+str(arg_i)+'])'))
+			b.append(Statement('state.incoming[0]=get_value(state.incoming[0])'))
+			b.append(Statement('state.incoming[1]=get_value(state.incoming[1])'))
 		b.append(s.body_triples_block(r))
 		return outer_block
 
@@ -266,7 +268,7 @@ class Emitter(object):
 			b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
 		if do_ep:
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(*state.incoming[0],*state.incoming[1])))"))
-			b = nest(b)
+			inner_block = b = nest(b)
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
@@ -278,6 +280,7 @@ class Emitter(object):
 		b.append(s.do_yield())
 		if do_ep:
 			b.append(push_ep(r))
+			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
@@ -290,6 +293,7 @@ class Emitter(object):
 		b.append(Statement(substate + ".entry = 0"))
 		b.append(Line('while('+cppize_identifier('pred_'+triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
+		s.state_index += 1
 		return b
 
 	def do_yield(s):

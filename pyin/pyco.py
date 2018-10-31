@@ -33,7 +33,7 @@ def make_locals(rule):
 				if a not in locals_map:
 					locals_map[a] = len(locals_template)
 					v = pyin.Var(a)
-					v.is_bnode = v in rule.existentials
+					v.is_bnode = a in rule.existentials
 					locals_template.append(v)
 			else:
 				if a not in consts_map:
@@ -103,9 +103,9 @@ class Emitter(object):
 		elif type(thing) == pyin.Atom:
 			t = 'CONST'
 			v = '.string_id = ' + s.string2code(thing)
-		elif thing in r.existentials:
+		elif thing.is_bnode:
 			t = 'BNODE'
-			v = ".origin = " + s.get_bnode_origin(r.original_head_ref.id, str(thing))
+			v = ".origin = " + s.get_bnode_origin(r.original_head_ref.id, str(thing.debug_name))
 		return 'Thing{' + t + ',' + v + '}'
 
 	def label(s):
@@ -226,7 +226,7 @@ class Emitter(object):
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
 			if arg in r.existentials:
-				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, arg)+")"))
+				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
 				b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
 				b = nest(b)
@@ -375,7 +375,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	os.system("make pyco")
 	print("#ok lets run this")
 	sys.stdout.flush()
-	os.system("./pyco")
+	os.system("valgrind ./pyco")
 
 if __name__ == "__main__":
 	query_from_files()

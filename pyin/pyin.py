@@ -215,9 +215,9 @@ class Locals(OrderedDict):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
+		s.debug_name = debug_name
 		if not nolog:
 			Kbdbgable.__init__(s)
-			s.debug_name = debug_name
 			if isinstance(debug_locals, weakref):
 				s.debug_locals = debug_locals
 			elif debug_locals == None:
@@ -263,8 +263,7 @@ class Var(AtomVar):
 	we set three new attributes on it: .bnode, .is_a_bnode_from_original_rule, .is_from_name
 	"""
 	def __init__(s, debug_name=None, debug_locals=None):
-		if not nolog:
-			AtomVar.__init__(s,debug_name, debug_locals)
+		AtomVar.__init__(s,debug_name, debug_locals)
 		s.bound_to = None
 		s.bnode = lambda: None
 

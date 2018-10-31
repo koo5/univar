@@ -153,7 +153,7 @@ class Emitter(object):
 				Statement('v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
 				If('v->type == CONST',
 					If ('strings[v->string_id].first == URI',
-						Statement('cout << "<" << strings[v->string_id].second << "> "'),
+						Statement('cout <<  "<" << strings[v->string_id].second << "> "'),
 						Statement('cout << "\\"" << strings[v->string_id].second << "\\" "')
 					),
 					Statement('cout << "?' + str(arg) +' "'))
@@ -228,7 +228,10 @@ class Emitter(object):
 			if arg in r.existentials:
 				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
-				b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
+				if other_arg in r.locals_map:
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+str(r.locals_map[arg]-r.locals_map[other_arg])+')+get_value('+arg_expr+')'))
+				else:
+					b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))

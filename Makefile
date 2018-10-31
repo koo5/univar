@@ -76,4 +76,5 @@ dimacs2tau: dimacs2tau.cpp
 	$(CXX) -std=c++11 dimacs2tau.cpp -odimacs2tau -Wall -ggdb
 
 pyco: pyco_out.cpp pyin/pyco_static.cpp
-	$(CXX) -std=c++11 -Wall    -fno-omit-frame-pointer -fno-optimize-sibling-calls  -Og -ggdb -g3 pyco_out.cpp -o pyco
+	$(CXX) -std=c++11 -Wall  -ggdb  -fno-omit-frame-pointer -fno-optimize-sibling-calls  -Og  -g3 pyco_out.cpp -o pyco
+

@@ -23,24 +23,23 @@ if sys.version_info.major == 3:
 	unicode = str
 
 def make_locals(rule):
-		locals_template = []
-		consts = []
-		locals_map = {}
-		consts_map = {}
-		for triple in ([rule.head] if rule.head else []) + rule.body:
-			for a in triple.args:
-				if pyin.is_var(a):
-					if a not in locals_map:
-						locals_map[a] = len(locals_template)
-						v = pyin.Var(a)
-						v.is_bnode = v in rule.existentials
-						locals_template.append(v)
-
-				else:
-					if a not in consts_map:
-						consts_map[a] = len(consts)
-						consts.append(pyin.Atom(a))
-		return locals_map, consts_map, locals_template,	consts
+	locals_template = []
+	consts = []
+	locals_map = {}
+	consts_map = {}
+	for triple in ([rule.head] if rule.head else []) + rule.body:
+		for a in triple.args:
+			if pyin.is_var(a):
+				if a not in locals_map:
+					locals_map[a] = len(locals_template)
+					v = pyin.Var(a)
+					v.is_bnode = v in rule.existentials
+					locals_template.append(v)
+			else:
+				if a not in consts_map:
+					consts_map[a] = len(consts)
+					consts.append(pyin.Atom(a))
+	return locals_map, consts_map, locals_template,	consts
 
 def vars_in_original_head(rule):
 	result = set()
@@ -167,7 +166,7 @@ class Emitter(object):
 		b.append(Line('void print_result(cpppred_state &state)'))
 		b = nest(b)
 		b.append(Statement('cout << " RESULT : "'))
-		b.append(Statement('Thing *v'))
+		b.append(Statement('Thing *v;(void)v'))
 		for term in goal_graph:
 			b.append(s.substituted_arg(r, term.args[0]))
 			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
@@ -227,28 +226,20 @@ class Emitter(object):
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
 			if arg in r.existentials:
-				b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
-				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, arg)+")"))
+				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, arg)+")"))
 				b = nest(b)
-				b.append(Statement(other_arg_expr+'=get_value('+other_arg_expr+')'))
-				b.append(s.unify('state.incoming['+str(arg_i)+']', '&'+local_expr(other_arg, r)))
+				b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
 				b = nest(b)
-				b.append(Statement('state.incoming[0]=get_value(state.incoming[0])'))
-				b.append(Statement('state.incoming[1]=get_value(state.incoming[1])'))
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
 				b = nest(outer_block)
 		s.state_index = 0
 		for arg_i, arg in enumerate(r.head.args):
 			b.append(Comment(arg))
-			arg_expr = 'state.incoming['+str(arg_i)+']'
-			b.append(Statement(arg_expr+'=get_value('+arg_expr+')'))
 			b.append(s.unify(
-				'state.incoming['+str(arg_i)+']',
-				'&'+local_expr(arg, r)))
+				'(state.incoming['+str(arg_i)+'])',
+				'&('+local_expr(arg, r)+')'))
 			b = nest(b)
-			b.append(Statement('state.incoming[0]=get_value(state.incoming[0])'))
-			b.append(Statement('state.incoming[1]=get_value(state.incoming[1])'))
 		b.append(s.body_triples_block(r))
 		return outer_block
 
@@ -262,25 +253,29 @@ class Emitter(object):
 		return r
 
 	def body_triples_block(s, r):
+		dont_yield = False
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
-		if r.head and r.has_body:
-			b.append(Line('ASSERT(state.incoming[0]->type != BOUND);ASSERT(state.incoming[1]->type != BOUND);'))
 		if do_ep:
-			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(*state.incoming[0],*state.incoming[1])))"))
+			b.append(Statement("state.ep = ep_head(*get_value(state.incoming[0]), *get_value(state.incoming[1]))"))
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state.ep))"))
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
-		if do_ep:
-			b.append(Lines([
-				Statement("ASSERT(ep" +str(r.debug_id)+ ".size())"),
-				Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
-		b.append(s.do_yield())
-		if do_ep:
-			b.append(push_ep(r))
-			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
+			else:
+				dont_yield = True
+				break
+		if not dont_yield:
+			if do_ep:
+				b.append(Lines([
+					Statement("ASSERT(ep" +str(r.debug_id)+ ".size())"),
+					Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
+			b.append(s.do_yield())
+			if do_ep:
+				b.append(push_ep(r))
+				inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
@@ -349,7 +344,7 @@ def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".push_back(thingthingpair(*state.incoming[0], *state.incoming[1]))")
+	return Statement('ep'+str(rule.debug_id)+".push_back(state.ep)")
 
 
 def nest(block):
@@ -380,7 +375,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	os.system("make pyco")
 	print("#ok lets run this")
 	sys.stdout.flush()
-	os.system("valgrind ./pyco")
+	os.system("./pyco")
 
 if __name__ == "__main__":
 	query_from_files()
@@ -389,9 +384,3 @@ if __name__ == "__main__":
 
 
 
-"""
-todo:
-consts can be globals, one for each const, no need for per-rule arrays 
-
-
-"""

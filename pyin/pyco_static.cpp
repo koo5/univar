@@ -49,6 +49,7 @@ typedef vector<ep_head> ep_table;
 struct cpppred_state;
 struct cpppred_state
 {
+    ep_head ep;
     size_t entry;
     Locals locals;
     Thing *incoming[2];
@@ -123,7 +124,7 @@ Thing *get_value(Thing *x)
 
 
 bool find_ep(ep_table *table, ep_head incoming)
-{//{BOUND, UNBOUND, CONST, BNODE};
+{
     Thing a,b,x,y;
     x = incoming.first;
     y = incoming.second;
@@ -133,10 +134,7 @@ bool find_ep(ep_table *table, ep_head incoming)
         a = head.first;
         b = head.second;
         ASSERT(a.type != BOUND);ASSERT(b.type != BOUND);
-        if ((a.type != x.type) || (b.type != y.type)) continue;
-        if ((a.type != UNBOUND) && !(a == x)) continue;
-        if ((b.type != UNBOUND) && !(b == y)) continue;
-        return true;
+        if ((a == x) && (b == y)) return true;
     }
     return false;
 }

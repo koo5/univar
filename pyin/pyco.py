@@ -338,8 +338,7 @@ def maybe_get_value(t, what):
 	return r
 
 
-#String -> String
-def cppize_identifier(i):
+def cppize_identifier(i: str) -> str:
 	return common.fix_up_identification(common.shorten(i))
 
 #String -> String

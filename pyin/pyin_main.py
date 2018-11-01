@@ -55,8 +55,9 @@ def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identifica
 		r = ''
 		for triple in result:
 			r += triple.str()
-		print(' RESULT :' + r)
+		print(' RESULT : ' + r)
 		print(' step :' + str(pyin.global_step_counter))
+		sys.stdout.flush()
 		nolog or pyin.kbdbg_text('#result: ' + r)
 	print(' steps :' + str(pyin.global_step_counter))
 

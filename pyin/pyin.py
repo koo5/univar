@@ -124,7 +124,7 @@ class Triple(object):
 
 	def str(s, shortener = lambda x:x):
 		if len(s.args) == 2:
-			return shortener(s.args[0].n3()) + " " + shortener(s.pred.n3()) + " " + shortener(s.args[1].n3()) + "."
+			return shortener(s.args[0].n3()) + " " + shortener(s.pred.n3()) + " " + shortener(s.args[1].n3()) + " . "
 		return shortener(str(s.pred)) + "(" + printify(s.args, ", ", shortener) + ")"
 
 class Graph(list):
@@ -572,7 +572,7 @@ class Rule(Kbdbgable):
 				if depth == -1:
 					if not nolog:
 						log ("rule done")
-						step()
+					step()
 					break
 				continue
 			nolog or log ("back in " + desc() + "\n# from sub-rule")
@@ -693,7 +693,7 @@ def query(input_rules, query_rule, goal_graph):
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	nolog or step()
+	step()
 #	tracemalloc.start()
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
@@ -869,7 +869,7 @@ def load(kb, goal, identification, base):
 		return o
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
-			return rdflib.Variable(str(o))
+			return rdflib.Variable(str(o.lower()))
 		return o
 	def fixup(spo):
 		s,p,o = spo

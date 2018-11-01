@@ -62,7 +62,8 @@ def tau(command, files, only_id):
 					if only_id != None and only_id != query_number:
 						continue
 					if len(results) != 0:
-						fail(str(len(results)) + ' results remaining')
+						print('expecting 0 but ' +str(len(results)) + ' results remaining')
+						fail()
 					else:
 						success()
 					continue

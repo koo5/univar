@@ -172,7 +172,7 @@ class Emitter(object):
 			b.append(s.substituted_arg(r, term.args[0]))
 			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
 			b.append(s.substituted_arg(r, term.args[1]))
-			b.append(Statement('cout << "."'))
+			b.append(Statement('cout << ". "'))
 		b.append(Statement('cout << endl'))
 		return outer_block
 

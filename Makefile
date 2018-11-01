@@ -68,12 +68,13 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 
 clean:
-	rm -rf tau $(OBJECTS) ubi/client.o marpa.o marpa_tau.o m-tau tau-new a.out out.o cppout
+	rm -rf tau $(OBJECTS) ubi/client.o marpa.o marpa_tau.o m-tau tau-new a.out out.o cppout pyco pyco_out.o
 
 ppjson: ppjson.cpp
 	$(CXX) -std=c++11 ppjson.cpp -oppjson -Wall -ggdb
 dimacs2tau: dimacs2tau.cpp
 	$(CXX) -std=c++11 dimacs2tau.cpp -odimacs2tau -Wall -ggdb
 
-pyco: 
-	$(CXX) -std=c++11 -Wall -ggdb pyco_out.cpp -o pyco
+pyco: pyco_out.cpp pyin/pyco_static.cpp
+	clang++ -std=c++11  $(ASAN) -Wall -Wextra -Wpedantic   -Wno-gnu-label-as-value -Wno-gnu-label-as-value -Wno-c99-extensions  -g -ggdb  -fno-omit-frame-pointer -fno-optimize-sibling-calls  -Og  -g3 pyco_out.cpp -o pyco 
+#

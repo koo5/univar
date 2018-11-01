@@ -215,9 +215,9 @@ class Locals(OrderedDict):
 
 class AtomVar(Kbdbgable):
 	def __init__(s, debug_name, debug_locals):
+		s.debug_name = debug_name
 		if not nolog:
 			Kbdbgable.__init__(s)
-			s.debug_name = debug_name
 			if isinstance(debug_locals, weakref):
 				s.debug_locals = debug_locals
 			elif debug_locals == None:
@@ -263,8 +263,7 @@ class Var(AtomVar):
 	we set three new attributes on it: .bnode, .is_a_bnode_from_original_rule, .is_from_name
 	"""
 	def __init__(s, debug_name=None, debug_locals=None):
-		if not nolog:
-			AtomVar.__init__(s,debug_name, debug_locals)
+		AtomVar.__init__(s,debug_name, debug_locals)
 		s.bound_to = None
 		s.bnode = lambda: None
 
@@ -687,20 +686,19 @@ def pred(p, parent, args):
 		for i in rule.match(parent, args):
 			yield i
 
-def query(input_rules, input_query):
+def query(input_rules, query_rule, goal_graph):
 	global preds, dbg
 	nolog or kbdbg('<'+this + "> rdf:value <" + step_list_item(0)+'>')
 	nolog or kbdbg_graph_first()
 	preds = defaultdict(list)
 	for r in input_rules:
 		preds[r.head.pred].append(r)
-	query_rule = Rule([], None, input_query)
 	nolog or step()
 #	tracemalloc.start()
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
 		nolog or kbdbg(uri + " rdf:type kbdbg:result")
-		terms = [substitute_term(term, locals) for term in input_query]
+		terms = [substitute_term(term, locals) for term in goal_graph]
 		if not nolog:
 			result_terms_uri = emit_list(emit_terms(terms))
 			kbdbg(uri + " rdf:value " + result_terms_uri)
@@ -877,14 +875,20 @@ def load(kb, goal, identification, base):
 		s,p,o = spo
 		return (fixup2(s), fixup2(p), fixup2(o))
 	rules = []
+	head_triples_triples_id = 0
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
-	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
+	facts = Graph(Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
+	facts.id=head_triples_triples_id
+	head_triples_triples_id += 1
+
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
 			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
+			head_triples_triples.id=head_triples_triples_id
+			head_triples_triples_id += 1
 			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
@@ -909,7 +913,8 @@ def load(kb, goal, identification, base):
 
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
-	return rules, goal
+	query_rule = Rule([], None, goal)
+	return rules, query_rule, goal
 
 
 

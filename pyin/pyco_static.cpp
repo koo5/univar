@@ -1,7 +1,9 @@
 #include <string>
 #include <map>
+#include <tuple>
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 #define ASSERT assert
 
@@ -9,6 +11,9 @@ using namespace std;
 
 typedef unsigned long nodeid;
 
+enum ConstantType {URI, STRING};
+
+typedef pair<ConstantType,string> Constant;
 
 enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
@@ -16,7 +21,7 @@ enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 reference?
 */
 
-typedef unsigned BnodeOrigin;
+typedef unsigned long BnodeOrigin;
 typedef unsigned BnodeIndex;
 
 //map<BnodeIndex,Locals> bnodes;
@@ -25,6 +30,10 @@ typedef unsigned BnodeIndex;
 struct Thing;
 
 typedef vector<Thing> Locals;
+
+static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
+static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
+
 
 struct Thing
 {
@@ -36,20 +45,37 @@ struct Thing
         BnodeOrigin origin;
     };
 
-    //recursively check equality of bindings ?
-    const bool operator==(const Thing& b)
+    //just bitwise comparison, not recursive check of equality of bindings
+
+    bool operator==(const Thing& b) const
     {
         return this->type == b.type && this->binding == b.binding;
     }
+    void set_value(Thing* v)
+    {
+        binding = v;
+        assert (v != (Thing* )0x31);
+    }
+    void bind(Thing* v)
+    {
+        type = BOUND;
+        set_value(v);
+    }
+    void unbind()
+    {
+        type = UNBOUND;
+         set_value((Thing*)666);
+    }
 };
 
-
-//ep_t is an array of 2 Things
-typedef Thing ep_t[2];
-
+typedef pair<Thing,Thing> thingthingpair;
+//ep_head is an array/pair of 2 Things
+typedef thingthingpair ep_head;
+typedef vector<ep_head> ep_table;
 struct cpppred_state;
 struct cpppred_state
 {
+    ep_head ep;
     size_t entry;
     Locals locals;
     Thing *incoming[2];
@@ -85,34 +111,31 @@ int unify(cpppred_state & __restrict__ state)
 {
     Thing *x = state.incoming[0];
     Thing *y = state.incoming[1];
-    ASSERT(x->type != BOUND);
-    ASSERT(y->type != BOUND);
     goto *(((char*)&&case0) + state.entry);
     case0:
+    ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
     if (x == y)
         yield(single_success)
-    Thing x_ = *x;
-    Thing y_ = *y;
-    if (x_.type == UNBOUND)
+    if (x->type == UNBOUND)
     {
-		x_.binding = y;
+        x->bind(y);
         yield(unbind_x)
     }
-    if (y_.type == UNBOUND)
+    if (y->type == UNBOUND)
     {
-		y_.binding = x;
+        y->bind(x);
         yield(unbind_y)
     }
-    if ((x_.type == CONST) && (x_ == y_))
-        yield(end)
-    unbind_x:
-        x->binding = 0;
+    if ((x->type == CONST) && (*x == *y))
+        yield(single_success)
     single_success:
-        return 0;
+	return 0;
+    unbind_x:
+    x->unbind();
+    return 0;
     unbind_y:
-        y->binding = 0;
-    end:
-        return 0;
+    y->unbind();
+    return 0;
 }
 
 
@@ -124,4 +147,33 @@ Thing *get_value(Thing *x)
 }
 
 
-//find_ep
+bool find_ep(ep_table *table, ep_head incoming)
+{
+    Thing a,b,x,y;
+    x = incoming.first;
+    y = incoming.second;
+    ASSERT(x.type != BOUND);ASSERT(y.type != BOUND);
+    for (const ep_head head: *table)
+    {
+        a = head.first;
+        b = head.second;
+        ASSERT(a.type != BOUND);ASSERT(b.type != BOUND);
+        if ((a == x) && (b == y)) return true;
+    }
+    return false;
+}
+
+static size_t query(cpppred_state & __restrict__ state);
+void print_result(cpppred_state &state);
+
+int main (int argc, char *argv[])
+{
+	(void )argc;
+	(void )argv;
+    cpppred_state state;
+    state.entry = 0;
+    while(query(state)!=0)
+    {
+        print_result(state);
+    }
+}

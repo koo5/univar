@@ -42,7 +42,6 @@ def tau(command, files, only_id):
 		query_number = None
 		results = []
 		base = fn
-		remaining_results = []
 		identification = None
 		mode = Mode.none
 		prefixes = []
@@ -62,8 +61,8 @@ def tau(command, files, only_id):
 				elif l_stripped == 'thatsall':
 					if only_id != None and only_id != query_number:
 						continue
-					if len(remaining_results) != 0:
-						fail(str(len(remaining_results)) + ' results remaining')
+					if len(results) != 0:
+						fail(str(len(results)) + ' results remaining')
 					else:
 						success()
 					continue

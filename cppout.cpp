@@ -527,7 +527,7 @@ void cppout_pred(string name, vector<Rule> rs)
 
 			
 			
-			out << "if (!silent) dout << unifys << \" unifys \"  ;\n";
+			out << "if (!silent) dout << unifys << \" unifys \" << endl ;\n";
 			out << "if (!silent) dout << \" RESULT \" << counter << \": \";\n";
 
 			ASSERT(rule.body);
@@ -691,7 +691,7 @@ void yprover::cppout(qdb &goal)
 
 	out << "void cppdict_init(){\n";
 	for (auto x:cppdict)
-		out << "cppdict[" << x.first << "] = \"" << x.second << "\";\n";
+		out << "cppdict[" << x.first << "] = \"" << dict[x.first].tostring() << "\";\n";
 	out << "}\n";
 
 

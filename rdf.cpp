@@ -35,7 +35,7 @@ LITERAL:
 */
 string node::tostring() const {
 	std::stringstream ss;
-	bool isiri = _type == IRI && !((*value).size() && ((*value)[0] == '?')) ;
+	bool isiri = _type == IRI && (*value).find("?") == string::npos;
 
 	if ( isiri ) ss << '<';
 	//else if ( _type == BNODE ) ss << '*';

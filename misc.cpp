@@ -150,7 +150,7 @@ nodeid bidict::set ( node v ) {
 	//add the nodeid to dict.ip with the node as the value.
 	//Return the nodeid.
 	nodeid k = pi.size() + 1; 
-	if ( v._type == node::IRI && (*v.value)[0] == '?' ) k = -k;
+	if ( v._type == node::IRI && ((*v.value).find("?") != string::npos))  k = -k;
 	pi[v] = k;
 	ip[k] = v;
 	return k;

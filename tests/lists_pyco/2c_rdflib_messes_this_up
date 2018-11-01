@@ -6,7 +6,7 @@ kb
 { [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
 
-?W :t ?differentF.
+?W :t ?F.
 :T :not :F.
 :F :not :T.
 

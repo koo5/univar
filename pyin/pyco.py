@@ -27,7 +27,7 @@ def make_locals(rule):
 	consts = []
 	locals_map = {}
 	consts_map = {}
-	for triple in ([rule.head] if rule.head else []) + rule.body:
+	for triple in rule.original_head_triples + rule.body:
 		for a in triple.args:
 			if pyin.is_var(a):
 				if a not in locals_map:
@@ -201,7 +201,7 @@ class Emitter(object):
 
 	def rule(s, r):
 		if len(r.existentials) > 1:
-			raise Exception("too many existentials")
+			raise Exception("too many existentials in " + str(r) +" : " + str(r.existentials))
 		outer_block = b = Lines()
 		b.append(Comment((r)))
 		if len(r.locals_template):
@@ -229,7 +229,7 @@ class Emitter(object):
 				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
 				if other_arg in r.locals_map:
-					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+str(r.locals_map[arg]-r.locals_map[other_arg])+')+get_value('+arg_expr+')'))
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+str(r.locals_map[other_arg]-r.locals_map[arg])+')+get_value('+arg_expr+')'))
 				else:
 					b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
 				b = nest(b)

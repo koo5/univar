@@ -18,7 +18,7 @@ typedef pair<ConstantType,string> Constant;
 enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
 
-typedef unsigned BnodeOrigin;
+typedef unsigned long BnodeOrigin;
 typedef unsigned BnodeIndex;
 
 //map<BnodeIndex,Locals> bnodes;
@@ -27,6 +27,10 @@ typedef unsigned BnodeIndex;
 struct Thing;
 
 typedef vector<Thing> Locals;
+
+static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
+static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
+
 
 struct Thing
 {
@@ -40,6 +44,21 @@ struct Thing
 	bool operator==(const Thing& b) const
     {
         return this->type == b.type && this->binding == b.binding;
+    }
+    void set_value(Thing* v)
+    {
+        binding = v;
+        assert (v != (Thing* )0x31);
+    }
+    void bind(Thing* v)
+    {
+        type = BOUND;
+        set_value(v);
+    }
+    void unbind()
+    {
+        type = UNBOUND;
+        set_value((Thing*)666);
     }
 };
 
@@ -92,14 +111,12 @@ int unify(cpppred_state & __restrict__ state)
         yield(single_success)
     if (x->type == UNBOUND)
     {
-        x->type = BOUND;
-		x->binding = y;
+        x->bind(y);
         yield(unbind_x)
     }
     if (y->type == UNBOUND)
     {
-        y->type = BOUND;
-		y->binding = x;
+        y->bind(x);
         yield(unbind_y)
     }
     if ((x->type == CONST) && (*x == *y))
@@ -107,10 +124,10 @@ int unify(cpppred_state & __restrict__ state)
     single_success:
 	return 0;
     unbind_x:
-    x->type = UNBOUND;
+    x->unbind();
     return 0;
     unbind_y:
-    y->type = UNBOUND;
+    y->unbind();
     return 0;
 }
 

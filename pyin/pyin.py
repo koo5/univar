@@ -877,7 +877,10 @@ def load(kb, goal, identification, base):
 	rules = []
 	head_triples_triples_id = 0
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
-	facts = [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples]
+	facts = Graph(Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
+	facts.id=head_triples_triples_id
+	head_triples_triples_id += 1
+
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))

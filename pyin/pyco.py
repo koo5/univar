@@ -130,8 +130,8 @@ class Emitter(object):
 				used for both head-unification and for calling other rules,
 				so this is the number of generators that this rule will need at once, at most"""
 				rule.max_states_len = len(rule.head.args) + len(rule.body)
+				#put under "with_assert" ?
 				assert len(rule.head.args) == 2
-				#gotcha; is args just the vars? no its args in the meaning of term with args
 		del pred,rules  
 		r = Module([
 			Lines([
@@ -319,9 +319,12 @@ def maybe_getval(t, what):
 		r += ")"
 	return r
 
+
+#String -> String
 def cppize_identifier(i):
 	return common.fix_up_identification(common.shorten(i))
 
+#String -> String
 def pred_func_declaration(pred_name):
 	pred_name = cppize_identifier(pred_name)
 	return "static size_t " + pred_name + "(cpppred_state & __restrict__ state)"

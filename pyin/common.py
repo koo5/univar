@@ -49,18 +49,40 @@ log = logging.getLogger().debug
 
 
 
+#Key: 		String
+#Value:		String
 shortenings = {}
+
+
+#String -> String
+"""forall s : String, shorten(s) contains at most one occurrence of a character
+from '/:#?', and if it does it will be at the beginning of shorten(s)
+"""
 def shorten(term):
 	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst instead
+	#copy value of "term" into a new string stored in "s"
 	s = str(term)
+
+	#Find the last occurrence of any of the characters in '/:#?' in s and
+	#give back the rest of the string from that last occurrence til the end
+	#inclusive of final special character
 	for i in '/:#?':
 		p = s.rfind(i)
 		if p != -1:
 			s = s[p:]
+
+	#return "term" if it's shortening is already taken by
+	#a member of the equivalence class other than "term" itself 
 	if s in shortenings and shortenings[s] != term:
 		return str(term)
+
+	#note: redundant in the case that shortenings[s] == term
 	shortenings[s] = term
+
 	return s
+
+
+
 
 def traverse(item):
 	for i in iter(item):
@@ -78,14 +100,26 @@ def kbdbg_file_path(fn):
 def kbdbg_file_name(fn):
 	return kbdbg_file_path(fn) + fn
 
+#Identifiers table
+# Key: 		String
+# Value: 	String
 fixed_upings = {}
+
+# String -> String
 def fix_up_identification(i):
+	#replace non-alphanumeric characters in i with "_"
 	r =  "".join([ch if ch.isalnum() else "_" for ch in i])
+
+	#recursively stick "_2"s on the end until you have an unused identifier
 	if r in fixed_upings:
 		if fixed_upings[r] != i:
 			return fix_up_identification(r + "_2")
 	else:
 		fixed_upings[r] = i
+
+	#but this will come up with a new fix_uping even if you pass it the
+	#same identifier with non-alnum chars ?
+	
 	return r
 
 pyin_prefixes = """
@@ -93,5 +127,5 @@ prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 prefix kbdbg: <http://kbd.bg/#> 
 prefix : <file:///#> 
 """
-
-
+#yo yo
+u should

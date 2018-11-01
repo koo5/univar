@@ -11,7 +11,10 @@ typedef unsigned long nodeid;
 
 
 enum ThingType {BOUND, UNBOUND, CONST, BNODE};
-/*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits*/
+/*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
+
+reference?
+*/
 
 typedef unsigned BnodeOrigin;
 typedef unsigned BnodeIndex;
@@ -32,6 +35,8 @@ struct Thing
         nodeid string_id;
         BnodeOrigin origin;
     };
+
+    //recursively check equality of bindings ?
     const bool operator==(const Thing& b)
     {
         return this->type == b.type && this->binding == b.binding;
@@ -39,6 +44,7 @@ struct Thing
 };
 
 
+//ep_t is an array of 2 Things
 typedef Thing ep_t[2];
 
 struct cpppred_state;

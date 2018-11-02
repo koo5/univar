@@ -1,0 +1,12 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+kb
+#— Existence of lists
+(?X).
+fin.
+query
+?l rdf:first :banana. ?l rdf:rest rdf:nil.
+fin.
+shouldbe
+?l rdf:first :banana. ?l rdf:rest rdf:nil.
+fin.
+thatsall

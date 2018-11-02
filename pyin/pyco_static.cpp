@@ -128,7 +128,29 @@ int unify(cpppred_state & __restrict__ state)
     }
     if ((x->type == CONST) && (*x == *y))
         yield(single_success)
-    //two bnodes fail
+    if ((x->type == BNODE) && (x->origin == y->origin))
+    {
+        switch (y->origin)
+        {
+            case bny4:
+                start = -4;end = 7;
+                state.states.resize(end-start-1);
+                state.states[0].entry = 0;
+                ASSERT((x - 4)->type != BNODE); ASSERT((y - 4)->type != BNODE);
+                state.states[0].incoming[0] = (x - 4);
+                state.states[0].incoming[1] = (y - 4);
+                while(unify(state.states[0]))
+                {
+                    ...
+                        ...
+                            label
+                            yield
+                break;
+            ...
+        }
+        default:
+            ASSERT(false);
+    }
     single_success:
 	return 0;
     unbind_x:

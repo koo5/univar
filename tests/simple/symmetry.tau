@@ -1,6 +1,6 @@
 kb
 :a :foo :b.
-{?a :foo ?b} => {?b :foo ?a}.
+{?b :foo ?a} <= {?a :foo ?b} .
 fin.
 
 query

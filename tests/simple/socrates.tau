@@ -1,3 +1,5 @@
+@prefix : <file://>.
+
 kb
 :socrates :a :man .
 #forall ?x , (?x a man) -> (?x a mortal)

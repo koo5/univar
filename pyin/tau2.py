@@ -44,7 +44,7 @@ def tau(command, files, only_id):
 		base = fn
 		identification = None
 		mode = Mode.none
-		prefixes = []
+		prefixes = ['@prefix : <file://>.\n']
 		output = ''
 		buffer = []
 		for line_number, l in enumerate(open(fn).readlines()):
@@ -92,6 +92,11 @@ def tau(command, files, only_id):
 							buffer = []
 							mode = Mode.none
 							continue
+
+						euler_buffer = ''.join(buffer)
+						euler_formula = '{' + euler_buffer + '} <= {' + euler_buffer + '}.'
+						with open('query_for_external_euler.n3', 'w') as f:
+							f.write(''.join(prefixes) + euler_formula)
 						write_out('query_for_external_raw.n3')
 						set_new_identification()
 						identify()
@@ -104,7 +109,7 @@ def tau(command, files, only_id):
 						else:
 							ssss = r.stdout
 							for output_line in ssss.read().splitlines():
-								echo(output_line)
+								echo('ooo'+output_line)
 								result_marker = ' RESULT :'
 								if output_line.startswith(result_marker):
 									results.append(output_line[len(result_marker):])
@@ -132,7 +137,9 @@ def tau(command, files, only_id):
 							buffer = []
 							continue
 
-						result_graph = parse(data=results.pop(0), identifier=base, publicID=base)
+						result_to_parse = results.pop(0)
+						print('result_to_parse',result_to_parse,';')
+						result_graph = parse(data=''.join(prefixes+[result_to_parse]), identifier=base, publicID=base)
 						cmp = do_results_comparison(shouldbe_graph, result_graph)
 						if cmp == True:
 							success()
@@ -215,11 +222,13 @@ def grab_buffer():
 	return r
 
 def write_out(fn):
-	global mode
+	global mode, buffer
 	buffer = grab_buffer()
+	r = ''.join(chain(prefixes, buffer))
 	with open(fn, 'w') as f:
 		f.write(buffer)
 	mode = Mode.none
+	buffer = []
 
 def print_kwrite_link():
 	echo("kwrite " + common.kbdbg_file_name(identification))

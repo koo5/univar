@@ -2,6 +2,7 @@ kb
 :Bob :a :Person .
 :Bob :self :Bob .
 { ?x :a :Person. ?x :self ?x } => { ?x :is ?x } .
+{ ?x :a :Person. ?x :self ?x } => { ?x :is ?x } .
 fin.
 
 query
@@ -9,6 +10,9 @@ query
 ?FOO :is ?WHOELSE .
 fin.
 
+shouldbe
+:Bob :is :Bob . :Bob :is :Bob .
+fin.
 shouldbe
 :Bob :is :Bob . :Bob :is :Bob .
 fin.

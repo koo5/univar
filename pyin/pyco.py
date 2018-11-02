@@ -314,7 +314,7 @@ int unify(cpppred_state & __restrict__ state)
 				if other_arg in r.locals_map:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+str(r.locals_map[other_arg]-r.locals_map[arg])+')+get_value('+arg_expr+')'))
 				else:
-					b.append(s.unify('state.incoming['+str(arg_i)+']', '(&'+local_expr(other_arg, r)+')'))
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '(&'+local_expr(other_arg, r)+')'))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))

@@ -105,62 +105,6 @@ later, for optimalization, we dont need to call this function in every case.
 the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
-#define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
-
-int unify(cpppred_state & __restrict__ state)
-{
-    Thing *x = state.incoming[0];
-    Thing *y = state.incoming[1];
-    goto *(((char*)&&case0) + state.entry);
-    case0:
-    ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
-    if (x == y)
-        yield(single_success)
-    if (x->type == UNBOUND)
-    {
-        x->bind(y);
-        yield(unbind_x)
-    }
-    if (y->type == UNBOUND)
-    {
-        y->bind(x);
-        yield(unbind_y)
-    }
-    if ((x->type == CONST) && (*x == *y))
-        yield(single_success)
-    if ((x->type == BNODE) && (x->origin == y->origin))
-    {
-        switch (y->origin)
-        {
-            case bny4:
-                start = -4;end = 7;
-                state.states.resize(end-start-1);
-                state.states[0].entry = 0;
-                ASSERT((x - 4)->type != BNODE); ASSERT((y - 4)->type != BNODE);
-                state.states[0].incoming[0] = (x - 4);
-                state.states[0].incoming[1] = (y - 4);
-                while(unify(state.states[0]))
-                {
-                    ...
-                        ...
-                            label
-                            yield
-                break;
-            ...
-        }
-        default:
-            ASSERT(false);
-    }
-    single_success:
-	return 0;
-    unbind_x:
-    x->unbind();
-    return 0;
-    unbind_y:
-    y->unbind();
-    return 0;
-}
-
 
 Thing *get_value(Thing *x)
 {
@@ -200,3 +144,6 @@ int main (int argc, char *argv[])
         print_result(state);
     }
 }
+
+#define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
+

@@ -128,6 +128,7 @@ int unify(cpppred_state & __restrict__ state)
     }
     if ((x->type == CONST) && (*x == *y))
         yield(single_success)
+    //two bnodes fail
     single_success:
 	return 0;
     unbind_x:

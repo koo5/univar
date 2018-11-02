@@ -1,0 +1,32 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+kb
+#— Existence of lists
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+:T :not :F.
+:F :not :T.
+
+{?y :not ?ny. ?z :not ?nz. ?l0 rdf:first ?y. ?l0 rdf:rest ?l1. ?l1 rdf:first ?z. ?l1 rdf:rest rdf:nil} => { ?l0 :a :SAT2 }.
+?X :eq ?X.
+
+{?x :a :SAT} <= {?x :a :SAT2. ?y :a :SAT2. ?x :eq :y.}.
+
+fin.
+query
+?x :a :SAT.
+fin.
+shouldbe
+(:T :T) :a :SAT.
+fin.
+shouldbe
+(:T :F) :a :SAT.
+fin.
+shouldbe
+(:F :T) :a :SAT.
+fin.
+shouldbe
+(:F :F) :a :SAT.
+fin.
+thatsall
+

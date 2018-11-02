@@ -92,7 +92,7 @@ class Emitter(object):
 		for i, thing in enumerate(things):
 			result += s.thing_literal(rule, thing)
 			if i != len(things) -1:
-				result += ','
+				result += ',\n'
 		result += '}'
 		return result
 

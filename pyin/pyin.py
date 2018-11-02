@@ -396,7 +396,7 @@ def unify2(arg_x, arg_y, val_x, val_y):
 	xy = (arg_x, arg_y)
 	yx = (arg_y, arg_x)
 	nolog or log("unify " + str(val_x) + " with " + str(val_y))
-	if id(val_x) == id(val_y):
+	if val_x is val_y:
 		return success("same things", xy)
 	x_is_var = type(val_x) is Var
 	y_is_var = type(val_y) is Var

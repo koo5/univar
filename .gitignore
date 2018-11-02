@@ -1,3 +1,4 @@
+
 *autosave
 *pyc
 x
@@ -16,6 +17,7 @@ pyin/.idea
 runs
 venv
 cpython3
+pypy2
 *.orig
 .cproject
 .project

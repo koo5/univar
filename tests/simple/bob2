@@ -16,5 +16,11 @@ fin.
 shouldbe
 :Bob :is :Bob . :Bob :is :Bob .
 fin.
+shouldbe
+:Bob :is :Bob . :Bob :is :Bob .
+fin.
+shouldbe
+:Bob :is :Bob . :Bob :is :Bob .
+fin.
 
 thatsall

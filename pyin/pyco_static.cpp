@@ -147,3 +147,4 @@ int main (int argc, char *argv[])
 
 #define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
 
+int unify(cpppred_state & __restrict__ state);

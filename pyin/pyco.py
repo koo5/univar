@@ -57,11 +57,11 @@ class Emitter(object):
 	do_builtins = False
 	codes = OrderedDict()
 	bnode_origin_counter = 0
-	bnodes = []
+	bnodes = {}
 
 	@memoized.memoized
 	def add_bnode(s, rule, name):
-		cpp_name = s.get_bnode_origin(rule.original_head_ref.id, name)
+		cpp_name = s.get_bnode_origin(rule.original_head_ref.id, str(name))
 		s.bnodes[cpp_name] = rule, name
 		return cpp_name
 
@@ -112,7 +112,7 @@ class Emitter(object):
 			v = '.string_id = ' + s.string2code(thing)
 		elif thing.is_bnode:
 			t = 'BNODE'
-			v = ".origin = " + s.add_bnode(r, str(thing.debug_name))
+			v = ".origin = " + s.add_bnode(r, thing.debug_name)
 		return 'Thing{' + t + ',' + v + '}'
 
 	def label(s):
@@ -155,70 +155,73 @@ class Emitter(object):
 	def unification(s):
 		result = Lines([Line(
 			"""
-			int unify(cpppred_state & __restrict__ state)
-			{
-				pos_t start,end;
-				Thing *x = state.incoming[0];
-				Thing *y = state.incoming[1];
-				goto *(((char*)&&case0) + state.entry);
-				case0:
-				ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
-				if (x == y)
-					yield(single_success)
-				if (x->type == UNBOUND)
-				{
-					x->bind(y);
-					yield(unbind_x)
-				}
-				if (y->type == UNBOUND)
-				{
-					y->bind(x);
-					yield(unbind_y)
-				}
-				if ((x->type == CONST) && (*x == *y))
-					yield(single_success)
-				if ((x->type == BNODE) && (x->origin == y->origin))
-				{
-					switch (y->origin)
-					{
+int unify(cpppred_state & __restrict__ state)
+{
+	Thing *x = state.incoming[0];
+	Thing *y = state.incoming[1];
+	goto *(((char*)&&case0) + state.entry);
+	case0:
+	ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
+	if (x == y)
+		yield(single_success)
+	if (x->type == UNBOUND)
+	{
+		x->bind(y);
+		yield(unbind_x)
+	}
+	if (y->type == UNBOUND)
+	{
+		y->bind(x);
+		yield(unbind_y)
+	}
+	if ((x->type == CONST) && (*x == *y))
+		yield(single_success)
+	if ((x->type == BNODE) && (x->origin == y->origin))
+	{
+		switch (y->origin)
+		{
 			""")])
 
 		s.state_index = 0
-		block = result
+		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
 			result.append(Line('case ' + bnode_cpp_name + ':'))
 			start = -(rule.locals_map[bnode_name])
 			end = len(rule.locals_map) - rule.locals_map[bnode_name]
-			block.append(Statement('state.states.resize('+str(end - start - 1)+')'))
-		for local_name, local_idx in rule.locals_map.items():
-			if local_name == bnode_name:
-				continue
-			bnode_idx = rule.locals_map[bnode_name];
-			offset = local_idx - bnode_idx
-			block.append(Statement(s.substate()+'.entry = 0'))
-			for i in range(2):
-				block.append(Statement('ASSERT((get_value(state.incoming['+str(i)+']) + '+str(offset)+')->type != BNODE)'))
-			block.append(Statement(s.substate()+'.incoming[0] = x + ' + str(offset)))
-			block.append(Statement(s.substate()+'.incoming[1] = y + ' + str(offset)))
-			block.append(Line('while (unify('+s.substate()+'))'))
-			block = nest(block)
+			outer_block.append(Statement('state.states.resize('+str(end - start - 1)+')'))
+			block = outer_block
+			for local_name, local_idx in rule.locals_map.items():
+				if local_name == bnode_name:
+					continue
+				bnode_idx = rule.locals_map[bnode_name];
+				offset = local_idx - bnode_idx
+				block.append(Statement(s.substate()+'.entry = 0'))
+				for i in range(2):
+					ee = 'get_value(get_value(state.incoming['+str(i)+']) + '+str(offset)+')'
+					block.append(Statement('ASSERT('+ee+'->type != BNODE)'))
+					block.append(Statement(s.substate()+'.incoming['+str(i)+'] = '+ee))
+				block.append(Line('while (unify('+s.substate()+'))'))
+				block = nest(block)
+				s.state_index += 1
 			block.append(s.do_yield())
-			block.append(Statement('break'))
+
+			outer_block.append(Statement('break'))
+			s.state_index = 0
 		result.append(Line("""
+			default:
+			ASSERT(false);
 		}
-		default:
-		ASSERT(false);
-		}
-		single_success:
-		return 0;
-		unbind_x:
-		x->unbind();
-		return 0;
-		unbind_y:
-		y->unbind();
-		return 0;
-		}	
-	"""))
+	}
+	single_success:
+	return 0;
+	unbind_x:
+	x->unbind();
+	return 0;
+	unbind_y:
+	y->unbind();
+	return 0;
+}"""))
+		return result
 
 	def substate(s):
 		return 'state.states['+str(s.state_index)+']'

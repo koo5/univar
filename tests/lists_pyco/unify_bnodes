@@ -9,7 +9,7 @@ kb
 
 {?y :not ?ny. ?z :not ?nz. ?l0 rdf:first ?y. ?l0 rdf:rest ?l1. ?l1 rdf:first ?z. ?l1 rdf:rest rdf:nil} => { ?l0 :a :SAT2 }.
 
-?X :eq ?X.
+?EX :eq ?EX.
 
 {?x :a :SAT} <= {?x :a :SAT2. ?y :a :SAT2. ?x :eq ?y.}.
 

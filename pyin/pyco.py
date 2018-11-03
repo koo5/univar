@@ -165,9 +165,9 @@ class Emitter(object):
 int unify(cpppred_state & __restrict__ state)
 {
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
-	state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);
 	goto *(((char*)&&case0) + state.entry);
 	case0:
+	state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);
 	ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
 	if (x == y)
 		yield(single_success)
@@ -183,7 +183,7 @@ int unify(cpppred_state & __restrict__ state)
 	}
 	if ((x->type == CONST) && (*x == *y))
 		yield(single_success)
-	if ((x->type == BNODE) && (x == y))
+	if ((x->type == BNODE) && (*x == *y))
 	{
 		switch (y->origin)
 		{
@@ -314,6 +314,7 @@ int unify(cpppred_state & __restrict__ state)
 		for arg_i, arg in enumerate(r.head.args):
 			if arg not in r.existentials:
 				todo.append((arg_i, arg))
+		s.state_index = 0
 		for arg_i, arg in todo:
 			other_arg_idx, other_arg = todo[1]
 			arg_expr = 'state.incoming['+str(arg_i)+']'

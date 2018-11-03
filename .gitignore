@@ -58,3 +58,5 @@ tau
 build
 CMakeFiles
 scan
+
+pyco_visualization/trace.js

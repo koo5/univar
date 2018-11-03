@@ -2,12 +2,24 @@
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 kb
-:zero a :Nat.
-{?x a :Nat} => {?x :has_succ ?y. ?y a :Nat}.
 
-{(:zero ?y) :has_sum ?y.} <= {?y a :Nat}.
-{(?sx ?y) :has_sum ?sz } <= {?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
+#— Existence of lists
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
+
+
+#:zero a :Nat.
+#{?x a :Nat} => {?x :has_succ ?y. ?y a :Nat}.
+{?l0_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
+#{(?sx ?y) :has_sum ?sz } <= {?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
+fin.
+
+query
+(:zero :banana) :has_sum :banana.
+fin.
+shouldbe
+(:zero :banana) :has_sum :banana.
 fin.
 
 query

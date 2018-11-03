@@ -4,10 +4,15 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <fstream>
+
+using namespace std;
+
+ofstream trace;
+string trace_string;
 
 #define ASSERT assert
 
-using namespace std;
 
 typedef unsigned long nodeid;
 
@@ -44,10 +49,12 @@ struct Thing
         nodeid string_id;
         BnodeOrigin origin;
     };
-
-    //just bitwise comparison, not recursive check of equality of bindings
+    #ifdef TRACE
+        string debug_name;
+    #endif
 
     bool operator==(const Thing& b) const
+    //just bitwise comparison, not recursive check of equality of bindings
     {
         return this->type == b.type && this->binding == b.binding;
     }
@@ -68,6 +75,8 @@ struct Thing
     }
 };
 
+void dump();
+
 typedef pair<Thing,Thing> thingthingpair;
 //ep_head is an array/pair of 2 Things
 typedef thingthingpair ep_head;
@@ -80,7 +89,78 @@ struct cpppred_state
     Locals locals;
     Thing *incoming[2];
     vector<cpppred_state> states;
+    #ifdef TRACE
+        bool active = false;
+        string comment;
+        void set_comment(string x) {comment = x;};
+        void set_active(bool a)
+        {
+            active = a;
+            dump();
+        }
+    #endif
 };
+
+cpppred_state *query_state;
+
+void escape_trace(string& data) {
+    string buffer;
+    buffer.reserve(data.size());
+    for(size_t pos = 0; pos != data.size(); ++pos) {
+        switch(data[pos]) {
+            case '\t': buffer.append("&nbsp;&nbsp;");break;
+            case '&':  buffer.append("&amp;");       break;
+            case '\"': buffer.append("&quot;");      break;
+            case '\'': buffer.append("&apos;");      break;
+            case '<':  buffer.append("&lt;");        break;
+            case '>':  buffer.append("&gt;");        break;
+            default:   buffer.append(&data[pos], 1); break;
+        }
+    }
+    data.swap(buffer);
+}
+
+
+void trace_flush()
+{
+    trace << trace_string;
+    trace_string.clear();
+}
+
+void trace_write_raw(string s)
+{
+    trace_string += s;
+}
+
+void trace_write(string s)
+{
+    escape_trace(s);
+    trace_write_raw(s);
+}
+
+void dump_state(int indent, cpppred_state *state)
+{
+    if (!state->active)
+        return;
+    for (int i = 0; i < indent; i++)
+        trace_write("\t");
+    trace_write(state->comment);
+    trace_write_raw("<br>\\n");
+    indent += 2;
+    for (auto substate: state->states)
+    {
+        if (!substate.active) break;
+        dump_state(indent, &substate);
+    }
+}
+
+void dump()
+{
+    trace_write_raw("window.pyco.frames.push(\"");
+        dump_state(0, query_state);
+    trace_write_raw("\");\n");
+    trace_flush();
+}
 
 
 /*
@@ -137,14 +217,33 @@ int main (int argc, char *argv[])
 {
 	(void )argc;
 	(void )argv;
+	trace.open("pyco_visualization/trace.js");
+	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
     cpppred_state state;
+    query_state = &state;
     state.entry = 0;
     while(query(state)!=0)
     {
         print_result(state);
     }
+    trace.close();
 }
 
 #define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
 
 int unify(cpppred_state & __restrict__ state);
+
+#define END {state.set_active(false);return 0;}
+extern vector<Constant> strings;
+
+string thing_to_string(Thing* thing)
+{
+  Thing *v = get_value(thing);
+  if (v->type == CONST)
+    if (strings[v->string_id].first == URI)
+      return "<" + strings[v->string_id].second + ">";
+    else
+      return "\"" + strings[v->string_id].second + "\"";
+  else
+    return thing->debug_name;
+}

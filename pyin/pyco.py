@@ -22,6 +22,8 @@ import rdflib
 if sys.version_info.major == 3:
 	unicode = str
 
+trace= True
+
 def make_locals(rule):
 	locals_template = []
 	consts = []
@@ -113,13 +115,18 @@ class Emitter(object):
 		elif thing.is_bnode:
 			t = 'BNODE'
 			v = ".origin = " + s.add_bnode(r, thing.debug_name)
-		return 'Thing{' + t + ',' + v + '}'
+		result = 'Thing{' + t + ',' + v
+		if trace:
+			result += ',.debug_name = "' + str(thing.debug_name) + '"'
+		return result + '}'
 
 	def label(s):
 		return Line("case" +str(s._label) + ":;")
 
 	def generate_cpp(s, goal, goal_graph):
 		s.prologue = Lines()
+		if trace:
+			s.prologue.append(Line('#define TRACE'))
 		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
@@ -157,8 +164,8 @@ class Emitter(object):
 			"""
 int unify(cpppred_state & __restrict__ state)
 {
-	Thing *x = state.incoming[0];
-	Thing *y = state.incoming[1];
+	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
+	state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);
 	goto *(((char*)&&case0) + state.entry);
 	case0:
 	ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
@@ -213,13 +220,13 @@ int unify(cpppred_state & __restrict__ state)
 		}
 	}
 	single_success:
-	return 0;
+	END;
 	unbind_x:
 	x->unbind();
-	return 0;
+	END;
 	unbind_y:
 	y->unbind();
-	return 0;
+	END;
 }"""))
 		return result
 
@@ -264,7 +271,7 @@ int unify(cpppred_state & __restrict__ state)
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
-			Comment(pred_name if pred_name else 'query'),
+			Comment(common.shorten(pred_name) if pred_name else 'query'),
 			Lines(
 				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
 			),
@@ -286,17 +293,20 @@ int unify(cpppred_state & __restrict__ state)
 		if len(r.existentials) > 1:
 			raise Exception("too many existentials in " + str(r) +" : " + str(r.existentials))
 		outer_block = b = Lines()
-		b.append(Comment((r)))
+		b.append(Comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
+		b.append(Statement('state.set_comment("'+str(r)+'")'))
+		b.append(Statement('state.set_active(true)'))
 		if r.head:
-			b = s.head(b, r)
+			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
+		b.append(Statement('state.set_active(false)'))
 		return outer_block
 
-	def head(s, b, r):
-		outer_block = b
+	def head(s, r):
+		outer_block = b = Lines()
 		todo = []
 		for arg_i, arg in enumerate(r.head.args):
 			if arg in r.existentials:
@@ -463,6 +473,7 @@ def query_from_files(kb, goal, identification, base, nolog):
 	os.system("make pyco")
 	print("#ok lets run this")
 	sys.stdout.flush()
+	os.system("rm pyco_visualization/trace.js")
 	os.system("valgrind ./pyco")
 
 if __name__ == "__main__":

@@ -1,0 +1,40 @@
+<html>
+<head>
+	<script type="text/javascript" src="vue.js"></script>
+	<script type="text/javascript" src="trace.js"></script>
+</head>
+<body>
+<div id="trace">
+	<span v-html="message"></span>
+</div>
+<script type="text/javascript">
+	var vue_det = new Vue({
+		el: '#trace',
+		data: {
+			message: 'My first VueJS Task',
+		},
+		mounted: function ()
+		{
+			var update = function(vue_det)
+			{
+				vue_det.message = window.pyco.frames[window.pyco.pos];
+			}
+			window.addEventListener('keydown', function (event) {
+				c = event.keyCode;
+				if (c==37 && window.pyco.pos > 0)
+				{
+					window.pyco.pos--;
+				}
+				if (c==39)
+				{
+					window.pyco.pos++;
+				}
+				update(vue_det);
+			});
+			window.pyco.pos  = 0;
+			//update(vue_det);
+		}
+	});
+</script>
+</body>
+</html>

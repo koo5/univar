@@ -158,6 +158,8 @@ void dump()
 {
     trace_write_raw("window.pyco.frames.push(\"");
         dump_state(0, query_state);
+    for (int i = 0; i < 10; i++) //force scrollbar to always appear so it doesnt blink in and out and cause reflows
+        trace_write_raw("<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>");
     trace_write_raw("\");\n");
     trace_flush();
 }

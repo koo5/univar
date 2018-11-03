@@ -61,7 +61,8 @@ from '/:#?', and if it does it will be at the beginning of shorten(s)
 def shorten(term):
 	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst instead
 	#copy value of "term" into a new string stored in "s"
-	s = str(term)
+	term_str = str(term)
+	s = term_str
 
 	#Find the last occurrence of any of the characters in '/:#?' in s and
 	#give back the rest of the string from that last occurrence til the end
@@ -73,11 +74,15 @@ def shorten(term):
 
 	#return "term" if it's shortening is already taken by
 	#a member of the equivalence class other than "term" itself 
-	if s in shortenings and shortenings[s] != term:
-		return str(term)
+
+	#if s in shortenings and shortenings[s] != term_str:
+	#	print(term_str + ' shortens to ' + s +' , but that was already used for ' + shortenings[s])
+	#	return term_str
 
 	#note: redundant in the case that shortenings[s] == term
-	shortenings[s] = term
+	shortenings[s] = term_str
+
+	print('shortened '+term_str + ' to ' + s)
 
 	return s
 

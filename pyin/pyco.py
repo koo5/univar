@@ -296,7 +296,7 @@ int unify(cpppred_state & __restrict__ state)
 		b.append(Comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
-		b.append(Statement('state.set_comment("'+str(r)+'")'))
+		b.append(Statement('state.set_comment("'+r.__str__(shortener = common.shorten)+'")'))
 		b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(s.head(r))
@@ -375,7 +375,7 @@ int unify(cpppred_state & __restrict__ state)
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
-		b.append(Comment(triple.str()))
+		b.append(Comment(triple.str(common.shorten)))
 		substate = "state.states["+str(s.state_index)+"]"
 		for arg_idx in range(len(triple.args)):
 			arg = triple.args[arg_idx]

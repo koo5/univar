@@ -205,7 +205,7 @@ int unify(cpppred_state & __restrict__ state)
 				block.append(Statement(s.substate()+'.entry = 0'))
 				for i in range(2):
 					ee = 'get_value(get_value(state.incoming['+str(i)+']) + '+str(offset)+')'
-					block.append(Statement('ASSERT('+ee+'->type != BNODE)'))
+					#block.append(Statement('ASSERT('+ee+'->type != BNODE)'))
 					block.append(Statement(s.substate()+'.incoming['+str(i)+'] = '+ee))
 				block.append(Line('while (unify('+s.substate()+'))'))
 				block = nest(block)

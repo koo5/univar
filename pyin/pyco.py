@@ -183,7 +183,7 @@ int unify(cpppred_state & __restrict__ state)
 	}
 	if ((x->type == CONST) && (*x == *y))
 		yield(single_success)
-	if ((x->type == BNODE) && (x->origin == y->origin))
+	if ((x->type == BNODE) && (x == y))
 	{
 		switch (y->origin)
 		{

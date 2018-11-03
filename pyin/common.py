@@ -82,7 +82,7 @@ def shorten(term):
 	#note: redundant in the case that shortenings[s] == term
 	shortenings[s] = term_str
 
-	print('shortened '+term_str + ' to ' + s)
+	#print('shortened '+term_str + ' to ' + s)
 
 	return s
 

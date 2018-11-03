@@ -7,11 +7,11 @@ kb
 (?X).
 { [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
-
+:banana a :Nat.
 
 #:zero a :Nat.
 #{?x a :Nat} => {?x :has_succ ?y. ?y a :Nat}.
-{?l0_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
+{?l1_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
 #{(?sx ?y) :has_sum ?sz } <= {?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
 fin.
 

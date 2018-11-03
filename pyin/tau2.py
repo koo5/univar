@@ -184,6 +184,7 @@ def do_results_comparison(a, b):
 	correspondences = {}
 	aa = list(a.triples((None, None, None)))
 	bb = list(b.triples((None, None, None)))
+	bb.reverse()
 	if len(aa) != len(bb):
 		return "len "+str(len(aa)) +' != len ' + str(len(bb))
 	for i,at in enumerate(aa):

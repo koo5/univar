@@ -141,6 +141,8 @@ class Emitter(object):
 			used for both head-unification and for calling other rules,
 			so this is the number of generators that this rule will need at once, at most"""
 			rule.max_states_len = (len(rule.head.args) if rule.head else 0) + len(rule.body)
+			if trace:
+				rule.max_states_len += 1 # one for indicating ep
 			#put under "with_assert" ? running python with -O would do that
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
@@ -358,6 +360,9 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state.ep))"))
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
+			if trace:
+				ep_state = 'state.states[' + str(s.state_index) + ']'
+				outer_block.append(Line('else {'+ep_state+'.comment = "EP";'+ep_state+'.set_active(true);'+ep_state+'.set_active(false);}'))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)

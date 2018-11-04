@@ -235,7 +235,7 @@ class AtomVar(Kbdbgable):
 
 class Atom(AtomVar):
 	def __init__(s, value, debug_locals=None):
-		nolog or AtomVar.__init__(s,value, debug_locals)
+		AtomVar.__init__(s,value, debug_locals)
 		assert(isinstance(value, rdflib.term.Identifier))
 		s.value = value
 	def str(s, shortener = lambda x:x):

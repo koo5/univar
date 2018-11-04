@@ -31,8 +31,8 @@ buffer = []
 output = ''
 fn = '?'
 
-@click.command()
-@click.argument('command', type=click.Path(readable=True, exists=True, dir_okay=False), required=True)
+@click.command()#readable=True, exists=True, dir_okay=False
+@click.argument('command', type=click.Path(), required=True)
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
 def tau(command, files, only_id):
@@ -208,7 +208,7 @@ def do_results_comparison(a, b):
 	return True
 
 def timestamp():
-	return str(round(time.time(), 3)).ljust(10) + ' '
+	return '%10.2f ' % time.time()
 
 def success():
 	echo(timestamp()+identification+":test:PASS")

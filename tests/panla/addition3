@@ -1,0 +1,43 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+
+#— Existence of lists
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+:zero a :Nat.
+{?y :has_succ ?x. ?x a :Nat} <= {?y a :Nat}.
+
+{?l1_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
+{?l2_0 :has_sum ?sz } <= {(?sx ?y). ?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
+fin.
+
+#0
+query
+(:zero :zero) :has_sum :zero.
+fin.
+shouldbetrue
+
+#1
+query
+(:zero ?one) :has_sum ?one. :zero :has_succ ?one.
+fin.
+shouldbetrue
+
+#2
+query
+(?three ?five) :has_sum ?eight. 
+:zero :has_succ ?one. 
+?one :has_succ ?two.
+?two :has_succ ?three.
+?three :has_succ :?our.
+?four :has_succ ?five.
+?five :has_succ ?six.
+?six :has_succ ?seven.
+?seven :has_succ ?eight.
+?eight :has_succ ?nine.
+?nine :has_succ ?ten.
+fin.
+shouldbetrue

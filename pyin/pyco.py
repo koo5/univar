@@ -257,6 +257,7 @@ int unify(cpppred_state & __restrict__ state)
 		outer_block = b = Lines()
 		b.append(Line('void print_result(cpppred_state &state)'))
 		b = nest(b)
+		b.append(Statement('(void)state;'))
 		b.append(Statement('cout << " RESULT : "'))
 		b.append(Statement('Thing *v;(void)v'))
 		for term in goal_graph:

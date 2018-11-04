@@ -36,7 +36,7 @@ fn = '?'
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
 def tau(command, files, only_id):
-	global mode, buffer, prefixes, output, fn, identification, query_number
+	global mode, buffer, prefixes, output, fn, identification, query_number, base
 	for fn in files:
 		echo(fn+':test:')
 		query_number = None
@@ -68,6 +68,11 @@ def tau(command, files, only_id):
 						success()
 					continue
 				elif l_stripped.startswith('--limit'):
+					continue
+				elif l_stripped == 'shouldbetrue':
+					if only_id == None or only_id == query_number:
+						shouldbe_graph = parse(data=out, identifier='file://'+base, publicID='file://'+base)
+						check_result(results, shouldbe_graph)
 					continue
 				try:
 					mode = Mode[l_stripped]
@@ -119,34 +124,9 @@ def tau(command, files, only_id):
 							buffer = []
 							mode = Mode.none
 							continue
-
-						shouldbe_graph = parse(data=grab_buffer(), identifier='file://'+base, publicID='file://'+base)
-						l1 = len(shouldbe_graph)
-						l2 = len(results)
-						if not l1 and not l2:
-							success()
-							mode = Mode.none
-							buffer = []
-							continue
-
-						if not len(results):
-							echo('no more results')
-							fail()
-							print_kwrite_link()
-							mode = Mode.none
-							buffer = []
-							continue
-
-						result_to_parse = results.pop(0)
-						print('result_to_parse',result_to_parse,';')
-						result_graph = parse(data=''.join(prefixes+[result_to_parse]), identifier=base, publicID=base)
-						cmp = do_results_comparison(shouldbe_graph, result_graph)
-						if cmp == True:
-							success()
-						else:
-							fail()
-							echo(cmp)
-							print_kwrite_link()
+						shouldbe_graph = parse(data=buffer_text(), identifier='file://'+base, publicID='file://'+base)
+						check_result(results, shouldbe_graph)
+						buffer = []
 						mode = Mode.none
 						continue
 				buffer.append(l)
@@ -154,6 +134,29 @@ def tau(command, files, only_id):
 			echo('file not ended properly?')
 			fail()
 			exit()
+
+def check_result(results, shouldbe_graph):
+	l1 = len(shouldbe_graph)
+	l2 = len(results)
+	if not l1 and not l2:
+		success()
+		return
+	if not len(results):
+		echo('no more results')
+		fail()
+		print_kwrite_link()
+		return
+	result_to_parse = results.pop(0)
+	#print('result_to_parse',result_to_parse,';')
+	result_graph = parse(data=''.join(prefixes+[result_to_parse]), identifier=base, publicID=base)
+	cmp = do_results_comparison(shouldbe_graph, result_graph)
+	if cmp == True:
+		success()
+		return
+	else:
+		fail()
+		echo(cmp)
+		print_kwrite_link()
 
 def parse(data, identifier, publicID):
 	try:
@@ -216,20 +219,21 @@ def fail():
 def identify():
 	echo(timestamp()+identification+":test:")
 
+def buffer_text():
+	return ''.join(chain(prefixes, buffer))
+
 def grab_buffer():
 	global buffer
-	r = ''.join(chain(prefixes, buffer))
+	r = buffer_text()
 	buffer = []
 	return r
 
 def write_out(fn):
-	global mode, buffer
-	buffer = grab_buffer()
-	r = ''.join(chain(prefixes, buffer))
+	global mode, out
+	out = grab_buffer()
 	with open(fn, 'w') as f:
-		f.write(buffer)
+		f.write(out)
 	mode = Mode.none
-	buffer = []
 
 def print_kwrite_link():
 	echo("kwrite " + common.kbdbg_file_name(identification))

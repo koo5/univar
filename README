@@ -63,7 +63,7 @@ pip install -r requirements_pyco.txt
 ./pyin/tau2.py ./pyco_runner.sh tests/simple/*  2>&1 | tee  `date "+%F-%H-%M-%S"` | grep ":test:"
 
 
-#pyco will output a trace, point your browser to the pyco_visualization directory
+#pyco will output a trace, point your browser to the pyco_visualization directory and use left and right arrows to move around the trace steps
 
 
 

@@ -25,6 +25,9 @@ def newList(self, n, f):
 
 	r = None
 	next = None
+
+	result = []
+
 	for idx, i in enumerate(n):
 		if next == None:
 			a = make_bnode(idx)
@@ -32,13 +35,15 @@ def newList(self, n, f):
 			a = next
 		if r == None:
 			r = a
-		self.makeStatement((f, first, a, i))
+		result.append((f, first, a, i))
 		if idx == len(n) - 1:
 			next = nil
 		else:
 			next = make_bnode(idx + 1)
-		self.makeStatement((f, rest, a, next))
+		result.append((f, rest, a, next))
 
+	for i in reversed(result):
+		self.makeStatement(i)
 	return r
 
 

@@ -138,6 +138,9 @@ def tau(command, files, only_id):
 def check_result(results, shouldbe_graph):
 	l1 = len(shouldbe_graph)
 	l2 = len(results)
+	print('expected:')
+	print_graph(shouldbe_graph)
+	print('.')
 	if not l1 and not l2:
 		success()
 		return
@@ -179,15 +182,19 @@ def print_graph(g):
 
 def do_results_comparison(a, b):
 	#echo ('compare_results ' + str((a,b)))
-	print('expected:')
-	print_graph(a)
-	print('got:')
-	print_graph(b)
-	print('.')
+#	print('expected:')
+#	print_graph(a)
+#	print('got:')
+#	print_graph(b)
+#	print('.')
 	correspondences = {}
 	aa = list(a.triples((None, None, None)))
 	bb = list(b.triples((None, None, None)))
-	bb.reverse()
+
+	print('got:')
+	print(bb)
+	print('.')
+
 	if len(aa) != len(bb):
 		return "len "+str(len(aa)) +' != len ' + str(len(bb))
 	for i,at in enumerate(aa):

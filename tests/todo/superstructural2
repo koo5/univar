@@ -1,0 +1,11 @@
+kb
+?l :first ?X. ?l :rest :nil.
+{?l0 :first ?x. ?l0 :rest :nil} => {?x :has_superstructure ?l0}.
+{?x :has_superstructure ?y. ?y :recurse ?z. } => {?x :recurse ?z. }.
+fin.
+
+query
+?what :recurse :forever.
+fin.
+shouldbe
+fin.

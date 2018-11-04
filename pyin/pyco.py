@@ -237,7 +237,7 @@ int unify(cpppred_state & __restrict__ state)
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
-			return Statement('cout << '+cpp_string_literal(arg))
+			return Statement('cout << '+cpp_string_literal('"'+str(arg)+'"'))
 		if type(arg) == rdflib.URIRef:
 			return Statement('cout << "<' + cpp_string_literal_noquote(arg) +'> "')
 		if type(arg) == rdflib.Variable:
@@ -260,7 +260,9 @@ int unify(cpppred_state & __restrict__ state)
 		b.append(Statement('(void)state;'))
 		b.append(Statement('cout << " RESULT : "'))
 		b.append(Statement('Thing *v;(void)v'))
-		for term in goal_graph:
+		gg = goal_graph[:]
+		#gg.reverse()
+		for term in gg:
 			b.append(s.substituted_arg(r, term.args[0]))
 			b.append(Statement('cout << "<' + str(term.pred) + '> "'))
 			b.append(s.substituted_arg(r, term.args[1]))

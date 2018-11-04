@@ -1,0 +1,44 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+
+kb
+:zero a :Nat.
+{?x :has_succ ?y. ?y a :Nat} <= {?x a :Nat}.
+
+
+:hello a :rule. :hello :has_rhs ("h" "e" "l" "l" "o"). 
+
+
+
+fin.
+#0
+query
+ ("h" "e" "l" "l" "o")
+:zero a :Nat. 
+fin.
+shouldbetrue
+
+#1
+query
+:zero :has_succ ?one. 
+fin.
+shouldbetrue
+
+#2
+query
+:zero :has_suc ?one. ?one :has_suc ?two. 
+fin.
+shouldbetrue
+
+#3
+query
+:zero :has_suc ?one. ?one :has_suc ?two. ?two :has_suc ?three. 
+fin.
+shouldbetrue
+
+#4
+query
+:zero :has_suc ?one. ?one :has_suc ?two. ?two :has_suc ?three. ?three :has_suc ?four.
+fin.
+shouldbetrue

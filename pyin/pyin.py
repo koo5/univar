@@ -892,7 +892,7 @@ def load(kb, goal, identification, base):
 			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
-			body.reverse()
+			#body.reverse()
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:
 					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")
@@ -914,7 +914,7 @@ def load(kb, goal, identification, base):
 	goal = Graph()
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
-	goal.reverse()
+	#goal.reverse()
 	query_rule = Rule([], None, goal)
 	return rules, query_rule, goal
 

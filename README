@@ -8,37 +8,6 @@ https://github.com/odipar/spread/
 https://github.com/unisonweb/unison
 
 
-Under development. For more information about tauchain visit http://idni.org  
-
-To run example: "./tau < examples/socrates"  
-
-For verbose print: "./tau --level 100 < examples/socrates"  
-
-###deps:  
-apt-get install libboost-system-dev libboost-filesystem-dev libcurl4-openssl-dev    #todo:not all necessary, update  
-####For building libmarpa
-apt-get install -y build-essential autoconf automake libtool
-####for the n3 parser:  
-apt-get install libboost-regex-dev  
-
-C++ Compiler has to support C++11, gcc-4.9 and clang++-3.6 are known to work.  
-
-Building: run make. You can also use cmake, but the hand-written Makefile is the primary method.  
-
-
-
-
-apt-get install -y build-essential autoconf automake libtool libboost-regex-dev clang-3.6 libc++-dev
-CXX="clang++-3.6  -stdlib=libc++ " DEBUG="" make -e
-
-
-cppout:
-env DBG="-Doneword" make -e
-env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so ASAN_OPTIONS="symbolize=1,detect_leaks=0,strict_init_order=1,check_initialization_order=1,verbosity=1" ./tau --limit 0 --silence addrules --silence readcurly --silence N3 --level 0  --cppout 1 --lambdas 0 run  tests/speed/adder
-
-./run.sh   --lambdas 0   --external ./pyin_runner.sh  run tests/simple/1
-./run.sh   --lambdas 0   --external ./pyin_runner.sh  run tests/simple/*  2>&1 | tee x | grep test
-
 
 
 ## pyin/pyco
@@ -64,8 +33,6 @@ pip install -r requirements_pyco.txt
 
 
 #pyco will output a trace, point your browser to the pyco_visualization directory and use left and right arrows to move around the trace steps
-
-
 
 
 

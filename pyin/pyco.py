@@ -117,7 +117,7 @@ class Emitter(object):
 			v = ".origin = " + s.add_bnode(r, thing.debug_name)
 		result = 'Thing{' + t + ',' + v
 		if trace:
-			result += ',.debug_name = "' + str(thing.debug_name) + '"'
+			result += ',.debug_name = ' + cpp_string_literal(thing.debug_name)
 		return result + '}'
 
 	def label(s):
@@ -237,9 +237,9 @@ int unify(cpppred_state & __restrict__ state)
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
-			return Statement('cout << "\\\\"' + str(arg) +'\\\\" "')
+			return Statement('cout << '+cpp_string_literal(arg))
 		if type(arg) == rdflib.URIRef:
-			return Statement('cout << "<' + str(arg) +'> "')
+			return Statement('cout << "<' + cpp_string_literal_noquote(arg) +'> "')
 		if type(arg) == rdflib.Variable:
 			return Lines([
 				Statement('v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
@@ -274,7 +274,7 @@ int unify(cpppred_state & __restrict__ state)
 		max_body_len = max(len(r.body) for r in rules)
 		max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
-			Comment(common.shorten(pred_name) if pred_name else 'query'),
+			comment(common.shorten(pred_name) if pred_name else 'query'),
 			Lines(
 				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
 			),
@@ -296,10 +296,10 @@ int unify(cpppred_state & __restrict__ state)
 		if len(r.existentials) > 1:
 			raise Exception("too many existentials in " + str(r) +" : " + str(r.existentials))
 		outer_block = b = Lines()
-		b.append(Comment(r.__str__(shortener = common.shorten)))
+		b.append(comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
-		b.append(Statement('state.set_comment("'+r.__str__(shortener = common.shorten)+'")'))
+		b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 		b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(s.head(r))
@@ -335,7 +335,7 @@ int unify(cpppred_state & __restrict__ state)
 				b = nest(outer_block)
 		s.state_index = 0
 		for arg_i, arg in enumerate(r.head.args):
-			b.append(Comment(arg))
+			b.append(comment(arg))
 			b.append(s.unify(
 				'(state.incoming['+str(arg_i)+'])',
 				'&('+local_expr(arg, r)+')'))
@@ -382,7 +382,7 @@ int unify(cpppred_state & __restrict__ state)
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
-		b.append(Comment(triple.str(common.shorten)))
+		b.append(comment(triple.str(common.shorten)))
 		substate = "state.states["+str(s.state_index)+"]"
 		for arg_idx in range(len(triple.args)):
 			arg = triple.args[arg_idx]
@@ -456,6 +456,23 @@ def nest(block):
 	b = Block()
 	block.append(b)
 	return b
+
+def cpp_string_literal(s):
+	return '"'+cpp_string_literal_noquote(s)+'"'
+
+def cpp_string_literal_noquote(s):
+	s = str(s)
+	result = ''
+	for c in s:
+		if not (32 <= ord(c) < 127) or c in ('\\', '"'):
+			result += '\\%03o' % ord(c)
+		else:
+			result += c
+	return result
+
+def comment(s):
+	s.replace('*', 'xXx')
+	return Comment(s)
 
 
 @click.command()

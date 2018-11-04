@@ -142,25 +142,29 @@ void dump_state(int indent, cpppred_state *state)
 {
     if (!state->active)
         return;
-    for (int i = 0; i < indent; i++)
-        trace_write("\t");
+    //for (int i = 0; i < indent; i++)
+    //    trace_write("\t");
+
+    trace_write_raw("<li>");
     trace_write(state->comment);
-    trace_write_raw("<br>\\n");
+    trace_write_raw("</li>");
     indent += 2;
+    trace_write_raw("<ul>");
     for (auto substate: state->states)
     {
         if (!substate.active) break;
         dump_state(indent, &substate);
     }
+    trace_write_raw("</ul>");
 }
 
 void dump()
 {
-    trace_write_raw("window.pyco.frames.push(\"");
+    trace_write_raw("window.pyco.frames.push(\"<ul>");
         dump_state(0, query_state);
     for (int i = 0; i < 10; i++) //force scrollbar to always appear so it doesnt blink in and out and cause reflows
         trace_write_raw("<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>");
-    trace_write_raw("\");\n");
+    trace_write_raw("</ul>\");\n");
     trace_flush();
 }
 

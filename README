@@ -41,4 +41,31 @@ env DBG="-Doneword " LD_PRELOAD=libmarpa/dist/.libs/libmarpa.so ASAN_OPTIONS="sy
 
 
 
+## pyin/pyco
+#python3 is best bet, it might work with 2 with some tweaks
+sudo apt install python3 python3-dev virtualenv clang
+
+
+#to set up pyco its best to use virtualenv:
+cd univar
+virtualenv -p python3 cpython3
+. cpython3/bin/activate
+pip install -r requirements_pyco.txt 
+
+
+#then you can run it like so:
+
+#fish shell:
 ./pyin/tau2.py ./pyco_runner.sh tests/simple/*  2>&1 | tee  (date "+%F-%H-%M-%S") | grep ":test:"
+
+
+#bash:
+./pyin/tau2.py ./pyco_runner.sh tests/simple/*  2>&1 | tee  `date "+%F-%H-%M-%S"` | grep ":test:"
+
+
+#pyco will output a trace, point your browser to the pyco_visualization directory
+
+
+
+
+

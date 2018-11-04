@@ -88,6 +88,7 @@ shouldbe
 (:ten :zero) :has_sum :ten.
 fin.
 
+#8
 query
 (:three :four) :has_sum :seven.
 fin.
@@ -95,6 +96,7 @@ shouldbe
 (:three :four) :has_sum :seven.
 fin.
 
+#9
 query
 (:four :three) :has_sum :seven.
 fin.
@@ -102,13 +104,14 @@ shouldbe
 (:four :three) :has_sum :seven.
 fin.
 
+#10
 query
 (:three :four) :has_sum ?w.
 fin.
 shouldbe
 (:three :four) :has_sum :seven.
 fin.
-
+#11
 query
 (:three ?w) :has_sum :seven.
 fin.

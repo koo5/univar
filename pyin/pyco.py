@@ -18,6 +18,7 @@ import pyin
 from collections import defaultdict, OrderedDict
 import memoized
 import rdflib
+import subprocess
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -168,8 +169,10 @@ int unify(cpppred_state & __restrict__ state)
 {
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
-	case0:
-	state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);
+	case0:""")])
+		if trace:
+			result.append(Line("""state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);"""))
+		result.append(Line("""
 	ASSERT(x->type != BOUND);ASSERT(y->type != BOUND);
 	if (x == y)
 		yield(single_success)
@@ -189,8 +192,7 @@ int unify(cpppred_state & __restrict__ state)
 	{
 		switch (y->origin)
 		{
-			""")])
-
+			"""))
 		s.state_index = 0
 		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
@@ -301,13 +303,15 @@ int unify(cpppred_state & __restrict__ state)
 		b.append(comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
-		b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
-		b.append(Statement('state.set_active(true)'))
+		if trace:
+			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
+			b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
-		b.append(Statement('state.set_active(false)'))
+		if trace:
+			b.append(Statement('state.set_active(false)'))
 		return outer_block
 
 	def head(s, r):
@@ -483,8 +487,11 @@ def comment(s):
 @click.option('--identification', default="")
 @click.option('--base', default="")
 @click.option('--nolog', default=False, type=bool)
-def query_from_files(kb, goal, identification, base, nolog):
-	global preds
+@click.option('--notrace', default=False, type=bool)
+@click.option('--novalgrind', default=False, type=bool)
+def query_from_files(kb, goal, identification, base, nolog, notrace, novalgrind):
+	global preds, trace
+	trace = not notrace
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
 	pyin.nolog = nolog
@@ -496,11 +503,12 @@ def query_from_files(kb, goal, identification, base, nolog):
 
 	e = Emitter()
 	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
-	os.system("make pyco")
+	subprocess.check_call(["make", "pyco"])
 	print("#ok lets run this")
 	sys.stdout.flush()
 	os.system("rm pyco_visualization/trace.js")
-	os.system("valgrind ./pyco")
+
+	os.system(('' if novalgrind else "valgrind") + ' ./pyco')
 
 if __name__ == "__main__":
 	query_from_files()

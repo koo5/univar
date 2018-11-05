@@ -120,7 +120,7 @@ void escape_trace(string& data) {
     data.swap(buffer);
 }
 
-
+#ifdef TRACE
 void trace_flush()
 {
     trace << trace_string;
@@ -166,7 +166,19 @@ void dump()
     trace_flush();
 }
 
+string thing_to_string(Thing* thing)
+{
+  Thing *v = get_value(thing);
+  if (v->type == CONST)
+    if (strings[v->string_id].first == URI)
+      return "<" + strings[v->string_id].second + ">";
+    else
+      return "\"" + strings[v->string_id].second + "\"";
+  else
+    return thing->debug_name;
+}
 
+#endif
 /*
 unsigned push_string(string);
 	pop_string(string);
@@ -221,8 +233,10 @@ int main (int argc, char *argv[])
 {
 	(void )argc;
 	(void )argv;
+    #ifdef TRACE
 	trace.open("pyco_visualization/trace.js");
 	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
+	#endif
     cpppred_state state;
     query_state = &state;
     state.entry = 0;
@@ -230,25 +244,23 @@ int main (int argc, char *argv[])
     {
         print_result(state);
     }
+    #ifdef TRACE
     trace_flush();
     trace.close();
+    #endif
 }
 
 #define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
 
 int unify(cpppred_state & __restrict__ state);
 
-#define END {state.set_active(false);return 0;}
+
+#ifdef TRACE
+#define END {state.set_active(false); return 0;}
+#else
+#define END {return 0;}
+#endif
+
+
 extern vector<Constant> strings;
 
-string thing_to_string(Thing* thing)
-{
-  Thing *v = get_value(thing);
-  if (v->type == CONST)
-    if (strings[v->string_id].first == URI)
-      return "<" + strings[v->string_id].second + ">";
-    else
-      return "\"" + strings[v->string_id].second + "\"";
-  else
-    return thing->debug_name;
-}

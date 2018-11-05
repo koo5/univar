@@ -20,6 +20,8 @@ enum ConstantType {URI, STRING};
 
 typedef pair<ConstantType,string> Constant;
 
+extern vector<Constant> strings;
+
 enum ThingType {BOUND, UNBOUND, CONST, BNODE};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
 
@@ -74,6 +76,14 @@ struct Thing
          set_value((Thing*)666);
     }
 };
+
+
+Thing *get_value(Thing *x)
+{
+    if (x->type == BOUND)
+        return get_value(x->binding);
+    return x;
+}
 
 void dump();
 
@@ -162,7 +172,7 @@ void dump()
 {
     trace_write_raw("window.pyco.frames.push(\"<ul>");
         dump_state(0, query_state);
-    trace_write_raw("</ul>\");\n");
+    trace_write_raw("</ul><br><br><br><br><br><br><br>\");\n");
     trace_flush();
 }
 
@@ -175,7 +185,10 @@ string thing_to_string(Thing* thing)
     else
       return "\"" + strings[v->string_id].second + "\"";
   else
-    return thing->debug_name;
+    if (thing->type == UNBOUND)
+        return "?"+thing->debug_name;
+    else
+        return "["+thing->debug_name+"]";
 }
 
 #endif
@@ -202,13 +215,6 @@ the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
 
-Thing *get_value(Thing *x)
-{
-    if (x->type == BOUND)
-        return get_value(x->binding);
-    return x;
-}
-
 
 bool find_ep(ep_table *table, ep_head incoming)
 {
@@ -221,7 +227,7 @@ bool find_ep(ep_table *table, ep_head incoming)
         a = head.first;
         b = head.second;
         ASSERT(a.type != BOUND);ASSERT(b.type != BOUND);
-        if ((a == x) && (b == y)) return true;
+        if ((a == x) && (b == y) && ((a.type != BNODE) && (b.type != BNODE))) return true;
     }
     return false;
 }
@@ -262,5 +268,5 @@ int unify(cpppred_state & __restrict__ state);
 #endif
 
 
-extern vector<Constant> strings;
+
 

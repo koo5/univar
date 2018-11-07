@@ -83,7 +83,7 @@ class Emitter(object):
 		if atom in codes:
 			return codes[atom][1]
 		code = str(len(codes))
-		cpp_name = cppize_identifier(atom)
+		cpp_name = 'const_'+cppize_identifier(atom)
 		s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
 		kind = "URI" if type(a.value) == rdflib.URIRef else "STRING"
 		codes[atom] = kind,cpp_name, code
@@ -154,7 +154,7 @@ class Emitter(object):
 				Statement(
 					"static ep_table ep" + str(rule.debug_id)
 				) for rule in all_rules if rule != goal]),
-			Lines([Statement(pred_func_declaration('pred_'+pred_name)+"__attribute__ ((unused))")
+			Lines([Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))")
 				   for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
@@ -283,7 +283,7 @@ int unify(cpppred_state & __restrict__ state)
 				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
 			),
 			Line(
-				pred_func_declaration(('pred_'+pred_name) if pred_name else 'query')
+				pred_func_declaration(('pred_'+cppize_identifier(pred_name)) if pred_name else 'query')
 			),
 			Block(
 				[
@@ -399,7 +399,7 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=get_value(&"+local_expr(arg, r)+')'))
 		b.append(Statement(substate + ".entry = 0"))
-		b.append(Line('while('+cppize_identifier('pred_'+triple.pred) +'('+ substate+')'+'!=0)'))
+		b.append(Line('while(pred_'+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
 		s.state_index += 1
 		return b

@@ -3,9 +3,10 @@ kb
 :zero a :Nat.
 {?x :suc ?y. ?y a :Nat} <= {?x a :Nat}.
  
-{?y :sub ?r} <= {?x :suc ?y. ?x :sub ?r}   # what lets this one keep going
-{?y :sup ?r} <= {?y :suc ?z. ?z :sup ?r}   # but cuts this one
-{?x :rec ?y} <= {?y :rec ?x}               # and cuts this one
+:zero :sub :banana.
+{?y :sub ?r} <= {?x :suc ?y. ?x :sub ?r}.   # what lets this one keep going
+{?y :sup ?r} <= {?y :suc ?z. ?z :sup ?r}.   # but cuts this one
+{?x :rec ?y} <= {?y :rec ?x}.               # and cuts this one
 fin.
 
 query
@@ -45,6 +46,8 @@ shouldbe
 fin.
 
 
+
+
 query
 :zero :sup "banana".
 fin.
@@ -62,6 +65,21 @@ query
 fin.
 shouldbe
 fin.
+
+
+
+
+
+
+query
+:zero :sub :banana.
+fin.
+shouldbetrue
+
+query
+:zero :suc ?one. ?one :suc ?two. ?two :suc ?three. ?three :sub :banana.
+fin.
+shouldbetrue
 
 
 

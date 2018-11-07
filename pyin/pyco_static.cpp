@@ -177,20 +177,29 @@ void dump()
     trace_flush();
 }
 
-string thing_to_string(Thing* thing)
+string thing_to_string(Thing* thing);
+string thing_to_string_nogetval(Thing* v)
 {
-  Thing *v = get_value(thing);
   if (v->type == CONST)
     if (strings[v->string_id].first == URI)
       return "<" + strings[v->string_id].second + ">";
     else
       return "\"" + strings[v->string_id].second + "\"";
   else
-    if (thing->type == UNBOUND)
-        return "?"+thing->debug_name;
+    if (v->type == UNBOUND)
+        return "?"+v->debug_name;
+    else if (v->type == BNODE)
+        return "["+v->debug_name+"]";
     else
-        return "["+thing->debug_name+"]";
+        return "?"+v->debug_name+"->"+thing_to_string(v);
+
 }
+
+string thing_to_string(Thing* thing)
+{
+  return thing_to_string_nogetval(get_value(thing));
+}
+
 
 #endif
 /*
@@ -247,10 +256,12 @@ bool is_arg_productively_different(Thing *old, Thing *now)
     ASSERT(false);
 }
 
-bool find_ep(ep_table *table, ep_head incoming)
+bool detect_ep(const ep_head head, const ep_head incoming)
 {
-    for (const ep_head head: *table)
-    {
+#ifdef TRACE
+        cerr << thing_to_string_nogetval(head.first) << " vs " << thing_to_string_nogetval(incoming.first) << " and " <<
+        thing_to_string_nogetval(head.second) << " vs " << thing_to_string_nogetval(incoming.second) << endl;
+#endif
         if (is_arg_productively_different(head.first, incoming.first) ||
             is_arg_productively_different(head.second, incoming.second))
             return false;
@@ -261,6 +272,14 @@ bool find_ep(ep_table *table, ep_head incoming)
             if (is_bnode_productively_different(head.second, incoming.second))
                 return false;
         return true;
+}
+
+bool find_ep(ep_table *table, ep_head incoming)
+{
+    for (const ep_head head: *table)
+    {
+        if (detect_ep(head, incoming))
+            return true;
     }
     return false;
 }

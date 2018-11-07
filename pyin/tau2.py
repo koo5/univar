@@ -112,6 +112,11 @@ def tau(command, files, only_id):
 							fail()
 							print_kwrite_link()
 						else:
+							if r.returncode:
+								#print(r.returncode )
+								fail()
+								print_kwrite_link()
+								continue
 							ssss = r.stdout
 							for output_line in ssss.read().splitlines():
 								echo('ooo'+output_line)

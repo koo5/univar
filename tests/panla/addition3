@@ -32,7 +32,7 @@ query
 :zero :has_succ ?one. 
 ?one :has_succ ?two.
 ?two :has_succ ?three.
-?three :has_succ :?our.
+?three :has_succ ?four.
 ?four :has_succ ?five.
 ?five :has_succ ?six.
 ?six :has_succ ?seven.
@@ -40,4 +40,7 @@ query
 ?eight :has_succ ?nine.
 ?nine :has_succ ?ten.
 fin.
-shouldbetrue
+shouldbe
+#we cant build up a nat starting from three down(in the has_sum rule body, by calling has_succ), ep check has to cut that
+fin.
+

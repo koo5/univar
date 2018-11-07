@@ -21,18 +21,18 @@ shouldbetrue
 
 #2
 query
-:zero :has_suc ?one. ?one :has_suc ?two. 
+:zero :has_succ ?one. ?one :has_succ ?two. 
 fin.
 shouldbetrue
 
 #3
 query
-:zero :has_suc ?one. ?one :has_suc ?two. ?two :has_suc ?three. 
+:zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. 
 fin.
 shouldbetrue
 
 #4
 query
-:zero :has_suc ?one. ?one :has_suc ?two. ?two :has_suc ?three. ?three :has_suc ?four.
+:zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. ?three :has_succ ?four.
 fin.
 shouldbetrue

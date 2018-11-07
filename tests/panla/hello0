@@ -15,6 +15,8 @@ kb
 fin.
 #0
 query
-?l0_0 :parses_to_hello_with_rest rdf:nil. ("h" "e" "l" "l" "o").
+?l0_0 :parses_to_hello_with_rest rdf:nil.
 fin.
-shouldbetrue
+shouldbe
+fin.
+

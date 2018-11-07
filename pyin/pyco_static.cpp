@@ -77,6 +77,8 @@ struct Thing
     }
 };
 
+map<Thing*,unsigned long> bnode_to_id;
+unsigned long bnode_counter = 0;
 
 Thing *get_value(Thing *x)
 {
@@ -87,14 +89,13 @@ Thing *get_value(Thing *x)
 
 void dump();
 
-typedef pair<Thing,Thing> thingthingpair;
+typedef pair<Thing*,Thing*> thingthingpair;
 //ep_head is an array/pair of 2 Things
 typedef thingthingpair ep_head;
 typedef vector<ep_head> ep_table;
 struct cpppred_state;
 struct cpppred_state
 {
-    ep_head ep;
     size_t entry;
     Locals locals;
     Thing *incoming[2];
@@ -215,22 +216,55 @@ the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
 
+bool is_bnode_productively_different(Thing *old, Thing *now)
+{
+    return (bnode_to_id[now] < bnode_to_id[old]);
+}
+
+bool is_arg_productively_different(Thing *old, Thing *now)
+{
+    if (now->type == BOUND || now->type == UNBOUND)
+    {
+        if (old->type == BOUND || old->type == UNBOUND)
+            return false;
+        if (old->type == CONST || old->type == BNODE)
+            return true;
+    }
+    if (now->type == CONST)
+    {
+        if (old->type == BOUND || old->type == UNBOUND || old->type == BNODE)
+            return true;
+        ASSERT(old->type == CONST);
+            return !(*old == *now);
+    }
+    if (now->type == BNODE)
+    {
+        if (old->type == BOUND || old->type == UNBOUND || old->type == CONST)
+            return true;
+        ASSERT(old->type == BNODE);
+            return false;
+    }
+    ASSERT(false);
+}
 
 bool find_ep(ep_table *table, ep_head incoming)
 {
-    Thing a,b,x,y;
-    x = incoming.first;
-    y = incoming.second;
-    ASSERT(x.type != BOUND);ASSERT(y.type != BOUND);
     for (const ep_head head: *table)
     {
-        a = head.first;
-        b = head.second;
-        ASSERT(a.type != BOUND);ASSERT(b.type != BOUND);
-        if ((a == x) && (b == y) && ((a.type != BNODE) && (b.type != BNODE))) return true;
+        if (is_arg_productively_different(head.first, incoming.first) ||
+            is_arg_productively_different(head.second, incoming.second))
+            return false;
+        if (head.first->type == BNODE && incoming.first->type == BNODE)
+            if (is_bnode_productively_different(head.first, incoming.first))
+                return false;
+        if (head.second->type == BNODE && incoming.second->type == BNODE)
+            if (is_bnode_productively_different(head.second, incoming.second))
+                return false;
+        return true;
     }
     return false;
 }
+
 
 static size_t query(cpppred_state & __restrict__ state);
 void print_result(cpppred_state &state);

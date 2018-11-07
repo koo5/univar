@@ -303,6 +303,9 @@ int unify(cpppred_state & __restrict__ state)
 		b.append(comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
+		if len(r.existentials):
+			existential_pos = str(r.locals_map[r.existentials[0]])
+			b.append(Statement("bnode_to_id[&state.locals["+existential_pos+']] = bnode_counter++'))
 		if trace:
 			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 			b.append(Statement('state.set_active(true)'))
@@ -312,6 +315,8 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(s.body_triples_block(r))
 		if trace:
 			b.append(Statement('state.set_active(false)'))
+		if len(r.existentials):
+			b.append(Statement("bnode_to_id.erase(&state.locals["+existential_pos+'])'))
 		return outer_block
 
 	def head(s, r):
@@ -363,8 +368,7 @@ int unify(cpppred_state & __restrict__ state)
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
 		if do_ep:
-			b.append(Statement("state.ep = ep_head(*get_value(state.incoming[0]), *get_value(state.incoming[1]))"))
-			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state.ep))"))
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(state.incoming[0], state.incoming[1])))"))
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
 			if trace:
@@ -455,7 +459,7 @@ def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".push_back(state.ep)")
+	return Statement('ep'+str(rule.debug_id)+".push_back(ep_head(state.incoming[0], state.incoming[1]))")
 
 
 def nest(block):

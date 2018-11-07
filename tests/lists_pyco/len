@@ -37,3 +37,23 @@ query
 fin.
 shouldbetrue
 thatsall
+
+query
+(:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. ?three :has_succ ?l.
+fin.
+shouldbetrue
+thatsall
+
+query
+(:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?l.
+fin.
+shouldbe
+fin.
+thatsall
+
+query
+(:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. ?three :has_succ ?four. ?four :has_succ ?l.
+fin.
+shouldbe
+fin.
+thatsall

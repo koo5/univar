@@ -7,11 +7,16 @@ kb
 
 
 {?x0 :parses_to_hello_with_rest ?rest} <= {
-	?x0 rdf:first "h". ?x0 rdf:rest ?x1. 
-	?x1 rdf:first "e". ?x1 rdf:rest ?x2. 
-	?x2 rdf:first "l". ?x2 rdf:rest ?x3. 
-	?x3 rdf:first "l". ?x3 rdf:rest ?x4. 
-	?x4 rdf:first "o". ?x4 rdf:rest ?rest.
+	?x4 rdf:rest ?rest.
+	?x4 rdf:first "o". 
+	?x3 rdf:rest ?x4. 
+	?x3 rdf:first "l". 
+	?x2 rdf:rest ?x3. 
+	?x2 rdf:first "l". 
+	?x1 rdf:rest ?x2. 
+	?x1 rdf:first "e". 
+	?x0 rdf:rest ?x1. 
+	?x0 rdf:first "h". 
 }.
 fin.
 #0

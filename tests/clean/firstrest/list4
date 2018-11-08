@@ -4,6 +4,6 @@ kb
 fin.
 
 query
-(z) rdf:first ?b.
+(:z) rdf:first ?b.
 fin.
 

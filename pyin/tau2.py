@@ -112,11 +112,16 @@ def tau(command, files, only_id):
 						with open(trace_output_path+'query_for_external_euler.n3', 'w') as f:
 							f.write(''.join(prefixes) + euler_formula)
 						write_out(trace_output_path+'query_for_external_raw.n3')
-						r = subprocess.Popen(['bash', '-c', ' '.join([command, trace_output_path, ' --identification ', identification, ' --base ', base])],
-											 universal_newlines=True, stdout=subprocess.PIPE)
+						cccc= ' '.join([
+							command, ' --identification ', identification, ' --base ', base,
+							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
+						])
+						print(cccc)
+						r = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE)
+						r.wait()
 						if r.returncode:
 							fail()
-							#print_kwrite_link()
+							print_kwrite_link()
 						else:
 							for output_line in r.stdout.read().splitlines():
 								echo('ooo '+output_line)
@@ -248,7 +253,8 @@ def write_out(fn):
 	mode = Mode.none
 
 def print_kwrite_link():
-	echo("kwrite " + common.kbdbg_file_name(identification))
+	#echo("kwrite " + common.kbdbg_file_name(identification))
+	pass
 
 if __name__ == "__main__":
 	tau()

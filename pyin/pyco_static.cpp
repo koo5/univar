@@ -8,6 +8,13 @@
 
 using namespace std;
 
+unsigned long euler_steps = 0;
+
+void print_euler_steps()
+{
+    cout << euler_steps << " euler_steps." << endl;
+}
+
 ofstream trace;
 string trace_string;
 
@@ -175,6 +182,7 @@ void dump()
         dump_state(0, query_state);
     trace_write_raw("</ul><br><br><br><br><br><br><br>\");\n");
     trace_flush();
+    //print_euler_steps();
 }
 
 string thing_to_string(Thing* thing);
@@ -192,7 +200,6 @@ string thing_to_string_nogetval(Thing* v)
         return "["+v->debug_name+"]";
     else
         return "?"+v->debug_name+"->"+thing_to_string(v);
-
 }
 
 string thing_to_string(Thing* thing)
@@ -276,6 +283,8 @@ bool detect_ep(const ep_head head, const ep_head incoming)
 
 bool find_ep(ep_table *table, ep_head incoming)
 {
+    if (!(euler_steps & 0b11111111111111111))
+        print_euler_steps();
     for (const ep_head head: *table)
     {
         if (detect_ep(head, incoming))
@@ -303,6 +312,7 @@ int main (int argc, char *argv[])
     {
         print_result(state);
     }
+    print_euler_steps();
     #ifdef TRACE
     trace_flush();
     trace.close();
@@ -319,7 +329,3 @@ int unify(cpppred_state & __restrict__ state);
 #else
 #define END {return 0;}
 #endif
-
-
-
-

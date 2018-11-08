@@ -1,0 +1,14 @@
+#-fsanitize=integer -fsanitize=unsigned-integer-overflow 
+ASAN=  #  -fsanitize=address -fsanitize=undefined -ggdb -fsanitize-undefined-trap-on-error 
+DBG=   $(ASAN) -DDEBUG  -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -ggdb -O0  -g3 
+
+DEPS = pyco_out.cpp ../../pyin/pyco_static.cpp
+CXX = clang++ -std=c++11 -O3 -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value -Wno-gnu-label-as-value -Wno-c99-extensions -Wno-c++14-binary-literal 
+
+all: pyco
+
+debug: $(DEPS)
+	$(CXX) $(DBG) pyco_out.cpp -o pyco 
+
+pyco: $(DEPS)
+	$(CXX) pyco_out.cpp -o pyco 

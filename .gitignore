@@ -61,3 +61,5 @@ scan
 
 pyco_visualization/trace.js
 2018*
+pyco
+pyco_out.cpp

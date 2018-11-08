@@ -129,7 +129,7 @@ class Emitter(object):
 		if trace:
 			s.prologue.append(Line('#define TRACE'))
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
-		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
+		s.prologue.append(Line('#include "../../pyin/pyco_static.cpp"'))
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
 		all_rules = []
@@ -148,7 +148,6 @@ class Emitter(object):
 			#put under "with_assert" ? running python with -O would do that
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
-		del pred,rules,rule
 		r = Module(
 		[
 			Lines([
@@ -390,6 +389,7 @@ int unify(cpppred_state & __restrict__ state)
 			if do_ep:
 				b.append(push_ep(r))
 				inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
+		outer_block.append(Statement('euler_steps++'));
 		return outer_block
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
@@ -400,6 +400,7 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=get_value(&"+local_expr(arg, r)+')'))
 		b.append(Statement(substate + ".entry = 0"))
+		b.append(Statement('euler_steps++'));
 		b.append(Line('while(pred_'+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
 		s.state_index += 1
@@ -493,13 +494,15 @@ def comment(s):
 @click.option('--base', default="")
 @click.option('--nolog', default=False, type=bool)
 @click.option('--notrace', default=False, type=bool)
+@click.option('--nodebug', default=False, type=bool)
 @click.option('--novalgrind', default=False, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, novalgrind):
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind):
 	global preds, trace
 	trace = not notrace
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['cp', '-r', 'pyco_visualization/html', outpath])
+	subprocess.call(['cp', '-r', 'pyco_makefile', outpath+'Makefile'])
 	pyin.nolog = nolog
 	pyin.init_logging()
 	common.log = pyin.log
@@ -508,13 +511,16 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, novalgrind)
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
-	subprocess.check_call(["make", "pyco"])
+	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
+	subprocess.check_call(['make', ("pyco" if nodebug else "debug")], cwd = outpath)
 	print("#ok lets run this")
 	sys.stdout.flush()
 	subprocess.call(["rm", outpath+"trace.js"])
-
-	os.system(('' if novalgrind else "valgrind") + ' ./pyco')
+	pyco_executable = outpath+'/pyco'
+	if novalgrind:
+		subprocess.check_call([pyco_executable])
+	else:
+		subprocess.check_call(['valgrind', pyco_executable])
 
 if __name__ == "__main__":
 	query_from_files()

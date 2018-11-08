@@ -1,0 +1,16 @@
+kb
+
+:this :isa :dummyfact.
+#superstructural constructions are fine
+{:this :isa :dummyfact} => {?X :superstructure (?X)}.
+
+#superstructural recursions are not, unless they're capped off by some condition.
+{?x :superstructure ?y. ?y :recurse ?z. } => {?x :recurse ?z. }.
+
+fin.
+
+query
+() :recurse :forever.
+fin.
+shouldbe
+fin.

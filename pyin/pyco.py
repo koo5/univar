@@ -124,10 +124,11 @@ class Emitter(object):
 	def label(s):
 		return Line("case" +str(s._label) + ":;")
 
-	def generate_cpp(s, goal, goal_graph):
+	def generate_cpp(s, goal, goal_graph, trace_output_path):
 		s.prologue = Lines()
 		if trace:
 			s.prologue.append(Line('#define TRACE'))
+			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
 		s.prologue.append(Line('#include "pyin/pyco_static.cpp"'))
 		if s.do_builtins:
 			pyco_builtins.add_builtins()
@@ -488,7 +489,7 @@ def comment(s):
 @click.command()
 @click.argument('kb', type=click.File('rb'))
 @click.argument('goal', type=click.File('rb'))
-@click.option('--identification', default="")
+@click.option('--identification', default="unknown")
 @click.option('--base', default="")
 @click.option('--nolog', default=False, type=bool)
 @click.option('--notrace', default=False, type=bool)
@@ -497,7 +498,8 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, novalgrind)
 	global preds, trace
 	trace = not notrace
 	preds = defaultdict(list)
-	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = pyin.set_up(True, identification, base)
+	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
+	subprocess.call(['cp', '-r', 'pyco_visualization/html', outpath])
 	pyin.nolog = nolog
 	pyin.init_logging()
 	common.log = pyin.log
@@ -506,11 +508,11 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, novalgrind)
 		preds[rule.head.pred].append(rule)
 
 	e = Emitter()
-	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph))
+	open("pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 	subprocess.check_call(["make", "pyco"])
 	print("#ok lets run this")
 	sys.stdout.flush()
-	os.system("rm pyco_visualization/trace.js")
+	subprocess.call(["rm", outpath+"trace.js"])
 
 	os.system(('' if novalgrind else "valgrind") + ' ./pyco')
 

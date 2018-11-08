@@ -1,0 +1,12 @@
+kb
+# very small test
+
+<ab> = ( <a> <b> ) .
+
+# ends
+fin.
+query
+:THIS_TEST a :SUCCESS.
+fin.
+shouldbe
+fin.

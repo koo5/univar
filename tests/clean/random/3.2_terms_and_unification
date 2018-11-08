@@ -1,0 +1,53 @@
+#trash
+
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+:zero a :Nat.
+{?x :has_succ ?y. ?x a :Nat} => { ?y a :Nat}.
+#R0
+{?ddd :has_sum ?y.} <= {?y a :Nat}.
+#R1
+{?fff :has_sum ?sz } <= {?x :has_succ ?sx. ?z :has_succ ?sz. (?x ?y) :has_sum ?z.}.
+
+:zero :has_succ :one. :one :has_succ :two. :two :has_succ :three. :three :has_succ :four. :four :has_succ :five. :five :has_succ :six. :six :has_succ :seven.
+fin.
+
+
+#currently this takes a whole day and first two test cases fail and then i killed it
+
+query
+(:three :four) :has_sum :seven.
+#intended solution: recursing or R1 until finally hitting R0 like this:
+#two four six
+#one four five
+#zero four four.
+
+#query is parent of R1 which is parent of R1 which is parent of R0,
+#with bindings from ?sx to :three, from sx to x(two), from sx to x(one), from x(zero) to R0-zero
+
+fin.
+shouldbe
+fin.
+
+query
+( :four :three) :has_sum :seven.
+fin.
+shouldbe
+fin.
+
+query
+(:three :four) :has_sum ?w.
+fin.
+shouldbe
+fin.
+
+
+query
+(:three ?w) :has_sum :seven.
+fin.
+shouldbe
+fin.
+
+

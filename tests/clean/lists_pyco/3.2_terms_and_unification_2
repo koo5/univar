@@ -1,0 +1,21 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+
+#— Existence of lists
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+:banana a :Nat.
+
+{?l1_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
+fin.
+
+query
+(:zero :banana) :has_sum :banana.
+fin.
+shouldbe
+(:zero :banana) :has_sum :banana.
+fin.
+

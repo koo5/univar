@@ -25,7 +25,7 @@ pyin.default_graph = default_graph
 def query_from_files(kb, goal, nokbdbg, nolog, visualize, sparql_uri, identification, base):
 	global server, this
 
-	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this = set_up(nolog, identification, base)
+	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, runs_path = set_up(identification, base)
 	pyin.this = this
 	pyin.nolog = nolog
 	common.nolog = nolog

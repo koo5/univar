@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import time
+import time, os
 import common
 from rdflib.plugins.parsers import notation3
 notation3.RDFSink.newList = common.newList
@@ -86,7 +86,8 @@ def tau(command, files, only_id):
 			else:
 				if l_stripped == 'fin.':
 					if mode == Mode.kb:
-						write_out('kb_for_external_raw.n3')
+						kb_raw_text = grab_buffer()
+						mode = Mode.none
 						continue
 					elif mode == Mode.query:
 						if query_number == None:
@@ -98,28 +99,27 @@ def tau(command, files, only_id):
 							mode = Mode.none
 							continue
 
-						euler_buffer = ''.join(buffer)
-						euler_formula = '{' + euler_buffer + '} <= {' + euler_buffer + '}.'
-						with open('query_for_external_euler.n3', 'w') as f:
-							f.write(''.join(prefixes) + euler_formula)
-						write_out('query_for_external_raw.n3')
 						set_new_identification()
 						identify()
-						try:
-							r = subprocess.Popen(['bash', '-c', command + ' --identification ' + identification + ' --base ' + base],
+						trace_output_path = common.trace_output_path(identification)
+						os.system('mkdir -p '+trace_output_path)
+
+						with open(trace_output_path+'kb_for_external_raw.n3', 'w') as f:
+							f.write(kb_raw_text)
+
+						euler_buffer = ''.join(buffer)
+						euler_formula = '{' + euler_buffer + '} <= {' + euler_buffer + '}.'
+						with open(trace_output_path+'query_for_external_euler.n3', 'w') as f:
+							f.write(''.join(prefixes) + euler_formula)
+						write_out(trace_output_path+'query_for_external_raw.n3')
+						r = subprocess.Popen(['bash', '-c', ' '.join([command, trace_output_path, ' --identification ', identification, ' --base ', base])],
 											 universal_newlines=True, stdout=subprocess.PIPE)
-						except CalledProcessError as e:
+						if r.returncode:
 							fail()
-							print_kwrite_link()
+							#print_kwrite_link()
 						else:
-							if r.returncode:
-								#print(r.returncode )
-								fail()
-								print_kwrite_link()
-								continue
-							ssss = r.stdout
-							for output_line in ssss.read().splitlines():
-								echo('ooo'+output_line)
+							for output_line in r.stdout.read().splitlines():
+								echo('ooo '+output_line)
 								result_marker = ' RESULT :'
 								if output_line.startswith(result_marker):
 									results.append(output_line[len(result_marker):])
@@ -179,7 +179,7 @@ def parse(data, identifier, publicID):
 
 def set_new_identification():
 	global identification
-	identification = common.fix_up_identification(fn + '_' + str(query_number))
+	identification = common.fix_up_identification(fn + '_' + str(query_number if query_number != None else 0))
 
 def print_graph(g):
 	for i in g.triples((None, None, None)):

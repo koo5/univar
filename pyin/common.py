@@ -104,11 +104,11 @@ def join_generators(a, b):
 		for j in b:
 			yield True
 
-def kbdbg_file_path(fn):
-	return 'runs/'+fn+ '/'
+def trace_output_path(identification):
+	return 'runs/'+identification+ '/'
 
-def kbdbg_file_name(fn):
-	return kbdbg_file_path(fn) + fn
+def kbdbg_file_name(identification, fn):
+	return trace_output_path(identification) + fn
 
 #Identifiers table
 # Key: 		String

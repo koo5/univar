@@ -293,7 +293,7 @@ int main (int argc, char *argv[])
 	(void )argc;
 	(void )argv;
     #ifdef TRACE
-	trace.open("pyco_visualization/trace.js");
+	trace.open(trace_output_path"/trace.js");
 	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
 	#endif
     cpppred_state state;

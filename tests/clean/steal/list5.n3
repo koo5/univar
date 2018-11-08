@@ -1,0 +1,8 @@
+kb
+( <a> <b> <c> <d> <e> <f> ) a <sixer>.
+fin.
+query
+:THIS_TEST a :SUCCESS.
+fin.
+shouldbe
+fin.

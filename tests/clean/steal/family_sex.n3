@@ -1,0 +1,16 @@
+@prefix dbpedia-owl:  <http://dbpedia.org/ontology/>.
+@prefix dbpedia:  <http://dbpedia.org/resource/>.
+@prefix dbpprop:  <http://dbpedia.org/property/>.
+
+@prefix genea: <http://www.owl-ontologies.com/generations.owl#>.
+kb
+{ ?P dbpprop:mother ?FEMME
+} => {
+  ?FEMME a genea:Woman.
+}.
+
+{ ?P dbpprop:father ?HOMME
+} => {
+  ?HOMME a genea:Man.
+}.
+fin.

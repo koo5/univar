@@ -1,0 +1,7 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+kb
+fin.
+query
+(1 2) rdf:first ?b.
+
+fin.

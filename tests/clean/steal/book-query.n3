@@ -1,0 +1,17 @@
+@prefix     : <http://example.com#> .
+kb
+{
+?x :writeBy ?y .
+?y a :scifiWriter .
+?x a :book .
+}
+=>
+{
+?x a :scifiBook .
+}.
+{ ?S a ?O }
+=>
+{ ?S a ?O }
+.
+
+fin.

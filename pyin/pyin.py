@@ -834,17 +834,17 @@ def init_logging():
 
 
 
-def set_up(nolog, identification, base):
+def set_up(identification, base):
+	identification = common.fix_up_identification(identification)
+	outpath = common.trace_output_path(identification)
+	fn = 'kbdbg'+identification+'.n3'
 	base = 'file://'  + base
 	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
-	identification = common.fix_up_identification(identification)
-	fn = 'kbdbg'+identification+'.n3'
-	outpath = common.kbdbg_file_path(fn)
-	kbdbg_fn = common.kbdbg_file_name(fn)
+	kbdbg_fn = common.kbdbg_file_name(identification, fn)
 	rules_fn = kbdbg_fn + '_rules'
 	subprocess.call(['rm', '-f', rules_fn])
 	os.system('mkdir -p '+outpath)
-	return kbdbg_fn, rules_fn, identification, base, this
+	return kbdbg_fn, rules_fn, identification, base, this, outpath
 
 
 def load(kb, goal, identification, base):

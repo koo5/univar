@@ -1,0 +1,8 @@
+kb
+( "one" "two" ) = ( <one> <two> ).
+fin.
+query
+:THIS_TEST a :SUCCESS.
+fin.
+shouldbe
+fin.

@@ -1,0 +1,9 @@
+kb
+( <a> <b> ) = <ab>.
+
+fin.
+query
+:THIS_TEST a :SUCCESS.
+fin.
+shouldbe
+fin.

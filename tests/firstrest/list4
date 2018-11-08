@@ -1,9 +1,0 @@
-kb
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
-fin.
-
-query
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
-(z) rdf:first ?b.
-fin.
-

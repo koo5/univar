@@ -11,7 +11,6 @@
 @prefix daml:     <http://www.daml.org/2001/03/daml+oil#> .
 @prefix foaf:     <http://xmlns.com/foaf/0.1/> .
 @prefix rule:     <http://id.ninebynine.org/wip/2002/rule/> .
-@prefix :         <#> .
 
 kb
 

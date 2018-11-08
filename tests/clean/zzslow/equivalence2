@@ -1,12 +1,12 @@
 #--limit 300
 kb
 
-null :eq zero.
-nada :eq null.
+:null :eq :zero.
+:nada :eq :null.
 
-null :eq null.
-nada :eq nada.
-zero :eq zero.
+:null :eq :null.
+:nada :eq :nada.
+:zero :eq :zero.
 
 {?x :eq ?y} => {?y :eq ?x}.
 {?x :eq ?y. ?y :eq ?z} => {?x :eq ?z}.
@@ -245,7 +245,7 @@ fin.
 #										"nada a Nat"
 #									"{?x eq ?y} => {?y eq ?x}" [zero/?y]
 # EP!
-									"{?x eq ?y. ?y eq ?z} => {?x eq ?z}" [zero/?x]
+##									"{?x eq ?y. ?y eq ?z} => {?x eq ?z}" [zero/?x]
 # EP!
 #									--------------
 #									"0 a Nat"

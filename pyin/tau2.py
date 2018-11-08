@@ -36,7 +36,7 @@ fn = '?'
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
 def tau(command, files, only_id):
-	global mode, buffer, prefixes, output, fn, identification, query_number, base
+	global mode, buffer, prefixes, output, fn, identification, query_number, base, already_failed_because_no_more_results
 	for fn in files:
 		echo(fn+':test:')
 		query_number = None
@@ -60,6 +60,8 @@ def tau(command, files, only_id):
 					continue
 				elif l_stripped == 'thatsall':
 					if only_id != None and only_id != query_number:
+						continue
+					if already_failed_because_no_more_results:
 						continue
 					if len(results) != 0:
 						print('expecting 0 but ' +str(len(results)) + ' results remaining')
@@ -98,7 +100,7 @@ def tau(command, files, only_id):
 							buffer = []
 							mode = Mode.none
 							continue
-
+						already_failed_because_no_more_results = False
 						set_new_identification()
 						identify()
 						trace_output_path = common.trace_output_path(identification)
@@ -146,6 +148,7 @@ def tau(command, files, only_id):
 			exit()
 
 def check_result(results, shouldbe_graph):
+	global already_failed_because_no_more_results
 	l1 = len(shouldbe_graph)
 	l2 = len(results)
 	print('expected:')
@@ -155,6 +158,7 @@ def check_result(results, shouldbe_graph):
 		success()
 		return
 	if not len(results):
+		already_failed_because_no_more_results = True
 		echo('no more results')
 		fail()
 		print_kwrite_link()
@@ -228,10 +232,10 @@ def timestamp():
 	return '%10.2f ' % time.time()
 
 def success():
-	echo(timestamp()+identification+":test:PASS")
+	echo(timestamp()+identification+":test:...PASS")
 
 def fail():
-	echo(timestamp()+(identification if identification else fn)+":test:FAIL")
+	echo(timestamp()+(identification if identification else fn)+":test:...FAIL")
 
 def identify():
 	echo(timestamp()+identification+":test:")

@@ -78,7 +78,10 @@ struct Thing
     #ifdef TRACE
     ,string debug_name
     #endif
-    ) : _type{type}, _debug_name{debug_name}
+    ) : _type{type}
+    #ifdef TRACE
+    ,_debug_name{debug_name}
+    #endif
     {
         ASSERT(type == UNBOUND);
         #ifdef DEBUG
@@ -89,7 +92,10 @@ struct Thing
     #ifdef TRACE
     ,string debug_name
     #endif
-    ) : _type{type}, _debug_name{debug_name}
+    ) : _type{type}
+    #ifdef TRACE
+    ,_debug_name{debug_name}
+    #endif
     {
         set_value((Thing*)value);
     }

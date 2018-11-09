@@ -7,8 +7,10 @@ CXX = clang++ -std=c++11 -O3 -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value -W
 
 all: pyco
 
+STUFF = `pwd`/pyco_out.cpp -ferror-limit=3 -o pyco 
+
 debug: $(DEPS)
-	$(CXX) $(DBG) pyco_out.cpp -o pyco 
+	$(CXX) $(DBG) $(STUFF)
 
 pyco: $(DEPS)
-	$(CXX) pyco_out.cpp -o pyco 
+	$(CXX) $(STUFF)

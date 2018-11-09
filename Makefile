@@ -75,6 +75,3 @@ ppjson: ppjson.cpp
 dimacs2tau: dimacs2tau.cpp
 	$(CXX) -std=c++11 dimacs2tau.cpp -odimacs2tau -Wall -ggdb
 
-pyco: pyco_out.cpp pyin/pyco_static.cpp
-	clang++ -std=c++11  $(ASAN) -Wall -Wextra -Wpedantic   -Wno-gnu-label-as-value -Wno-gnu-label-as-value -Wno-c99-extensions  -g -ggdb  -fno-omit-frame-pointer -fno-optimize-sibling-calls  -O0  -g3 pyco_out.cpp -o pyco 
-#

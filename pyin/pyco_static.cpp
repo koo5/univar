@@ -67,17 +67,35 @@ struct Thing
     ThingType _type;
     union
     {
-        Thing *binding;
-        nodeid string_id;
-        BnodeOrigin origin;
+        Thing *_binding;
+        nodeid _string_id;
+        BnodeOrigin _origin;
     };
     #ifdef TRACE
-        string debug_name;
+        string _debug_name;
     #endif
-
+    Thing (ThingType type
+    #ifdef TRACE
+    ,string debug_name
+    #endif
+    ) : _type{type}, _debug_name{debug_name}
+    {
+        ASSERT(type == UNBOUND);
+        #ifdef DEBUG
+        set_value((Thing*)666);
+        #endif
+    }
+    Thing (ThingType type, unsigned long value
+    #ifdef TRACE
+    ,string debug_name
+    #endif
+    ) : _type{type}, _debug_name{debug_name}
+    {
+        set_value((Thing*)value);
+    }
     bool operator==(const Thing& b) const
     {    //just bitwise comparison, not recursive check of equality of bindings
-        return this->type == b.type && this->binding == b.binding;
+        return this->_type == b._type && this->_binding == b._binding;
     }
     ThingType type()
     {
@@ -85,11 +103,19 @@ struct Thing
     }
     Thing* binding()
     {
-        return binding;
+        return _binding;
     }
+    BnodeOrigin origin()
+    {
+        return _origin;
+    }
+    nodeid string_id()
+    {
+        return (nodeid)(_string_id);
+    };
     void set_value(Thing* v)
     {
-        binding = v;
+        _binding = v;
     }
     void bind(Thing* v)
     {
@@ -210,18 +236,18 @@ void dump()
 string thing_to_string(Thing* thing);
 string thing_to_string_nogetval(Thing* v)
 {
-  if (v->type == CONST)
-    if (strings[v->string_id].first == URI)
-      return "<" + strings[v->string_id].second + ">";
+  if (v->type() == CONST)
+    if (strings[v->string_id()].first == URI)
+      return "<" + strings[v->string_id()].second + ">";
     else
-      return "\"" + strings[v->string_id].second + "\"";
+      return "\"" + strings[v->string_id()].second + "\"";
   else
-    if (v->type == UNBOUND)
-        return "?"+v->debug_name;
-    else if (v->type == BNODE)
-        return "["+v->debug_name+"]";
+    if (v->type() == UNBOUND)
+        return "?"+v->_debug_name;
+    else if (v->type() == BNODE)
+        return "["+v->_debug_name+"]";
     else
-        return "?"+v->debug_name+"->"+thing_to_string(v);
+        return "?"+v->_debug_name+"->"+thing_to_string(v);
 }
 
 string thing_to_string(Thing* thing)

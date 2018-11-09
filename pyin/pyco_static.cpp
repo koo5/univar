@@ -34,14 +34,11 @@ extern vector<Constant> strings;
 
 enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
-
-reference?
+reference? http://www.delorie.com/gnu/docs/glibc/libc_31.html
 */
 
 typedef unsigned long BnodeOrigin;
 typedef unsigned BnodeIndex;
-
-//map<BnodeIndex,Locals> bnodes;
 
 
 struct Thing;
@@ -51,6 +48,7 @@ typedef vector<Thing> Locals;
 static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
 static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
 static_assert(sizeof(Thing*) == sizeof(unsigned long), "damn");
+static_assert(sizeof(Thing*) == sizeof(size_t), "damn");
 
 struct Thing
 {
@@ -138,9 +136,6 @@ struct Thing
 #endif
 };
 
-map<Thing*,unsigned long> bnode_to_id;
-unsigned long bnode_counter = 0;
-
 Thing *get_value(Thing *x)
 {
     if (x->type() == BOUND)
@@ -151,23 +146,24 @@ Thing *get_value(Thing *x)
 void dump();
 
 typedef pair<Thing*,Thing*> thingthingpair;
-//ep_head is an array/pair of 2 Things
-typedef thingthingpair ep_head;
+typedef thingthingpair ep_head;//ep_head is an array/pair of 2 Thing pointers
 typedef vector<ep_head> ep_table;
+
+enum coro_status {INACTIVE, ACTIVE, EP};
 struct cpppred_state;
 struct cpppred_state
 {
     size_t entry;
-    Locals locals;
     Thing *incoming[2];
-    vector<cpppred_state> states;
+    cpppred_state *states;
+    Thing *locals;
     #ifdef TRACE
-        bool active = false;
+        bool status = INACTIVE;
         string comment;
         void set_comment(string x) {comment = x;};
         void set_active(bool a)
         {
-            active = a;
+            status = a ? ACTIVE : INACTIVE;
             dump();
         }
     #endif
@@ -263,32 +259,17 @@ string thing_to_string(Thing* thing)
 
 
 #endif
-/*
-unsigned push_string(string);
-	pop_string(string);
-
-	vector<string> strings;
-
-	add_string(string)
-	{
-		if ((it = string2codes.find(string)) != string2codes.end())
-			return *it;
-		string2codes[string] =
-
-	}
-*/
 
 /*
-remember to getvalue as needed before.
-
-later, for optimalization, we dont need to call this function in every case.
+remember to get_value as needed before.
+later, for optimalization, we dont need to call get_value in every case.
 the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
 
 bool is_bnode_productively_different(Thing *old, Thing *now)
 {
-    return (bnode_to_id[now] < bnode_to_id[old]);
+    return now < old;
 }
 
 int is_arg_productively_different(Thing *old, Thing *now)
@@ -351,6 +332,49 @@ bool find_ep(ep_table *table, ep_head incoming)
 }
 
 
+const size_t malloc_size = 1024*1024*1024;
+size_t block_size = malloc_size;
+size_t *block;
+size_t *free_space;
+
+
+size_t *grab_words(size_t count)
+{
+    size_t *result = free_space;
+    size_t increase = count * sizeof(size_t);
+    free_space += increase;
+    while (free_space >= block + block_size)
+    {
+        block_size += malloc_size;
+        if (realloc(block, block_size) != block)
+        {
+            cerr << "cant expand memory";
+            exit(1);
+        }
+    };
+    return result;
+}
+
+cpppred_state *grab_states(size_t count)
+{
+    return (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
+}
+
+void release_states (size_t count)
+{
+    free_space -= count * sizeof(cpppred_state) / sizeof(size_t);
+}
+
+Thing *grab_things(size_t count)
+{
+    return (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
+}
+
+void release_things (size_t count)
+{
+    free_space -= count * sizeof(Thing) / sizeof(size_t);
+}
+
 static size_t query(cpppred_state & __restrict__ state);
 void print_result(cpppred_state &state);
 
@@ -358,22 +382,25 @@ int main (int argc, char *argv[])
 {
 	(void )argc;
 	(void )argv;
+	block = (size_t*)malloc(block_size);
+	free_space = block;
     #ifdef TRACE
 	trace.open(trace_output_path"/trace.js");
 	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
 	#endif
-    cpppred_state state;
-    query_state = &state;
-    state.entry = 0;
-    while(query(state)!=0)
+    query_state = grab_states(1);
+    query_state->entry = 0;
+    while(query(*query_state)!=0)
     {
-        print_result(state);
+        print_result(*query_state);
     }
+    release_states(1);
     print_euler_steps();
     #ifdef TRACE
     trace_flush();
     trace.close();
     #endif
+    free(block);
 }
 
 #define yield(x) {state.entry = (char*)&&x - (char*)&&case0; return state.entry;}
@@ -386,3 +413,18 @@ int unify(cpppred_state & __restrict__ state);
 #else
 #define END {return 0;}
 #endif
+
+/*
+unsigned push_string(string);
+	pop_string(string);
+
+	vector<string> strings;
+
+	add_string(string)
+	{
+		if ((it = string2codes.find(string)) != string2codes.end())
+			return *it;
+		string2codes[string] =
+
+	}
+*/

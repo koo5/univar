@@ -143,9 +143,6 @@ class Emitter(object):
 			used for both head-unification and for calling other rules,
 			so this is the number of generators that this rule will need at once, at most"""
 			rule.max_states_len = (len(rule.head.args) if rule.head else 0) + len(rule.body)
-			if trace:
-				rule.max_states_len += 1 # one for indicating ep
-			#put under "with_assert" ? running python with -O would do that
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
 		r = Module(
@@ -199,22 +196,22 @@ int unify(cpppred_state & __restrict__ state)
 			result.append(Line('case ' + bnode_cpp_name + ':'))
 			start = -(rule.locals_map[bnode_name])
 			end = len(rule.locals_map) - rule.locals_map[bnode_name]
-			outer_block.append(Statement('state.states.resize('+str(end - start - 1)+')'))
+			states_len = '('+str(end - start - 1)+')'
+			outer_block.append(Statement('state.states = grab_states'+states_len))
 			block = outer_block
 			for local_name, local_idx in rule.locals_map.items():
 				if local_name == bnode_name:
 					continue
 				bnode_idx = rule.locals_map[bnode_name];
 				offset = local_idx - bnode_idx
-				block.append(Statement(s.substate()+'.entry = 0'))
+				block.append(Statement(s.substate()+'->entry = 0'))
 				for i in range(2):
 					ee = 'get_value(get_value(state.incoming['+str(i)+']) + '+str(offset)+')'
-					block.append(Statement(s.substate()+'.incoming['+str(i)+'] = '+ee))
-				block.append(Line('while (unify('+s.substate()+'))'))
+					block.append(Statement(s.substate()+'->incoming['+str(i)+'] = '+ee))
+				block.append(Line('while (unify(*'+s.substate()+'))'))
 				block = nest(block)
 				s.state_index += 1
 			block.append(s.do_yield())
-
 			outer_block.append(Statement('break'))
 			s.state_index = 0
 		result.append(Line("""
@@ -234,7 +231,7 @@ int unify(cpppred_state & __restrict__ state)
 		return result
 
 	def substate(s):
-		return 'state.states['+str(s.state_index)+']'
+		return '(state.states+'+str(s.state_index)+')'
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
@@ -243,7 +240,7 @@ int unify(cpppred_state & __restrict__ state)
 			return Statement('cout << "<' + cpp_string_literal_noquote(arg) +'> "')
 		if type(arg) == rdflib.Variable:
 			return Lines([
-				Statement('v = get_value(&state.locals['+str(r.locals_map[arg])+'])'),
+				Statement('v = get_value(state.locals+'+str(r.locals_map[arg])+')'),
 				If('v->type() == CONST',
 					If ('strings[v->string_id()].first == URI',
 						Statement('cout <<  "<" << strings[v->string_id()].second << "> "'),
@@ -288,7 +285,6 @@ int unify(cpppred_state & __restrict__ state)
 				[
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
-					(Statement("state.states.resize(" + str(max_states_len) + ")") if max_states_len else Line()),
 					Lines([s.rule(rule) for rule in rules]),
 					Statement('return 0')
 				]
@@ -301,10 +297,17 @@ int unify(cpppred_state & __restrict__ state)
 		outer_block = b = Lines()
 		b.append(comment(r.__str__(shortener = common.shorten)))
 		if len(r.locals_template):
-			b.append(Statement("state.locals = " + s.things_literals(r, r.locals_template)))
+			b.append(Statement("state.locals = grab_things(" + str(len(r.locals_template))  + ')'))
+			for k,v in r.locals_map.items():
+				b.append(Statement('state.locals['+str(v)+'] = ' +
+					s.thing_literal(r, r.locals_template[v])))
+		if r.max_states_len:
+			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + ')'))
+		if trace:
+			for i in range(len(r.max_states_len)):
+				b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 		if len(r.existentials):
 			existential_pos = str(r.locals_map[r.existentials[0]])
-			b.append(Statement("bnode_to_id[&state.locals["+existential_pos+']] = bnode_counter++'))
 		if trace:
 			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 			b.append(Statement('state.set_active(true)'))
@@ -314,8 +317,8 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(s.body_triples_block(r))
 		if trace:
 			b.append(Statement('state.set_active(false)'))
-		if len(r.existentials):
-			b.append(Statement("bnode_to_id.erase(&state.locals["+existential_pos+'])'))
+		if len(r.locals_template):
+			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
 		return outer_block
 
 	def head(s, r):
@@ -358,7 +361,7 @@ int unify(cpppred_state & __restrict__ state)
 			Statement("state.states[" + str(s.state_index) + '].entry = 0'),
 			Statement("state.states[" + str(s.state_index) + '].incoming[0] = get_value('+a+')'),
 			Statement("state.states[" + str(s.state_index) + '].incoming[1] = get_value('+b+')'),
-			Line('while(unify(state.states[' + str(s.state_index) + ']))')])
+			Line('while(unify(*(state.states + ' + str(s.state_index) + ')))')])
 		s.state_index += 1
 		return r
 
@@ -371,8 +374,7 @@ int unify(cpppred_state & __restrict__ state)
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
 			if trace:
-				ep_state = 'state.states[' + str(s.state_index) + ']'
-				outer_block.append(Line('else {'+ep_state+'.comment = "EP";'+ep_state+'.set_active(true);'+ep_state+'.set_active(false);}'))
+				outer_block.append(Line('else {state.status = EP;dump();state.status=ACTIVE}'))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)

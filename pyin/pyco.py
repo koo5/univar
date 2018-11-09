@@ -389,8 +389,12 @@ int unify(cpppred_state & __restrict__ state)
 			if do_ep:
 				b.append(push_ep(r))
 				inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
-		outer_block.append(Statement('euler_steps++'));
+		outer_block.append(s.euler_step())
+
 		return outer_block
+
+	def euler_step(s):
+		return Statement('if (!(euler_steps++ & 0b111111111111111111111))print_euler_steps()')
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
 		b.append(comment(triple.str(common.shorten)))
@@ -400,7 +404,7 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Statement(
 				substate + ".incoming["+str(arg_idx)+"]=get_value(&"+local_expr(arg, r)+')'))
 		b.append(Statement(substate + ".entry = 0"))
-		b.append(Statement('euler_steps++'));
+		b.append(s.euler_step())
 		b.append(Line('while(pred_'+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
 		s.state_index += 1

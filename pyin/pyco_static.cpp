@@ -1,3 +1,7 @@
+#ifndef DEBUG
+#define NDEBUG
+#endif
+
 #include <string>
 #include <map>
 #include <tuple>
@@ -12,14 +16,13 @@ unsigned long euler_steps = 0;
 
 void print_euler_steps()
 {
-    cout << euler_steps << " euler_steps." << endl;
+    cerr << euler_steps << " euler_steps." << endl;
 }
 
 ofstream trace;
 string trace_string;
 
 #define ASSERT assert
-
 
 typedef unsigned long nodeid;
 
@@ -29,7 +32,7 @@ typedef pair<ConstantType,string> Constant;
 
 extern vector<Constant> strings;
 
-enum ThingType {BOUND, UNBOUND, CONST, BNODE};
+enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
 
 reference?
@@ -47,11 +50,21 @@ typedef vector<Thing> Locals;
 
 static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
 static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
-
+static_assert(sizeof(Thing*) == sizeof(unsigned long), "damn");
 
 struct Thing
 {
-    ThingType type;
+#ifdef ONEWORD
+    unsigned long value;
+    Thing *binding() {return (Thing *)value;};
+    unsigned long ulong {return value & ~type_mask;};
+    nodeid string_id() {return ulong();};
+    BnodeOrigin origin {return ulong();};
+    void bind(Thing* v) {value = v;}
+    void unbind() {value = UNBOUND;}
+    ThingType type() {return (ThingType)(value &type_mask);};
+#else
+    ThingType _type;
     union
     {
         Thing *binding;
@@ -63,25 +76,34 @@ struct Thing
     #endif
 
     bool operator==(const Thing& b) const
-    //just bitwise comparison, not recursive check of equality of bindings
-    {
+    {    //just bitwise comparison, not recursive check of equality of bindings
         return this->type == b.type && this->binding == b.binding;
+    }
+    ThingType type()
+    {
+        return _type;
+    }
+    Thing* binding()
+    {
+        return binding;
     }
     void set_value(Thing* v)
     {
         binding = v;
-        assert (v != (Thing* )0x31);
     }
     void bind(Thing* v)
     {
-        type = BOUND;
+        _type = BOUND;
         set_value(v);
     }
     void unbind()
     {
-        type = UNBOUND;
-         set_value((Thing*)666);
+        _type = UNBOUND;
+        #ifdef DEBUG
+        set_value((Thing*)666);
+        #endif
     }
+#endif
 };
 
 map<Thing*,unsigned long> bnode_to_id;
@@ -89,8 +111,8 @@ unsigned long bnode_counter = 0;
 
 Thing *get_value(Thing *x)
 {
-    if (x->type == BOUND)
-        return get_value(x->binding);
+    if (x->type() == BOUND)
+        return get_value(x->binding());
     return x;
 }
 
@@ -237,45 +259,50 @@ bool is_bnode_productively_different(Thing *old, Thing *now)
     return (bnode_to_id[now] < bnode_to_id[old]);
 }
 
-bool is_arg_productively_different(Thing *old, Thing *now)
+int is_arg_productively_different(Thing *old, Thing *now)
 {
-    if (now->type == BOUND || now->type == UNBOUND)
+    if (now->type() == BOUND || now->type() == UNBOUND)
     {
-        if (old->type == BOUND || old->type == UNBOUND)
+        if (old->type() == BOUND || old->type() == UNBOUND)
             return false;
-        if (old->type == CONST || old->type == BNODE)
+        else if (old->type() == CONST || old->type() == BNODE)
             return true;
     }
-    if (now->type == CONST)
+    else if (now->type() == CONST)
     {
-        if (old->type == BOUND || old->type == UNBOUND || old->type == BNODE)
+        if (old->type() == BOUND || old->type() == UNBOUND || old->type() == BNODE)
             return true;
-        ASSERT(old->type == CONST);
-            return !(*old == *now);
+        else {
+             ASSERT(old->type() == CONST);
+             return !(*old == *now);
+        }
     }
-    if (now->type == BNODE)
+    else if (now->type() == BNODE)
     {
-        if (old->type == BOUND || old->type == UNBOUND || old->type == CONST)
+        if (old->type() == BNODE)
+            return -1;
+        else {
             return true;
-        ASSERT(old->type == BNODE);
-            return false;
+        }
     }
-    ASSERT(false);
+    else { ASSERT(false);  }
+    return false;
 }
 
 bool detect_ep(const ep_head head, const ep_head incoming)
 {
-#ifdef TRACE
+        #ifdef TRACE
         cerr << thing_to_string_nogetval(head.first) << " vs " << thing_to_string_nogetval(incoming.first) << " and " <<
         thing_to_string_nogetval(head.second) << " vs " << thing_to_string_nogetval(incoming.second) << endl;
-#endif
-        if (is_arg_productively_different(head.first, incoming.first) ||
-            is_arg_productively_different(head.second, incoming.second))
+        #endif
+        int a = is_arg_productively_different(head.first, incoming.first);
+        int b = is_arg_productively_different(head.second, incoming.second);
+        if (a == 1 || b == 1)
             return false;
-        if (head.first->type == BNODE && incoming.first->type == BNODE)
+        if (a == -1)
             if (is_bnode_productively_different(head.first, incoming.first))
                 return false;
-        if (head.second->type == BNODE && incoming.second->type == BNODE)
+        if (b == -1)
             if (is_bnode_productively_different(head.second, incoming.second))
                 return false;
         return true;
@@ -283,8 +310,6 @@ bool detect_ep(const ep_head head, const ep_head incoming)
 
 bool find_ep(ep_table *table, ep_head incoming)
 {
-    if (!(euler_steps & 0b11111111111111111))
-        print_euler_steps();
     for (const ep_head head: *table)
     {
         if (detect_ep(head, incoming))

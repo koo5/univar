@@ -174,6 +174,7 @@ int unify(cpppred_state & __restrict__ state)
 {
 	#ifdef TRACE
 		state.num_substates = 0;
+		state.status = ACTIVE;
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
@@ -207,9 +208,12 @@ int unify(cpppred_state & __restrict__ state)
 			result.append(Line('case ' + bnode_cpp_name + ':'))
 			start = -(rule.locals_map[bnode_name])
 			end = len(rule.locals_map) - rule.locals_map[bnode_name]
-			states_len = '('+str(end - start - 1)+')'
+			states_len_int = end - start - 1
+			states_len = '('+str(states_len_int)+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
 			if trace:
+				for i in range(states_len_int):
+					outer_block.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 				outer_block.append(Statement('state.num_substates = '+states_len))
 			block = outer_block
 			for local_name, local_idx in rule.locals_map.items():
@@ -237,6 +241,7 @@ int unify(cpppred_state & __restrict__ state)
 		if trace:
 			result.append(Statement('state.num_substates = 0'))
 		result.append(Line("""
+		state.set_active(false);
 	}
 	single_success:
 	END;

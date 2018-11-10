@@ -32,57 +32,6 @@ string trace_string;
 
 
 
-const size_t malloc_size = 1024ul*1024ul*48ul;
-size_t block_size = malloc_size;
-char *block;
-char *free_space;
-
-
-void realloc()
-{
-        block_size += malloc_size;
-        if (realloc(block, block_size) != block)
-        {
-            cerr << "cant expand memory" << endl;
-            exit(1);
-        }
-}
-
-size_t *grab_words(size_t count)
-{
-    size_t *result = (size_t *)free_space;
-    size_t increase = count * sizeof(size_t);
-    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
-    free_space += increase;
-    while (free_space >= block + block_size)
-        realloc();
-    return result;
-}
-
-cpppred_state *grab_states(size_t count)
-{
-    return (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
-}
-
-void release_states (size_t count)
-{
-    free_space -= count * sizeof(cpppred_state);
-}
-
-Thing *grab_things(size_t count)
-{
-    return (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
-}
-
-void release_things (size_t count)
-{
-    free_space -= count * sizeof(Thing);
-}
-
-
-
-
-
 
 
 
@@ -149,33 +98,49 @@ struct Thing
         BnodeOrigin _origin;
     };
     #ifdef TRACE
-        nodeid _debug_name;
+        string *_debug_name;
+        void construct()
+        {
+            _debug_name = new string;
+        }
+        void destruct()
+        {
+            delete _debug_name;
+        }
     #endif
     Thing (ThingType type
     #ifdef TRACE
-    ,nodeid debug_name
+    ,string debug_name
     #endif
     ) : _type{type}
-    #ifdef TRACE
-    ,_debug_name{debug_name}
-    #endif
     {
         ASSERT(type == UNBOUND);
+        #ifdef TRACE
+        construct();
+        *_debug_name = debug_name;
+        #endif
         #ifdef DEBUG
         set_value((Thing*)666);
         #endif
     }
     Thing (ThingType type, unsigned long value
     #ifdef TRACE
-    ,nodeid debug_name
+    ,string debug_name
     #endif
     ) : _type{type}
-    #ifdef TRACE
-    ,_debug_name{debug_name}
-    #endif
     {
+        #ifdef TRACE
+        construct();
+        *_debug_name = debug_name;
+        #endif
         set_value((Thing*)value);
     }
+    /*
+    ~Thing()
+    {
+        destruct();
+    }
+    */
     bool operator==(const Thing& b) const
     {    //just bitwise comparison, not recursive check of equality of bindings
         return this->_type == b._type && this->_binding == b._binding;
@@ -238,14 +203,17 @@ struct cpppred_state
     Thing *locals;
     #ifdef TRACE
         size_t num_substates;
-        coro_status status;
-        string* comment;
-        void set_comment(string x)
+        coro_status status = INACTIVE;
+        string *comment;
+        void construct()
         {
-            if(comment)
-                delete comment;
-            comment = new string(x);
+            comment = new string;
         }
+        void destruct()
+        {
+            delete comment;
+        }
+        void set_comment(string x) {*comment = x;}
         void set_active(bool a)
         {
             status = a ? ACTIVE : INACTIVE;
@@ -332,11 +300,11 @@ string thing_to_string_nogetval(Thing* v)
   }
   else
     if (v->type() == UNBOUND)
-        return "?"+v->_debug_name;
+        return "?"+*v->_debug_name;
     else if (v->type() == BNODE)
-        return "["+v->_debug_name+"]";
+        return "["+*v->_debug_name+"]";
     else
-        return "?"+v->_debug_name+"->"+thing_to_string(v);
+        return "?"+*v->_debug_name+"->"+thing_to_string(v);
 }
 
 string thing_to_string(Thing* thing)
@@ -417,6 +385,92 @@ bool find_ep(ep_table *table, ep_head incoming)
     }
     return false;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const size_t malloc_size = 1024ul*1024ul*48ul;
+size_t block_size = malloc_size;
+char *block;
+char *free_space;
+
+
+void realloc()
+{
+        block_size += malloc_size;
+        if (realloc(block, block_size) != block)
+        {
+            cerr << "cant expand memory" << endl;
+            exit(1);
+        }
+}
+
+size_t *grab_words(size_t count)
+{
+    size_t *result = (size_t *)free_space;
+    size_t increase = count * sizeof(size_t);
+    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
+    free_space += increase;
+    while (free_space >= block + block_size)
+        realloc();
+    return result;
+}
+
+cpppred_state *grab_states(size_t count)
+{
+    auto r = (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
+    #ifdef TRACE
+        for (size_t i = 0; i < count; i++)
+            r[i].construct();
+    #endif
+    return r;
+}
+
+void release_states (size_t count)
+{
+    free_space -= count * sizeof(cpppred_state);
+    #ifdef TRACE
+        for (size_t i = 0; i < count; i++)
+            ((cpppred_state*)free_space)[i].destruct();
+    #endif
+}
+
+Thing *grab_things(size_t count)
+{
+    auto r = (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
+    #ifdef TRACE
+        for (size_t i = 0; i < count; i++)
+            r[i].construct();
+    #endif
+    return r;
+}
+
+void release_things (size_t count)
+{
+    free_space -= count * sizeof(Thing);
+    #ifdef TRACE
+        for (size_t i = 0; i < count; i++)
+            ((Thing*)free_space)[i].destruct();
+    #endif
+}
+
+
+
+
+
+
+
+
 
 
 static size_t query(cpppred_state & __restrict__ state);

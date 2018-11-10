@@ -94,7 +94,7 @@ class Emitter(object):
 		for atom, (kind,cpp_name, code) in s.codes.items():
 			c = 'Constant{'+kind+',"'+atom+'"}'
 			r.append(Line('consts2nodeids_and_refcounts['+c+']=nodeid_and_refcount{'+code+',1};'))
-			r.append(Statement('nodeids2consts['+code+']='+c))
+			r.append(Statement('nodeids2consts.push_back('+c+')'))
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
 		r.append(Line('}'))
 		return r
@@ -172,6 +172,9 @@ class Emitter(object):
 			"""
 int unify(cpppred_state & __restrict__ state)
 {
+	#ifdef TRACE
+		state.num_substates = 0;
+	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
 	case0:""")])
@@ -208,7 +211,6 @@ int unify(cpppred_state & __restrict__ state)
 			outer_block.append(Statement('state.states = grab_states'+states_len))
 			if trace:
 				outer_block.append(Statement('state.num_substates = '+states_len))
-
 			block = outer_block
 			for local_name, local_idx in rule.locals_map.items():
 				if local_name == bnode_name:
@@ -231,7 +233,10 @@ int unify(cpppred_state & __restrict__ state)
 		result.append(Line("""
 			default:
 			ASSERT(false);
-		}
+		}"""))
+		if trace:
+			result.append(Statement('state.num_substates = 0'))
+		result.append(Line("""
 	}
 	single_success:
 	END;
@@ -317,12 +322,11 @@ int unify(cpppred_state & __restrict__ state)
 					s.thing_literal(r, r.locals_template[v])))
 		if r.max_states_len:
 			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + ')'))
-			if trace:
-				b.append(Statement('state.num_substates = '+str(r.max_states_len)))
+		if trace:
+			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
 		if trace:
 			for i in range(r.max_states_len):
 				b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
-				b.append(Statement('state.states['+str(i)+'].comment = (string*)0'))
 		if len(r.existentials):
 			existential_pos = str(r.locals_map[r.existentials[0]])
 		if trace:
@@ -360,7 +364,7 @@ int unify(cpppred_state & __restrict__ state)
 				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
 				if other_arg in r.locals_map:
-					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+str(r.locals_map[other_arg]-r.locals_map[arg])+')+get_value('+arg_expr+')'))
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', 'get_value('+str(r.locals_map[other_arg]-r.locals_map[arg])+'+get_value('+arg_expr+'))'))
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)

@@ -128,15 +128,16 @@ def tau(command, files, only_id):
 								print('xxx ' + outs)
 							except subprocess.TimeoutExpired:
 								pass
-						outs, errs = popen.communicate(timeout=None)
-						popen_output += outs
-						print('xxx ' + outs)
+						if not popen.stdout.closed:
+							outs, errs = popen.communicate(timeout=None)
+							popen_output += outs
+							print('xxx ' + outs)
 						if popen.returncode:
 							fail()
 							print_kwrite_link()
 						else:
 							for output_line in popen_output.splitlines():
-								echo('ooo '+output_line)
+								#echo('ooo '+output_line)
 								result_marker = ' RESULT :'
 								if output_line.startswith(result_marker):
 									results.append(output_line[len(result_marker):])

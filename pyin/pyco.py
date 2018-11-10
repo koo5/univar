@@ -317,6 +317,8 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(s.body_triples_block(r))
 		if trace:
 			b.append(Statement('state.set_active(false)'))
+		if r.max_states_len:
+			b.append(Statement("release_states(" + str(r.max_states_len) + ')'))
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
 		return outer_block

@@ -332,16 +332,17 @@ bool find_ep(ep_table *table, ep_head incoming)
 }
 
 
-const size_t malloc_size = 1024*1024*1024;
+const size_t malloc_size = 1024ul*1024ul*48ul;
 size_t block_size = malloc_size;
-size_t *block;
-size_t *free_space;
+char *block;
+char *free_space;
 
 
 size_t *grab_words(size_t count)
 {
-    size_t *result = free_space;
+    size_t *result = (size_t *)free_space;
     size_t increase = count * sizeof(size_t);
+    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
     free_space += increase;
     while (free_space >= block + block_size)
     {
@@ -362,7 +363,7 @@ cpppred_state *grab_states(size_t count)
 
 void release_states (size_t count)
 {
-    free_space -= count * sizeof(cpppred_state) / sizeof(size_t);
+    free_space -= count * sizeof(cpppred_state);
 }
 
 Thing *grab_things(size_t count)
@@ -372,7 +373,7 @@ Thing *grab_things(size_t count)
 
 void release_things (size_t count)
 {
-    free_space -= count * sizeof(Thing) / sizeof(size_t);
+    free_space -= count * sizeof(Thing);
 }
 
 static size_t query(cpppred_state & __restrict__ state);
@@ -382,7 +383,9 @@ int main (int argc, char *argv[])
 {
 	(void )argc;
 	(void )argv;
-	block = (size_t*)malloc(block_size);
+	block = (char*)malloc(block_size);
+	if (block == 0)
+	    exit(1);
 	free_space = block;
     #ifdef TRACE
 	trace.open(trace_output_path"/trace.js");

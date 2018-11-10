@@ -1,0 +1,31 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+kb
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+
+{?x0 :parses_to_hello_with_rest ?rest} <= {
+	?x0 rdf:first "h". 
+	?x0 rdf:rest ?x1. 
+	?x1 rdf:first "e". 
+	?x1 rdf:rest ?x2. 
+	?x2 rdf:first "l". 
+	?x2 rdf:rest ?x3. 
+	?x3 rdf:first "l". 
+	?x3 rdf:rest ?x4. 
+	?x4 rdf:first "o". 
+	?x4 rdf:rest ?rest.
+}.
+
+{?x0 :parses_to_hellohello_with_rest ?rest} <= {
+	?x0 :parses_to_hello_with_rest ?mid. ?mid :parses_to_hello_with_rest ?rest.
+}.
+
+fin.
+#0
+query
+("h" "e" "l" "l" "o" "h" "e" "l" "l" "o"). ?l0_0 :parses_to_hellohello_with_rest rdf:nil.
+fin.
+shouldbetrue

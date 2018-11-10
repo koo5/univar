@@ -11,7 +11,7 @@ kb
 {?list :has_len ?len} <= {?list rdf:rest ?rest. ?rest :has_len ?rest_len. ?rest_len :has_succ ?len.}.
 
 fin.
-
+#0
 query
 () :has_len ?l.
 fin.
@@ -19,38 +19,38 @@ shouldbe
 () :has_len :zero.
 fin.
 thatsall
-
+#1
 query
 (:a) :has_len ?l.
 fin.
 shouldbetrue
 thatsall
-
+#2
 query
 (:a :b) :has_len ?l.
 fin.
 shouldbetrue
 thatsall
-
+#3
 query
 (:a :b :c) :has_len ?l.
 fin.
 shouldbetrue
 thatsall
-
+#4
 query
 (:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. ?three :has_succ ?l.
 fin.
 shouldbetrue
 thatsall
-
+#5
 query
 (:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?l.
 fin.
 shouldbe
 fin.
 thatsall
-
+#6
 query
 (:a :b :c :d) :has_len ?l. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three. ?three :has_succ ?four. ?four :has_succ ?l.
 fin.

@@ -3,7 +3,7 @@
 #endif
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <tuple>
 #include <vector>
 #include <cassert>
@@ -24,13 +24,92 @@ string trace_string;
 
 #define ASSERT assert
 
+
+
+
+
+
+
+
+
+const size_t malloc_size = 1024ul*1024ul*48ul;
+size_t block_size = malloc_size;
+char *block;
+char *free_space;
+
+
+void realloc()
+{
+        block_size += malloc_size;
+        if (realloc(block, block_size) != block)
+        {
+            cerr << "cant expand memory" << endl;
+            exit(1);
+        }
+}
+
+size_t *grab_words(size_t count)
+{
+    size_t *result = (size_t *)free_space;
+    size_t increase = count * sizeof(size_t);
+    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
+    free_space += increase;
+    while (free_space >= block + block_size)
+        realloc();
+    return result;
+}
+
+cpppred_state *grab_states(size_t count)
+{
+    return (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
+}
+
+void release_states (size_t count)
+{
+    free_space -= count * sizeof(cpppred_state);
+}
+
+Thing *grab_things(size_t count)
+{
+    return (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
+}
+
+void release_things (size_t count)
+{
+    free_space -= count * sizeof(Thing);
+}
+
+
+
+
+
+
+
+
 typedef unsigned long nodeid;
 
 enum ConstantType {URI, STRING};
 
-typedef pair<ConstantType,string> Constant;
+struct Constant
+{
+    ConstantType type;
+    string value;
+    bool operator==(const Constant& b) const
+    {
+        return this->type == b.type && this->value == b.value;
+    }
+};
 
-extern vector<Constant> strings;
+typedef pair<nodeid,size_t> nodeid_and_refcount;
+
+struct ConstantHash {
+    size_t operator()(Constant c) const noexcept {
+        return hash<ConstantType>()(c.type) ^ hash<string>()(c.value);
+    }
+};
+
+unordered_map<Constant,nodeid_and_refcount,ConstantHash> consts2nodeids_and_refcounts;
+vector<Constant> nodeids2consts;
 
 enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
@@ -56,7 +135,7 @@ struct Thing
     unsigned long value;
     Thing *binding() {return (Thing *)value;};
     unsigned long ulong {return value & ~type_mask;};
-    nodeid string_id() {return ulong();};
+    nodeid node_id() {return ulong();};
     BnodeOrigin origin {return ulong();};
     void bind(Thing* v) {value = v;}
     void unbind() {value = UNBOUND;}
@@ -66,15 +145,15 @@ struct Thing
     union
     {
         Thing *_binding;
-        nodeid _string_id;
+        nodeid _node_id;
         BnodeOrigin _origin;
     };
     #ifdef TRACE
-        string _debug_name;
+        nodeid _debug_name;
     #endif
     Thing (ThingType type
     #ifdef TRACE
-    ,string debug_name
+    ,nodeid debug_name
     #endif
     ) : _type{type}
     #ifdef TRACE
@@ -88,7 +167,7 @@ struct Thing
     }
     Thing (ThingType type, unsigned long value
     #ifdef TRACE
-    ,string debug_name
+    ,nodeid debug_name
     #endif
     ) : _type{type}
     #ifdef TRACE
@@ -113,9 +192,9 @@ struct Thing
     {
         return _origin;
     }
-    nodeid string_id()
+    nodeid node_id()
     {
-        return (nodeid)(_string_id);
+        return (nodeid)(_node_id);
     };
     void set_value(Thing* v)
     {
@@ -158,9 +237,15 @@ struct cpppred_state
     cpppred_state *states;
     Thing *locals;
     #ifdef TRACE
-        bool status = INACTIVE;
-        string comment;
-        void set_comment(string x) {comment = x;};
+        size_t num_substates;
+        coro_status status;
+        string* comment;
+        void set_comment(string x)
+        {
+            if(comment)
+                delete comment;
+            comment = new string(x);
+        }
         void set_active(bool a)
         {
             status = a ? ACTIVE : INACTIVE;
@@ -206,30 +291,29 @@ void trace_write(string s)
     trace_write_raw(s);
 }
 
-void dump_state(int indent, cpppred_state *state)
+void dump_state(int indent, const cpppred_state &state)
 {
-    if (!state->active)
+    if (state.status == INACTIVE)
         return;
-    //for (int i = 0; i < indent; i++)
-    //    trace_write("\t");
-
     trace_write_raw("<li>");
-    trace_write(state->comment);
+    if (state.comment)
+        trace_write(*state.comment);
     trace_write_raw("</li>");
     indent += 2;
     trace_write_raw("<ul>");
-    for (auto substate: state->states)
+    for (size_t i = 0; i < state.num_substates; i++)
     {
-        if (!substate.active) break;
-        dump_state(indent, &substate);
+        dump_state(indent,*(state.states+i));
     }
+    if (state.status == EP)
+        trace_write_raw("<li>EP</li>");
     trace_write_raw("</ul>");
 }
 
 void dump()
 {
     trace_write_raw("window.pyco.frames.push(\"<ul>");
-        dump_state(0, query_state);
+        dump_state(0, *query_state);
     trace_write_raw("</ul><br><br><br><br><br><br><br>\");\n");
     trace_flush();
     //print_euler_steps();
@@ -239,10 +323,13 @@ string thing_to_string(Thing* thing);
 string thing_to_string_nogetval(Thing* v)
 {
   if (v->type() == CONST)
-    if (strings[v->string_id()].first == URI)
-      return "<" + strings[v->string_id()].second + ">";
+  {
+    const Constant &c = nodeids2consts[v->node_id()];
+    if (c.type == URI)
+      return "<" + c.value + ">";
     else
-      return "\"" + strings[v->string_id()].second + "\"";
+      return "\"" + c.value + "\"";
+  }
   else
     if (v->type() == UNBOUND)
         return "?"+v->_debug_name;
@@ -332,52 +419,9 @@ bool find_ep(ep_table *table, ep_head incoming)
 }
 
 
-const size_t malloc_size = 1024ul*1024ul*48ul;
-size_t block_size = malloc_size;
-char *block;
-char *free_space;
-
-
-size_t *grab_words(size_t count)
-{
-    size_t *result = (size_t *)free_space;
-    size_t increase = count * sizeof(size_t);
-    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
-    free_space += increase;
-    while (free_space >= block + block_size)
-    {
-        block_size += malloc_size;
-        if (realloc(block, block_size) != block)
-        {
-            cerr << "cant expand memory";
-            exit(1);
-        }
-    };
-    return result;
-}
-
-cpppred_state *grab_states(size_t count)
-{
-    return (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
-}
-
-void release_states (size_t count)
-{
-    free_space -= count * sizeof(cpppred_state);
-}
-
-Thing *grab_things(size_t count)
-{
-    return (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
-}
-
-void release_things (size_t count)
-{
-    free_space -= count * sizeof(Thing);
-}
-
 static size_t query(cpppred_state & __restrict__ state);
 void print_result(cpppred_state &state);
+void initialize_consts();
 
 int main (int argc, char *argv[])
 {
@@ -387,6 +431,7 @@ int main (int argc, char *argv[])
 	if (block == 0)
 	    exit(1);
 	free_space = block;
+	initialize_consts();
     #ifdef TRACE
 	trace.open(trace_output_path"/trace.js");
 	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
@@ -417,17 +462,35 @@ int unify(cpppred_state & __restrict__ state);
 #define END {return 0;}
 #endif
 
-/*
-unsigned push_string(string);
-	pop_string(string);
 
-	vector<string> strings;
-
-	add_string(string)
+nodeid push_const(Constant c)
+{
+    auto it = consts2nodeids_and_refcounts.begin();
+	if ((it = consts2nodeids_and_refcounts.find(c)) != consts2nodeids_and_refcounts.end())
 	{
-		if ((it = string2codes.find(string)) != string2codes.end())
-			return *it;
-		string2codes[string] =
+	    nodeid id = it->second.first;
+	    size_t refcount = it->second.second;
+        consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount+1};
+		return id;
+    }
+    nodeid id = consts2nodeids_and_refcounts.size();
+    consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id,1};
+    nodeids2consts.push_back(c);
+    return id;
+}
 
-	}
-*/
+void pop_const()
+{
+    Constant c = nodeids2consts.back();
+    auto it = consts2nodeids_and_refcounts[c];
+    nodeid id = it.first;
+    size_t refcount = it.second - 1;
+    if(refcount)
+        consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount};
+    else
+    {
+        consts2nodeids_and_refcounts.erase(c);
+        nodeids2consts.pop_back();
+    }
+}
+

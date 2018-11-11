@@ -241,7 +241,9 @@ int unify(cpppred_state & __restrict__ state)
 		if trace:
 			result.append(Statement('state.num_substates = 0'))
 		result.append(Line("""
+		#ifdef TRACE
 		state.set_active(false);
+		#endif
 	}
 	single_success:
 	END;
@@ -402,7 +404,8 @@ int unify(cpppred_state & __restrict__ state)
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
 		if do_ep:
-			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", ep_head(state.incoming[0], state.incoming[1])))"))
+			"""we know incoming's have been get_valued before the pred func was called"""
+			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
 			if trace:
@@ -412,6 +415,7 @@ int unify(cpppred_state & __restrict__ state)
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 			else:
 				dont_yield = True
+				print("warning: "+triple.pred+" unknown")
 				break
 		if not dont_yield:
 			if do_ep:
@@ -498,7 +502,7 @@ def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".push_back(ep_head(state.incoming[0], state.incoming[1]))")
+	return Statement('ep'+str(rule.debug_id)+".push_back(&state)")
 
 
 def nest(block):

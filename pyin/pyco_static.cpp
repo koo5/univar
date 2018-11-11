@@ -190,8 +190,6 @@ Thing *get_value(Thing *x)
 void dump();
 
 typedef pair<Thing*,Thing*> thingthingpair;
-typedef thingthingpair ep_head;//ep_head is an array/pair of 2 Thing pointers
-typedef vector<ep_head> ep_table;
 
 enum coro_status {INACTIVE, ACTIVE, EP};
 struct cpppred_state;
@@ -221,6 +219,8 @@ struct cpppred_state
         }
     #endif
 };
+
+typedef vector<cpppred_state*> ep_table;
 
 cpppred_state *query_state;
 
@@ -322,9 +322,23 @@ the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
 
-bool is_bnode_productively_different(Thing *old, Thing *now)
+bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &now, size_t idx)
 {
-    return now < old;
+    bool r = (void*)&now.incoming[idx] < (void*)&old;
+    if (r)
+    {
+        #ifdef TRACE
+            cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created before " << *old.comment << endl;
+        #endif
+    }
+    else
+    {
+        #ifdef TRACE
+            cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created after " << *old.comment << endl;
+        #endif
+    }
+
+    return r;
 }
 
 int is_arg_productively_different(Thing *old, Thing *now)
@@ -357,30 +371,43 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return false;
 }
 
-bool detect_ep(const ep_head head, const ep_head incoming)
+bool detect_ep(const cpppred_state &old, cpppred_state &now)
 {
-        #ifdef TRACE
-        cerr << thing_to_string_nogetval(head.first) << " vs " << thing_to_string_nogetval(incoming.first) << " and " <<
-        thing_to_string_nogetval(head.second) << " vs " << thing_to_string_nogetval(incoming.second) << endl;
-        #endif
-        int a = is_arg_productively_different(head.first, incoming.first);
-        int b = is_arg_productively_different(head.second, incoming.second);
-        if (a == 1 || b == 1)
+    #ifdef TRACE
+    cerr << thing_to_string_nogetval(old.incoming[0]) << " vs " << thing_to_string_nogetval(now.incoming[0]) << " and " <<
+        thing_to_string_nogetval(old.incoming[1]) << " vs " << thing_to_string_nogetval(now.incoming[1]) << endl;
+    #endif
+    int results[2];
+    for (size_t i = 0; i < 2; i++)
+    {
+        results[i] = is_arg_productively_different(old.incoming[i], now.incoming[i]);
+        if (results[i] == 1)
+        {
+            #ifdef TRACE
+                cerr << i << " is different." << endl;
+            #endif
             return false;
-        if (a == -1)
-            if (is_bnode_productively_different(head.first, incoming.first))
-                return false;
-        if (b == -1)
-            if (is_bnode_productively_different(head.second, incoming.second))
-                return false;
-        return true;
+        }
+    }
+    for (size_t i = 0; i < 2; i++)
+    {
+        if (results[i] == -1 && is_bnode_productively_different(old, now, i))
+        {
+            #ifdef TRACE
+                cerr << i << " is different bnode." << endl;
+            #endif
+            return false;
+        }
+    }
+    cerr << "EP." << endl;
+    return true;
 }
 
-bool find_ep(ep_table *table, ep_head incoming)
+bool find_ep(ep_table *table, cpppred_state &now)
 {
-    for (const ep_head head: *table)
+    for (const cpppred_state *old: *table)
     {
-        if (detect_ep(head, incoming))
+        if (detect_ep(*old, now))
             return true;
     }
     return false;

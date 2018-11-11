@@ -324,7 +324,7 @@ and can trivially yield/continue on.
 
 bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &now, size_t idx)
 {
-    bool r = (void*)&now.incoming[idx] < (void*)&old;
+    bool r = (void*)now.incoming[idx] < (void*)&old;
     if (r)
     {
         #ifdef TRACE

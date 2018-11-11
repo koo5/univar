@@ -319,7 +319,7 @@ int unify(cpppred_state & __restrict__ state)
 		])
 
 	def rule(s, r):
-		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.head.args[0] == r.head.args[1]):
+		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.existentials[0] == r.head.args[0] and r.existentials[0] == r.head.args[1]):
 			raise Exception("too many existentials in " + str(r) +" : " + str(r.existentials))
 		outer_block = b = Lines()
 		b.append(comment(r.__str__(shortener = common.shorten)))

@@ -34,9 +34,9 @@ kb
 	?x1 :parses_to_rest_of_name_with_rest ?rest.
 }.
 
-{?x1 :parses_to_rest_of_name_with_rest ?x1.} <= {}.
+{?X1 :parses_to_rest_of_name_with_rest ?X1.} <= {}.
 
-{?x1 :parses_to_rest_of_name_with_rest ?rest.} <= {
+{?x0 :parses_to_rest_of_name_with_rest ?rest.} <= {
 	?x0 rdf:rest ?x1. 
 	?x1 :parses_to_rest_of_name_with_rest ?rest.
 }.

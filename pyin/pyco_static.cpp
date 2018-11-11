@@ -324,7 +324,8 @@ and can trivially yield/continue on.
 
 bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &now, size_t idx)
 {
-    bool r = (void*)now.incoming[idx] < (void*)&old;
+    /*told.locals was allocated at the moement when the old frame was entered*/
+    bool r = (void*)now.incoming[idx] < (void*)&old.locals[0];
     if (r)
     {
         #ifdef TRACE

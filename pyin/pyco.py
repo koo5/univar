@@ -318,7 +318,7 @@ int unify(cpppred_state & __restrict__ state)
 		])
 
 	def rule(s, r):
-		if len(r.existentials) > 1:
+		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.head.args[0] == r.head.args[1]):
 			raise Exception("too many existentials in " + str(r) +" : " + str(r.existentials))
 		outer_block = b = Lines()
 		b.append(comment(r.__str__(shortener = common.shorten)))
@@ -360,7 +360,7 @@ int unify(cpppred_state & __restrict__ state)
 			if arg in r.existentials:
 				dont = False
 				for (xxxarg_i, xxxarg) in todo:
-					if xxx_arg == arg:
+					if xxxarg == arg:
 						dont = True
 				if not dont:
 					todo.append((arg_i, arg))
@@ -368,6 +368,8 @@ int unify(cpppred_state & __restrict__ state)
 			if arg not in r.existentials:
 				todo.append((arg_i, arg))
 		s.state_index = 0
+		if len(todo) == 1:
+			todo = todo * 2
 		for pos_i, (arg_i, arg) in enumerate(todo):
 			other_arg_idx, other_arg = todo[0 if (pos_i == 1) else 1]
 			arg_expr = 'state.incoming['+str(arg_i)+']'

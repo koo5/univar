@@ -123,7 +123,7 @@ def tau(command, files, only_id):
 						popen_output = ''
 						while popen.poll() == None:
 							try:
-								outs, errs = popen.communicate()#timeout=1
+								outs, errs = popen.communicate(timeout=10)
 								popen_output += outs
 								print('xxx ' + outs)
 							except subprocess.TimeoutExpired:
@@ -131,7 +131,7 @@ def tau(command, files, only_id):
 						if not popen.stdout.closed:
 							outs, errs = popen.communicate(timeout=None)
 							popen_output += outs
-							print('xxx ' + outs)
+							print('yyy ' + outs)
 						if popen.returncode:
 							fail()
 							print_kwrite_link()

@@ -182,8 +182,8 @@ struct Thing
 
 Thing *get_value(Thing *x)
 {
-    if (x->type() == BOUND)
-        return get_value(x->binding());
+    while (x->type() == BOUND)
+        x = get_value(x->binding());
     return x;
 }
 
@@ -191,7 +191,7 @@ void dump();
 
 typedef pair<Thing*,Thing*> thingthingpair;
 
-enum coro_status {INACTIVE, ACTIVE, EP};
+enum coro_status {INACTIVE, ACTIVE, EP, YIELD};
 struct cpppred_state;
 struct cpppred_state
 {
@@ -340,7 +340,13 @@ bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &no
             cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created after " << *old.comment << endl;
         #endif
     }
-
+    if (now.incoming[idx] == old.incoming[idx])
+    {
+        #ifdef TRACE
+            cerr << "but these are the same bnodes" << endl;
+        #endif
+        return false;
+    }
     return r;
 }
 

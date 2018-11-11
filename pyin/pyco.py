@@ -358,26 +358,34 @@ int unify(cpppred_state & __restrict__ state)
 		todo = []
 		for arg_i, arg in enumerate(r.head.args):
 			if arg in r.existentials:
-				todo.append((arg_i, arg))
+				dont = False
+				for (xxxarg_i, xxxarg) in todo:
+					if xxx_arg == arg:
+						dont = True
+				if not dont:
+					todo.append((arg_i, arg))
 		for arg_i, arg in enumerate(r.head.args):
 			if arg not in r.existentials:
 				todo.append((arg_i, arg))
 		s.state_index = 0
-		for arg_i, arg in todo:
-			other_arg_idx, other_arg = todo[1]
+		for pos_i, (arg_i, arg) in enumerate(todo):
+			other_arg_idx, other_arg = todo[0 if (pos_i == 1) else 1]
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
 			if arg in r.existentials:
-				b.append(Line("if (*get_value("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
+				b.append(Line("if (*("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
 				if other_arg in r.locals_map:
-					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', 'get_value('+str(r.locals_map[other_arg]-r.locals_map[arg])+'+get_value('+arg_expr+'))'))
+					#print(r.locals_map, other_arg, arg)
+					diff = r.locals_map[other_arg]-r.locals_map[arg]
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', ('get_value' if diff else '') + '('+str(diff)+'+get_value('+arg_expr+'))'))
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
-				b = nest(outer_block)
+				b = outer_block
+		b = nest(outer_block)
 		s.state_index = 0
 		is_first_arg = True
 		for arg_i, arg in enumerate(r.head.args):

@@ -42,7 +42,6 @@ kb
 }.
 
 
-
 {?x0 :parses_to_hellohello_with_rest ?rest} <= {
 	?x0 :parses_to_hello_with_rest ?mid0. 
 	?mid0 :parses_to_delimiter_with_rest ?after_space.

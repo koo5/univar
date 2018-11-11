@@ -246,6 +246,8 @@ void trace_flush()
 {
     trace << trace_string;
     trace_string.clear();
+    trace.close();
+	trace.open(trace_output_path"/trace.js", ios_base::app);
 }
 
 void trace_write_raw(string s)

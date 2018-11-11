@@ -292,6 +292,7 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(s.substituted_arg(r, term.args[1]))
 			b.append(Statement('cout << ". "'))
 		b.append(Statement('cout << endl'))
+		b.append(Statement('cout << endl << flush'))
 		return outer_block
 
 	def pred(s, pred_name, rules):
@@ -573,7 +574,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	subprocess.call(["rm", outpath+"trace.js"])
 	pyco_executable = outpath+'/pyco'
 	if novalgrind:
-		subprocess.check_call([pyco_executable])
+		subprocess.check_call([pyco_executable], bufsize=1)#still not getting output until the end
 	else:
 		subprocess.check_call(['valgrind', pyco_executable])
 

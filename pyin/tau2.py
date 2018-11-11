@@ -119,11 +119,11 @@ def tau(command, files, only_id):
 							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
 						])
 						print(cccc)
-						popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE)
+						popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
 						popen_output = ''
 						while popen.poll() == None:
 							try:
-								outs, errs = popen.communicate(timeout=1)
+								outs, errs = popen.communicate()#timeout=1
 								popen_output += outs
 								print('xxx ' + outs)
 							except subprocess.TimeoutExpired:

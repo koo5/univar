@@ -61,6 +61,7 @@ class Emitter(object):
 	codes = OrderedDict()
 	bnode_origin_counter = 0
 	bnodes = {}
+	prologue = Lines()
 
 	@memoized.memoized
 	def add_bnode(s, rule, name):
@@ -105,6 +106,16 @@ class Emitter(object):
 			s.prologue, c
 		])
 
+	def ep_tables_printer(s):
+		r = Lines()
+		if not trace_ep_tables_: return r
+		r.append(Line("void print_ep_tables(){"))
+		for x in s.ep_tables:
+			r.append(Statement('cerr << "'+x+':" << endl'))
+			r.append(Statement('print_ep_table('+x+')'))
+		r.append(Line("}"))
+		return r
+
 	def things_literals(s, rule, things):
 		result = '{'
 		for i, thing in enumerate(things):
@@ -133,7 +144,7 @@ class Emitter(object):
 		return Line("case" +str(s._label) + ":;")
 
 	def generate_cpp(s, goal, goal_graph, trace_output_path):
-		s.prologue = Lines()
+
 		if trace:
 			s.prologue.append(Line('#define TRACE'))
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
@@ -153,19 +164,18 @@ class Emitter(object):
 			rule.max_states_len = (len(rule.head.args) if rule.head else 0) + len(rule.body)
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
+		s.ep_tables = ["ep" + str(rule.debug_id) for rule in all_rules if rule != goal]
 		r = Module(
 		[
 			Lines([
-				Statement(
-					"static ep_table ep" + str(rule.debug_id)
-				) for rule in all_rules if rule != goal]),
+				Statement("static ep_table "+x) for x in s.ep_tables]),
 			Lines([Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))")
 				   for pred_name in preds.keys()]),
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
 			s.unification()
 		])
-		return str(s.get_prologue()) + '\n' + str(r)
+		return str(s.get_prologue()) + '\n' + str(r) + '\n' + str(s.ep_tables_printer())
 
 	def unification(s):
 		result = Lines([Line(
@@ -442,7 +452,10 @@ int unify(cpppred_state & __restrict__ state)
 		return outer_block
 
 	def euler_step(s):
-		return Statement('if (!(euler_steps++ & 0b111111111111111111111))print_euler_steps()')
+		if trace:
+			return Statement('if (!(euler_steps++ & 0b111                  ))maybe_print_euler_steps()')
+		else:
+			return Statement('if (!(euler_steps++ & 0b111111111111111111111))maybe_print_euler_steps()')
 
 	def nest_body_triple_block(s, r, b, body_triple_index, triple):
 		b.append(comment(triple.str(common.shorten)))
@@ -549,8 +562,12 @@ def comment(s):
 @click.option('--nodebug', default=False, type=bool)
 @click.option('--novalgrind', default=False, type=bool)
 @click.option('--oneword', default=False, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword):
-	global preds, trace, oneword_
+@click.option('--trace_ep_checks', default=False, type=bool)
+@click.option('--trace_ep_tables', default=False, type=bool)
+@click.option('--trace_proof', default=False, type=bool)
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword, trace_ep_checks, trace_ep_tables, trace_proof):
+	global preds, trace, oneword_, trace_ep_tables_
+	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
 	preds = defaultdict(list)
 	oneword_ = oneword
@@ -564,6 +581,12 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	for rule in rules:
 		preds[rule.head.pred].append(rule)
 	e = Emitter()
+	if trace_ep_checks:
+		e.prologue.append(Line('#define TRACE_EP_CHECKS'))
+	if trace_ep_tables:
+		e.prologue.append(Line('#define TRACE_EP_TABLES'))
+	if trace_proof:
+		e.prologue.append(Line('#define TRACE_PROOF'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 	try:
 		subprocess.check_call(['make', ("pyco" if nodebug else "debug")], cwd = outpath)

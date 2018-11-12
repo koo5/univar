@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
+import sys
 import time, os
 import common
 from rdflib.plugins.parsers import notation3
@@ -126,12 +126,14 @@ def tau(command, files, only_id):
 								outs, errs = popen.communicate(timeout=10)
 								popen_output += outs
 								print('xxx ' + outs)
+								sys.stdout.flush()
 							except subprocess.TimeoutExpired:
 								pass
 						if not popen.stdout.closed:
 							outs, errs = popen.communicate(timeout=None)
 							popen_output += outs
 							print('yyy ' + outs)
+							sys.stdout.flush()
 						if popen.returncode:
 							fail()
 							print_kwrite_link()

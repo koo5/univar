@@ -9,15 +9,34 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <chrono>
 
 using namespace std;
 
 unsigned long euler_steps = 0;
+chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
+
+void print_ep_tables();
 
 void print_euler_steps()
 {
     cerr << euler_steps << " euler_steps." << endl;
+    #ifdef TRACE_EP_TABLES
+        print_ep_tables();
+    #endif
 }
+
+void maybe_print_euler_steps()
+{
+    chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    if (chrono::duration_cast<std::chrono::seconds>(now - last_ep_tables_printout).count())
+    {
+        last_ep_tables_printout = now;
+        print_euler_steps();
+    }
+}
+
 
 ofstream trace;
 string trace_string;
@@ -199,7 +218,7 @@ struct cpppred_state
     Thing *incoming[2];
     cpppred_state *states;
     Thing *locals;
-    #ifdef TRACE
+    #ifdef TRACE_PROOF
         size_t num_substates;
         coro_status status = INACTIVE;
         string *comment;
@@ -220,7 +239,20 @@ struct cpppred_state
     #endif
 };
 
+string thing_to_string_nogetval(Thing* v);
+
 typedef vector<cpppred_state*> ep_table;
+
+#ifdef TRACE_EP_TABLES
+void print_ep_table(ep_table &t)
+{
+    for (auto i: t)
+    {
+        cerr << thing_to_string_nogetval(i->incoming[0]) << "   " << thing_to_string_nogetval(i->incoming[1]) << endl;
+    }
+    cerr << endl;
+}
+#endif
 
 cpppred_state *query_state;
 
@@ -241,7 +273,7 @@ void escape_trace(string& data) {
     data.swap(buffer);
 }
 
-#ifdef TRACE
+#ifdef TRACE_PROOF
 void trace_flush()
 {
     trace << trace_string;
@@ -288,7 +320,9 @@ void dump()
     trace_flush();
     //print_euler_steps();
 }
+#endif
 
+#ifdef TRACE
 string thing_to_string(Thing* thing);
 string thing_to_string_nogetval(Thing* v)
 {
@@ -314,7 +348,6 @@ string thing_to_string(Thing* thing)
   return thing_to_string_nogetval(get_value(thing));
 }
 
-
 #endif
 
 /*
@@ -330,19 +363,19 @@ bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &no
     bool r = (void*)now.incoming[idx] < (void*)&old.locals[0];
     if (r)
     {
-        #ifdef TRACE
+       #ifdef TRACE_EP_CHECKS
             cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created before " << *old.comment << endl;
         #endif
     }
     else
     {
-        #ifdef TRACE
+        #ifdef TRACE_EP_CHECKS
             cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created after " << *old.comment << endl;
         #endif
     }
     if (now.incoming[idx] == old.incoming[idx])
     {
-        #ifdef TRACE
+        #ifdef TRACE_EP_CHECKS
             cerr << "but these are the same bnodes" << endl;
         #endif
         return false;
@@ -382,7 +415,7 @@ int is_arg_productively_different(Thing *old, Thing *now)
 
 bool detect_ep(const cpppred_state &old, cpppred_state &now)
 {
-    #ifdef TRACE
+    #ifdef TRACE_EP_CHECKS
     cerr << thing_to_string_nogetval(old.incoming[0]) << " vs " << thing_to_string_nogetval(now.incoming[0]) << " and " <<
         thing_to_string_nogetval(old.incoming[1]) << " vs " << thing_to_string_nogetval(now.incoming[1]) << endl;
     #endif
@@ -392,7 +425,7 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
         results[i] = is_arg_productively_different(old.incoming[i], now.incoming[i]);
         if (results[i] == 1)
         {
-            #ifdef TRACE
+            #ifdef TRACE_EP_CHECKS
                 cerr << i << " is different." << endl;
             #endif
             return false;
@@ -402,13 +435,15 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
     {
         if (results[i] == -1 && is_bnode_productively_different(old, now, i))
         {
-            #ifdef TRACE
+            #ifdef TRACE_EP_CHECKS
                 cerr << i << " is different bnode." << endl;
             #endif
             return false;
         }
     }
-    cerr << "EP." << endl;
+    #ifdef TRACE_EP_CHECKS
+        cerr << "EP." << endl;
+    #endif
     return true;
 }
 
@@ -421,15 +456,6 @@ bool find_ep(ep_table *table, cpppred_state &now)
     }
     return false;
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -522,7 +548,7 @@ int main (int argc, char *argv[])
 	    exit(1);
 	free_space = block;
 	initialize_consts();
-    #ifdef TRACE
+    #ifdef TRACE_PROOF
 	trace.open(trace_output_path"/trace.js");
 	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
 	#endif
@@ -534,7 +560,7 @@ int main (int argc, char *argv[])
     }
     release_states(1);
     print_euler_steps();
-    #ifdef TRACE
+    #ifdef TRACE_PROOF
     trace_flush();
     trace.close();
     #endif
@@ -546,7 +572,7 @@ int main (int argc, char *argv[])
 int unify(cpppred_state & __restrict__ state);
 
 
-#ifdef TRACE
+#ifdef TRACE_PROOF
 #define END {state.set_active(false); return 0;}
 #else
 #define END {return 0;}

@@ -182,14 +182,14 @@ class Emitter(object):
 			"""
 int unify(cpppred_state & __restrict__ state)
 {
-	#ifdef TRACE
+	#ifdef TRACE_PROOF
 		state.num_substates = 0;
 		state.status = ACTIVE;
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
 	case0:""")])
-		if trace:
+		if trace_proof_:
 			result.append(Line("""state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);"""))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
@@ -221,7 +221,7 @@ int unify(cpppred_state & __restrict__ state)
 			states_len_int = end - start - 1
 			states_len = '('+str(states_len_int)+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
-			if trace:
+			if trace_proof_:
 				for i in range(states_len_int):
 					outer_block.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 				outer_block.append(Statement('state.num_substates = '+states_len))
@@ -240,7 +240,7 @@ int unify(cpppred_state & __restrict__ state)
 				s.state_index += 1
 			block.append(s.do_yield())
 			outer_block.append(Statement('release_states('+states_len+')'))
-			if trace:
+			if trace_proof_:
 				outer_block.append(Statement('state.num_substates = 0'))
 			outer_block.append(Statement('break'))
 			s.state_index = 0
@@ -248,10 +248,10 @@ int unify(cpppred_state & __restrict__ state)
 			default:
 			ASSERT(false);
 		}"""))
-		if trace:
+		if trace_proof_:
 			result.append(Statement('state.num_substates = 0'))
 		result.append(Line("""
-		#ifdef TRACE
+		#ifdef TRACE_PROOF
 		state.set_active(false);
 		#endif
 	}
@@ -340,25 +340,24 @@ int unify(cpppred_state & __restrict__ state)
 					s.thing_literal(r, r.locals_template[v])))
 		if r.max_states_len:
 			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + ')'))
-		if trace:
+		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
-		if trace:
 			for i in range(r.max_states_len):
 				b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 		if len(r.existentials):
 			existential_pos = str(r.locals_map[r.existentials[0]])
-		if trace:
+		if trace_proof_:
 			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 			b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
-		if trace:
+		if trace_proof_:
 			b.append(Statement('state.set_active(false)'))
 		if r.max_states_len:
 			b.append(Statement("release_states(" + str(r.max_states_len) + ')'))
-			if trace:
+			if trace_proof_:
 				b.append(Statement('state.num_substates = 0'))
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
@@ -429,7 +428,7 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
 			b.append(push_ep(r))
-			if trace:
+			if trace_proof_:
 				outer_block.append(Line('else {state.status = EP;dump();state.status=ACTIVE;}'))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
@@ -564,9 +563,10 @@ def comment(s):
 @click.option('--oneword', default=False, type=bool)
 @click.option('--trace_ep_checks', default=False, type=bool)
 @click.option('--trace_ep_tables', default=False, type=bool)
-@click.option('--trace_proof', default=False, type=bool)
+@click.option('--trace_proof', default=True, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword, trace_ep_checks, trace_ep_tables, trace_proof):
-	global preds, trace, oneword_, trace_ep_tables_
+	global preds, trace, oneword_, trace_ep_tables_, trace_proof_
+	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
 	preds = defaultdict(list)

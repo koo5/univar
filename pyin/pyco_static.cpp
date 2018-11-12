@@ -222,6 +222,12 @@ struct cpppred_state
         size_t num_substates;
         coro_status status = INACTIVE;
         string *comment;
+        void set_comment(string x) {*comment = x;}
+        void set_active(bool a)
+        {
+            status = a ? ACTIVE : INACTIVE;
+            dump();
+        }
         void construct()
         {
             comment = new string;
@@ -229,12 +235,6 @@ struct cpppred_state
         void destruct()
         {
             delete comment;
-        }
-        void set_comment(string x) {*comment = x;}
-        void set_active(bool a)
-        {
-            status = a ? ACTIVE : INACTIVE;
-            dump();
         }
     #endif
 };
@@ -491,7 +491,7 @@ size_t *grab_words(size_t count)
 cpppred_state *grab_states(size_t count)
 {
     auto r = (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
-    #ifdef TRACE
+    #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
             r[i].construct();
     #endif
@@ -501,7 +501,7 @@ cpppred_state *grab_states(size_t count)
 void release_states (size_t count)
 {
     free_space -= count * sizeof(cpppred_state);
-    #ifdef TRACE
+    #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
             ((cpppred_state*)free_space)[i].destruct();
     #endif

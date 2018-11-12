@@ -1,0 +1,113 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+kb
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+
+{?x0 :parses_to_hello_with_rest ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first :hello. ?a3 rdf:rest rdf:nil.
+	?x0 rdf:first "h". 
+	?x0 rdf:rest ?x1. 
+	?x1 rdf:first "e". 
+	?x1 rdf:rest ?x2. 
+	?x2 rdf:first "l". 
+	?x2 rdf:rest ?x3. 
+	?x3 rdf:first "l". 
+	?x3 rdf:rest ?x4. 
+	?x4 rdf:first "o". 
+	?x4 rdf:rest ?rest.
+}.
+
+{?x0 :parses_to_bye_with_rest ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first :bye. ?a3 rdf:rest rdf:nil.
+	?x0 rdf:first "b". 
+	?x0 rdf:rest ?x1. 
+	?x1 rdf:first "y". 
+	?x1 rdf:rest ?x2. 
+	?x2 rdf:first "e". 
+	?x2 rdf:rest ?rest.
+}.
+
+{?x0 :parses_to_greeting ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?greeting_type. ?a3 rdf:rest rdf:nil.
+	?x0 :parses_to_hello_with_rest (?rest ?greeting_type). 
+}.
+
+{?x0 :parses_to_greeting ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?greeting_type. ?a3 rdf:rest rdf:nil.
+	?x0 :parses_to_bye_with_rest (?rest ?greeting_type). 
+}.
+
+
+{?x0 :parses_to_delimiter_with_rest ?rest} <= {
+	?x0 rdf:first " ". 
+	?x0 rdf:rest ?rest. 
+}.
+
+{?x0 :parses_to_delimiter_with_rest ?rest} <= {
+	?x0 rdf:first ",". 
+	?x0 rdf:rest ?rest. 
+}.
+
+{?x a :name. ?x :value ?Y}<={}.
+
+{?x0 :parses_to_name_with_rest ?a2.} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?name. ?a3 rdf:rest rdf:nil.
+	?x0 rdf:first ?anything. 
+	?x0 rdf:rest ?x1. 
+	?name a :name. ?name :value ?name_value. 
+	?name_value rdf:first ?anything. ?name_value rdf:rest ?name_value_rest.
+	?x1 :parses_to_rest_of_name_with_rest (?rest ?name_value_rest).
+}.
+
+{?X1 :parses_to_rest_of_name_with_rest ?a2.} <= {
+	?a2 rdf:first ?X1. ?a2 rdf:rest ?a3. ?a3 rdf:first rdf:nil. ?a3 rdf:rest rdf:nil.}.
+
+{?x0 :parses_to_rest_of_name_with_rest ?a2.} <= {
+	?x0 rdf:first ?letter.
+	?x0 rdf:rest ?x1. 
+	?x1 :parses_to_rest_of_name_with_rest (?rest ?rest_of_name_value).
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?name_cell.
+	?name_cell rdf:first ?letter. ?name_cell rdf:rest ?rest_of_name_value.
+	?a3 rdf:rest rdf:nil.
+}.
+
+
+{?x0 :parses_to_greeting_sentence_with_rest ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?name. ?a3 rdf:rest rdf:nil.
+	?x0 :parses_to_greeting (?mid0 ?greeting_type). 
+	?mid0 :parses_to_delimiter_with_rest ?after_space.
+	?after_space :parses_to_name_with_rest (?after_name ?name). 
+	?after_name :parses_to_delimiter_with_rest ?after_comma.
+	?after_comma :parses_to_greeting (?after_second_greeting ?greeting_type).
+	?after_second_greeting :parses_to_char (?rest "!").
+}.
+
+{?x0 :parses_to_char ?a2} <= {
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?char. ?a3 rdf:rest rdf:nil.
+	?x0 rdf:first ?char.
+	?x0 rdf:rest ?rest.}.
+
+fin.
+#0
+query
+("h" "e" "l" "l" "o" " " "T" "i" "m" "," "h" "e" "l" "l" "o" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbetrue
+
+#1
+query
+("h" "e" "l" "l" "o" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbe
+fin.
+
+#2
+query
+("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbetrue
+
+

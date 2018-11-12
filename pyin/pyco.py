@@ -78,22 +78,33 @@ class Emitter(object):
 		s.bnode_origin_counter += 1
 		return r
 
-	def string2code(s,a):
-		codes = s.codes
-		atom = str(a.value)
-		if atom in codes:
-			return codes[atom][1]
-		code = str(len(codes))
-		cpp_name = 'const_'+cppize_identifier(atom)
-		kind = "URI" if type(a.value) == rdflib.URIRef else "STRING"
-		codes[atom] = kind,cpp_name, code
+	def thing2code(s,atom):
+		if atom in s.codes:
+			return s.codes[atom][1]
+		cpp_name = 'const_'
+		if type(atom) == rdflib.URIRef:
+			cpp_name += 'uri_'
+		elif type(atom) == rdflib.Literal:
+			cpp_name += 'lit_'
+		else: assert False, atom
+		cpp_name += cppize_identifier(str(atom))
+		while s.find_code_by_cppname(cpp_name) != None:
+			cpp_name += "2"
+		kind = "URI" if type(atom) == rdflib.URIRef else "STRING"
+		code = str(len(s.codes))
+		s.codes[atom] = kind,cpp_name, code
 		return cpp_name
+
+	def find_code_by_cppname(s, x):
+		for k,(kind,cpp_name, code) in s.codes.items():
+			if x==cpp_name:
+				return k
 
 	def consts_initialization(s):
 		r = Lines()
 		r.append(Line('void initialize_consts(){'))
 		for atom, (kind,cpp_name, code) in s.codes.items():
-			c = 'Constant{'+kind+',"'+atom+'"}'
+			c = 'Constant{'+kind+',"'+str(atom)+'"}'
 			r.append(Line('consts2nodeids_and_refcounts['+c+']=nodeid_and_refcount{'+code+',1};'))
 			r.append(Statement('nodeids2consts.push_back('+c+')'))
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
@@ -131,7 +142,7 @@ class Emitter(object):
 			v = ''
 		elif type(thing) == pyin.Atom:
 			t = 'CONST'
-			v = ','+s.string2code(thing)
+			v = ','+s.thing2code(thing.value)
 		elif thing.is_bnode:
 			t = 'BNODE'
 			v = ','+s.add_bnode(r, thing.debug_name)
@@ -435,7 +446,7 @@ int unify(cpppred_state & __restrict__ state)
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 			else:
 				dont_yield = True
-				print("warning: "+triple.pred+" unknown")
+				print("warning: "+str(triple.pred)+" unknown")
 				break
 		if not dont_yield:
 			if do_ep:
@@ -566,6 +577,9 @@ def comment(s):
 @click.option('--trace_proof', default=True, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword, trace_ep_checks, trace_ep_tables, trace_proof):
 	global preds, trace, oneword_, trace_ep_tables_, trace_proof_
+	if notrace:
+		trace_proof = False
+		trace_ep_tables = False
 	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace

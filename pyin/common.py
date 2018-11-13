@@ -3,20 +3,24 @@ from rdflib.plugins.parsers import notation3
 
 nolog = False
 
+mmtbf = rdflib.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first')
+mmtbr = rdflib.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest')
+
+def un_move_me_ize_pred(x):
+	if x == mmtbf:
+		return rdflib.namespace.RDF.first
+	if x == mmtbr:
+		return rdflib.namespace.RDF.rest
+	return x
+
 def newList(self, n, f):
 	nil = self.newSymbol('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')
 
 	if len(n) == 0 or not n:
 		return nil
 
-	first = self.newSymbol(
-		#'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first'
-	)
-	rest = self.newSymbol(
-		#'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest'
-	 )
+	first = mmtbf
+	rest = mmtbr
 
 	if hasattr(self.graph, 'last_n3_syntax_list_id'):
 		list_id = self.graph.last_n3_syntax_list_id + 1
@@ -68,6 +72,7 @@ shortenings = {}
 from '/:#?', and if it does it will be at the beginning of shorten(s)
 """
 def shorten(term):
+	#return term
 	# todo ? use https://github.com/RDFLib/rdflib/blob/master/docs/namespaces_and_bindings.rst instead
 	#copy value of "term" into a new string stored in "s"
 	term_str = str(term)
@@ -141,5 +146,5 @@ prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 prefix kbdbg: <http://kbd.bg/#> 
 prefix : <file:///#> 
 """
-#yo yo
-#u should
+
+

@@ -11,7 +11,7 @@ except ImportError:
 	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
 from common import pyin_prefixes as prefixes
-from common import shorten
+from common import shorten, un_move_me_ize_pred
 import common
 
 
@@ -877,22 +877,11 @@ def load(kb, goal, identification, base):
 	rules = []
 	head_triples_triples_id = 0
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
-	facts = Graph(Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
+	facts = Graph(Triple(un_move_me_ize_pred(fixup3(x[1])),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
 	facts.id=head_triples_triples_id
 	head_triples_triples_id += 1
 
-
-	def un_move_me_ize_pred(x):
-		if x == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first'):
-			return URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
-		if x == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest'):
-			return URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
-		return x
-
-
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
-		p = un_move_me_ize_pred(p)
-		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
 			body = Graph()
@@ -935,7 +924,7 @@ def load(kb, goal, identification, base):
 
 	goal = Graph()
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
-		goal.append(Triple(fixup3(p), [fixup3(s), fixup3(o)]))
+		goal.append(Triple(un_move_me_ize_pred(fixup3(p)), [fixup3(s), fixup3(o)]))
 	#goal.reverse()
 	query_rule = Rule([], None, goal)
 	return rules, query_rule, goal

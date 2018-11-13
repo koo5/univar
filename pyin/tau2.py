@@ -165,7 +165,11 @@ def check_result(results, shouldbe_graph):
 	l1 = len(shouldbe_graph)
 	l2 = len(results)
 	print('expected:')
-	print_graph(shouldbe_graph)
+	aa = []
+	for at in list(shouldbe_graph.triples((None, None, None))):
+		aa.append((at[0], common.un_move_me_ize_pred(at[1]), at[2]))
+	for a in aa:
+		print(a)
 	print('.')
 	if not l1 and not l2:
 		success()
@@ -179,7 +183,7 @@ def check_result(results, shouldbe_graph):
 	result_to_parse = results.pop(0)
 	#print('result_to_parse',result_to_parse,';')
 	result_graph = parse(data=''.join(prefixes+[result_to_parse]), identifier=base, publicID=base)
-	cmp = do_results_comparison(shouldbe_graph, result_graph)
+	cmp = do_results_comparison(aa, result_graph)
 	if cmp == True:
 		success()
 		return
@@ -207,7 +211,7 @@ def print_graph(g):
 	for i in g.triples((None, None, None)):
 		print(i)
 
-def do_results_comparison(a, b):
+def do_results_comparison(aa, b):
 	#echo ('compare_results ' + str((a,b)))
 #	print('expected:')
 #	print_graph(a)
@@ -215,7 +219,7 @@ def do_results_comparison(a, b):
 #	print_graph(b)
 #	print('.')
 	correspondences = {}
-	aa = list(a.triples((None, None, None)))
+
 	bb = list(b.triples((None, None, None)))
 
 	print('got:')

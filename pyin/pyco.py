@@ -104,7 +104,7 @@ class Emitter(object):
 		r = Lines()
 		r.append(Line('void initialize_consts(){'))
 		for atom, (kind,cpp_name, code) in s.codes.items():
-			c = 'Constant{'+kind+',"'+str(atom)+'"}'
+			c = 'Constant{'+kind+','+cpp_string_literal(str(atom))+'}'
 			r.append(Line('consts2nodeids_and_refcounts['+c+']=nodeid_and_refcount{'+code+',1};'))
 			r.append(Statement('nodeids2consts.push_back('+c+')'))
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
@@ -551,7 +551,7 @@ def cpp_string_literal_noquote(s):
 	s = str(s)
 	result = ''
 	for c in s:
-		if not (32 <= ord(c) < 127) or c in ('\\', '"'):
+		if not (32 <= ord(c) < 127) or c in ('\\', '"', 10):
 			result += '\\%03o' % ord(c)
 		else:
 			result += c

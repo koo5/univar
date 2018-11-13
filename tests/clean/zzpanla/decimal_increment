@@ -5,7 +5,11 @@ kb
 (?X).
 { [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
+"0" :has_decimal_succ ("1" :false)
+
+
 {?x :has_decimal_succ ?y} <= {
+	?x rdf:first ?digit0.
 	
 	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?char. ?a3 rdf:rest rdf:nil.
 	?x0 rdf:first ?char.

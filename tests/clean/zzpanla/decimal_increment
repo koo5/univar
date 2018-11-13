@@ -1,0 +1,34 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+kb
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+{?x :has_decimal_succ ?y} <= {
+	
+	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?char. ?a3 rdf:rest rdf:nil.
+	?x0 rdf:first ?char.
+	?x0 rdf:rest ?rest.}.
+
+fin.
+#0
+query
+("h" "e" "l" "l" "o" " " "T" "i" "m" "," "h" "e" "l" "l" "o" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbetrue
+
+#1
+query
+("h" "e" "l" "l" "o" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbe
+fin.
+
+#2
+query
+("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+fin.
+shouldbetrue
+
+

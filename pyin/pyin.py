@@ -881,17 +881,39 @@ def load(kb, goal, identification, base):
 	facts.id=head_triples_triples_id
 	head_triples_triples_id += 1
 
+
+	def un_move_me_ize_pred(x):
+		if x == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first'):
+			return URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+		if x == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest'):
+			return URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
+		return x
+
+
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
+		p = un_move_me_ize_pred(p)
 		_t = Triple(p, [s, o])
 		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
+			body = Graph()
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
-			head_triples_triples = Graph([Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples])
+			head_triples_triples = Graph()
+			for triple in [Triple(fixup3(x[1]),[fixup3(x[0]),fixup3(x[2])]) for x in head_triples]:
+				move = False
+				if triple.pred == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first'):
+					triple.pred = URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+					move = True
+				if triple.pred == URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest'):
+					triple.pred = URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
+					move = True
+				if move:
+					body.append(triple)
+				else:
+					head_triples_triples.append(triple)
 			head_triples_triples.id=head_triples_triples_id
 			head_triples_triples_id += 1
-			body = Graph()
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
-				body.append(Triple((fixup3(body_triple[1])), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
+				body.append(Triple((un_move_me_ize_pred(fixup3(body_triple[1]))), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
 			#body.reverse()
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:

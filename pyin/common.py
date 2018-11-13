@@ -10,9 +10,13 @@ def newList(self, n, f):
 		return nil
 
 	first = self.newSymbol(
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#first')
+		#'http://www.w3.org/1999/02/22-rdf-syntax-ns#first'
+		'http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_first'
+	)
 	rest = self.newSymbol(
-		'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest')
+		#'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest'
+		'http://www.w3.org/1999/02/22-rdf-syntax-ns#move_me_to_body_rest'
+	 )
 
 	if hasattr(self.graph, 'last_n3_syntax_list_id'):
 		list_id = self.graph.last_n3_syntax_list_id + 1

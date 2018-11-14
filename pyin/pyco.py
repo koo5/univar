@@ -504,6 +504,110 @@ int unify(cpppred_state & __restrict__ state)
 		return r
 
 
+def create_builtins(emitter):
+
+	class Builtin(object):
+		def register(s):
+			g = rdflib.Graph(store=OrderedStore())
+			g.bind("string_builtins", "http://loworbit.now.im/rdf#")
+			g.parse(example)
+			_,s.pred,_ = list(g.triples((None,None,None)))[0]
+			emitter.preds[s.pred()].append(s)
+
+	b = Builtin()
+	b.doc = "(input)"x" is joined(y)."
+	b.syntax = """"x" string_builtins:is_joined "y"."""
+	def build_in(s):
+		s.prologue.append(Line("""
+	size_t query_list(cpppred_state & __restrict__ state)
+	{
+		goto *(((char*)&&case0) + state.entry);
+		case0:
+		#ifdef TRACE_PROOF
+			state.num_substates = 0;
+			state.status = ACTIVE;
+		#endif
+		state.states = grab_states(3);
+		state.locals = grab_things(2);
+		state.locals[0] = Thing(UNBOUND);
+		state.locals[1] = Thing(UNBOUND);
+		state.states[0].entry = 0;
+		state.states[0].incoming[0] = state.incoming[0];
+		state.states[0].incoming[1] = state.locals[0];
+		while ("""+'pred_'+cppize_identifier(rdflib.RDF.namespace.first)))+"""(state.states[0]))
+		{
+			vector<Thing*>result& = *static_cast<vector<Thing*>*>(state.incoming[1])
+			result.push_back(get_value(state.locals[0]));
+			state.states[1].entry = 0;
+			state.states[1].incoming[0] = state.incoming[0];
+			state.states[1].incoming[1] = state.locals[1];
+			while ("""+'pred_'+cppize_identifier(rdflib.RDF.namespace.rest)))+"""(state.states[0]))
+			{
+				state.locals[1] = get_value(state.locals[1]);
+				if (state.locals[1] == Thing{CONST, consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first})
+				{
+					yield(case1);
+					case1:
+				}
+				else
+				{
+					state.states[2].entry = 0;
+					state.states[2].incoming[0] = state.locals[1];
+					state.states[2].incoming[1] = static_cast<Thing*>(state.incoming[1]);
+					while(query_list(state.states[2]))
+					{
+						yield(case2);
+						case2:
+					}
+				}
+			}
+		}
+		END;
+	}
+	""")
+		return Line("""
+	state.states = grab_states(2);
+	state.locals = grab_things(1);
+	state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
+	state.states[0].entry = 0;
+	state.states[0].incoming[0] = state.incoming[0];
+	state.states[0].incoming[1] = state.locals[0];
+	while (query_list(state.states[0]))
+	{
+		vector<Thing*>items& = *static_cast<vector<Thing*>*>(state.locals[0]);
+		string result = "";
+		for (Thing *t: items)
+		{
+			ASSERT (t->type() != BOUND);
+			if (t->type() == UNBOUND)
+				END;
+			else if (t->type() == CONST)
+			{
+				Const *c = nodeids2consts[t->nodeid];
+				if (c.type == STRING)
+					result += c.value;
+				else
+					END;
+			}
+			else ASSERT(false);
+		}
+		state.states[1].entry = 0;
+		state.states[1].incoming[0] = state.incoming[0];
+		state.states[1].incoming[1] = state.locals[0];
+		while (unify())
+		{
+			yield(""" + s.label() +	""");
+		}
+		delete static_cast<vector<Thing*>*>(state.locals[0]);
+		state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
+	}
+	delete static_cast<vector<Thing*>*>(state.locals[0]);
+	""")
+	b.build_in = build_in
+	b.register()
+
+
+
 def local_expr(name, rule, not_getval = False):
 	if name in rule.locals_map:
 		return ('get_value' if not not_getval else '') +  '(&state.locals[' + str(rule.locals_map[name]) + '])'
@@ -595,6 +699,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	for rule in rules:
 		preds[rule.head.pred].append(rule)
 	e = Emitter()
+	create_builtins(e)
 	if trace_ep_checks:
 		e.prologue.append(Line('#define TRACE_EP_CHECKS'))
 	if trace_ep_tables:
@@ -614,96 +719,6 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		subprocess.check_call([pyco_executable], bufsize=1)#still not getting output until the end
 	else:
 		subprocess.check_call(['valgrind', pyco_executable])
-
-
-
-
-
-
-
-
-
-def add_builtins():
-	_builtins = (
-	(
-"""(input)"x" is a substring of (input)"xyx" spanning from position (input)0 to position (input)0.""",
-""""x" string_builtins:is_a_substring_of ("xyx" 0 0).""",
-,"""
-vector<Thing>a2_list = get_list_items_values(o);
-hay = a2_list[0].const_value();
-state.result_thing = new_const_thing(str.substr (o_list[1],o_list[2]));
-while (uxxxxnify(state.args[0], state.result_thing))
-	yield;
-"""
-	),
-	(
-"""(input)"x" is joined(y).""",
-""""x" string_builtins:is_joined "y".""",
-,"""
-state.states = grab_states(2);
-state.locals = grab_things(1);
-state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
-state.states[0].entry = 0;
-state.states[0].incoming[0] = state.incoming[0];
-state.states[0].incoming[1] = state.locals[0];
-while (query_list(state.states[0]))
-{
-	vector<Thing*>items& = *static_cast<vector<Thing*>*>(state.locals[0]);
-	string result = "";
-	for (Thing *t: items)
-	{
-		ASSERT (t->type() != BOUND);
-		if (t->type() == UNBOUND)
-			END;
-		else if (t->type() == CONST)
-		{
-			Const *c = nodeids2consts[t->nodeid];
-			if (c.type == STRING)
-				result += c.value;
-			else
-				END;
-		}
-		else ASSERT(false);
-	}
-	state.states[1].entry = 0;
-	state.states[1].incoming[0] = state.incoming[0];
-	state.states[1].incoming[1] = state.locals[0];
-	while (unify())
-	{
-		yield;
-"""
-	),
-	)
-	for doc,example,code in builtins:
-		g = rdflib.Graph(store=OrderedStore())
-		g.bind("string_builtins", "http://loworbit.now.im/rdf#")
-		g.parse(example)
-		_,predicate,_ = list(g.triples((None,None,None)))[0]
-		cpp_name = predicate.replace(':','__')
-		builtins[predicate] = cpp_name
-		out.write("""
-		void {cpp_name}(coro_state *state_ptr)
-		{{
-			coro_state &state = *state_ptr;
-			Thing s;
-			Thing o;
-			
-			goto state.entry;
-			l0:
-				s = get_value(state.args[0]);
-				o = get_value(state.args[1]);
-				
-				
-				
-			{body}
-		
-		
-		}}	
-		
-		""")
-
-
-
 
 
 

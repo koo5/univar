@@ -88,7 +88,7 @@ class Emitter(object):
 			cpp_name += 'lit_'
 		else: assert False, atom
 		cpp_name += cppize_identifier(str(atom))
-		while s.find_code_by_cppname(cpp_name) != None:
+		while s.find_code_by_cppname(cpp_name) is not None:
 			cpp_name += "2"
 		kind = "URI" if type(atom) == rdflib.URIRef else "STRING"
 		code = str(len(s.codes))
@@ -324,7 +324,7 @@ int unify(cpppred_state & __restrict__ state)
 		return Collection([
 			comment(common.shorten(pred_name) if pred_name else 'query'),
 			Lines(
-				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules] #/*const*/
+				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules]
 			),
 			Line(
 				pred_func_declaration(('pred_'+cppize_identifier(pred_name)) if pred_name else 'query')
@@ -356,7 +356,7 @@ int unify(cpppred_state & __restrict__ state)
 			for i in range(r.max_states_len):
 				b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 		if len(r.existentials):
-			existential_pos = str(r.locals_map[r.existentials[0]])
+			pass
 		if trace_proof_:
 			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 			b.append(Statement('state.set_active(true)'))
@@ -614,6 +614,65 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		subprocess.check_call([pyco_executable], bufsize=1)#still not getting output until the end
 	else:
 		subprocess.check_call(['valgrind', pyco_executable])
+
+
+
+
+
+
+
+
+
+def add_builtins():
+	_builtins = (
+	(
+"""(input)"x" is a substring of (input)"xyx" spanning from position (input)0 to position (input)0.""",
+""""x" string_builtins:is_a_substring_of ("xyx" 0 0).""",
+,"""
+vector<Thing>a2_list = get_list_items_values(o);
+hay = a2_list[0].const_value();
+state.result_thing = new_const_thing(str.substr (o_list[1],o_list[2]));
+while (unify(state.args[0], state.result_thing))
+	yield;
+"""
+	),)
+	for doc,example,code in builtins:
+		g = rdflib.Graph(store=OrderedStore())
+		g.bind("string_builtins", "http://loworbit.now.im/rdf#")
+		g.parse(example)
+		_,predicate,_ = list(g.triples((None,None,None)))[0]
+		cpp_name = predicate.replace(':','__')
+		builtins[predicate] = cpp_name
+		out.write("""
+		void {cpp_name}(coro_state *state_ptr)
+		{{
+			coro_state &state = *state_ptr;
+			Thing s;
+			Thing o;
+			
+			goto state.entry;
+			l0:
+				s = get_value(state.args[0]);
+				o = get_value(state.args[1]);
+				
+				
+				
+			{body}
+		
+		
+		}}	
+		
+		""")
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
 	query_from_files()

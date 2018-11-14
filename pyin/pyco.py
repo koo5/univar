@@ -632,7 +632,7 @@ def add_builtins():
 vector<Thing>a2_list = get_list_items_values(o);
 hay = a2_list[0].const_value();
 state.result_thing = new_const_thing(str.substr (o_list[1],o_list[2]));
-while (unify(state.args[0], state.result_thing))
+while (uxxxxnify(state.args[0], state.result_thing))
 	yield;
 """
 	),
@@ -657,18 +657,20 @@ while (query_list(state.states[0]))
 			END;
 		else if (t->type() == CONST)
 		{
-			
+			Const *c = nodeids2consts[t->nodeid];
+			if (c.type == STRING)
+				result += c.value;
+			else
+				END;
 		}
 		else ASSERT(false);
 	}
-
-	state.states[0].entry = 0;
-	state.states[0].incoming[0] = state.incoming[0];
-	state.states[0].incoming[1] = state.locals[0];
-
-
+	state.states[1].entry = 0;
+	state.states[1].incoming[0] = state.incoming[0];
+	state.states[1].incoming[1] = state.locals[0];
 	while (unify())
-	yield;
+	{
+		yield;
 """
 	),
 	)

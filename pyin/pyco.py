@@ -635,7 +635,43 @@ state.result_thing = new_const_thing(str.substr (o_list[1],o_list[2]));
 while (unify(state.args[0], state.result_thing))
 	yield;
 """
-	),)
+	),
+	(
+"""(input)"x" is joined(y).""",
+""""x" string_builtins:is_joined "y".""",
+,"""
+state.states = grab_states(2);
+state.locals = grab_things(1);
+state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
+state.states[0].entry = 0;
+state.states[0].incoming[0] = state.incoming[0];
+state.states[0].incoming[1] = state.locals[0];
+while (query_list(state.states[0]))
+{
+	vector<Thing*>items& = *static_cast<vector<Thing*>*>(state.locals[0]);
+	string result = "";
+	for (Thing *t: items)
+	{
+		ASSERT (t->type() != BOUND);
+		if (t->type() == UNBOUND)
+			END;
+		else if (t->type() == CONST)
+		{
+			
+		}
+		else ASSERT(false);
+	}
+
+	state.states[0].entry = 0;
+	state.states[0].incoming[0] = state.incoming[0];
+	state.states[0].incoming[1] = state.locals[0];
+
+
+	while (unify())
+	yield;
+"""
+	),
+	)
 	for doc,example,code in builtins:
 		g = rdflib.Graph(store=OrderedStore())
 		g.bind("string_builtins", "http://loworbit.now.im/rdf#")

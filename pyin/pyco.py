@@ -13,12 +13,12 @@ Lines = Collection
 import click
 import sys, os
 import common
-import pyco_builtins
 import pyin
 from collections import defaultdict, OrderedDict
 import memoized
 import rdflib
 import subprocess
+from ordered_rdflib_store import OrderedStore
 
 if sys.version_info.major == 3:
 	unicode = str
@@ -151,8 +151,11 @@ class Emitter(object):
 			result += ',' + cpp_string_literal(thing.debug_name)
 		return result + ')'
 
+	def case_str(s):
+		return "case" +str(s._label)
+
 	def label(s):
-		return Line("case" +str(s._label) + ":;")
+		return Line(s.case_str() + ":;")
 
 	def generate_cpp(s, goal, goal_graph, trace_output_path):
 
@@ -176,12 +179,13 @@ class Emitter(object):
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
 		s.ep_tables = ["ep" + str(rule.debug_id) for rule in all_rules if rule != goal]
+		for pred_name in preds.keys():
+			s.prologue.append(Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))"))
 		r = Module(
 		[
 			Lines([
 				Statement("static ep_table "+x) for x in s.ep_tables]),
-			Lines([Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))")
-				   for pred_name in preds.keys()]),
+
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
 			s.unification()
@@ -319,8 +323,8 @@ int unify(cpppred_state & __restrict__ state)
 	def pred(s, pred_name, rules):
 		s._label = 0
 		s.state_index = 0
-		max_body_len = max(len(r.body) for r in rules)
-		max_states_len = max(r.max_states_len for r in rules)
+		#max_body_len = max(len(r.body) for r in rules)
+		#max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
 			comment(common.shorten(pred_name) if pred_name else 'query'),
 			Lines(
@@ -333,7 +337,7 @@ int unify(cpppred_state & __restrict__ state)
 				[
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
-					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in() for rule in rules]),
+					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(s) for rule in rules]),
 					Statement('return 0')
 				]
 			)
@@ -508,23 +512,25 @@ int unify(cpppred_state & __restrict__ state)
 class Builtin(object):
 	last_debug_id = 0
 	def __init__(s):
-		s.debug_id = 'builtin'+str(last_debug_id)
-		last_debug_id += 1
+		s.debug_id = 'builtin'+str(Builtin.last_debug_id)
+		Builtin.last_debug_id += 1
 		s.consts = []
-	def register(s):
+	def register(s, emitter):
 		g = rdflib.Graph(store=OrderedStore())
-		g.bind("string_builtins", "http://loworbit.now.im/rdf#")
-		g.parse(example)
+		#g.bind("string_builtins", "http://loworbit.now.im/rdf#")
+		g.parse(data=s.example, format='n3')
 		_,s.pred,_ = list(g.triples((None,None,None)))[0]
-		emitter.preds[s.pred()].append(s)
+		preds[s.pred].append(s)
 
 
 def create_builtins(emitter):
 	b = Builtin()
-	b.doc = "(input)"x" is joined(y)."
-	b.syntax = """"x" string_builtins:is_joined "y"."""
+	b.doc = """(input)"x" is joined(y)."""
+	b.example = """
+	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+	"x" string_builtins:is_joined "y"."""
 	def build_in(s):
-		if not(rdflib.RDF.namespace.first in preds and rdflib.RDF.namespace.rest in preds):
+		if not(rdflib.RDF.first in preds and rdflib.RDF.rest in preds):
 			s.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
@@ -535,6 +541,10 @@ def create_builtins(emitter):
 			s.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
+					Thing *&rdf_list = state.incoming[0];
+					Thing *&result_vec = state.incoming[1];
+					const size_t first = 0;
+					const size_t rest = 1; 
 					goto *(((char*)&&case0) + state.entry);
 					case0:
 					#ifdef TRACE_PROOF
@@ -543,82 +553,79 @@ def create_builtins(emitter):
 					#endif
 					state.states = grab_states(3);
 					state.locals = grab_things(2);
-					state.locals[0] = Thing(UNBOUND);
-					state.locals[1] = Thing(UNBOUND);
+					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
+					state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
 					state.states[0].entry = 0;
-					state.states[0].incoming[0] = state.incoming[0];
-					state.states[0].incoming[1] = state.locals[0];
-					while ("""+'pred_'+cppize_identifier(rdflib.RDF.namespace.first)))+"""(state.states[0]))
+					state.states[0].incoming[0] = rdf_list;
+					state.states[0].incoming[1] = &state.locals[first];
+					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 					{
-						vector<Thing*>result& = *static_cast<vector<Thing*>*>(state.incoming[1])
-						result.push_back(get_value(state.locals[0]));
+						((vector<Thing*>*)result_vec)->push_back(get_value(&state.locals[first]));
 						state.states[1].entry = 0;
-						state.states[1].incoming[0] = state.incoming[0];
-						state.states[1].incoming[1] = state.locals[1];
-						while ("""+'pred_'+cppize_identifier(rdflib.RDF.namespace.rest)))+"""(state.states[0]))
+						state.states[1].incoming[0] = rdf_list;
+						state.states[1].incoming[1] = &state.locals[rest];
+						while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
 						{
-							state.locals[1] = get_value(state.locals[1]);
-							if (state.locals[1] == Thing{CONST, consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first})
+							if (*get_value(&state.locals[rest]) == Thing{CONST, consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first, "nil"})
 							{
 								yield(case1);
-								case1:
+								case1:;
 							}
 							else
 							{
 								state.states[2].entry = 0;
-								state.states[2].incoming[0] = state.locals[1];
-								state.states[2].incoming[1] = static_cast<Thing*>(state.incoming[1]);
+								state.states[2].incoming[0] = get_value(&state.locals[rest]);
+								state.states[2].incoming[1] = result_vec;
 								while(query_list(state.states[2]))
 								{
 									yield(case2);
-									case2:
+									case2:;
 								}
 							}
 						}
 					}
 					END;
 				}
-		""")
-		return Line("""
+		"""))
+		return Lines([Line("""
 	state.states = grab_states(2);
-	state.locals = grab_things(1);
-	state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
+	state.locals = grab_things(2);
+	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 	state.states[0].entry = 0;
 	state.states[0].incoming[0] = state.incoming[0];
-	state.states[0].incoming[1] = state.locals[0];
+	state.states[0].incoming[1] = &state.locals[0];
 	while (query_list(state.states[0]))
 	{
-		vector<Thing*>items& = *static_cast<vector<Thing*>*>(state.locals[0]);
 		string result = "";
-		for (Thing *t: items)
+		for (Thing *t: **((vector<Thing*>**)(&state.locals[0])))
 		{
 			ASSERT (t->type() != BOUND);
 			if (t->type() == UNBOUND)
-				END;
+				END
 			else if (t->type() == CONST)
 			{
-				Const *c = nodeids2consts[t->nodeid];
+				Constant c = nodeids2consts[t->node_id()];
 				if (c.type == STRING)
 					result += c.value;
 				else
-					END;
+					END
 			}
 			else ASSERT(false);
 		}
 		state.states[1].entry = 0;
 		state.states[1].incoming[0] = state.incoming[0];
-		state.states[1].incoming[1] = state.locals[0];
-		while (unify())
+		state.states[1].incoming[1] = &state.locals[0];
+		while (unify(state.states[1]))
 		{
-			yield(""" + s.label() +	""");
+			"""), s.do_yield(), Line("""
 		}
-		delete static_cast<vector<Thing*>*>(state.locals[0]);
-		state.locals[0] = static_cast<Thing*>(new vector<Thing*>);
+		delete *((vector<Thing*>**)(&state.locals[0]));
+		*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 	}
-	delete static_cast<vector<Thing*>*>(state.locals[0]);
-	""")
+	delete *((vector<Thing*>**)(&state.locals[0]));
+	""")])
 	b.build_in = build_in
-	b.register()
+	b.register(emitter)
 
 
 

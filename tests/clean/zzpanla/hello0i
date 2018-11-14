@@ -1,6 +1,6 @@
 @keywords a .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix lol:      <http://loworbit.now.im/rdf#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 
 @prefix : <file://>.
 kb
@@ -107,7 +107,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" :string2list_of_chars ?l. 
+""" string_builtins:is joined ?l. 
 ?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?output lol:string2list_of_chars ?l2 . ?output.
 fin.
 shouldbetrue

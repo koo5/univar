@@ -264,8 +264,9 @@ class Var(AtomVar):
 	"""
 	def __init__(s, debug_name=None, debug_locals=None):
 		AtomVar.__init__(s,debug_name, debug_locals)
-		s.bound_to = None
-		s.bnode = lambda: None
+		s.bound_to = None #for pyin
+		s.bnode = lambda: None  #for pyin
+		s.is_bnode = False #for pyco
 
 	def str(s, shortener = lambda x:x):
 		if isinstance(s.kbdbg_name,URIRef):

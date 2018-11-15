@@ -12,6 +12,17 @@
 #include <ctime>
 #include <chrono>
 
+
+
+#define IF_TRACE(x) \
+	#ifdef TRACE \
+		x \
+	#endif
+
+
+
+
+
 using namespace std;
 
 unsigned long euler_steps = 0;
@@ -609,3 +620,7 @@ void pop_const()
         nodeids2consts.pop_back();
     }
 }
+
+Constant rdf_nil = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"};
+Constant rdf_first = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"};
+Constant rdf_rest = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"};

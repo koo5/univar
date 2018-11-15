@@ -20,7 +20,7 @@
 	#endif
 
 
-
+size_t bnode_origin_counter;
 
 
 using namespace std;

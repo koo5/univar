@@ -190,7 +190,10 @@ class Emitter(object):
 			s.print_result(goal, goal_graph),
 			s.unification()
 		])
-		return str(s.get_prologue()) + '\n' + str(r) + '\n' + str(s.ep_tables_printer())
+		return (str(s.get_prologue()) + '\n' +
+			str(r) + '\n' +
+			str(s.ep_tables_printer()) +
+			'size_t bnode_origin_counter = '+str(bnode_origin_counter)+';')
 
 	def unification(s):
 		result = Lines([Line(
@@ -773,68 +776,6 @@ def create_builtins(emitter):
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_split "xy"."""
 	def build_in(s):
-		if not(rdflib.RDF.first in preds and rdflib.RDF.rest in preds):
-			s.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
-				{
-					return 0;
-				}
-		"""))
-		else:
-			s.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
-				{
-					Thing *&rdf_list = state.incoming[0];
-					Thing *&result_vec = state.incoming[1];
-					const size_t first = 0;
-					const size_t rest = 1; 
-					goto *(((char*)&&case0) + state.entry);
-					case0:
-					#ifdef TRACE_PROOF
-						state.num_substates = 0;
-						state.status = ACTIVE;
-					#endif
-					state.states = grab_states(3);
-					state.locals = grab_things(2);
-					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
-					state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
-					state.states[0].entry = 0;
-					state.states[0].incoming[0] = rdf_list;
-					state.states[0].incoming[1] = &state.locals[first];
-					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
-					{
-						cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						cerr << (*(vector<Thing*>**)result_vec)->size() << endl;
-						(*(vector<Thing*>**)result_vec)->push_back(get_value(&state.locals[first]));
-						state.states[1].entry = 0;
-						state.states[1].incoming[0] = rdf_list;
-						state.states[1].incoming[1] = &state.locals[rest];
-						while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
-						{
-							if (get_value(&state.locals[rest])->type() == CONST and 
-								get_value(&state.locals[rest])->node_id() == consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first)
-							{
-								yield(case1);
-								case1:;
-							}
-							else
-							{
-								state.states[2].entry = 0;
-								state.states[2].incoming[0] = get_value(&state.locals[rest]);
-								state.states[2].incoming[1] = result_vec;
-								while(query_list(state.states[2]))
-								{
-									yield(case2);
-									case2:;
-								}
-							}
-						}
-					}
-					release_things(2);
-					release_states(3);
-					END;
-				}
-		"""))
 		return Lines([Line("""
 	{
 		Thing *input = &state.incoming[0];
@@ -861,52 +802,8 @@ def create_builtins(emitter):
 		state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE(, "nil")};
 		
 		for (size_t i = 0; i < input_string.size(); i+=2)
-			state.locals[i] = Thing{BNODE
+			state.locals[i] = Thing{BNODE,bnode_origin_counter++)  
 		 
-
-	state.states = grab_states(2);
-	state.locals = grab_things(2);
-	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
-	state.states[0].entry = 0;
-	state.states[0].incoming[0] = state.incoming[0];
-	state.states[0].incoming[1] = &state.locals[0];
-	while (query_list(state.states[0]))
-	{
-		{
-			string result;
-			for (Thing *t: **((vector<Thing*>**)(&state.locals[0])))
-			{
-				ASSERT (t->type() != BOUND);
-				if (t->type() == UNBOUND)
-					goto is_joined_end;
-				else if (t->type() == CONST)
-				{
-					Constant c = nodeids2consts[t->node_id()];
-					if (c.type == STRING)
-						result += c.value;
-					else
-						goto is_joined_end;
-				}
-				else ASSERT(false);
-			}
-			state.locals[1] = Thing{CONST,push_const(Constant{STRING, result}) IF_TRACE(, result)};
-		}
-		state.states[1].entry = 0;
-		state.states[1].incoming[0] = state.incoming[1];
-		state.states[1].incoming[1] = &state.locals[1];
-		while (unify(state.states[1]))
-		{
-			"""), s.do_yield(), Line("""
-		}
-		pop_const();
-		delete *((vector<Thing*>**)(&state.locals[0]));
-		*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
-	}
-	is_joined_end:
-	delete *((vector<Thing*>**)(&state.locals[0]));
-	release_things(2);
-	release_states(2);
-	
 	""")])
 	b.build_in = build_in
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')

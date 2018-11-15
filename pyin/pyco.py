@@ -589,6 +589,8 @@ def create_builtins(emitter):
 							}
 						}
 					}
+					release_things(2);
+					release_states(3);
 					END;
 				}
 		"""))
@@ -617,14 +619,14 @@ def create_builtins(emitter):
 			{
 				ASSERT (t->type() != BOUND);
 				if (t->type() == UNBOUND)
-					END
+					goto is_joined_end;
 				else if (t->type() == CONST)
 				{
 					Constant c = nodeids2consts[t->node_id()];
 					if (c.type == STRING)
 						result += c.value;
 					else
-						END
+						goto is_joined_end;
 				}
 				else ASSERT(false);
 			}
@@ -645,7 +647,11 @@ def create_builtins(emitter):
 		delete *((vector<Thing*>**)(&state.locals[0]));
 		*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 	}
+	is_joined_end:
 	delete *((vector<Thing*>**)(&state.locals[0]));
+	release_things(2);
+	release_states(2);
+	
 	""")])
 	b.build_in = build_in
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_joined')

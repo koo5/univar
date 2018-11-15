@@ -193,7 +193,7 @@ class Emitter(object):
 		return (str(s.get_prologue()) + '\n' +
 			str(r) + '\n' +
 			str(s.ep_tables_printer()) +
-			'size_t bnode_origin_counter = '+str(bnode_origin_counter)+';')
+			'size_t bnode_origin_counter = '+str(s.bnode_origin_counter)+';')
 
 	def unification(s):
 		result = Lines([Line(
@@ -747,7 +747,7 @@ def create_builtins(emitter):
 				}
 				else ASSERT(false);
 			}
-			state.locals[1] = Thing{CONST,push_const(Constant{STRING, result}) IF_TRACE(, result)};
+			state.locals[1] = Thing{CONST,push_const(Constant{STRING, result}) IF_TRACE(result)};
 		}
 		state.states[1].entry = 0;
 		state.states[1].incoming[0] = state.incoming[1];
@@ -778,32 +778,47 @@ def create_builtins(emitter):
 	def build_in(s):
 		return Lines([Line("""
 	{
-		Thing *input = &state.incoming[0];
-		input_type = input->type();
+		Thing *input = state.incoming[0];
+		ThingType input_type = input->type();
 		if (input_type != CONST)
 			goto end_is_split0;
-	
-		Thing *output = &state.incoming[1];
-		output_type = output->type();
+		Thing *output = state.incoming[1];
+		ThingType output_type = output->type();
 		if ((output_type != BNODE) && (output_type != UNBOUND))
 			goto end_is_split0;
-
 		string input_string;
 		Constant c = nodeids2consts[input->node_id()];
 		if (c.type == STRING)
 			input_string = c.value;
 		else
 			goto end_is_split0;
-
-		size_t locals_size = 1/*locals size*/+input_string.size()*2/*first,rest*/+1/*nil*/;
-		state.locals = grab_things(locals_size);
-		*((size_t*)(&state.locals[0])) = locals_size;
+		state.states = grab_states(1);
+		size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
+		state.locals = grab_things(locals_size_int);
+		#define locals_size (*((size_t*)(&state.locals[0])))
+		locals_size = locals_size_int;
 		
-		state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE(, "nil")};
-		
+		state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};
 		for (size_t i = 0; i < input_string.size(); i+=2)
-			state.locals[i] = Thing{BNODE,bnode_origin_counter++)  
-		 
+		{
+			state.locals[i+1] = Thing{BNODE,bnode_origin_counter++ IF_TRACE("bn"+to_string(i))};
+			string s = input_string.substr(i,1);
+			state.locals[i+2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
+		} 
+	}
+		state.states[0].entry = 0;
+		state.states[0].incoming[0] = state.incoming[1];
+		state.states[0].incoming[1] = &state.locals[1];
+		while (unify(state.states[0]))
+		{
+			"""), s.do_yield(), Line("""
+		}
+		for (size_t i = 0; i < (locals_size-2)/2; i++)
+			pop_const();
+		release_things(locals_size);
+		#undef locals_size_thing 
+		release_states(1);
+		end_is_split0:;
 	""")])
 	b.build_in = build_in
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')

@@ -14,13 +14,14 @@
 
 
 
-#define IF_TRACE(x) \
-	#ifdef TRACE \
-		x \
-	#endif
+#ifdef TRACE
+#define IF_TRACE(x) ,x
+#else
+#define IF_TRACE(x)
+#endif
 
 
-size_t bnode_origin_counter;
+extern size_t bnode_origin_counter;
 
 
 using namespace std;

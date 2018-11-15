@@ -234,19 +234,15 @@ int unify(cpppred_state & __restrict__ state)
 		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
 			result.append(Line('case ' + bnode_cpp_name + ':'))
-			start = -(rule.locals_map[bnode_name])
-			end = len(rule.locals_map) - rule.locals_map[bnode_name]
-			states_len_int = end - start - 1
-			states_len = '('+str(states_len_int)+')'
+			states_len = '('+str(len(rule.head_vars)-1+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
 			if trace_proof_:
-				for i in range(states_len_int):
-					outer_block.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 				outer_block.append(Statement('state.num_substates = '+states_len))
 			block = outer_block
-			for local_name, local_idx in rule.locals_map.items():
+			for local_name in rule.head_vars:
 				if local_name == bnode_name:
 					continue
+				local_idx = rule.locals_map[local_name]
 				bnode_idx = rule.locals_map[bnode_name];
 				offset = local_idx - bnode_idx
 				block.append(Statement(s.substate()+'->entry = 0'))
@@ -778,6 +774,11 @@ def create_builtins(emitter):
 	def build_in(s):
 		return Lines([Line("""
 	{
+		#ifdef TRACE_PROOF
+			state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
+			state.num_substates = 0;
+			state.set_active(true);
+		#endif
 		Thing *input = state.incoming[0];
 		ThingType input_type = input->type();
 		if (input_type != CONST)
@@ -793,17 +794,25 @@ def create_builtins(emitter):
 		else
 			goto end_is_split0;
 		state.states = grab_states(1);
+		#ifdef TRACE_PROOF
+			state.num_substates = 1;
+		#endif
 		size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
 		state.locals = grab_things(locals_size_int);
 		#define locals_size (*((size_t*)(&state.locals[0])))
 		locals_size = locals_size_int;
 		
 		state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};
-		for (size_t i = 0; i < input_string.size(); i+=2)
+		for (size_t i = 0; i < input_string.size(); i++)
 		{
-			state.locals[i+1] = Thing{BNODE,bnode_origin_counter++ IF_TRACE("bn"+to_string(i))};
+			BnodeOrigin bn;
+			if (i == input_string.size() - 1)
+				bn = r0bnl0_0;
+			else
+				bn = r1bnub1bl5c3;
+			state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
 			string s = input_string.substr(i,1);
-			state.locals[i+2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
+			state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
 		} 
 	}
 		state.states[0].entry = 0;
@@ -819,6 +828,9 @@ def create_builtins(emitter):
 		#undef locals_size_thing 
 		release_states(1);
 		end_is_split0:;
+		#ifdef TRACE_PROOF
+			state.set_active(false);
+		#endif
 	""")])
 	b.build_in = build_in
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')

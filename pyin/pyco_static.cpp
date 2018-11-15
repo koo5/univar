@@ -232,7 +232,7 @@ struct cpppred_state
     Thing *locals;
     #ifdef TRACE_PROOF
         size_t num_substates;
-        coro_status status = INACTIVE;
+        coro_status status;
         string *comment;
         void set_comment(string x) {*comment = x;}
         void set_active(bool a)
@@ -243,6 +243,7 @@ struct cpppred_state
         void construct()
         {
             comment = new string;
+            status = INACTIVE;
         }
         void destruct()
         {

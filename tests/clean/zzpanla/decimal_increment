@@ -16,23 +16,3 @@ kb
 	?x0 rdf:rest ?rest.}.
 
 fin.
-#0
-query
-("h" "e" "l" "l" "o" " " "T" "i" "m" "," "h" "e" "l" "l" "o" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
-fin.
-shouldbetrue
-
-#1
-query
-("h" "e" "l" "l" "o" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
-fin.
-shouldbe
-fin.
-
-#2
-query
-("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
-fin.
-shouldbetrue
-
-

@@ -837,9 +837,17 @@ def create_builtins(emitter):
 			state.set_active(false);
 		#endif
 	""")])
-	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')
-	b.register(emitter)
+	ok = False
+	for pred, rules in preds.items():
+		for rule in rules:
+			if type(rule) != Builtin:
+				for i in rule.body:
+					if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
+						ok = True
+	if ok:
+		b.build_in = build_in
+		b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')
+		b.register(emitter)
 
 
 

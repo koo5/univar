@@ -456,7 +456,11 @@ int unify(cpppred_state & __restrict__ state)
 				b.append(Lines([
 					Statement("ASSERT(ep" +str(r.debug_id)+ ".size())"),
 					Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
+			if trace_proof_:
+				b.append(Statement('state.set_status(YIELD)'))
 			b.append(s.do_yield())
+			if trace_proof_:
+				b.append(Statement('state.set_status(ACTIVE)'))
 			if do_ep:
 				b.append(push_ep(r))
 				inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))

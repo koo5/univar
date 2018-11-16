@@ -240,6 +240,11 @@ struct cpppred_state
             status = a ? ACTIVE : INACTIVE;
             dump();
         }
+        void set_status(coro_status s)
+        {
+            status = s;
+            dump();
+        }
         void construct()
         {
             comment = new string;
@@ -322,6 +327,8 @@ void dump_state(int indent, const cpppred_state &state)
     }
     if (state.status == EP)
         trace_write_raw("<li>EP</li>");
+    else if (state.status == YIELD)
+        trace_write_raw("<li>yield.</li>");
     trace_write_raw("</ul>");
 }
 

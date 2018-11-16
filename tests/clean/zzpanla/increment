@@ -1,0 +1,76 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+kb
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+
+?X eq ?X.
+
+{?x has_succ_and_carry ?y. ?y has_carry ?c.} <= {
+	?x rdf:first ?xf. ?x rdf:rest rdf:nil.
+	?y rdf:first ?yf. ?y rdf:rest rdf:nil. 
+	?xf digit_succ ?yf. ?yf digit_carry ?c.
+}.
+{?x has_succ_and_carry ?y. ?y has_carry false} <= {
+	?x rdf:first ?xf. ?x rdf:rest ?xr. 
+	?y rdf:first ?yf. ?y rdf:rest ?yr. 
+	?xr has_succ_and_carry ?yr. ?yr has_carry false.
+	?xf eq ?yf.
+}.
+{?x has_succ_and_carry ?y. ?y has_carry ?c} <= {
+	?x rdf:first ?xf. ?x rdf:rest ?xr. 
+	?y rdf:first ?yf. ?y rdf:rest ?yr. 
+	?xr has_succ_and_carry ?yr. ?yr has_carry true.
+	?xf digit_succ ?yf. ?yf digit_carry ?c.
+}.
+
+{?x has_succ ?y} <= {
+	?x has_succ_and_carry ?y. ?y has_carry false}.
+{?x has_succ ?y} <= {
+	?x has_succ_and_carry ?xs. ?xs has_carry true.
+	?y rdf:first "1". ?y rdf:rest ?xs}.
+
+
+"0" digit_succ "1". "1" digit_carry false.
+"1" digit_succ "0". "0" digit_carry true.
+
+fin.
+
+query
+("0"). ("1"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("0"). ("1"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1"). ("1" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "0"). ("1" "1"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "1"). ("1" "0" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "1" "1" "0" "1" "1" "1" "1"). ("1" "1" "1" "1" "0" "0" "0" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "1" "1" "0" "1" "1" "0" "1"). ("1" "1" "1" "0" "1" "1" "1" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+

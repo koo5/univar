@@ -5,6 +5,25 @@ kb
 (?X).
 { [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
+
+rdf:nil has_carry 0. rdf:nil has_succ_and_carry rdf:nil.
+{?x has_succ_and_carry ?y. ?x rdf:first ?yf. ?x rdf:rest ?xrs. ?x has_carry 0} <= {
+	?y rdf:first ?yf.
+	?x rdf:rest ?xr.
+	?xr has_succ_and_carry ?xrs.
+	?xr has_carry 0.
+}.
+{?x has_succ_and_carry ?y. ?x rdf:first ?yfs. ?x rdf:rest ?xrs. ?x has_carry_and_carry ?xfs_carry} <= {
+	?x rdf:rest ?xr.
+	?xr has_succ ?xrs.
+	?xr has_succ_and_carry 1.
+	?x rdf:first ?xf.
+	?xf digit_succ ?xfs.
+	?xf has_digit_carry ?fff.
+}.
+{?x has_succ ?y} <= {?x has_succ_and_carry ?ys. ?ys has_carry 0}.
+{?x has_succ ?y. ?x rdf:first "1". ?x rdf:rest ?ys} <= {?x has_succ_and_carry ?ys. ?ys has_carry 1}.
+
 "0" digit_succ "1".
 "1" digit_succ "2".
 "2" digit_succ "3".
@@ -74,21 +93,21 @@ fin.
 query
 ("5") :decimal_succ ("6").
 fin.
-shouldbetrue
-
+shouldbe
+fin.
 query
 ("5" "9") :decimal_succ ("6" "0").
 fin.
-shouldbetrue
-
+shouldbe
+fin.
 query
 ("9") :decimal_succ ("1" "0").
 fin.
-shouldbetrue
-
+shouldbe
+fin.
 query
 ("9") :decimal_succ ?l1_0. ("1" "0").
 fin.
-shouldbetrue
-
+shouldbe
+fin.
 

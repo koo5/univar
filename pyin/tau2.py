@@ -169,7 +169,7 @@ def check_result(results, shouldbe_graph):
 	for at in list(shouldbe_graph.triples((None, None, None))):
 		aa.append((at[0], common.un_move_me_ize_pred(at[1]), at[2]))
 	for a in aa:
-		print(a)
+		print(a[0].n3(), a[1].n3(), a[2].n3())
 	print('.')
 	if not l1 and not l2:
 		success()
@@ -223,7 +223,8 @@ def do_results_comparison(aa, b):
 	bb = list(b.triples((None, None, None)))
 
 	print('got:')
-	print(bb)
+	for a in b:
+		print(a[0].n3(), a[1].n3(), a[2].n3())
 	print('.')
 
 	if len(aa) != len(bb):

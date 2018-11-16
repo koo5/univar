@@ -1,0 +1,16 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+
+kb
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+
+fin.
+#0
+query
+"Tim" string_builtins:is_split ?x. ?x string_builtins:is_joined "Tim".
+fin.
+shouldbetrue
+
+

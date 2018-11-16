@@ -597,7 +597,7 @@ def comment(s):
 @click.option('--trace_ep_tables', default=False, type=bool)
 @click.option('--trace_proof', default=True, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword, trace_ep_checks, trace_ep_tables, trace_proof):
-	global preds, trace, oneword_, trace_ep_tables_, trace_proof_
+	global preds, query_rule, trace, oneword_, trace_ep_tables_, trace_proof_
 	if notrace:
 		trace_proof = False
 		trace_ep_tables = False
@@ -685,8 +685,8 @@ def create_builtins(emitter):
 					state.states[0].incoming[1] = &state.locals[first];
 					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 					{
-						cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						cerr << (*(vector<Thing*>**)result_vec)->size() << endl;
+						/*cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
+						cerr << (*(vector<Thing*>**)result_vec)->size() << endl;*/
 						(*(vector<Thing*>**)result_vec)->push_back(get_value(&state.locals[first]));
 						state.states[1].entry = 0;
 						state.states[1].incoming[0] = rdf_list;
@@ -777,6 +777,18 @@ def create_builtins(emitter):
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_split "xy"."""
 	def build_in(s):
+		ok = False
+		for pred, rules in preds.items():
+			for rule in rules:
+				if type(rule) != Builtin:
+					for i in rule.body:
+						if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
+							ok = True
+		for i in query_rule.body:
+			if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
+				ok = True
+		if not ok:
+			return Lines()
 		return Lines([Line("""
 	{
 		#ifdef TRACE_PROOF
@@ -837,17 +849,9 @@ def create_builtins(emitter):
 			state.set_active(false);
 		#endif
 	""")])
-	ok = False
-	for pred, rules in preds.items():
-		for rule in rules:
-			if type(rule) != Builtin:
-				for i in rule.body:
-					if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
-						ok = True
-	if ok:
-		b.build_in = build_in
-		b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')
-		b.register(emitter)
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')
+	b.register(emitter)
 
 
 

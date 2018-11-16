@@ -454,6 +454,7 @@ class Rule(Kbdbgable):
 		singleton.locals_template = singleton.make_locals(singleton.original_head_triples, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 		singleton.existentials = get_existentials_names(singleton.original_head_triples, singleton.body)
+		singleton.head_vars = get_head_vars( singleton.original_head_triples)
 
 		with open(_rules_file_name, 'a') as ru:
 			ru.write(singleton.kbdbg_name + ":"+ singleton.__str__(shorten) + '\n')
@@ -645,6 +646,15 @@ def get_existentials_names(heads, body):
 					vars.add(i)
 	vars = list(vars)
 	nolog or log ("existentials:" + ' '.join(v.n3() for v in vars))
+	return vars
+
+def get_head_vars(heads):
+	vars = set()
+	for head in heads:
+		if head:
+			for i in head.args:
+				if is_var(i) :
+					vars.add(i)
 	return vars
 
 def ep_match(args_a, args_b):

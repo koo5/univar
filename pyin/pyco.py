@@ -234,7 +234,7 @@ int unify(cpppred_state & __restrict__ state)
 		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
 			result.append(Line('case ' + bnode_cpp_name + ':'))
-			states_len = '('+str(len(rule.head_vars)-1+')'
+			states_len = '('+str(len(rule.head_vars)-1)+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
 			if trace_proof_:
 				outer_block.append(Statement('state.num_substates = '+states_len))
@@ -767,7 +767,12 @@ def create_builtins(emitter):
 	b.register(emitter)
 
 	b = Builtin()
-	b.doc = """(input)"x" is_split(y)."""
+	b.doc = """(input)"x" is_split(y).
+	Expects the kb to start with ``` 
+	(?X).
+	{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+	```, otherwise, Bad Things™ will happen.	
+	"""
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_split "xy"."""

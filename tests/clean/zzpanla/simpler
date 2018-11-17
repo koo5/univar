@@ -1,0 +1,28 @@
+{?X0 :parses_to_name (?X0. rdf:nil)} <= {}.
+
+{?X0 :parses_to_name (?rest ?name)} <= {
+	?X0 rdf:first ?letter. ?X0 rdf:rest ?X1. 
+	?name rdf:first ?letter. ?name rdf:rest ?rest_of_name.
+	?X1 :parses_to_name (?rest ?rest_of_name).}.
+
+{?x0 find_digit (?digit ?rest)} <= {
+	?x0 rdf:first ?char. ?char a digit. ?x0 rdf:rest ?rest.}
+{?x0 find_digit (?digit ?rest)} <= {
+	?x0 rdf:first ?char. ?char not_a digit. ?x0 rdf:rest ?x1. ?x1 find_digit (?digit ?rest)}.
+
+
+
+{?x0 upto_digit (rdf:nil ?digit)} <= {
+	?x0 rdf:first ?digit. ?digit a digit.}.
+{?x0 upto_digit (?upto ?digit)} <= {
+	?x0 rdf:first ?char. ?x0 rdf:rest ?xr. ?char not_a digit. 
+	?upto ?rdf:first ?char. ?upto rdf:rest ?uptor.
+	?xr upto_digit (?uptor ?digit). }.
+a not_a digit. b not_a digit. 9 a digit.
+query
+(a b 9 c d) upto_digit (?ab ?nine).
+query
+?what upto_digit ((a b) 9).
+
+
+

@@ -64,6 +64,26 @@ fin.
 shouldbetrue
 
 query
+("1" "0" "0"). ("1" "0" "1"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "0" "1"). ("1" "1" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "1" "0"). ("1" "1" "1"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+("1" "1" "1"). ("1" "0" "0" "0"). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
 ("1" "1" "1" "0" "1" "1" "1" "1"). ("1" "1" "1" "1" "0" "0" "0" "0"). ?l0_0 :has_succ ?l1_0.
 fin.
 shouldbetrue

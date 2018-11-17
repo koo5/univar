@@ -43,24 +43,24 @@ kb
 
 
 {?x0 :parses_to_delimiter_with_rest ?rest} <= {
-	?x0 rdf:first " ". 
 	?x0 rdf:rest ?rest. 
+	?x0 rdf:first " ". 
 }.
 
 {?x0 :parses_to_delimiter_with_rest ?rest} <= {
-	?x0 rdf:first ",". 
 	?x0 rdf:rest ?rest. 
+	?x0 rdf:first ",". 
 }.
 
 {?x a :name. ?x :value ?Y}<={}.
 
 {?x0 :parses_to_name_with_rest ?a2.} <= {
 	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?name. ?a3 rdf:rest rdf:nil.
+	?x1 :parses_to_rest_of_name_with_rest (?rest ?name_value_rest).
 	?x0 rdf:first ?anything. 
 	?x0 rdf:rest ?x1. 
 	?name a :name. ?name :value ?name_value. 
 	?name_value rdf:first ?anything. ?name_value rdf:rest ?name_value_rest.
-	?x1 :parses_to_rest_of_name_with_rest (?rest ?name_value_rest).
 }.
 
 {?X1 :parses_to_rest_of_name_with_rest ?a2.} <= {
@@ -121,11 +121,17 @@ fin.
 
 #4
 query
-?name :value ("T" "i" "m") . ("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). 
+?name :value ("T") . ("b" "y" "e" " " "T" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). 
 fin.
 shouldbetrue
 
 #5
+query
+?name :value ("T" "i" "m") . ("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). 
+fin.
+shouldbetrue
+
+#6
 query
 ("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
 fin.

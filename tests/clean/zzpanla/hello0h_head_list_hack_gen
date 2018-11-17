@@ -55,11 +55,20 @@ kb
 
 {?x a :name. ?x :value ?Y}<={}.
 
-{(?x0 ?rest ?name) :parses_to_name ?name.} <= {
-        ?x0 rdf:first ?anything. ?x0 rdf:rest ?x1. 
-        ?name a :name. ?name :value ?name_value. 
-        ?name_value rdf:first ?anything. ?name_value rdf:rest ?name_value_rest.
-        (?x1 ?rest ?name_value_rest) :parses_to_rest_of_name_with_rest ?name_value_rest.
+#{(?x0 ?rest ?name) :parses_to_name ?name.} <= {
+#        ?x0 rdf:first ?anything. ?x0 rdf:rest ?x1. 
+#        ?name a :name. ?name :value ?name_value. 
+#        ?name_value rdf:first ?anything. ?name_value rdf:rest ?name_value_rest.
+#        (?x1 ?rest ?name_value_rest) :parses_to_rest_of_name_with_rest ?name_value_rest.
+#}.
+
+{?x0 :parses_to_name_with_rest ?a2.} <= {
+       ?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first ?name. ?a3 rdf:rest rdf:nil.
+       ?x1 :parses_to_rest_of_name_with_rest (?rest ?name_value_rest).
+       ?x0 rdf:first ?anything. 
+       ?x0 rdf:rest ?x1. 
+       ?name a :name. ?name :value ?name_value. 
+       ?name_value rdf:first ?anything. ?name_value rdf:rest ?name_value_rest.
 }.
 
 {?X1 :parses_to_rest_of_name_with_rest ?a2.} <= {

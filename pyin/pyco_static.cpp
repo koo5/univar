@@ -42,7 +42,7 @@ void print_euler_steps()
 void maybe_print_euler_steps()
 {
     chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    if (chrono::duration_cast<std::chrono::seconds>(now - last_ep_tables_printout).count())
+    //if (chrono::duration_cast<std::chrono::seconds>(now - last_ep_tables_printout).count())
     {
         last_ep_tables_printout = now;
         print_euler_steps();
@@ -334,7 +334,7 @@ void dump_state(int indent, const cpppred_state &state)
 
 void dump()
 {
-    trace_write_raw("window.pyco.frames.push(\"<ul>");
+    trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
         dump_state(0, *query_state);
     trace_write_raw("</ul><br><br><br><br><br><br><br>\");\n");
     trace_flush();

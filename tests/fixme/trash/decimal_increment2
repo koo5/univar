@@ -2,9 +2,8 @@
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix : <file://>.
 kb
-
-
-?list rdf:first ?ITEM; rdf:rest ?REST.
+(?X).
+{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
 
 
 rdf:nil has_carry 0. rdf:nil has_succ_and_carry rdf:nil.

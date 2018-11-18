@@ -4,12 +4,11 @@
 kb
 
 #— Existence of lists
-(?X).
-{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
+?list rdf:first ?ITEM; rdf:rest ?REST.
 
 :banana a :Nat.
 
-{?l1_0 :has_sum ?y.} <= {(:zero ?y). ?y a :Nat}.
+{(:zero ?y) :has_sum ?y.} <= { ?y a :Nat}.
 fin.
 
 query

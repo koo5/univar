@@ -25,7 +25,8 @@ kb
 	?xf eq ?yf.
 }.
 {?x has_succ ?y} <= {
-	?y rdf:first "1". ?y rdf:rest ?xs.
+	?something digit_carry true. ?something digit_succ ?prep.
+	?y rdf:first ?prep.   ?y rdf:rest ?xs.
 	?x has_succ_and_carry ?xs. ?xs has_carry true.
 }.
 {?x has_succ ?y} <= {
@@ -34,6 +35,17 @@ kb
 
 "0" digit_succ "1". "1" digit_carry false.
 "1" digit_succ "0". "0" digit_carry true.
+
+0 digit_succ 1. 1 digit_carry false.
+1 digit_succ 2. 2 digit_carry false.
+2 digit_succ 3. 3 digit_carry false.
+3 digit_succ 4. 4 digit_carry false.
+4 digit_succ 5. 5 digit_carry false.
+5 digit_succ 6. 6 digit_carry false.
+6 digit_succ 7. 7 digit_carry false.
+7 digit_succ 8. 8 digit_carry false.
+8 digit_succ 9. 9 digit_carry false.
+9 digit_succ 0. 0 digit_carry true.
 
 fin.
 
@@ -91,5 +103,44 @@ query
 ("1" "1" "1" "0" "1" "1" "0" "1"). ("1" "1" "1" "0" "1" "1" "1" "0"). ?l0_0 :has_succ ?l1_0.
 fin.
 shouldbetrue
+
+query
+(5 6 8). (5 6 9). ?l0_0 :has_succ ?l1_0.
+fin.
+shouldbetrue
+
+query
+(5 6 8) :has_succ (5 6 9).
+fin.
+shouldbetrue
+
+query
+(9 9) :has_succ (1 0 0).
+fin.
+shouldbetrue
+
+query
+(0) :has_succ (1).
+fin.
+shouldbetrue
+
+query
+() :has_succ ?ieiei.
+fin.
+shouldbe
+fin.
+
+query
+(:banana) :has_succ ?orange.
+fin.
+shouldbe
+fin.
+
+#query fixme: number literals
+#("0" 1) :has_succ ?ieie.
+#fin.
+#shouldbe
+#fin.
+
 
 

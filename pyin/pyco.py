@@ -663,6 +663,7 @@ def create_builtins(emitter):
 			s.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
+					(void)state;
 					return 0;
 				}
 		"""))

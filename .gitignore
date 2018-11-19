@@ -64,3 +64,4 @@ pyco_visualization/trace.js
 pyco
 pyco_out.cpp
 .settings/
+pyin/.ipynb_checkpoints/

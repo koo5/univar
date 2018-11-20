@@ -778,12 +778,7 @@ def create_builtins(emitter):
 	b.register(emitter)
 
 	b = Builtin()
-	b.doc = """(input)"x" is_split(y).
-	Expects the kb to start with ``` 
-	(?X).
-	{ [ ] rdf:first ?X; rdf:rest ?L} <= { ?L rdf:rest [ ] }.
-	```, otherwise, Bad Things™ will happen.	
-	"""
+	b.doc = """(input)"x" is_split(y)."""
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_split "xy"."""
@@ -801,48 +796,43 @@ def create_builtins(emitter):
 		if not ok:
 			return Lines()
 		return Lines([Line("""
-	{
-		#ifdef TRACE_PROOF
-			state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
-			state.num_substates = 0;
-			state.set_active(true);
-		#endif
-		Thing *input = state.incoming[0];
-		ThingType input_type = input->type();
-		if (input_type != CONST)
-			goto end_is_split0;
-		Thing *output = state.incoming[1];
-		ThingType output_type = output->type();
-		if ((output_type != BNODE) && (output_type != UNBOUND))
-			goto end_is_split0;
-		string input_string;
-		Constant c = nodeids2consts[input->node_id()];
-		if (c.type == STRING)
-			input_string = c.value;
-		else
-			goto end_is_split0;
-		state.states = grab_states(1);
-		#ifdef TRACE_PROOF
-			state.num_substates = 1;
-		#endif
-		size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
-		state.locals = grab_things(locals_size_int);
-		#define locals_size (*((size_t*)(&state.locals[0])))
-		locals_size = locals_size_int;
-		
-		state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};
-		for (size_t i = 0; i < input_string.size(); i++)
-		{
-			BnodeOrigin bn;
-			if (i == input_string.size() - 1)
-				bn = r0bnl0_0;
+			{
+			#ifdef TRACE_PROOF
+				state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
+				state.num_substates = 0;
+				state.set_active(true);
+			#endif
+			Thing *input = state.incoming[0];
+			ThingType input_type = input->type();
+			if (input_type != CONST)
+				goto end_is_split0;
+			Thing *output = state.incoming[1];
+			ThingType output_type = output->type();
+			if ((output_type != BNODE) && (output_type != UNBOUND))
+				goto end_is_split0;
+			string input_string;
+			Constant c = nodeids2consts[input->node_id()];
+			if (c.type == STRING)
+				input_string = c.value;
 			else
-				bn = r1bnub1bl5c3;
-			state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
-			string s = input_string.substr(i,1);
-			state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
-		} 
-	}
+				goto end_is_split0;
+			state.states = grab_states(1);
+			#ifdef TRACE_PROOF
+				state.num_substates = 1;
+			#endif
+			size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
+			state.locals = grab_things(locals_size_int);
+			#define locals_size (*((size_t*)(&state.locals[0])))
+			locals_size = locals_size_int;
+			state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
+			for (size_t i = 0; i < input_string.size(); i++)
+			{
+				const BnodeOrigin bn = r0bnlist;
+				state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
+				string s = input_string.substr(i,1);
+				state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
+			} 
+		}
 		state.states[0].entry = 0;
 		state.states[0].incoming[0] = state.incoming[1];
 		state.states[0].incoming[1] = &state.locals[1];
@@ -883,3 +873,62 @@ if __name__ == "__main__":
 
 
 
+
+
+	# 	#ifdef TRACE_PROOF
+	# 		state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1]));
+	# 		state.num_substates = 0;
+	# 		state.set_active(true);
+	# 	#endif
+	# 	Thing *input = state.incoming[0];
+	# 	ThingType input_type = input->type();
+	# 	if (input_type != CONST)
+	# 		goto end_is_split0;
+	# 	Thing *output = state.incoming[1];
+	# 	ThingType output_type = output->type();
+	# 	if ((output_type != BNODE) && (output_type != UNBOUND))
+	# 		goto end_is_split0;
+	# 	string input_string;
+	# 	Constant c = nodeids2consts[input->node_id()];
+	# 	if (c.type == STRING)
+	# 		input_string = c.value;
+	# 	else
+	# 		goto end_is_split0;
+	# 	state.states = grab_states(1);
+	# 	#ifdef TRACE_PROOF
+	# 		state.num_substates = 1;
+	# 	#endif
+	# 	size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
+	# 	state.locals = grab_things(locals_size_int);
+	# 	#define locals_size (*((size_t*)(&state.locals[0])))
+	# 	locals_size = locals_size_int;
+	#
+	# 	state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};
+	# 	for (size_t i = 0; i < input_string.size(); i++)
+	# 	{
+	# 		BnodeOrigin bn;
+	# 		if (i == input_string.size() - 1)
+	# 			bn = r0bnl0_0;
+	# 		else
+	# 			bn = r1bnub1bl5c3;
+	# 		state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
+	# 		string s = input_string.substr(i,1);
+	# 		state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
+	# 	}
+	# }
+	# 	state.states[0].entry = 0;
+	# 	state.states[0].incoming[0] = state.incoming[1];
+	# 	state.states[0].incoming[1] = &state.locals[1];
+	# 	while (unify(state.states[0]))
+	# 	{
+	# 		"""), s.do_yield(), Line("""
+	# 	}
+	# 	for (size_t i = 0; i < (locals_size-2)/2; i++)
+	# 		pop_const();
+	# 	release_things(locals_size);
+	# 	#undef locals_size_thing
+	# 	release_states(1);
+	# 	end_is_split0:;
+	# 	#ifdef TRACE_PROOF
+	# 		state.set_active(false);
+	# 	#endif

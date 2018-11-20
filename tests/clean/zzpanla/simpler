@@ -3,7 +3,7 @@
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 kb
-?list rdf:first ?ITEM; rdf:rest ?REST.
+?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
 
 {?X0 :parses_to_name (?X0 rdf:nil)} <= {}.
 
@@ -34,6 +34,3 @@ fin.
 query
 ?what upto_digit ((:a :b) 9).
 fin.
-
-
-

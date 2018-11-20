@@ -1,5 +1,7 @@
 @keywords a .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+
 @prefix : <file://>.
 kb
 ?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
@@ -92,21 +94,20 @@ kb
 fin.
 #0
 query
-("h" "e" "l" "l" "o" " " "T" "i" "m" "," "h" "e" "l" "l" "o" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:is_split ?l. 
+?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
 fin.
 shouldbetrue
-
-#1
-query
-("h" "e" "l" "l" "o" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
-fin.
-shouldbe
-fin.
-
-#2
-query
-("b" "y" "e" " " "T" "i" "m" "," "b" "y" "e" "!") :parses_to_greeting_sentence_with_rest (rdf:nil ?name). ?name :value ("T" "i" "m") . 
-fin.
-shouldbetrue
-
 

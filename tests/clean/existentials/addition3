@@ -4,7 +4,7 @@
 kb
 
 #— Existence of lists
-?list rdf:first ?ITEM; rdf:rest ?REST.
+?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
 
 :zero a :Nat.
 {?y :has_succ ?x. ?x a :Nat} <= {?y a :Nat}.

@@ -3,7 +3,7 @@
 @prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 
 kb
-?list rdf:first ?ITEM; rdf:rest ?REST.
+?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
 
 fin.
 #0

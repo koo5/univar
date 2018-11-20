@@ -827,7 +827,7 @@ def create_builtins(emitter):
 			state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 			for (size_t i = 0; i < input_string.size(); i++)
 			{
-				const BnodeOrigin bn = r0bnlist;
+				const BnodeOrigin bn = r0bnbuiltins_aware_list;
 				state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
 				string s = input_string.substr(i,1);
 				state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};

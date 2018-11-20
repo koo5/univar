@@ -463,8 +463,10 @@ vector<Thing*>* query_list_wrapper(Thing *x)
     cpppred_state *state = grab_states(1);
     state->entry = 0;
     state->incoming[0] = x;
-    #define output *((vector<Thing*>**)(&state->incoming[1]))
+    ASSERT(x->type() != BOUND);
+    #define output (*((vector<Thing*>**)(&state->incoming[1])))
     vector<Thing*> *result = output = new vector<Thing*>;
+    cerr << output << ", " << output->size() << endl;
     while (query_list(*state))
     {
 		if (result != output)
@@ -473,6 +475,7 @@ vector<Thing*>* query_list_wrapper(Thing *x)
 		/*we're only interested in the first result, but
 		we gotta keep calling query_list until it comes to it's natural end, thats the easiest way to
 		have all its substates released*/
+		cerr << output << ", " << output->size() << endl;
 	}
     if (result != output)
 	    delete output;
@@ -569,27 +572,32 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
     }
     for (size_t term_arg_i = 0; term_arg_i < 2; term_arg_i++) /*for subject and object*/
     {
-        vector<Thing*> *lists[2];
-        lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
-        lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
-        if (lists[0]->size() == lists[1]->size())
+        if (results[term_arg_i] == -1)
         {
-            for (size_t list_item_i = 0; list_item_i < lists[0]->size(); list_item_i++)
+            if (now.incoming[term_arg_i] == old.incoming[term_arg_i])
+                continue;
+            vector<Thing*> *lists[2];
+            lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
+            lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
+            if (lists[0]->size() == lists[1]->size())
             {
-                switch(is_arg_productively_different((*lists[0])[list_item_i], (*lists[1])[list_item_i]))
+                for (size_t list_item_i = 0; list_item_i < lists[0]->size(); list_item_i++)
                 {
-                case 1:
-                    return false;
-                case -1:
-                    if (lists[0][list_item_i] == lists[1][list_item_i])
+                    switch(is_arg_productively_different((*lists[0])[list_item_i], (*lists[1])[list_item_i]))
                     {
-                        #ifdef TRACE_EP_CHECKS
-                            cerr << "these are the same bnodes" << endl;
-                        #endif
-                    }
-                    else if (is_bnode_productively_different(old, (*lists[1])[list_item_i]))
+                    case 1:
                         return false;
-                default:;
+                    case -1:
+                        if (lists[0][list_item_i] == lists[1][list_item_i])
+                        {
+                            #ifdef TRACE_EP_CHECKS
+                                cerr << "these are the same bnodes" << endl;
+                            #endif
+                        }
+                        else if (is_bnode_productively_different(old, (*lists[1])[list_item_i]))
+                            return false;
+                    default:;
+                    }
                 }
             }
         }

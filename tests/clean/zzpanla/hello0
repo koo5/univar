@@ -16,6 +16,6 @@ fin.
 query
 ?l0_0 :parses_to_hello_with_rest rdf:nil.
 fin.
-shouldbe
-fin.
+shouldbetrue
+
 

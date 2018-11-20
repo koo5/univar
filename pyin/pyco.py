@@ -672,7 +672,9 @@ def create_builtins(emitter):
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
 					Thing *&rdf_list = state.incoming[0];
-					Thing *&result_vec = state.incoming[1];
+					ASSERT(rdf_list->type() != BOUND);
+					Thing *&result_thing = state.incoming[1];
+					vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
 					const size_t first = 0;
 					const size_t rest = 1; 
 					goto *(((char*)&&case0) + state.entry);
@@ -681,6 +683,10 @@ def create_builtins(emitter):
 						state.num_substates = 0;
 						state.status = ACTIVE;
 					#endif
+					cerr << "i" << state.incoming[1] << endl;
+					ASSERT(result_vec);
+					cerr << (result_vec) << ", " << result_vec->size() << endl;
+					//ASSERT(result_vec->empty());
 					state.states = grab_states(3);
 					state.locals = grab_things(2);
 					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
@@ -690,9 +696,8 @@ def create_builtins(emitter):
 					state.states[0].incoming[1] = &state.locals[first];
 					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 					{
-						/*cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						cerr << (*(vector<Thing*>**)result_vec)->size() << endl;*/
-						(*(vector<Thing*>**)result_vec)->push_back(get_value(&state.locals[first]));
+						//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
+						result_vec->push_back(get_value(&state.locals[first]));
 						state.states[1].entry = 0;
 						state.states[1].incoming[0] = rdf_list;
 						state.states[1].incoming[1] = &state.locals[rest];
@@ -708,7 +713,7 @@ def create_builtins(emitter):
 							{
 								state.states[2].entry = 0;
 								state.states[2].incoming[0] = get_value(&state.locals[rest]);
-								state.states[2].incoming[1] = result_vec;
+								state.states[2].incoming[1] = result_thing;
 								while(query_list(state.states[2]))
 								{
 									yield(case2);
@@ -728,7 +733,7 @@ def create_builtins(emitter):
 	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 	state.states[0].entry = 0;
 	state.states[0].incoming[0] = state.incoming[0];
-	state.states[0].incoming[1] = &state.locals[0];
+	state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
 	while (query_list(state.states[0]))
 	{
 		{
@@ -760,6 +765,7 @@ def create_builtins(emitter):
 		pop_const();
 		delete *((vector<Thing*>**)(&state.locals[0]));
 		*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
+		state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
 	}
 	is_joined_end:
 	delete *((vector<Thing*>**)(&state.locals[0]));

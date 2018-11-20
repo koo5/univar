@@ -92,6 +92,7 @@ def tau(command, files, only_id):
 						mode = Mode.none
 						continue
 					elif mode == Mode.query:
+						results = []
 						if query_number == None:
 							query_number = 0
 						else:

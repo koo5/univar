@@ -26,6 +26,7 @@ extern size_t bnode_origin_counter;
 
 using namespace std;
 
+string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
 
@@ -326,9 +327,9 @@ void dump_state(int indent, const cpppred_state &state)
         dump_state(indent,*(state.states+i));
     }
     if (state.status == EP)
-        trace_write_raw("<li>EP</li>");
+        trace_write_raw("<li class=\"ep\">EP</li>" + current_ep_comment);
     else if (state.status == YIELD)
-        trace_write_raw("<li>yield.</li>");
+        trace_write_raw("<li class=\"yield\">yield.</li>");
     trace_write_raw("</ul>");
 }
 
@@ -436,8 +437,9 @@ int is_arg_productively_different(Thing *old, Thing *now)
 bool detect_ep(const cpppred_state &old, cpppred_state &now)
 {
     #ifdef TRACE_EP_CHECKS
-    cerr << thing_to_string_nogetval(old.incoming[0]) << " vs " << thing_to_string_nogetval(now.incoming[0]) << " and " <<
-        thing_to_string_nogetval(old.incoming[1]) << " vs " << thing_to_string_nogetval(now.incoming[1]) << endl;
+        current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
+        " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1])
+        cerr << current_ep_comment << endl;
     #endif
     int results[2];
     for (size_t i = 0; i < 2; i++)

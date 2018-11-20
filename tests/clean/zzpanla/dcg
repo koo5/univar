@@ -106,16 +106,25 @@ kb
 	?x0 rdf:first ?char.
 	?x0 rdf:rest ?rest.}.
 
-{?x a :statements_ast. ?x :items ?Y} <= {}.
-{?x a :statement_ast.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :statements. ?x :items ?Y} <= {}.
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
 
-{?x0 :dcg_statements (?rest ?tree)} <= {
-	?x0 :dcg_statement (?middle ?statement_ast).
-	?middle :dcg_statements (?rest ?rest_ast).
-	?tree a :statements_ast. ?tree :items ?tree_items.
-	?tree_items rdf:first ?statement_ast.
-	?tree_items rdf:rest ?rest_ast.
+#statement_lines --> statement_line, statement_lines.
+{?x0 :statement_lines (?rest ?items)} <= {
+	?x0 :statement_line (?after_line ?items).
+	?after_line :statement_lines (?rest ?items).
 }.
+#statement_line --> newline.
+{?x0 :statement_line (?rest ?items)} <= {
+	?x0 :newline (?rest ?items).
+}.
+#statement_line --> statement, newline.
+{?x0 :statement_line (?rest ?items)} <= {
+	?x0 :statement (?after_statement ?item).
+	?items rdf:first ?item. ?items rdf:rest ?items_rest.
+	?after_statement :newline (?rest ?items_rest).
+}.
+
 
 fin.
 #0

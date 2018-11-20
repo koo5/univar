@@ -7,6 +7,21 @@ kb
 ?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
 
 
+{
+  ?LIST rdf:first ?FIRST .
+} => {
+  ?FIRST :memberof ?LIST .
+} .
+{
+  ?R1 rdf:rest ?R .
+  ?X :memberof ?R .
+} => { 
+  ?X :memberof ?R1 .
+} .
+
+
+{?x a :letter} <= { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
+
 {?x0 :parses_to_hello_with_rest ?a2} <= {
 	?a2 rdf:first ?rest. ?a2 rdf:rest ?a3. ?a3 rdf:first :hello. ?a3 rdf:rest rdf:nil.
 	?x0 rdf:first "h". 
@@ -91,8 +106,49 @@ kb
 	?x0 rdf:first ?char.
 	?x0 rdf:rest ?rest.}.
 
+{?x a :statements_ast. ?x :items ?Y} <= {}.
+{?x a :statement_ast.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+
+{?x0 :dcg_statements (?rest ?tree)} <= {
+	?x0 :dcg_statement (?middle ?statement_ast).
+	?middle :dcg_statements (?rest ?rest_ast).
+	?tree a :statements_ast. ?tree :items ?tree_items.
+	?tree_items rdf:first ?statement_ast.
+	?tree_items rdf:rest ?rest_ast.
+}.
+
 fin.
 #0
+query
+"f" a :letter. "a" a :letter.
+fin.
+shouldbetrue
+
+query
+"7" a :letter.
+fin.
+shouldbe
+fin.
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:is_split ?l. 
+?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?what :parses_to_dcg_with_rest (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
+fin.
+shouldbetrue
+
 query
 """
 sentence --> noun_phrase, verb_phrase.

@@ -1,0 +1,49 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+kb
+
+?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
+
+{
+  ?LIST rdf:first ?FIRST .
+} => {
+  ?FIRST :member1 ?LIST .
+} .
+{
+  ?R1 rdf:rest ?R .
+  ?X :member1 ?R .
+} => { 
+  ?X :member1 ?R1 .
+} .
+
+fin.
+
+query
+:one :member1 ( :one :two ).
+fin.
+shouldbe
+:one :member1 ( :one :two ).
+fin.
+
+query
+:one :member1 ( :xxx :iii ).
+fin.
+shouldbe
+fin.
+
+query
+:one :member1 ().
+fin.
+shouldbe
+fin.
+
+query
+:one :member1 (:one).
+fin.
+shouldbetrue
+
+query
+:one :member1 (:zero :zeroandahalf :one).
+fin.
+shouldbetrue
+

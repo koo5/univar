@@ -371,113 +371,12 @@ string thing_to_string(Thing* thing)
 
 #endif
 
-/*
-remember to get_value as needed before.
-later, for optimalization, we dont need to call get_value in every case.
-the pred function knows when its unifying two constants, for example,
-and can trivially yield/continue on.
-*/
 
-bool is_bnode_productively_different(const cpppred_state &old, cpppred_state &now, size_t idx)
-{
-    /*told.locals was allocated at the moement when the old frame was entered*/
-    bool r = (void*)now.incoming[idx] < (void*)&old.locals[0];
-    if (r)
-    {
-       #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created before " << *old.comment << endl;
-        #endif
-    }
-    else
-    {
-        #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now.incoming[idx]) << " was created after " << *old.comment << endl;
-        #endif
-    }
-    if (now.incoming[idx] == old.incoming[idx])
-    {
-        #ifdef TRACE_EP_CHECKS
-            cerr << "but these are the same bnodes" << endl;
-        #endif
-        return false;
-    }
-    return r;
-}
 
-int is_arg_productively_different(Thing *old, Thing *now)
-{
-    if (now->type() == BOUND || now->type() == UNBOUND)
-    {
-        if (old->type() == BOUND || old->type() == UNBOUND)
-            return false;
-        else if (old->type() == CONST || old->type() == BNODE)
-            return true;
-    }
-    else if (now->type() == CONST)
-    {
-        if (old->type() == BOUND || old->type() == UNBOUND || old->type() == BNODE)
-            return true;
-        else {
-             ASSERT(old->type() == CONST);
-             return !(*old == *now);
-        }
-    }
-    else if (now->type() == BNODE)
-    {
-        if (old->type() == BNODE)
-            return -1;
-        else {
-            return true;
-        }
-    }
-    else { ASSERT(false);  }
-    return false;
-}
 
-bool detect_ep(const cpppred_state &old, cpppred_state &now)
-{
-    #ifdef TRACE_EP_CHECKS
-        current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
-        " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1])
-        cerr << current_ep_comment << endl;
-    #endif
-    int results[2];
-    for (size_t i = 0; i < 2; i++)
-    {
-        results[i] = is_arg_productively_different(old.incoming[i], now.incoming[i]);
-        if (results[i] == 1)
-        {
-            #ifdef TRACE_EP_CHECKS
-                cerr << i << " is different." << endl;
-            #endif
-            return false;
-        }
-    }
-    for (size_t i = 0; i < 2; i++)
-    {
-        if (results[i] == -1 && is_bnode_productively_different(old, now, i))
-        {
-            #ifdef TRACE_EP_CHECKS
-                cerr << i << " is different bnode." << endl;
-            #endif
-            return false;
-        }
-    }
-    #ifdef TRACE_EP_CHECKS
-        cerr << "EP." << endl;
-    #endif
-    return true;
-}
 
-bool find_ep(ep_table *table, cpppred_state &now)
-{
-    for (const cpppred_state *old: *table)
-    {
-        if (detect_ep(*old, now))
-            return true;
-    }
-    return false;
-}
+
+
 
 
 
@@ -546,6 +445,171 @@ void release_things (size_t count)
         for (size_t i = 0; i < count; i++)
             ((Thing*)free_space)[i].destruct();
     #endif
+}
+
+
+
+
+
+
+
+
+
+size_t query_list(cpppred_state & __restrict__ state);
+
+
+vector<Thing*>* query_list_wrapper(Thing *x)
+{
+    cpppred_state *state = grab_states(1);
+    state->entry = 0;
+    state->incoming[0] = x;
+    #define output *((vector<Thing*>**)(&state->incoming[1]))
+    vector<Thing*> *result = output = new vector<Thing*>;
+    while (query_list(*state))
+    {
+		if (result != output)
+		    delete output;
+		output = new vector<Thing*>;
+		/*we're only interested in the first result, but
+		we gotta keep calling query_list until it comes to it's natural end, thats the easiest way to
+		have all its substates released*/
+	}
+    if (result != output)
+	    delete output;
+	#undef output
+	release_states(1);
+	return result;
+}
+
+
+bool is_bnode_productively_different(const cpppred_state &old, Thing *now)
+{
+    /*old.locals was allocated at the moment when the old frame was entered*/
+    bool r = (void*)&old.locals[0] > (void*)now;
+    if (r)
+    {
+       #ifdef TRACE_EP_CHECKS
+            cerr << thing_to_string_nogetval(now) << " was created before " << *old.comment << ", ok." << endl;
+       #endif
+    }
+    else
+    {
+        #ifdef TRACE_EP_CHECKS
+            cerr << thing_to_string_nogetval(now) << " was created after " << *old.comment << endl;
+        #endif
+    }
+    return r;
+}
+
+int is_arg_productively_different(Thing *old, Thing *now)
+{
+    if (now->type() == BOUND || now->type() == UNBOUND)
+    {
+        if (old->type() == BOUND || old->type() == UNBOUND)
+            return false;
+        else if (old->type() == CONST || old->type() == BNODE)
+            goto yes;
+    }
+    else if (now->type() == CONST)
+    {
+        if (old->type() == BOUND || old->type() == UNBOUND || old->type() == BNODE)
+            goto yes;
+        else
+        {
+             ASSERT(old->type() == CONST);
+             if (*old == *now)
+                return false;
+             goto yes;
+        }
+    }
+    else if (now->type() == BNODE)
+    {
+        if (old->type() == BNODE)
+            return -1;
+        else {
+            goto yes;
+        }
+    }
+    else { ASSERT(false);  }
+    return false;
+    yes:
+    #ifdef TRACE_EP_CHECKS
+        cerr << thing_to_string_nogetval(now) << " is different." << endl;
+    #endif
+    return true;
+}
+
+bool detect_ep(const cpppred_state &old, cpppred_state &now)
+{
+    #ifdef TRACE_EP_CHECKS
+        current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
+        " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1])
+        cerr << current_ep_comment << endl;
+    #endif
+    int results[2];
+    for (size_t i = 0; i < 2; i++)
+    {
+        results[i] = is_arg_productively_different(old.incoming[i], now.incoming[i]);
+        if (results[i] == 1)
+            return false;
+    }
+    for (size_t i = 0; i < 2; i++)
+    {
+        if (results[i] == -1)
+        {
+            if (now.incoming[i] == old.incoming[i])
+            {
+                #ifdef TRACE_EP_CHECKS
+                    cerr << "these are the same bnodes" << endl;
+                #endif
+            }
+            else if (is_bnode_productively_different(old, now.incoming[i]))
+                return false;
+        }
+    }
+    for (size_t term_arg_i = 0; term_arg_i < 2; term_arg_i++) /*for subject and object*/
+    {
+        vector<Thing*> *lists[2];
+        lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
+        lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
+        if (lists[0]->size() == lists[1]->size())
+        {
+            for (size_t list_item_i = 0; list_item_i < lists[0]->size(); list_item_i++)
+            {
+                switch(is_arg_productively_different((*lists[0])[list_item_i], (*lists[1])[list_item_i]))
+                {
+                case 1:
+                    return false;
+                case -1:
+                    if (lists[0][list_item_i] == lists[1][list_item_i])
+                    {
+                        #ifdef TRACE_EP_CHECKS
+                            cerr << "these are the same bnodes" << endl;
+                        #endif
+                    }
+                    else if (is_bnode_productively_different(old, (*lists[1])[list_item_i]))
+                        return false;
+                default:;
+                }
+            }
+        }
+    }
+    #ifdef TRACE_EP_CHECKS
+        cerr << "EP." << endl;
+    #endif
+    return true;
+}
+
+
+
+bool find_ep(ep_table *table, cpppred_state &now)
+{
+    for (const cpppred_state *old: *table)
+    {
+        if (detect_ep(*old, now))
+            return true;
+    }
+    return false;
 }
 
 
@@ -635,3 +699,12 @@ void pop_const()
 Constant rdf_nil = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"};
 Constant rdf_first = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"};
 Constant rdf_rest = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"};
+
+
+
+/*
+remember to get_value as needed before.
+later, for optimalization, we dont need to call get_value in every case.
+the pred function knows when its unifying two constants, for example,
+and can trivially yield/continue on.
+*/

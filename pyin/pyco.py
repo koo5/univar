@@ -683,9 +683,9 @@ def create_builtins(emitter):
 						state.num_substates = 0;
 						state.status = ACTIVE;
 					#endif
-					cerr << "i" << state.incoming[1] << endl;
+					//cerr << "i" << state.incoming[1] << endl;
 					ASSERT(result_vec);
-					cerr << (result_vec) << ", " << result_vec->size() << endl;
+					//cerr << (result_vec) << ", " << result_vec->size() << endl;
 					//ASSERT(result_vec->empty());
 					state.states = grab_states(3);
 					state.locals = grab_things(2);

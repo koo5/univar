@@ -466,7 +466,7 @@ vector<Thing*>* query_list_wrapper(Thing *x)
     ASSERT(x->type() != BOUND);
     #define output (*((vector<Thing*>**)(&state->incoming[1])))
     vector<Thing*> *result = output = new vector<Thing*>;
-    cerr << output << ", " << output->size() << endl;
+    //cerr << output << ", " << output->size() << endl;
     while (query_list(*state))
     {
 		if (result != output)
@@ -475,7 +475,7 @@ vector<Thing*>* query_list_wrapper(Thing *x)
 		/*we're only interested in the first result, but
 		we gotta keep calling query_list until it comes to it's natural end, thats the easiest way to
 		have all its substates released*/
-		cerr << output << ", " << output->size() << endl;
+		//cerr << output << ", " << output->size() << endl;
 	}
     if (result != output)
 	    delete output;

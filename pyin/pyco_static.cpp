@@ -481,6 +481,7 @@ vector<Thing*>* query_list_wrapper(Thing *x)
 	    delete output;
 	#undef output
 	release_states(1);
+	//cerr << "returning result " << result << " with size " << result->size() << endl;
 	return result;
 }
 
@@ -579,6 +580,10 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
             vector<Thing*> *lists[2];
             lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
             lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
+            /*cerr << "lists[0]" << lists[0] << endl;
+            cerr << "lists[1]" << lists[1] << endl;
+            cerr << "lists[0]s" << lists[0]->size() << endl;
+            cerr << "lists[1]s" << lists[1]->size() << endl;*/
             if (lists[0]->size() == lists[1]->size())
             {
                 for (size_t list_item_i = 0; list_item_i < lists[0]->size(); list_item_i++)
@@ -588,8 +593,12 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                     case 1:
                         return false;
                     case -1:
-                        if (lists[0][list_item_i] == lists[1][list_item_i])
+            /*cerr << "xlists[0][list_item_i]" << lists[0][list_item_i] << endl;
+            cerr << "xlists[1][list_item_i]" << lists[1][list_item_i] << endl;*/
+
+                        if ((*lists[0])[list_item_i] == (*lists[1])[list_item_i])
                         {
+
                             #ifdef TRACE_EP_CHECKS
                                 cerr << "these are the same bnodes" << endl;
                             #endif

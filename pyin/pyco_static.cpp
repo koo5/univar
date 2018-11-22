@@ -12,20 +12,16 @@
 #include <ctime>
 #include <chrono>
 
-
+using namespace std;
 
 #ifdef TRACE
 #define IF_TRACE(x) ,x
 #else
 #define IF_TRACE(x)
 #endif
-
+#define ASSERT assert
 
 extern size_t bnode_origin_counter;
-
-
-using namespace std;
-
 string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
@@ -51,13 +47,48 @@ void maybe_print_euler_steps()
 }
 
 
-ofstream trace;
+
 string trace_string;
+ofstream trace;
+size_t current_trace_file_id = 0;
+size_t written_bytes;
 
-#define ASSERT assert
+void trace_write_raw(string s)
+{
+    trace_string += s;
+}
 
+void open_trace_file()
+{
+    written_bytes = 0;
+	trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
+	trace_write_raw("window.pyco = Object();window.pyco.frames = [];");
+}
 
+void trace_flush()
+{
+    written_bytes += trace_string.size();
+    trace << trace_string << endl;
+    trace_string.clear();
+    /*trace.close();
+	trace.open(trace_output_path"/trace.js", ios_base::app);*/
+}
 
+void close_trace_file()
+{
+	trace_flush();
+    trace.close();
+}
+
+void maybe_reopen_trace_file()
+{
+    if (written_bytes / (1024*1024*100))
+    {
+        close_trace_file();
+        current_trace_file_id++;
+        open_trace_file();
+    }
+}
 
 
 
@@ -293,18 +324,6 @@ void escape_trace(string& data) {
 }
 
 #ifdef TRACE_PROOF
-void trace_flush()
-{
-    trace << trace_string;
-    trace_string.clear();
-    trace.close();
-	trace.open(trace_output_path"/trace.js", ios_base::app);
-}
-
-void trace_write_raw(string s)
-{
-    trace_string += s;
-}
 
 void trace_write(string s)
 {
@@ -337,8 +356,9 @@ void dump()
 {
     trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
         dump_state(0, *query_state);
-    trace_write_raw("</ul><br><br><br><br><br><br><br>\");\n");
+    trace_write_raw("</ul><br><br><br><br><br><br><br>\");");
     trace_flush();
+    maybe_reopen_trace_file();
     //print_euler_steps();
 }
 #endif
@@ -547,7 +567,7 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
 {
     #ifdef TRACE_EP_CHECKS
         current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
-        " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1])
+        " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1]);
         cerr << current_ep_comment << endl;
     #endif
     int results[2];
@@ -652,8 +672,7 @@ int main (int argc, char *argv[])
 	free_space = block;
 	initialize_consts();
     #ifdef TRACE_PROOF
-	trace.open(trace_output_path"/trace.js");
-	trace_write_raw("window.pyco = Object();window.pyco.frames = [];\n");
+    open_trace_file();
 	#endif
     query_state = grab_states(1);
     query_state->entry = 0;
@@ -664,8 +683,7 @@ int main (int argc, char *argv[])
     release_states(1);
     print_euler_steps();
     #ifdef TRACE_PROOF
-    trace_flush();
-    trace.close();
+    close_trace_file();
     #endif
     free(block);
 }

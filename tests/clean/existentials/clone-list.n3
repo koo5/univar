@@ -1,0 +1,36 @@
+@prefix : <http://jmv.fr#>.
+
+kb
+
+# Clone a list; cloning proceeds from end of list to begining
+
+
+:l0 :first :v0 ;
+    :rest  :l1 .
+:l1 :first :v1 ;
+    :rest  :l2 .
+:l2 :first :v2 ;
+    :rest  :nil .
+
+{ # initial condition
+  ?L :first ?F .
+  ?L :rest  :nil .
+} => {
+  ?lc :first ?F .
+  ?lc :rest_clone :nil .
+  ?lc :clone_of ?L .
+} .
+
+{ # recursion
+  ?L :first ?F .
+  ?L :rest  ?R .
+  ?RC :clone_of ?R .
+} => {
+  ?lc :first ?F .
+  ?lc :rest_clone  ?RC .
+  ?lc :clone_of ?L .
+} .
+fin.
+query
+?a :clone_of ?b.
+fin.

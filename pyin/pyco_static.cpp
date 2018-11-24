@@ -47,6 +47,7 @@ void maybe_print_euler_steps()
 }
 
 
+#ifdef TRACE_PROOF
 
 string trace_string;
 ofstream trace;
@@ -90,7 +91,7 @@ void maybe_reopen_trace_file()
     }
 }
 
-
+#endif
 
 
 

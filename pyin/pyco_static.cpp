@@ -252,17 +252,27 @@ Thing *get_value(Thing *x)
 }
 
 void dump();
-
 typedef pair<Thing*,Thing*> thingthingpair;
-
 enum coro_status {INACTIVE, ACTIVE, EP, YIELD};
 struct cpppred_state;
+
+
+
+#ifdef CACHE
+typedef cache unordered_map<
+
+#endif
+
+
 struct cpppred_state
 {
     size_t entry;
     Thing *incoming[2];
     cpppred_state *states;
     Thing *locals;
+    #ifdef CACHE
+    size_t cumulative_euler_steps;
+    #endif
     #ifdef TRACE_PROOF
         size_t num_substates;
         coro_status status;
@@ -282,6 +292,9 @@ struct cpppred_state
         {
             comment = new string;
             status = INACTIVE;
+            #ifdef CACHE
+            cumulative_euler_steps = 0;
+            #endif
         }
         void destruct()
         {

@@ -1,15 +1,10 @@
 @keywords a .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+
 @prefix : <file://>.
-
-
 kb
-
-
-
 ?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
-
 
 
 {
@@ -25,18 +20,14 @@ kb
 } .
 
 
-#data declarations
-{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
-{?x a :newline} <= {}.
-
-
-
 {?x a :letter} <= { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
 {?x a :number} <= { "0123456789" string_builtins:is_split ?l. ?x :memberof ?l.}.
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 
 
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :newline} <= {}.
 
 {?x0 :statement (?rest ?ast)} <= {
 	?x0 :identifier (?rest ?name).
@@ -47,6 +38,9 @@ kb
 	?x0 rdf:first ?f. ?f a :letter.
 	?name rdf:first ?f. ?name rdf:rest ?rest_of_name.
 	?x0 rdf:rest ?r. ?r :rest_of_name (?rest ?rest_of_name).
+}.
+
+{?x0 :rest_of_name (?x0 rdf:nil)} <= {
 }.
 
 {?x0 :rest_of_name (?rest ?name)} <= {

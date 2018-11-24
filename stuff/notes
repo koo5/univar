@@ -123,6 +123,8 @@ valgrind --tool=callgrind  \
                --dump-after="main*" \
                                  ./cppout
 
+ --dump-instr=yes --dump-line=yes --simulate-cache=yes --collect-jumps=yes --collect-systime=yes  --collect-bus=yes  --branch-sim=yes --cache-sim=yes 
+
 
 
 

@@ -868,8 +868,11 @@ def load(kb, goal, identification, base):
 	kb_graph.parse(kb_stream, format='n3', publicID=base)
 	if not nolog:
 		log('---kb:')
-		for l in kb_graph.serialize(format='n3').splitlines():
-			log(l.decode('utf8'))
+		try:
+			for l in kb_graph.serialize(format='n3').splitlines():
+				log(l.decode('utf8'))
+		except Exception as e:
+			log(str(e))
 		log('---kb quads:')
 		for l in kb_conjunctive.serialize(format='nquads').splitlines():
 			log(l.decode('utf8'))
@@ -926,8 +929,11 @@ def load(kb, goal, identification, base):
 
 	if not nolog:
 		log('---goal:')
-		for l in goal_rdflib_graph.serialize(format='n3').splitlines():
-			log(l.decode('utf8'))
+		try:
+			for l in goal_rdflib_graph.serialize(format='n3').splitlines():
+				log(l.decode('utf8'))
+		except Exception as e:
+			log(str(e))
 		log('---goal nq:')
 		for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
 			log(l.decode('utf8'))

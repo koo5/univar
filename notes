@@ -34,3 +34,9 @@ def reorder_lists(g):
 		r.append(t)
 	return r
 """
+
+
+
+
+
+env DBG="-Doneword " ./run.sh --limit 0 --silence addrules --silence readcurly --silence N3 --level 0  --cppout 1 --lambdas 0 kb runs/tests_clean_zzslow_clone_list_n3_but_no_existentials_0/kb_for_external_raw.n3  query runs/tests_clean_zzslow_clone_list_n3_but_no_existentials_0/query_for_external_raw.n3

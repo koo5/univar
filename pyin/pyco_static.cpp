@@ -26,6 +26,19 @@ string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
 
+
+string replaceAll(std::string str, const std::string& from, const std::string& to) {
+    if(from.empty())
+        return str;
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+    }
+    return str;
+}
+
+
 void print_ep_tables();
 
 void print_euler_steps()
@@ -387,7 +400,7 @@ string thing_to_string_nogetval(Thing* v)
     if (c.type == URI)
       return "<" + c.value + ">";
     else
-      return "\"" + c.value + "\"";
+      return "\"\"\"" + c.value + "\"\"\"";
   }
   else
     if (v->type() == UNBOUND)
@@ -493,6 +506,9 @@ size_t query_list(cpppred_state & __restrict__ state);
 
 
 vector<Thing*>* query_list_wrapper(Thing *x)
+/*
+this only returns pointers to things, which could be invalid by the time this returns...
+*/
 {
     cpppred_state *state = grab_states(1);
     state->entry = 0;
@@ -605,7 +621,9 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                 return false;
         }
     }
-    for (size_t term_arg_i = 0; term_arg_i < 2; term_arg_i++) /*for subject and object*/
+    #define SECOND_CHANCE
+    #ifdef SECOND_CHANCE
+    for (size_t term_arg_i = 0; term_arg_i < 2; term_arg_i++) //for subject and object
     {
         if (results[term_arg_i] == -1)
         {
@@ -614,10 +632,10 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
             vector<Thing*> *lists[2];
             lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
             lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
-            /*cerr << "lists[0]" << lists[0] << endl;
-            cerr << "lists[1]" << lists[1] << endl;
-            cerr << "lists[0]s" << lists[0]->size() << endl;
-            cerr << "lists[1]s" << lists[1]->size() << endl;*/
+            //cerr << "lists[0]" << lists[0] << endl;
+            //cerr << "lists[1]" << lists[1] << endl;
+            //cerr << "lists[0]s" << lists[0]->size() << endl;
+            //cerr << "lists[1]s" << lists[1]->size() << endl;
             if (lists[0]->size() == lists[1]->size())
             {
                 for (size_t list_item_i = 0; list_item_i < lists[0]->size(); list_item_i++)
@@ -627,12 +645,10 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                     case 1:
                         return false;
                     case -1:
-            /*cerr << "xlists[0][list_item_i]" << lists[0][list_item_i] << endl;
-            cerr << "xlists[1][list_item_i]" << lists[1][list_item_i] << endl;*/
-
+            //cerr << "xlists[0][list_item_i]" << lists[0][list_item_i] << endl;
+            //cerr << "xlists[1][list_item_i]" << lists[1][list_item_i] << endl;
                         if ((*lists[0])[list_item_i] == (*lists[1])[list_item_i])
                         {
-
                             #ifdef TRACE_EP_CHECKS
                                 cerr << "these are the same bnodes" << endl;
                             #endif
@@ -645,6 +661,7 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
             }
         }
     }
+    #endif
     #ifdef TRACE_EP_CHECKS
         cerr << "EP." << endl;
     #endif

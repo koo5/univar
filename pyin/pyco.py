@@ -285,7 +285,7 @@ int unify(cpppred_state & __restrict__ state)
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
-			return Statement('cout << '+cpp_string_literal('"'+str(arg)+'"'))
+			return Statement('cout << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
 		if type(arg) == rdflib.URIRef:
 			return Statement('cout << "<' + cpp_string_literal_noquote(arg) +'> "')
 		if type(arg) == rdflib.Variable:
@@ -294,7 +294,7 @@ int unify(cpppred_state & __restrict__ state)
 				If('v->type() == CONST',
 					If ('nodeids2consts[v->node_id()].type == URI',
 						Statement('cout <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
-						Statement('cout << "\\""<< nodeids2consts[v->node_id()].value << "\\" "')
+						Statement('cout << "\\"\\"\\""<< nodeids2consts[v->node_id()].value << "\\"\\"\\" "')
 					),
 					Statement('cout << "?' + str(arg) +' "'))
 				])
@@ -416,9 +416,12 @@ int unify(cpppred_state & __restrict__ state)
 		is_first_arg = True
 		for arg_i, arg in enumerate(r.head.args):
 			b.append(comment(arg))
-			b.append(s.unify(
-				('get_value' if not is_first_arg else '') + '(state.incoming['+str(arg_i)+'])',
-				'('+local_expr(arg, r, not_getval=is_first_arg)+')'))
+			ua1 = '(state.incoming['+str(arg_i)+'])'
+			ua2 = '('+local_expr(arg, r, not_getval=is_first_arg)+')'
+			if is_first_arg:
+				b.append(Statement('ASSERT('+ua1+'->type() != BOUND)'))
+				b.append(Statement('ASSERT('+ua2+'->type() != BOUND)'))
+			b.append(s.unify(('get_value' if not is_first_arg else '') + ua1, ua2))
 			b = nest(b)
 			is_first_arg = False
 		b.append(s.body_triples_block(r))
@@ -692,6 +695,7 @@ def create_builtins(emitter):
 					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
 					state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
 					state.states[0].entry = 0;
+					ASSERT(rdf_list->type() != BOUND);
 					state.states[0].incoming[0] = rdf_list;
 					state.states[0].incoming[1] = &state.locals[first];
 					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
@@ -699,6 +703,7 @@ def create_builtins(emitter):
 						//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
 						result_vec->push_back(get_value(&state.locals[first]));
 						state.states[1].entry = 0;
+						ASSERT(rdf_list->type() != BOUND);
 						state.states[1].incoming[0] = rdf_list;
 						state.states[1].incoming[1] = &state.locals[rest];
 						while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
@@ -731,6 +736,15 @@ def create_builtins(emitter):
 	state.states = grab_states(2);
 	state.locals = grab_things(2);
 	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
+	{
+		Thing *t = state.incoming[0];
+		ASSERT (t->type() != BOUND);
+		if (t->type() == UNBOUND)
+		{
+			cerr << "cant join this" << endl;
+			goto is_joined_end;
+		}
+	}
 	state.states[0].entry = 0;
 	state.states[0].incoming[0] = state.incoming[0];
 	state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
@@ -859,8 +873,42 @@ def create_builtins(emitter):
 
 
 
-
-
+	b = Builtin()
+	b.doc = """dummy output "y"."""
+	b.example = """
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+	:dummy tau_builtins:output "y" "xy"."""
+	def build_in(s):
+		return Lines([Line("""
+			{
+			{
+			Thing *input = state.incoming[1];
+			ThingType input_type = input->type();
+			if (input_type == CONST)
+			{
+				string input_string;
+				Constant c = nodeids2consts[input->node_id()];
+				input_string = c.value;
+				cerr << "OUTPUT : " << input_string << " [";
+				for (char x: input_string)
+					cerr << (int)x << ",";
+				cerr << "]" << endl;
+			}
+			else
+			{
+				#ifdef TRACE
+				cerr <<  "OUTPUT : " << thing_to_string_nogetval(input) << endl;
+				#endif
+			}
+			}
+			"""), s.do_yield(), Line("""
+			//end_tau_output:;
+			
+			}
+	""")])
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#output')
+	b.register(emitter)
 
 
 

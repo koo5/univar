@@ -453,6 +453,7 @@ class Rule(Kbdbgable):
 		singleton.original_head_triples = original_head[:]
 		singleton.locals_template = singleton.make_locals(singleton.original_head_triples, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
+		nolog or log(singleton.kbdbg_name + ":")
 		singleton.existentials = get_existentials_names(singleton.original_head_triples, singleton.body)
 		singleton.head_vars = get_head_vars( singleton.original_head_triples)
 

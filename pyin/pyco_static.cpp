@@ -429,7 +429,7 @@ string thing_to_string(Thing* thing)
 
 
 
-const size_t malloc_size = 1024ul*1024ul*48ul;
+const size_t malloc_size = 1024ul*1024ul*480ul;
 size_t block_size = malloc_size;
 char *block;
 char *free_space;

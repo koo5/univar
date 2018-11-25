@@ -96,101 +96,38 @@ kb
 fin.
 
 
-
-#0
-query
-("c" "e" """
-""") :statement_lines (rdf:nil ?x).
-fin.
-shouldbetrue
-
-#1
-query
-("c" "e" """
-""") :statement_lines (rdf:nil (?s0)). ?s0 :lhs ("c" "e").
-fin.
-shouldbetrue
-
-#2
-query
-"""ce
-""" string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil (?s0)). ?s0 :lhs ("c" "e").
-fin.
-shouldbetrue
-
-#3
-query
-"""ce
-""" string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil (?s0)). 
-:dummy tau_builtins:output "?s0".
-:dummy tau_builtins:output ?s0.
-?s0 :lhs ?s0lhs. 
-:dummy tau_builtins:output "?s0lhs".
-:dummy tau_builtins:output ?s0lhs.
-?s0lhs string_builtins:is_joined ?ce.
-fin.
-shouldbetrue
-
-
-#4
 query
 """
-sentence
-dthtd
-hdhtdhtd222
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
 
-
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
 """ string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil ?ast). 
-:dummy tau_builtins:output ?ast.
+?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?what :parses_to_dcg_with_rest (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
 fin.
 shouldbetrue
-
-#5
-query
-"""
-sentence
-noun_phrase
-verb_phrase
-verb_phrase
-
-determiner
-determiner
-""" string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil ?ast). 
-:dummy tau_builtins:output ?ast.
-fin.
-shouldbetrue
-
 
 query
 """
-sentence
-noun_phrase
-verb_phrase
-verb_phrase
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
 
-determiner
-determiner
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
 """ string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil (?nl0 ?s1 ?s2 ?s3 ?s4 ?nl5 ?s6 ?s7)). 
-?s1 :lhs ?s1lhs. ?s1lhs string_builtins:is_joined "sentence".
+?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
 fin.
 shouldbetrue
-
-
-
-query
-"7" a :letter.
-fin.
-shouldbe
-fin.
-
-
-query
-"f" a :letter. "a" a :letter.
-fin.
-shouldbetrue
-

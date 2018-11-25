@@ -701,7 +701,8 @@ def create_builtins(emitter):
 					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 					{
 						//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						result_vec->push_back(get_value(&state.locals[first]));
+						ASSERT(state.locals[first].type() == BOUND);
+						result_vec->push_back(state.locals[first].binding());
 						state.states[1].entry = 0;
 						ASSERT(rdf_list->type() != BOUND);
 						state.states[1].incoming[0] = rdf_list;

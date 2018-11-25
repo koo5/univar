@@ -643,7 +643,10 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                     switch(is_arg_productively_different((*lists[0])[list_item_i], (*lists[1])[list_item_i]))
                     {
                     case 1:
-                        return false;
+                        #ifdef TRACE_EP_CHECKS
+                            cerr << "args are productively different" << endl;
+                        #endif
+                        goto falsies;
                     case -1:
             //cerr << "xlists[0][list_item_i]" << lists[0][list_item_i] << endl;
             //cerr << "xlists[1][list_item_i]" << lists[1][list_item_i] << endl;
@@ -654,9 +657,25 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                             #endif
                         }
                         else if (is_bnode_productively_different(old, (*lists[1])[list_item_i]))
-                            return false;
+                        {
+                            #ifdef TRACE_EP_CHECKS
+                                cerr << "bnodes are productively different" << endl;
+                            #endif
+                            goto falsies;
+                        }
                     default:;
                     }
+                    goto not_different;
+                    falsies:;
+                    #ifdef TRACE
+                        cerr << "SECOND_CHANCE:" << thing_to_string_nogetval((*lists[0])[list_item_i]) <<
+                        "(" << &((*lists[0])[list_item_i]) << ")" <<
+                        ", " << thing_to_string_nogetval((*lists[1])[list_item_i]) <<
+                         "(" << &((*lists[1])[list_item_i]) << ")"
+                         << endl;
+                    #endif
+                    return false;
+                    not_different:;
                 }
             }
         }

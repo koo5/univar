@@ -38,10 +38,35 @@ kb
 {?x a :alphanum} <= {?x a :number}.
 
 
+{?x0 :parses_to_rhs (?rest ?rhs)} <= {
+	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+	?x0 :rhs_item (?after_rhs_item ?rhsf).
+	?after_rhs_item :maybe_more_rhs_items (?end ?rhsr).
+	?end rdf:first ".". ?end rdf:rest ?rest.
+}.
+
+{?x0 :maybe_more_rhs_items (?rest ?items)} <= {
+	
+}.
+
+{?x0 :rhs_item (?rest ?name)} <= {
+	?x0 :identifier (?rest ?name).
+}.
+
+{?x0 :rhs_item (?rest ?name)} <= {
+	?x0 :literal (?rest ?name).
+}.
+
+{?x0 :literal (?rest ?val)} <= {
+	?x0 rdf:first "[". ?x0 rdf:rest ?after_opening.
+	?after_opening :rest_of_name (?after_value ?val).
+	?after_value rdf:first "]". ?after_value rdf:rest ?rest.
 
 {?x0 :statement (?rest ?ast)} <= {
-	?x0 :identifier (?rest ?name).
-	?ast a :statement. ?ast :lhs ?name.
+	?x0 :identifier (?after_identifier ?name).
+	?after_identifier :arrow ?after_arrow.
+	?after_arrow :parses_to_rhs (?rest ?rhs).
+	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
 }.
 
 {?x0 :identifier (?rest ?name)} <= {
@@ -49,7 +74,6 @@ kb
 	?name rdf:first ?f. ?name rdf:rest ?rest_of_name.
 	?x0 rdf:rest ?r. ?r :rest_of_name (?rest ?rest_of_name).
 }.
-
 
 {?x0 :rest_of_name (?x0 rdf:nil)} <= {
 }.
@@ -102,6 +126,62 @@ sentence --> noun_phrase, verb_phrase.
 noun_phrase --> determiner, noun.
 verb_phrase --> verb, noun_phrase.
 verb_phrase --> verb, sentence.
+""" string_builtins:is_split ?l. 
+?l :parses_to_dcg_with_rest (rdf:nil ?tree).
+fin.
+shouldbetrue
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:is_split ?l. 
+?l :parses_to_dcg_with_rest (rdf:nil ?tree).
+fin.
+shouldbetrue
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:is_split ?l. 
+?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?what :parses_to_dcg_with_rest (rdf:nil ?tree).
+fin.
+shouldbetrue
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
 
 determiner --> [the].
 determiner --> [a].
@@ -113,6 +193,10 @@ verb --> [hates].
 ?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?what :parses_to_dcg_with_rest (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
 fin.
 shouldbetrue
+
+
+
+
 
 query
 """

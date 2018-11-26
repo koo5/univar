@@ -38,6 +38,10 @@ string replaceAll(std::string str, const std::string& from, const std::string& t
     return str;
 }
 
+string jsonize_string(string str)
+{
+    return replaceAll(str, "\n", "<br>");
+}
 
 void print_ep_tables();
 
@@ -364,7 +368,7 @@ void dump_state(int indent, const cpppred_state &state)
         return;
     trace_write_raw("<li>");
     if (state.comment)
-        trace_write(*state.comment);
+        trace_write(jsonize_string(*state.comment));
     trace_write_raw("</li>");
     indent += 2;
     trace_write_raw("<ul>");
@@ -373,9 +377,9 @@ void dump_state(int indent, const cpppred_state &state)
         dump_state(indent,*(state.states+i));
     }
     if (state.status == EP)
-        trace_write_raw("<li class=\"ep\">EP</li>" + current_ep_comment);
+        trace_write_raw("<li class=\\\"ep\\\">EP</li>" + jsonize_string(current_ep_comment));
     else if (state.status == YIELD)
-        trace_write_raw("<li class=\"yield\">yield.</li>");
+        trace_write_raw("<li class=\\\"yield\\\">yield.</li>");
     trace_write_raw("</ul>");
 }
 

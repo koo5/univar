@@ -344,7 +344,7 @@ verb --> [hates].
 ?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
 fin.
 shouldbetrue
-
+thatsall
 
 
 

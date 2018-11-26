@@ -53,7 +53,7 @@ kb
 	?after_item :maybe_more_rhs_items (?rest ?items_rest).
 }.
 
-{?x0 :maybe_more_rhs_items (?x0 ?items)} <= {
+{?x0 :maybe_more_rhs_items (?x0 rdf:nil)} <= {
 }.
 
 
@@ -292,60 +292,9 @@ fin.
 query
 """
 sentence --> noun_phrase, verb_phrase.
-noun_phrase --> determiner, noun.
-verb_phrase --> verb, noun_phrase.
-verb_phrase --> verb, sentence.
-
-determiner --> [the].
-determiner --> [a].
-noun --> [cat].
-noun --> [mouse].
-verb --> [scares].
-verb --> [hates].
 """ string_builtins:is_split ?l. 
 ?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree).
 fin.
-shouldbetrue
+#shouldnt infiloop
 
 
-
-
-query
-"""
-sentence --> noun_phrase, verb_phrase.
-noun_phrase --> determiner, noun.
-verb_phrase --> verb, noun_phrase.
-verb_phrase --> verb, sentence.
-
-determiner --> [the].
-determiner --> [a].
-noun --> [cat].
-noun --> [mouse].
-verb --> [scares].
-verb --> [hates].
-""" string_builtins:is_split ?l. 
-?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
-fin.
-shouldbetrue
-
-
-
-
-
-query
-"""
-sentence --> noun_phrase, verb_phrase.
-noun_phrase --> determiner, noun.
-verb_phrase --> verb, noun_phrase.
-verb_phrase --> verb, sentence.
-
-determiner --> [the].
-determiner --> [a].
-noun --> [cat].
-noun --> [mouse].
-verb --> [scares].
-verb --> [hates].
-""" string_builtins:is_split ?l. 
-?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
-fin.
-shouldbetrue

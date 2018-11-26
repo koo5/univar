@@ -294,7 +294,7 @@ int unify(cpppred_state & __restrict__ state)
 				If('v->type() == CONST',
 					If ('nodeids2consts[v->node_id()].type == URI',
 						Statement('cout <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
-						Statement('cout << "\\"\\"\\""<< nodeids2consts[v->node_id()].value << "\\"\\"\\" "')
+						Statement('cout << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "')
 					),
 					Statement('cout << "?' + str(arg) +' "'))
 				])
@@ -890,10 +890,10 @@ def create_builtins(emitter):
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				cerr << "OUTPUT : " << input_string << " [";
+				/*cerr << "OUTPUT : " << input_string << " [";
 				for (char x: input_string)
 					cerr << (int)x << ",";
-				cerr << "]" << endl;
+				cerr << "]" << endl;*/
 			}
 			else
 			{

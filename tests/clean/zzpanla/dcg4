@@ -28,6 +28,8 @@ kb
 
 #data declarations
 {?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+{?x a :literal.  ?x :value ?vALUE} <= {}.
 {?x a :newline} <= {}.
 
 
@@ -40,6 +42,7 @@ kb
 
 {?x0 :parses_to_rhs (?rest ?rhs)} <= {
 	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+
 	?x0 :rhs_item (?after_rhs_item ?rhsf).
 	?after_rhs_item :maybe_more_rhs_items (?end ?rhsr).
 	?end rdf:first ".". ?end rdf:rest ?rest.
@@ -53,16 +56,18 @@ kb
 	?after_item :maybe_more_rhs_items (?rest ?items_rest).
 }.
 
-{?x0 :maybe_more_rhs_items (?x0 ?items)} <= {
+{?x0 :maybe_more_rhs_items (?x0 rdf:nil)} <= {
 }.
 
 
-{?x0 :rhs_item (?rest ?name)} <= {
+{?x0 :rhs_item (?rest ?item)} <= {
+	?item a :identifier. ?item :name ?name.
 	?x0 :identifier (?rest ?name).
 }.
 
-{?x0 :rhs_item (?rest ?name)} <= {
-	?x0 :literal (?rest ?name).
+{?x0 :rhs_item (?rest ?item)} <= {
+	?item a :literal. ?item :value ?string.
+	?x0 :literal (?rest ?string).
 }.
 
 {?x0 :arrow ?rest} <= {
@@ -90,10 +95,11 @@ kb
 }.
 
 {?x0 :statement (?rest ?ast)} <= {
+	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
+
 	?x0 :identifier (?after_identifier ?name).
 	?after_identifier :arrow ?after_arrow.
 	?after_arrow :parses_to_rhs (?rest ?rhs).
-	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
 }.
 
 {?x0 :identifier (?rest ?name)} <= {
@@ -106,17 +112,17 @@ kb
 }.
 
 {?x0 :rest_of_name (?rest ?name)} <= {
-	?x0 rdf:first ?f. ?f a :alphanum. :dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
-	?name rdf:first ?f. ?name rdf:rest ?name_rest.
-	?x0 rdf:rest ?r. ?r :rest_of_name (?rest ?name_rest).
+	?x0 rdf:first ?f. ?name rdf:first ?f. 
+	?f a :alphanum. 
+	:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	?x0 rdf:rest ?r. ?name rdf:rest ?name_rest.
+	?r :rest_of_name (?rest ?name_rest).
 }.
 
 {?x0 :newline ?rest} <= {
-	?x0 rdf:first ?f.
-	:dummy tau_builtins:output "newline?:".
-	:dummy tau_builtins:output ?f.
-	?x0 rdf:first "\n". ?x0 rdf:rest ?rest.
-	:dummy tau_builtins:output "yes".
+	?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
+	?x0 rdf:first "\n". :dummy tau_builtins:output "yes".
+	?x0 rdf:rest ?rest.
 }.
 
 #statement_lines --> statement_line, statement_lines.
@@ -221,7 +227,7 @@ verb_phrase --> verb, sentence.
 ?l :statement_lines (rdf:nil ?tree).
 fin.
 shouldbetrue
-
+thatsall
 
 
 #9
@@ -242,7 +248,7 @@ verb --> [hates].
 ?l :statement_lines (rdf:nil ?tree).
 fin.
 shouldbetrue
-
+thatsall
 
 #10
 query
@@ -260,10 +266,10 @@ verb --> [scares].
 verb --> [hates].
 """ string_builtins:is_split ?l. 
 ?l :statement_lines (rdf:nil (?i0 ?i1 ?i2 ?i3 ?i4 ?i5 ?i6 ?i7 ?i8 ?i9 ?i10 ?i11)). 
-?i8 a :statement. ?i8 :rhs (("c" "a" "t")). 
+?i8 a :statement. ?i8 :rhs (?item). ?item :value ("c" "a" "t"). 
 fin.
 shouldbetrue
-
+thatsall
 
 #11
 query
@@ -281,7 +287,7 @@ verb --> [scares].
 verb --> [hates].
 """ string_builtins:is_split ?l. 
 ?l :statement_lines (rdf:nil (?i0 ?i1 ?i2 ?i3 ?i4 ?i5 ?i6 ?i7 ?i8 ?i9 ?i10 ?i11)). 
-?i8 a :statement. ?i8 :rhs (("d" "o" "g")). 
+?i8 a :statement. ?i8 :rhs (?item). ?item :value ("d" "o" "g"). 
 fin.
 shouldbe
 fin.
@@ -289,6 +295,17 @@ fin.
 
 
 #12
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+""" string_builtins:is_split ?l. 
+?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
+fin.
+shouldbetrue
+
+
+
+#13
 query
 """
 sentence --> noun_phrase, verb_phrase.
@@ -309,7 +326,7 @@ shouldbetrue
 
 
 
-
+#14
 query
 """
 sentence --> noun_phrase, verb_phrase.

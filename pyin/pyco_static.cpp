@@ -118,6 +118,9 @@ void maybe_reopen_trace_file()
 
 typedef unsigned long nodeid;
 
+
+vector<nodeid> consts_stack;
+
 enum ConstantType {URI, STRING};
 
 struct Constant
@@ -757,24 +760,29 @@ int unify(cpppred_state & __restrict__ state);
 nodeid push_const(Constant c)
 {
     auto it = consts2nodeids_and_refcounts.begin();
+    nodeid id;
 	if ((it = consts2nodeids_and_refcounts.find(c)) != consts2nodeids_and_refcounts.end())
 	{
-	    nodeid id = it->second.first;
+	    id = it->second.first;
 	    size_t refcount = it->second.second;
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount+1};
-		return id;
     }
-    nodeid id = consts2nodeids_and_refcounts.size();
-    consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id,1};
-    nodeids2consts.push_back(c);
+    else
+    {
+        id = consts2nodeids_and_refcounts.size();
+        consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id,1};
+        nodeids2consts.push_back(c);
+    }
+    consts_stack.push_back(id);
     return id;
 }
 
 void pop_const()
 {
-    Constant c = nodeids2consts.back();
+    nodeid id = consts_stack.back();
+    consts_stack.pop_back();
+    Constant c = nodeids2consts[id];
     auto it = consts2nodeids_and_refcounts[c];
-    nodeid id = it.first;
     size_t refcount = it.second - 1;
     if(refcount)
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount};

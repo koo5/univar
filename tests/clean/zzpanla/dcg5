@@ -171,6 +171,25 @@ kb
 
 
 
+#####
+{(?input ?grammar ?rhs_text) :parse ?ast} <= {
+	?rhs_text string_builtins:is_split ?rhs_text_list.
+	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
+	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
+}.
+{?input :parsed_with_rhs (?rest ?rhs ?ast)} <= {
+	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+	?input :parsed_with_rhs_item (?rest ?rhsf ?ast
+}.
+{(?input ?grammar ?start) :parse ?ast} <= {
+	?rhs_text string_builtins:is_split ?rhs_text_list.
+	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
+	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
+}.
+#####
+
+
+
 
 fin.
 
@@ -188,9 +207,9 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" :eq ?input. ?input string_builtins:is_split ?l. 
+""" :eq ?input. ?input string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). 
-?what string_builtins:is_joined ?input .
+?input string_builtins:strXlst ?what.
 fin.
 shouldbetrue
 thatsall
@@ -210,9 +229,9 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. ?l :statement_lines (rdf:nil ?tree). 
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
 ?tree :concrete_to_abstract ?ast. ?new_concrete :concrete_to_abstract ?ast. 
-?what :statement_lines (rdf:nil ?new_concrete). ?what string_builtins:is_joined ?output .
+?what :statement_lines (rdf:nil ?new_concrete). ?output string_builtins:strXlst ?what .
 fin.
 shouldbetrue
 

@@ -336,7 +336,7 @@ int unify(cpppred_state & __restrict__ state)
 				[
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
-					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(s) for rule in rules]),
+					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]),
 					Statement('return 0')
 				]
 			)
@@ -650,8 +650,13 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 
 
 
-
-
+def is_pred_used(pred):
+	for _, rules in list(preds.items()) + [(None,[query_rule])]:
+		for rule in rules:
+			if type(rule) != Builtin:
+				for i in rule.body:
+					if i.pred == pred:
+						return True
 
 
 
@@ -661,78 +666,7 @@ def create_builtins(emitter):
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_joined "xy"."""
-	def build_in(s):
-		if not(rdflib.RDF.first in preds and rdflib.RDF.rest in preds):
-			s.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
-				{
-					(void)state;
-					return 0;
-				}
-		"""))
-		else:
-			s.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
-				{
-					Thing *&rdf_list = state.incoming[0];
-					ASSERT(rdf_list->type() != BOUND);
-					Thing *&result_thing = state.incoming[1];
-					vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
-					const size_t first = 0;
-					const size_t rest = 1; 
-					goto *(((char*)&&case0) + state.entry);
-					case0:
-					#ifdef TRACE_PROOF
-						state.num_substates = 0;
-						state.status = ACTIVE;
-					#endif
-					//cerr << "i" << state.incoming[1] << endl;
-					ASSERT(result_vec);
-					//cerr << (result_vec) << ", " << result_vec->size() << endl;
-					//ASSERT(result_vec->empty());
-					state.states = grab_states(3);
-					state.locals = grab_things(2);
-					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
-					state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
-					state.states[0].entry = 0;
-					ASSERT(rdf_list->type() != BOUND);
-					state.states[0].incoming[0] = rdf_list;
-					state.states[0].incoming[1] = &state.locals[first];
-					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
-					{
-						//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						ASSERT(state.locals[first].type() == BOUND);
-						result_vec->push_back(state.locals[first].binding());
-						state.states[1].entry = 0;
-						ASSERT(rdf_list->type() != BOUND);
-						state.states[1].incoming[0] = rdf_list;
-						state.states[1].incoming[1] = &state.locals[rest];
-						while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
-						{
-							if (get_value(&state.locals[rest])->type() == CONST and 
-								get_value(&state.locals[rest])->node_id() == consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first)
-							{
-								yield(case1);
-								case1:;
-							}
-							else
-							{
-								state.states[2].entry = 0;
-								state.states[2].incoming[0] = get_value(&state.locals[rest]);
-								state.states[2].incoming[1] = result_thing;
-								while(query_list(state.states[2]))
-								{
-									yield(case2);
-									case2:;
-								}
-							}
-						}
-					}
-					release_things(2);
-					release_states(3);
-					END;
-				}
-		"""))
+	def build_in(builtin):
 		return Lines([Line("""
 	state.states = grab_states(2);
 	state.locals = grab_things(2);
@@ -775,7 +709,7 @@ def create_builtins(emitter):
 		state.states[1].incoming[1] = &state.locals[1];
 		while (unify(state.states[1]))
 		{
-			"""), s.do_yield(), Line("""
+			"""), emitter.do_yield(), Line("""
 		}
 		pop_const();
 		delete *((vector<Thing*>**)(&state.locals[0]));
@@ -797,18 +731,8 @@ def create_builtins(emitter):
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	("x" "y") string_builtins:is_split "xy"."""
-	def build_in(s):
-		ok = False
-		for pred, rules in preds.items():
-			for rule in rules:
-				if type(rule) != Builtin:
-					for i in rule.body:
-						if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
-							ok = True
-		for i in query_rule.body:
-			if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split'):
-				ok = True
-		if not ok:
+	def build_in(builtin):
+		if not is_pred_used(builtin.pred):
 			return Lines()
 		return Lines([Line("""
 			{
@@ -853,7 +777,7 @@ def create_builtins(emitter):
 		state.states[0].incoming[1] = &state.locals[1];
 		while (unify(state.states[0]))
 		{
-			"""), s.do_yield(), Line("""
+			"""), emitter.do_yield(), Line("""
 		}
 		for (size_t i = 0; i < (locals_size-2)/2; i++)
 			pop_const();
@@ -871,50 +795,13 @@ def create_builtins(emitter):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	b = Builtin()
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	"xy" string_builtins:strXlst ("x" "y") ."""
-	def build_in(s):
+	def build_in(builtin):
 		if not(rdflib.RDF.first in preds and rdflib.RDF.rest in preds):
-			s.prologue.append(Line("""
+			emitter.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
 					(void)state;
@@ -922,7 +809,7 @@ def create_builtins(emitter):
 				}
 		"""))
 		else:
-			s.prologue.append(Line("""
+			emitter.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{
 					Thing *&rdf_list = state.incoming[0];
@@ -984,33 +871,27 @@ def create_builtins(emitter):
 					END;
 				}
 			"""))
-			ok = False
-			for pred, rules in preds.items():
-				for rule in rules:
-					if type(rule) != Builtin:
-						for i in rule.body:
-							if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#strXlst'):
-								ok = True
-			for i in query_rule.body:
-				if i.pred == rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#strXlst'):
-					ok = True
-			if not ok:
+			if not is_pred_used(builtin.pred):
 				return Lines()
 			return Lines([Line("""
 			{
 				#ifdef TRACE_PROOF
-					state.set_comment(thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1])); 
+				{
+					string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
+					cerr << comment;
+					state.set_comment(comment); 
 					state.num_substates = 0;
 					state.set_active(true);
+				}
 				#endif
 				#define str state.incoming[0]
 				ASSERT (str->type() != BOUND);
-				#define lst = state.incoming[1];
+				#define lst state.incoming[1]
 				ASSERT (lst->type() != BOUND);
 				if(str->type() == CONST)
 				{
 					{
-						if ((output_type != BNODE) && (output_type != UNBOUND))
+						if ((lst->type() != BNODE) && (lst->type() != UNBOUND))
 							goto end_str2list;
 						Constant input_const = nodeids2consts[str->node_id()];
 						string input_string = input_const.value;
@@ -1037,7 +918,7 @@ def create_builtins(emitter):
 					state.states[0].incoming[1] = &state.locals[1];
 					while (unify(state.states[0]))
 					{
-						"""), s.do_yield(), Line("""
+						"""), emitter.do_yield(), Line("""
 					}
 					for (size_t i = 0; i < (locals_size-2)/2; i++)
 						pop_const();
@@ -1075,7 +956,7 @@ def create_builtins(emitter):
 						state.states[1].incoming[1] = &state.locals[1];
 						while (unify(state.states[1]))
 						{
-							"""), s.do_yield(), Line("""
+							"""), emitter.do_yield(), Line("""
 						}
 						pop_const();
 						delete *((vector<Thing*>**)(&state.locals[0]));
@@ -1093,9 +974,9 @@ def create_builtins(emitter):
 				#endif
 			}
 			""")])
-			b.build_in = build_in
-			b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#strXlst')
-			b.register(emitter)
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#strXlst')
+	b.register(emitter)
 
 
 	b = Builtin()
@@ -1103,7 +984,7 @@ def create_builtins(emitter):
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
 	:dummy tau_builtins:output "y" "xy"."""
-	def build_in(s):
+	def build_in(builtin):
 		return Lines([Line("""
 			{
 			{
@@ -1126,7 +1007,7 @@ def create_builtins(emitter):
 				#endif
 			}
 			}
-			"""), s.do_yield(), Line("""
+			"""), emitter.do_yield(), Line("""
 			//end_tau_output:;
 			
 			}

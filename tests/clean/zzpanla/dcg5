@@ -194,6 +194,48 @@ kb
 fin.
 
 
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. 
+fin.
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" :eq ?input. ?input string_builtins:strXlst ?l. 
+?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). 
+?output string_builtins:strXlst ?what.
+fin.
+
+
+
+
+
 query
 """
 sentence --> noun_phrase, verb_phrase.
@@ -234,6 +276,29 @@ verb --> [hates].
 ?what :statement_lines (rdf:nil ?new_concrete). ?output string_builtins:strXlst ?what .
 fin.
 shouldbetrue
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+?tree :concrete_to_abstract ?ast. ?new_concrete :concrete_to_abstract ?ast. 
+?what :statement_lines (rdf:nil ?new_concrete). ?input string_builtins:strXlst ?what .
+fin.
+shouldbetrue
+
+
 
 query
 """

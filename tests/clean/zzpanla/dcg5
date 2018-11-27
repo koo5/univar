@@ -179,7 +179,7 @@ kb
 }.
 {?input :parsed_with_rhs (?rest ?rhs ?ast)} <= {
 	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
-	?input :parsed_with_rhs_item (?rest ?rhsf ?ast
+	?input :parsed_with_rhs_item (?rest ?rhsf ?ast).
 }.
 {(?input ?grammar ?start) :parse ?ast} <= {
 	?rhs_text string_builtins:is_split ?rhs_text_list.

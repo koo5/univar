@@ -56,7 +56,7 @@ void print_euler_steps()
 void maybe_print_euler_steps()
 {
     chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    //if (chrono::duration_cast<std::chrono::seconds>(now - last_ep_tables_printout).count())
+    if (chrono::duration_cast<std::chrono::seconds>(now - last_ep_tables_printout).count())
     {
         last_ep_tables_printout = now;
         print_euler_steps();

@@ -158,18 +158,49 @@ kb
 }.
 
 {?cst :concrete_to_abstract ?ast} <= {
-	?cst rdf:first ?cf. ?cf a :newline.
+	?cst rdf:first ?cf. 
+	?cf a :newline.
 	?cst rdf:rest ?cr. ?cr :concrete_to_abstract ?ast.
 }.
 
 {?cst :concrete_to_abstract ?ast} <= {
-	?cst rdf:first ?f. ?ast rdf:first ?f. 
-	?f a :statement.
+	?cst rdf:first ?cstf. ?ast rdf:first ?astf. 
+	?cstf a :statement. ?cstf :concrete_to_abstract_statement ?astf.
 	?cst rdf:rest ?cr. ?ast rdf:rest ?ar. 
 	?cr :concrete_to_abstract ?ar.
 }.
 
+{?c :concrete_to_abstract_statement ?a} <= {
+	?c :lhs ?clhs. ?a :lhs ?alhs.
+	?alhs string_builtins:strXlst ?clhs.
+	?c :rhs ?crhs. ?a :rhs ?arhs.
+	?crhs :concrete_to_abstract_rhs ?arhs.
+#	?crhs :eq ?arhs.
+}.
 
+{rdf:nil :concrete_to_abstract_rhs rdf:nil} <= {}.
+
+{?c :concrete_to_abstract_rhs ?a} <= {
+	?c rdf:first ?cf. ?a rdf:first ?af. 
+	?cf :concrete_to_abstract_rhs_item ?af.
+#	?cf :eq ?af.
+	?c rdf:rest ?cr. ?a rdf:rest ?ar. 
+	?cr :concrete_to_abstract_rhs ?ar.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :identifier. ?c :name ?cname.
+	?a a :identifier. ?a :name ?aname.
+	?aname string_builtins:strXlst ?cname.
+#	?cname :eq ?aname.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :literal. ?c :value ?cval.
+	?a a :literal. ?a :value ?aval.
+	?aval string_builtins:strXlst ?cval.
+#	?cval :eq ?aval.
+}.
 
 #####
 {(?input ?grammar ?rhs_text) :parse ?ast} <= {
@@ -257,6 +288,93 @@ shouldbetrue
 thatsall
 
 
+#3
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+fin.
+shouldbetrue
+
+
+
+#4
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+?tree :concrete_to_abstract ?ast.
+fin.
+shouldbetrue
+
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+?tree :concrete_to_abstract ?ast. ?new_concrete :concrete_to_abstract ?ast.
+fin.
+shouldbetrue
+
+
+
+
+query
+"""
+sentence --> noun_phrase, verb_phrase.
+noun_phrase --> determiner, noun.
+verb_phrase --> verb, noun_phrase.
+verb_phrase --> verb, sentence.
+
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+verb --> [scares].
+verb --> [hates].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+?tree :concrete_to_abstract ?ast. ?new_concrete :concrete_to_abstract ?ast. 
+?what :statement_lines (rdf:nil ?new_concrete).
+fin.
+shouldbetrue
+
+
 
 query
 """
@@ -292,7 +410,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
+""" :eq ?input. string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?tree). 
 ?tree :concrete_to_abstract ?ast. ?new_concrete :concrete_to_abstract ?ast. 
 ?what :statement_lines (rdf:nil ?new_concrete). ?input string_builtins:strXlst ?what .
 fin.
@@ -313,9 +431,9 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
 ?grammar_concrete :concrete_to_abstract ?grammar. 
-"the cat scares the cat" string_builtins:is_split ?input.
+"the cat scares the cat" string_builtins:strXlst ?input.
 (?input ?grammar "sentence") :parse ?sentence.
 
 fin.

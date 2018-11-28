@@ -875,13 +875,15 @@ def create_builtins(emitter):
 				return Lines()
 			return Lines([Line("""
 			{
-				#ifdef TRACE_PROOF
+				#ifdef TRACE
 				{
 					string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
 					cerr << comment;
-					state.set_comment(comment); 
-					state.num_substates = 0;
-					state.set_active(true);
+					#ifdef TRACE_PROOF
+						state.set_comment(comment); 
+						state.num_substates = 0;
+						state.set_active(true);
+					#endif
 				}
 				#endif
 				#define str state.incoming[0]

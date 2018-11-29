@@ -202,33 +202,11 @@ kb
 #	?cval :eq ?aval.
 }.
 
-#####
-{(?input ?grammar ?rhs_text) :parse ?ast} <= {
-	?rhs_text string_builtins:is_split ?rhs_text_list.
-	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
-	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
-}.
-{?input :parsed_with_rhs (?rest ?rhs ?ast)} <= {
-	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
-	?input :parsed_with_rhs_item (?rest ?rhsf ?ast).
-}.
-{(?input ?grammar ?start) :parse ?ast} <= {
-	?rhs_text string_builtins:is_split ?rhs_text_list.
-	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
-	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
-}.
-#####
-
-
 
 {(?x0 ?grammar ?nont) :parse_nonterminal ?ast} <= {
 	?grammar rdf:first ?gf. ?grammar rdf:rest ?gr.
 	?gf :lhs ?nont. ?gf :rhs ?gf_rhs. (?x0 ?grammar ?gf_rhs) :parse_rhs ?ast.
-}.
 
-{(?x0 ?grammar ?nont) :parse_nonterminal ?ast} <= {
-	?grammar rdf:first ?gf. ?grammar rdf:rest ?gr.
-	?gf :lhs ?nont. ?gf :rhs ?gf_rhs. (?x0 ?grammar ?gf_rhs) :parse_rhs ?ast.
 }.
 
 

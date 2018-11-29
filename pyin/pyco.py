@@ -192,8 +192,7 @@ class Emitter(object):
 		])
 		return (str(s.get_prologue()) + '\n' +
 			str(r) + '\n' +
-			str(s.ep_tables_printer()) +
-			'size_t bnode_origin_counter = '+str(s.bnode_origin_counter)+';')
+			str(s.ep_tables_printer()))
 
 	def unification(s):
 		result = Lines([Line(
@@ -808,6 +807,7 @@ def create_builtins(emitter):
 					return 0;
 				}
 		"""))
+			return Lines()
 		else:
 			emitter.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)

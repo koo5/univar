@@ -221,6 +221,17 @@ kb
 
 
 
+{(?x0 ?grammar ?nont) :parse_nonterminal ?ast} <= {
+	?grammar rdf:first ?gf. ?grammar rdf:rest ?gr.
+	?gf :lhs ?nont. ?gf :rhs ?gf_rhs. (?x0 ?grammar ?gf_rhs) :parse_rhs ?ast.
+}.
+
+{(?x0 ?grammar ?nont) :parse_nonterminal ?ast} <= {
+	?grammar rdf:first ?gf. ?grammar rdf:rest ?gr.
+	?gf :lhs ?nont. ?gf :rhs ?gf_rhs. (?x0 ?grammar ?gf_rhs) :parse_rhs ?ast.
+}.
+
+
 
 fin.
 

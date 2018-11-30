@@ -1,0 +1,20 @@
+:zero a :nat.
+{?x a :pie. ?x :has_topping ?y} <= {}.
+{?x :has_succ ?y. ?y a :nat} <= {?x a :nat}.
+
+{?x :times_two ?y} <= {
+	?predecessor :has_succ ?x.
+	?predecessor :times_two ?predecessor_times_two.
+	?predecessor_times_two :has_succ ?predecessor_times_two_plus_one.
+	?predecessor_times_two_plus_one :has_succ ?predecessor_times_two_plus_two.
+}.
+
+{?number :times_two :strawberry} <= {
+	?pie :has_topping ?number. 
+}.
+
+{:zero :times_two :zero} <= {}.
+
+:zero :has_succ ?one. ?one :has_succ ?two. ?two :times_two ?four.
+#lets say the result of :times_two is cached now.
+?pie a :pie. ?pie :has_topping ?two. ?two :times_two ?strawberry_two.

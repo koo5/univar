@@ -1,3 +1,4 @@
+kb
 :zero a :nat.
 {?x a :pie. ?x :has_topping ?y} <= {}.
 {?x :has_succ ?y. ?y a :nat} <= {?x a :nat}.
@@ -14,7 +15,9 @@
 }.
 
 {:zero :times_two :zero} <= {}.
-
+fin.
+query
 :zero :has_succ ?one. ?one :has_succ ?two. ?two :times_two ?four.
 #lets say the result of :times_two is cached now.
 ?pie a :pie. ?pie :has_topping ?two. ?two :times_two ?strawberry_two.
+fin.

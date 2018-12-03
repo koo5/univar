@@ -175,7 +175,6 @@ kb
 	?alhs string_builtins:strXlst ?clhs.
 	?c :rhs ?crhs. ?a :rhs ?arhs.
 	?crhs :concrete_to_abstract_rhs ?arhs.
-#	?crhs :eq ?arhs.
 }.
 
 {rdf:nil :concrete_to_abstract_rhs rdf:nil} <= {}.
@@ -183,7 +182,6 @@ kb
 {?c :concrete_to_abstract_rhs ?a} <= {
 	?c rdf:first ?cf. ?a rdf:first ?af. 
 	?cf :concrete_to_abstract_rhs_item ?af.
-#	?cf :eq ?af.
 	?c rdf:rest ?cr. ?a rdf:rest ?ar. 
 	?cr :concrete_to_abstract_rhs ?ar.
 }.
@@ -192,22 +190,48 @@ kb
 	?c a :identifier. ?c :name ?cname.
 	?a a :identifier. ?a :name ?aname.
 	?aname string_builtins:strXlst ?cname.
-#	?cname :eq ?aname.
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :literal. ?c :value ?cval.
-	?a a :literal. ?a :value ?aval.
-	?aval string_builtins:strXlst ?cval.
-#	?cval :eq ?aval.
+	?a a :literal. ?a :value ?cval.
+	#?aval string_builtins:strXlst ?cval.
 }.
 
 
 {(?x0 ?grammar ?nont) :parse_nonterminal ?ast} <= {
-	?grammar rdf:first ?gf. ?grammar rdf:rest ?gr.
-	?gf :lhs ?nont. ?gf :rhs ?gf_rhs. (?x0 ?grammar ?gf_rhs) :parse_rhs ?ast.
-
+	?rule :memberof ?grammar. 
+	?rule :lhs ?nont. ?rule :rhs ?rhs.
+	(?x0 ?grammar ?rhs) :parse_rhs ?ast.
+	
 }.
+
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.
+} <= {}.
+
+{(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast)} <= {
+	?ast a :node. ?ast :type ?rhs. ?ast :children ?ch.
+	(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch).
+}.
+
+{(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch)} <= {
+	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+	?ch rdf:first ?chf. ?ch rdf:rest ?chr.
+	(?x0 ?grammar ?rhsf) :parse_rhs_item (?after_item ?chf).
+	(?after_item ?grammar ?rhs) :parse_rhs_items (?rest ?chr).
+}.
+
+{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
+	?rhs_item a :literal. ?rhs_item :value ?dcgv. 
+	?ast a :literal. ?ast :value ?astv.
+	?x0 :literally_list (?rest ?dcgv). 
+}.
+
+{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
+	?rhs_item a :identifier. ?rhs_item :name ?name. 
+	(?x0 ?grammar ?name) :parse_rhs (?rest ?ast).
+}.
+
 
 
 
@@ -230,7 +254,7 @@ verb --> [hates].
 """ string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
 ?grammar_concrete :concrete_to_abstract ?grammar. 
 "the cat scares the cat" string_builtins:strXlst ?input.
-(?input ?grammar "sentence") :parse ?sentence.
+(?input ?grammar "sentence") :parse_rhs (?sentence rdf:nil).
 
 fin.
 shouldbetrue

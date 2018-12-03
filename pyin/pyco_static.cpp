@@ -681,10 +681,14 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
                          "(" << &((*lists[1])[list_item_i]) << ")"
                          << endl;
                     #endif
+                    delete lists[0];
+                    delete lists[1];
                     return false;
                     not_different:;
                 }
             }
+            delete lists[0];
+            delete lists[1];
         }
     }
     #endif

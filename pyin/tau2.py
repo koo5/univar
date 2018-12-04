@@ -23,10 +23,13 @@ class Mode(Enum):
 	query = 2
 	shouldbe = 3
 
+result_marker = ' RESULT :'
 query_number = 6666666
 identification = '?'
+results_limit = 50
 mode = Mode.none
 prefixes = []
+results = []
 buffer = []
 output = ''
 fn = '?'
@@ -36,7 +39,7 @@ fn = '?'
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
 def tau(command, files, only_id):
-	global mode, buffer, prefixes, output, fn, identification, query_number, base, already_failed_because_no_more_results
+	global mode, buffer, prefixes, output, fn, identification, query_number, base, already_failed_because_no_more_results, results
 	for fn in files:
 		echo(fn+':test:')
 		query_number = None
@@ -70,6 +73,7 @@ def tau(command, files, only_id):
 						success()
 					continue
 				elif l_stripped.startswith('--limit'):
+					print('-- limit is todo')
 					continue
 				elif l_stripped == 'shouldbetrue':
 					if only_id == None or only_id == query_number:
@@ -120,30 +124,17 @@ def tau(command, files, only_id):
 							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
 						])
 						print(cccc)
+						print('popen..')
 						popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
 						popen_output = ''
+						print('poll..')
 						while popen.poll() == None:
-							try:
-								outs, errs = popen.communicate(timeout=10)
-								popen_output += outs
-								print('xxx ' + outs)
-								sys.stdout.flush()
-							except subprocess.TimeoutExpired:
-								pass
+							process_output(popen.stdout.readline())
 						if not popen.stdout.closed:
-							outs, errs = popen.communicate(timeout=None)
-							popen_output += outs
-							print('yyy ' + outs)
-							sys.stdout.flush()
+							process_output(popen.stdout.readline())
 						if popen.returncode:
 							fail()
 							print_kwrite_link()
-						else:
-							for output_line in popen_output.splitlines():
-								#echo('ooo '+output_line)
-								result_marker = ' RESULT :'
-								if output_line.startswith(result_marker):
-									results.append(output_line[len(result_marker):])
 						continue
 					elif mode == Mode.shouldbe:
 						if only_id != None and only_id != query_number:
@@ -160,6 +151,15 @@ def tau(command, files, only_id):
 			echo('file not ended properly?')
 			fail()
 			exit()
+
+def process_output(output_line):
+	print(output_line)
+	if output_line.startswith(result_marker):
+		if len(results) > results_limit:
+			print("more than ", results_limit, " results, ignoring")
+		else:
+			results.append(output_line[len(result_marker):])
+
 
 def check_result(results, shouldbe_graph):
 	global already_failed_because_no_more_results

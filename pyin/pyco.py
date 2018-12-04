@@ -877,9 +877,9 @@ def create_builtins(emitter):
 			{
 				#ifdef TRACE
 				{
-					string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
-					cerr << comment;
 					#ifdef TRACE_PROOF
+						string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
+						//cerr << comment;				
 						state.set_comment(comment); 
 						state.num_substates = 0;
 						state.set_active(true);

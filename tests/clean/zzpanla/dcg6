@@ -195,7 +195,7 @@ kb
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :literal. ?c :value ?cval.
 	?a a :literal. ?a :value ?cval.
-	#?aval string_builtins:strXlst ?cval.
+#	?aval string_builtins:strXlst ?cval.
 }.
 
 
@@ -203,11 +203,9 @@ kb
 	?rule :memberof ?grammar. 
 	?rule :lhs ?nont. ?rule :rhs ?rhs.
 	(?x0 ?grammar ?rhs) :parse_rhs ?ast.
-	
 }.
 
-{?x a :node. ?x :type ?NONT. ?x :children ?CH.
-} <= {}.
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
 
 {(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast)} <= {
 	?ast a :node. ?ast :type ?rhs. ?ast :children ?ch.
@@ -234,7 +232,6 @@ kb
 
 
 
-
 fin.
 
 #0
@@ -254,7 +251,7 @@ verb --> [hates].
 """ string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
 ?grammar_concrete :concrete_to_abstract ?grammar. 
 "the cat scares the cat" string_builtins:strXlst ?input.
-(?input ?grammar "sentence") :parse_rhs (?sentence rdf:nil).
+#(?input ?grammar "sentence") :parse_rhs (?sentence rdf:nil).
 
 fin.
 shouldbetrue

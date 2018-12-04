@@ -202,29 +202,12 @@ kb
 #	?cval :eq ?aval.
 }.
 
-#####
-{(?input ?grammar ?rhs_text) :parse ?ast} <= {
-	?rhs_text string_builtins:is_split ?rhs_text_list.
-	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
-	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
-}.
-{?input :parsed_with_rhs (?rest ?rhs ?ast)} <= {
-	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
-	?input :parsed_with_rhs_item (?rest ?rhsf ?ast).
-}.
-{(?input ?grammar ?start) :parse ?ast} <= {
-	?rhs_text string_builtins:is_split ?rhs_text_list.
-	?rhs_text_list :parses_to_rhs (rdf:nil ?rhs).
-	?input :parsed_with_rhs (rdf:nil ?grammar ?rhs ?ast).
-}.
-#####
-
-
 
 
 fin.
 
 
+#0
 
 query
 """
@@ -243,7 +226,7 @@ verb --> [hates].
 fin.
 
 
-
+#1
 
 query
 """
@@ -265,7 +248,7 @@ fin.
 
 
 
-
+#2
 
 query
 """
@@ -417,24 +400,3 @@ fin.
 shouldbetrue
 
 
-#9
-query
-"""
-sentence --> noun_phrase, verb_phrase.
-noun_phrase --> determiner, noun.
-verb_phrase --> verb, noun_phrase.
-verb_phrase --> verb, sentence.
-
-determiner --> [the].
-determiner --> [a].
-noun --> [cat].
-noun --> [mouse].
-verb --> [scares].
-verb --> [hates].
-""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
-?grammar_concrete :concrete_to_abstract ?grammar. 
-"the cat scares the cat" string_builtins:strXlst ?input.
-(?input ?grammar "sentence") :parse ?sentence.
-
-fin.
-shouldbetrue

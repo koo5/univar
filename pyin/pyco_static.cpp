@@ -26,6 +26,7 @@ string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
 
+chrono::steady_clock::time_point query_start_time;
 
 string replaceAll(std::string str, const std::string& from, const std::string& to) {
     if(from.empty())
@@ -47,7 +48,10 @@ void print_ep_tables();
 
 void print_euler_steps()
 {
-    cerr << euler_steps << " euler_steps." << endl;
+    chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    auto duration = chrono::duration_cast<std::chrono::seconds>(now - query_start_time).count();
+    unsigned long long rate = duration ? (euler_steps / duration) : 0;
+    cerr << euler_steps << " euler_steps, " << rate << "/s." << endl;
     #ifdef TRACE_EP_TABLES
         print_ep_tables();
     #endif
@@ -725,16 +729,17 @@ void initialize_consts();
 
 int main (int argc, char *argv[])
 {
-	(void )argc;
-	(void )argv;
-	block = (char*)malloc(block_size);
-	if (block == 0)
-	    exit(1);
-	free_space = block;
-	initialize_consts();
+    (void )argc;
+    (void )argv;
+    block = (char*)malloc(block_size);
+    if (block == 0)
+        exit(1);
+    free_space = block;
+    initialize_consts();
     #ifdef TRACE_PROOF
     open_trace_file();
 	#endif
+    query_start_time = std::chrono::steady_clock::now();
     query_state = grab_states(1);
     query_state->entry = 0;
     while(query(*query_state)!=0)

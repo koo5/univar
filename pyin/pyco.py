@@ -997,16 +997,18 @@ def create_builtins(emitter):
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				/*cerr << "OUTPUT : " << input_string << " [";
+				cerr << "OUTPUT : " << input_string << " [";
 				for (char x: input_string)
 					cerr << (int)x << ",";
-				cerr << "]" << endl;*/
+				cerr << "]" << endl;
 			}
 			else
 			{
+				cerr << "OUTPUT : ?";
 				#ifdef TRACE
-				cerr <<  "OUTPUT : " << thing_to_string_nogetval(input) << endl;
+					cerr <<  " - " << thing_to_string_nogetval(input);
 				#endif
+				cerr << endl;
 			}
 			}
 			"""), emitter.do_yield(), Line("""
@@ -1054,7 +1056,7 @@ def create_builtins(emitter):
 	""")])
 	b.build_in = build_in
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#output')
-	b.register(emitter)
+	#b.register(emitter)
 
 
 

@@ -960,6 +960,8 @@ def create_builtins(emitter):
 				#ifdef TRACE_PROOF
 					state.set_active(false);
 				#endif
+				#undef str
+				#undef lst
 			}
 			""")])
 	b.build_in = build_in
@@ -978,28 +980,35 @@ def create_builtins(emitter):
 			{
 			Thing *input = state.incoming[1];
 			ThingType input_type = input->type();
+			stringstream output;
 			if (input_type == CONST)
 			{
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				cerr << "(" << (size_t*)free_space << ") OUTPUT : " << input_string << " [";
+				output << "(" << (size_t*)free_space << ") OUTPUT : " << input_string << " [";
 				for (char x: input_string)
-					cerr << (int)x << ",";
-				cerr << "]" << endl;
+					output << (int)x << ",";
+				output << "]";
 			}
 			else
 			{
-				cerr << "OUTPUT : ?";
+				output << "OUTPUT : ?";
 				#ifdef TRACE
-					cerr <<  " - " << thing_to_string_nogetval(input);
+					output <<  " - " << thing_to_string_nogetval(input);
 				#endif
-				cerr << endl;
 			}
+			cerr << output.str() << endl;
+			#ifdef TRACE_PROOF
+				state.set_comment(output.str()); 
+				state.num_substates = 0;
+				state.set_active(true);
+			#endif
 			}
 			"""), emitter.do_yield(), Line("""
-			//end_tau_output:;
-			
+			#ifdef TRACE_PROOF
+				state.set_active(false);
+			#endif
 			}
 	""")])
 	b.build_in = build_in

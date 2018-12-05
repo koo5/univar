@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <ctime>
 #include <chrono>
 

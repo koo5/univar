@@ -117,10 +117,21 @@ kb
 
 {?x0 :rest_of_name (?rest ?name)} <= {
 	?x0 rdf:first ?f. ?name rdf:first ?f. 
-	?f a :member_of_chars_allowed_in_literals. 
+	?f a :alphanum. 
 	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
 	?x0 rdf:rest ?r. ?name rdf:rest ?name_rest.
 	?r :rest_of_name (?rest ?name_rest).
+}.
+
+{?x0 :rest_of_literal (?x0 rdf:nil)} <= {
+}.
+
+{?x0 :rest_of_literal (?rest ?val)} <= {
+	?x0 rdf:first ?f. ?val rdf:first ?f. 
+	?f a :member_of_chars_allowed_in_literals. 
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	?x0 rdf:rest ?r. ?val rdf:rest ?val_rest.
+	?r :rest_of_literal (?rest ?val_rest).
 }.
 
 {?x0 :newline ?rest} <= {
@@ -303,6 +314,30 @@ verb --> [chases].
 (?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
 fin.
 shouldbetrue
+
+
+
+#2
+query
+"""
+sentence --> noun_phrase, space, verb_phrase.
+noun_phrase --> determiner, space, noun.
+verb_phrase --> verb, space, noun_phrase.
+verb_phrase --> verb, space, sentence.
+space --> [ ].
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+noun --> [dinosaur].
+verb --> [scares].
+verb --> [hates].
+verb --> [chases].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
+?grammar_concrete :concrete_to_abstract ?grammar. 
+(?generated_list ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
+?generated_string string_builtins:strXlst ?generated_list.
+fin.
 
 
 

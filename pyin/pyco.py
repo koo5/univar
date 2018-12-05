@@ -537,20 +537,6 @@ def local_expr(name, rule, not_getval = False):
 	elif name in rule.consts_map:
 		return '&'+consts_of_rule(rule.debug_id) + '[' + str(rule.consts_map[name])+']'
 
-def maybe_get_value(t, what):
-	"""
-	wrap what in get_value() if t != NONE
-	"""
-	r = ''
-	yes = (t != NODE)
-	if (yes):
-		r += "get_value("
-	r += what
-	if (yes):
-		r += ")"
-	return r
-
-
 def cppize_identifier(i: str) -> str:
 	return common.fix_up_identification(common.shorten(i))
 
@@ -997,7 +983,7 @@ def create_builtins(emitter):
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				cerr << "OUTPUT : " << input_string << " [";
+				cerr << "(" << (size_t*)free_space << ") OUTPUT : " << input_string << " [";
 				for (char x: input_string)
 					cerr << (int)x << ",";
 				cerr << "]" << endl;
@@ -1027,35 +1013,9 @@ def create_builtins(emitter):
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
 	"x" const_is_not_equal_to_const "y"."""
 	def build_in(builtin):
-		return Lines([Line("""
-			{
-			{
-			Thing *input = state.incoming[1];
-			ThingType input_type = input->type();
-			if (input_type == CONST)
-			{
-				string input_string;
-				Constant c = nodeids2consts[input->node_id()];
-				input_string = c.value;
-				/*cerr << "OUTPUT : " << input_string << " [";
-				for (char x: input_string)
-					cerr << (int)x << ",";
-				cerr << "]" << endl;*/
-			}
-			else
-			{
-				#ifdef TRACE
-				cerr <<  "OUTPUT : " << thing_to_string_nogetval(input) << endl;
-				#endif
-			}
-			}
-			"""), emitter.do_yield(), Line("""
-			//end_tau_output:;
-			
-			}
-	""")])
+		pass
 	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#output')
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#const_is_not_equal_to_const')
 	#b.register(emitter)
 
 

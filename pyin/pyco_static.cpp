@@ -21,7 +21,6 @@ using namespace std;
 #endif
 #define ASSERT assert
 
-extern size_t bnode_origin_counter;
 string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();

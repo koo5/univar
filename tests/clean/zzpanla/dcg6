@@ -122,8 +122,9 @@ kb
 }.
 
 {?x0 :newline ?rest} <= {
-	#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
-	#?x0 rdf:first "\n". :dummy tau_builtins:output "yes".
+		#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
+	?x0 rdf:first "\n". 
+		#:dummy tau_builtins:output "yes".
 	?x0 rdf:rest ?rest.
 }.
 
@@ -225,24 +226,24 @@ kb
 	(?after_item ?grammar ?rhsr) :parse_rhs_items (?rest ?chr).
 }.
 
-{(?x0 ?grammar rdf:nil) :parse_rhs_items (?x0 ?ch)} <= {
+{(?x0 ?grammar rdf:nil) :parse_rhs_items (?x0 rdf:nil)} <= {
+		:dummy tau_builtins:output "parse_rhs_items nil". 
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
 	?rhs_item a :literal. ?rhs_item :value ?dcgv. 
-
-	:dummy tau_builtins:output "parse_rhs_item:". 
-	?lit_str string_builtins:strXlst ?dcgv.
-	?dummy tau_builtins:output ?lit_str.
-
+		:dummy tau_builtins:output "parse_rhs_item(lit):". 
+	?astv string_builtins:strXlst ?dcgv. 
+		:dummy tau_builtins:output "parse_rhs_item(lit):".?dummy tau_builtins:output ?astv.
 	?ast a :literal. ?ast :value ?astv.
 	?x0 :literally_list (?rest ?dcgv). 
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
+		:dummy tau_builtins:output "parse_rhs_item(nont):".
 	?rhs_item a :identifier. ?rhs_item :name ?name. 
-	:dummy tau_builtins:output "parse_rhs_item:". :dummy tau_builtins:output ?name.
-	(?x0 ?grammar ?name) :parse_rhs (?rest ?ast).
+		:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
+	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast).
 }.
 
 
@@ -266,10 +267,14 @@ verb --> [scares].
 verb --> [hates].
 verb --> [chases].
 """ string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
-#?grammar_concrete :concrete_to_abstract ?grammar. 
-#"the cat scares the cat" string_builtins:strXlst ?input.
+?grammar_concrete :concrete_to_abstract ?grammar. 
+"the cat scares the cat" string_builtins:strXlst ?input.
 :dummy tau_builtins:output "parse..". 
-#(?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
-
+(?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
+#"the cat chases the dinosaur"
 fin.
 shouldbetrue
+
+
+
+

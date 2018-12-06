@@ -273,9 +273,9 @@ verb --> [chases].
 "thecatscaresthecat" string_builtins:strXlst ?input.
 :dummy tau_builtins:output "parse..". 
 (?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
-#"the cat chases the dinosaur"
 fin.
-shouldbetrue
+shouldbe
+fin.
 
 
 
@@ -302,7 +302,8 @@ verb --> [chases].
 :dummy tau_builtins:output "parse..". 
 (?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
 fin.
-shouldbetrue
+shouldbe
+fin.
 
 
 

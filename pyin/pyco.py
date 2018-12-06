@@ -465,7 +465,9 @@ int unify(cpppred_state & __restrict__ state)
 				b.append(Statement('state.set_status(ACTIVE)'))
 			if do_ep:
 				b.append(push_ep(r))
-				inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
+		if do_ep:
+			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
+
 		outer_block.append(s.euler_step())
 
 		return outer_block

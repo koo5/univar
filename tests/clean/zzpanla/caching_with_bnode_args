@@ -1,6 +1,6 @@
 kb
 :zero a :nat.
-{?x a :pie. ?x :has_topping ?y} <= {}.
+{?x a :pie. ?x :has_topping ?U} <= {}.
 {?x :has_succ ?y. ?y a :nat} <= {?x a :nat}.
 
 {?x :times_two ?y} <= {

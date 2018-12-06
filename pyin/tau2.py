@@ -251,10 +251,10 @@ def timestamp():
 	return '%10.2f ' % time.time()
 
 def success():
-	echo(timestamp()+identification+":test:...PASS")
+	echo(timestamp()+identification+":test:...ok")
 
 def fail():
-	echo(timestamp()+(identification if identification else fn)+":test:...FAIL")
+	echo(timestamp()+(identification if identification else fn)+":test:...FAIL:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(:(")
 
 def identify():
 	echo(timestamp()+identification+":test:")

@@ -554,13 +554,25 @@ bool is_bnode_productively_different(const cpppred_state &old, Thing *now)
     if (r)
     {
        #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now) << " was created before " << *old.comment << ", ok." << endl;
+            cerr << thing_to_string_nogetval(now) << " was created before " <<
+            #ifdef TRACE_PROOF
+                *old.comment
+            #else
+                &old
+            #endif
+            << ", ok." << endl;
        #endif
     }
     else
     {
         #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now) << " was created after " << *old.comment << endl;
+            cerr << thing_to_string_nogetval(now) << " was created after " <<
+            #ifdef TRACE_PROOF
+                *old.comment
+            #else
+                &old
+            #endif
+             << endl;
         #endif
     }
     return r;

@@ -398,12 +398,12 @@ int unify(cpppred_state & __restrict__ state)
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
 			if arg in r.existentials:
-				b.append(Line("if (*("+arg_expr+") == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
+				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
 				if other_arg in r.locals_map:
 					#print(r.locals_map, other_arg, arg)
 					diff = r.locals_map[other_arg]-r.locals_map[arg]
-					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', ('get_value' if diff else '') + '('+str(diff)+'+get_value('+arg_expr+'))'))
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', str(diff)+'+'+arg_expr))
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)

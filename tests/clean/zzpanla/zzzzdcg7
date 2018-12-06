@@ -214,25 +214,23 @@ kb
 
 
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast)} <= {
-		:dummy tau_builtins:output "parse_nonterminal:". 
-		:dummy tau_builtins:output ?nont. 
 	?rule :memberof ?grammar. 
-		:dummy tau_builtins:output "rule...". 
+		#:dummy tau_builtins:output "rule...". 
 	?rule :lhs ?nont. ?rule :rhs ?rhs.
-		:dummy tau_builtins:output "lhs matches". 
+		#:dummy tau_builtins:output "lhs matches". 
 	(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast).
 }.
 
 {?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
 
 {(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast)} <= {
-		:dummy tau_builtins:output "parse_rhs". 
+		#:dummy tau_builtins:output "parse_rhs". 
 	?ast a :node. ?ast :type ?rhs. ?ast :children ?ch.
 	(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch).
 }.
 
 {(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch)} <= {
-		:dummy tau_builtins:output "parse_rhs_items". 
+		#:dummy tau_builtins:output "parse_rhs_items". 
 	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
 	?ch rdf:first ?chf. ?ch rdf:rest ?chr.
 	(?x0 ?grammar ?rhsf) :parse_rhs_item (?after_item ?chf).
@@ -240,22 +238,24 @@ kb
 }.
 
 {(?x0 ?grammar rdf:nil) :parse_rhs_items (?x0 rdf:nil)} <= {
-		:dummy tau_builtins:output "parse_rhs_items nil". 
+		#:dummy tau_builtins:output "parse_rhs_items nil". 
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
 	?rhs_item a :literal. ?rhs_item :value ?dcgv. 
-		:dummy tau_builtins:output "parse_rhs_item(lit):". 
+		#:dummy tau_builtins:output "parse_rhs_item(lit):". 
 	?astv string_builtins:strXlst ?dcgv. 
-		:dummy tau_builtins:output "parse_rhs_item(lit):".?dummy tau_builtins:output ?astv.
+		#:dummy tau_builtins:output "parse_rhs_item(lit):".?dummy tau_builtins:output ?astv.
 	?ast a :literal. ?ast :value ?astv.
 	?x0 :literally_list (?rest ?dcgv). 
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast)} <= {
-		:dummy tau_builtins:output "parse_rhs_item(nont):".
+		#:dummy tau_builtins:output "parse_rhs_item(nont):".
 	?rhs_item a :identifier. ?rhs_item :name ?name. 
-		:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
+		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
+		#:dummy tau_builtins:output "parse_nonterminal:". 
+		:dummy tau_builtins:output ?name. 
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast).
 }.
 

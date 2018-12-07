@@ -363,6 +363,8 @@ int unify(cpppred_state & __restrict__ state)
 			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
 			b.append(Statement('state.set_active(true)'))
 		if r.head:
+			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))
+			b.append(Statement('ASSERT(state.incoming[1]->type() != BOUND)'))
 			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
@@ -403,7 +405,7 @@ int unify(cpppred_state & __restrict__ state)
 				if other_arg in r.locals_map:
 					#print(r.locals_map, other_arg, arg)
 					diff = r.locals_map[other_arg]-r.locals_map[arg]
-					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', str(diff)+'+'+arg_expr))
+					b.append(s.unify('state.incoming['+str(other_arg_idx)+']',  ('get_value' if diff else '') + '('+str(diff)+'+'+arg_expr+')'))
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)
@@ -551,7 +553,9 @@ def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".emplace_back({&state, {query_list_wrapper(state.incoming[0]), query_list_wrapper(state.incoming[1])})")
+	return Statement('ep'+str(rule.debug_id)+
+					 ".emplace_back(ep_frame{&state, {query_list_wrapper(get_value(state.incoming[0])), query_list_wrapper(get_value(state.incoming[1]))}})"
+		)
 
 
 def nest(block):
@@ -802,6 +806,8 @@ def create_builtins(emitter):
 				{
 					Thing *&rdf_list = state.incoming[0];
 					ASSERT(rdf_list->type() != BOUND);
+					if (!(*rdf_list == Thing{BNODE, r0bnbuiltins_aware_list IF_TRACE("whatever")}))
+						return 0;
 					Thing *&result_thing = state.incoming[1];
 					vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
 					const size_t first = 0;

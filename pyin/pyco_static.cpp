@@ -332,7 +332,7 @@ string thing_to_string_nogetval(Thing* v);
 struct ep_frame
 {
     cpppred_state* state;
-    *vector<Thing*>[2] lists;
+    vector<Thing*> *lists[2];
 };
 typedef vector<ep_frame> ep_table;
 
@@ -342,13 +342,13 @@ typedef vector<ep_frame> ep_table;
 
 void print_ep_frame_arg(ep_frame &f, size_t i)
 {
-    cerr << thing_to_string_nogetval(f->state.incoming[i]);
-    if (t->lists[0]->size())
+    cerr << thing_to_string_nogetval(f.state->incoming[i]);
+    if (f.lists[0]->size())
     {
         cerr << " ( ";
-        for (Thing *thing : (*t->lists[0]))
+        for (Thing *thing : (*f.lists[0]))
         {
-            cerr << thing_to_string_nogetval(t) << " ";
+            cerr << thing_to_string_nogetval(thing) << " ";
         }
         cerr << ")";
     }
@@ -679,7 +679,7 @@ bool detect_ep(ep_frame &f, cpppred_state &now)
             if (now.incoming[term_arg_i] == old.incoming[term_arg_i])
                 continue;
             vector<Thing*> *lists[2];
-            lists[0] = f->lists[term_arg_i];
+            lists[0] = f.lists[term_arg_i];
             lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
             //cerr << "lists[0]" << lists[0] << endl;
             //cerr << "lists[1]" << lists[1] << endl;
@@ -744,9 +744,9 @@ bool detect_ep(ep_frame &f, cpppred_state &now)
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
-    for (const ep_frame &f: *table)
+    for (ep_frame &f: *table)
     {
-        if (detect_ep(*f, now))
+        if (detect_ep(f, now))
             return true;
     }
     return false;

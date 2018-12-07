@@ -329,14 +329,39 @@ struct cpppred_state
 
 string thing_to_string_nogetval(Thing* v);
 
-typedef vector<cpppred_state*> ep_table;
+struct ep_frame
+{
+    cpppred_state* state;
+    *vector<Thing*>[2] lists;
+};
+typedef vector<ep_frame> ep_table;
+
 
 #ifdef TRACE_EP_TABLES
+
+
+void print_ep_frame_arg(ep_frame &f, size_t i)
+{
+    cerr << thing_to_string_nogetval(f->state.incoming[i]);
+    if (t->lists[0]->size())
+    {
+        cerr << " ( ";
+        for (Thing *thing : (*t->lists[0]))
+        {
+            cerr << thing_to_string_nogetval(t) << " ";
+        }
+        cerr << ")";
+    }
+}
+
 void print_ep_table(ep_table &t)
 {
     for (auto i: t)
     {
-        cerr << thing_to_string_nogetval(i->incoming[0]) << "   " << thing_to_string_nogetval(i->incoming[1]) << endl;
+        print_ep_frame_arg(i, 0);
+        cerr << "   ";
+        print_ep_frame_arg(i, 1);
+        cerr << endl;
     }
     cerr << endl;
 }
@@ -616,8 +641,9 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return true;
 }
 
-bool detect_ep(const cpppred_state &old, cpppred_state &now)
+bool detect_ep(ep_frame &f, cpppred_state &now)
 {
+    cpppred_state &old = *f.state;
     #ifdef TRACE_EP_CHECKS
         current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
         " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1]);
@@ -653,7 +679,7 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
             if (now.incoming[term_arg_i] == old.incoming[term_arg_i])
                 continue;
             vector<Thing*> *lists[2];
-            lists[0] = query_list_wrapper(old.incoming[term_arg_i]);
+            lists[0] = f->lists[term_arg_i];
             lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
             //cerr << "lists[0]" << lists[0] << endl;
             //cerr << "lists[1]" << lists[1] << endl;
@@ -718,9 +744,9 @@ bool detect_ep(const cpppred_state &old, cpppred_state &now)
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
-    for (const cpppred_state *old: *table)
+    for (const ep_frame &f: *table)
     {
-        if (detect_ep(*old, now))
+        if (detect_ep(*f, now))
             return true;
     }
     return false;

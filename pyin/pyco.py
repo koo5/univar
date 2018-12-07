@@ -551,7 +551,7 @@ def consts_of_rule(rule_index):
 	return "consts_of_rule_" + str(rule_index)
 
 def push_ep(rule):
-	return Statement('ep'+str(rule.debug_id)+".push_back(&state)")
+	return Statement('ep'+str(rule.debug_id)+".emplace_back({&state, {query_list_wrapper(state.incoming[0]), query_list_wrapper(state.incoming[1])})")
 
 
 def nest(block):

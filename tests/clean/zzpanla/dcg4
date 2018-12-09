@@ -348,7 +348,7 @@ thatsall
 
 
 
-
+#15
 query
 """
 sentence --> noun_phrase, verb_phrase.
@@ -365,4 +365,4 @@ verb --> [hates].
 """ string_builtins:is_split ?l. 
 ?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
 fin.
-shouldbetrue
+

@@ -794,7 +794,7 @@ def create_builtins(emitter):
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	"xy" string_builtins:strXlst ("x" "y") ."""
 	def build_in(builtin):
-		if not(rdflib.RDF.first in preds and rdflib.RDF.rest in preds):
+		if not 'r0bnbuiltins_aware_list' in emitter.bnodes:
 			emitter.prologue.append(Line("""
 				size_t query_list(cpppred_state & __restrict__ state)
 				{

@@ -22,6 +22,19 @@ using namespace std;
 #endif
 #define ASSERT assert
 
+
+
+
+
+
+const size_t malloc_size = 1024ul*1024ul*480ul;
+size_t block_size = malloc_size;
+char *block;
+char *free_space;
+
+
+
+
 string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
@@ -270,8 +283,18 @@ struct Thing
 
 Thing *get_value(Thing *x)
 {
+    #ifdef DEBUG
+    size_t counter = 0;
+    #endif
     while (x->type() == BOUND)
-        x = get_value(x->binding());
+    {
+        #ifdef DEBUG
+            counter++;
+            if (!(counter % 10000))
+                cerr << "looks like a getvalue infiloop" << endl;
+        #endif
+        x = x->binding();
+    }
     return x;
 }
 
@@ -288,12 +311,23 @@ typedef cache unordered_map<
 #endif
 
 
+struct cpppred_state;
+
+struct EpFrame
+{
+    cpppred_state* state;
+    vector<Thing*> *lists[2];
+};
+typedef vector<EpFrame*> ep_table;
+
+
 struct cpppred_state
 {
     size_t entry;
     Thing *incoming[2];
     cpppred_state *states;
     Thing *locals;
+    EpFrame ep_frame;
     #ifdef CACHE
     size_t cumulative_euler_steps;
     #endif
@@ -329,24 +363,18 @@ struct cpppred_state
 
 string thing_to_string_nogetval(Thing* v);
 
-struct ep_frame
-{
-    cpppred_state* state;
-    vector<Thing*> *lists[2];
-};
-typedef vector<ep_frame> ep_table;
 
 
 #ifdef TRACE_EP_TABLES
 
 
-void print_ep_frame_arg(ep_frame &f, size_t i)
+void print_ep_frame_arg(EpFrame &f, size_t i)
 {
     cerr << thing_to_string_nogetval(f.state->incoming[i]);
-    if (f.lists[0]->size())
+    if (f.lists[i]->size())
     {
         cerr << " ( ";
-        for (Thing *thing : (*f.lists[0]))
+        for (Thing *thing : (*(f.lists[i])))
         {
             cerr << thing_to_string_nogetval(thing) << " ";
         }
@@ -358,9 +386,9 @@ void print_ep_table(ep_table &t)
 {
     for (auto i: t)
     {
-        print_ep_frame_arg(i, 0);
+        print_ep_frame_arg(*i, 0);
         cerr << "   ";
-        print_ep_frame_arg(i, 1);
+        print_ep_frame_arg(*i, 1);
         cerr << endl;
     }
     cerr << endl;
@@ -439,12 +467,16 @@ string thing_to_string_nogetval(Thing* v)
       return "\"\"\"" + c.value + "\"\"\"";
   }
   else
+  {
+    cerr << "("<< ((void*)v) << "/" << ((void*)(free_space - 1)) <<")" << endl;
+    cerr << v->_debug_name << endl;
     if (v->type() == UNBOUND)
         return "?"+*v->_debug_name;
     else if (v->type() == BNODE)
         return "["+*v->_debug_name+"]";
     else
         return "?"+*v->_debug_name+"->"+thing_to_string(v);
+  }
 }
 
 string thing_to_string(Thing* thing)
@@ -464,11 +496,6 @@ string thing_to_string(Thing* thing)
 
 
 
-
-const size_t malloc_size = 1024ul*1024ul*480ul;
-size_t block_size = malloc_size;
-char *block;
-char *free_space;
 
 
 void realloc()
@@ -641,7 +668,7 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return true;
 }
 
-bool detect_ep(ep_frame &f, cpppred_state &now)
+bool detect_ep(EpFrame &f, cpppred_state &now)
 {
     cpppred_state &old = *f.state;
     #ifdef TRACE_EP_CHECKS
@@ -723,13 +750,11 @@ bool detect_ep(ep_frame &f, cpppred_state &now)
                          "(" << &((*lists[1])[list_item_i]) << ")"
                          << endl;
                     #endif
-                    delete lists[0];
                     delete lists[1];
                     return false;
                     not_different:;
                 }
             }
-            delete lists[0];
             delete lists[1];
         }
     }
@@ -744,9 +769,9 @@ bool detect_ep(ep_frame &f, cpppred_state &now)
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
-    for (ep_frame &f: *table)
+    for (EpFrame *f: *table)
     {
-        if (detect_ep(f, now))
+        if (detect_ep(*f, now))
             return true;
     }
     return false;

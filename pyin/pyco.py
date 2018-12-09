@@ -997,10 +997,11 @@ def create_builtins(emitter):
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				output << "(" << (size_t*)free_space << ") OUTPUT : " << input_string << " [";
+				output << "(" << (size_t*)free_space << ") OUTPUT : " << input_string;
+				/*output << " [";
 				for (char x: input_string)
 					output << (int)x << ",";
-				output << "]";
+				output << "]";*/
 			}
 			else
 			{

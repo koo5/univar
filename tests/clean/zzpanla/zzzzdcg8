@@ -1,0 +1,308 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+
+@prefix : <file://>.
+
+
+kb
+
+
+?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
+
+
+{?X :eq ?X.} <= {}.
+
+:zero a :nat.
+{?x a :nat. ?y :has_succ ?x.} <= {?y a :nat}.
+
+
+{
+  ?LIST rdf:first ?FIRST .
+} => {
+  ?FIRST :memberof ?LIST .
+} .
+{
+  ?R1 rdf:rest ?R .
+  ?X :memberof ?R .
+} => { 
+  ?X :memberof ?R1 .
+} .
+
+
+#data declarations
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+{?x a :literal.  ?x :value ?vALUE} <= {}.
+{?x a :newline} <= {}.
+
+
+
+{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :number} <= { "0123456789" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :alphanum} <= {?x a :letter}.
+{?x a :alphanum} <= {?x a :number}.
+{?x a :member_of_chars_allowed_in_literals} <= {?x a :alphanum}.
+{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-={}'\\\"|,./" string_builtins:is_split ?l. ?x :memberof ?l.}.
+
+
+{?x0 :parses_to_rhs (?rest ?rhs)} <= {
+	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+
+	?x0 :rhs_item (?after_rhs_item ?rhsf).
+	?after_rhs_item :maybe_more_rhs_items (?end ?rhsr).
+	?end rdf:first ".". ?end rdf:rest ?rest.
+}.
+
+{?x0 :maybe_more_rhs_items (?rest ?items)} <= {
+	?items rdf:first ?item. ?items rdf:rest ?items_rest.
+	?x0 rdf:first ",". ?x0 rdf:rest ?after_comma.
+	?after_comma rdf:first " ". ?after_comma rdf:rest ?after_space.
+	?after_space :rhs_item (?after_item ?item).
+	?after_item :maybe_more_rhs_items (?rest ?items_rest).
+}.
+
+{?x0 :maybe_more_rhs_items (?x0 rdf:nil)} <= {
+}.
+
+
+{?x0 :rhs_item (?rest ?item)} <= {
+	?item a :identifier. ?item :name ?name.
+	?x0 :identifier (?rest ?name).
+}.
+
+{?x0 :rhs_item (?rest ?item)} <= {
+	?item a :literal. ?item :value ?string.
+	?x0 :literal (?rest ?string).
+}.
+
+{?x0 :arrow ?rest} <= {
+	?x0 :literally_string (?rest " --> ").
+}.
+
+{?x0 :literally_string (?rest ?value)} <= {
+	?value string_builtins:is_split ?l.
+	?x0 :literally_list (?rest ?l).
+}.
+
+{?x0 :literally_list (?rest ?value)} <= {
+	?x0 rdf:first ?f. ?value rdf:first ?f.
+	?x0 rdf:rest ?lr. ?value rdf:rest ?vr.
+	?lr :literally_list (?rest ?vr).
+}.
+
+{?x0 :literally_list (?x0 rdf:nil)} <= {
+}.
+
+{?x0 :literal (?rest ?val)} <= {
+	?x0 rdf:first "[". ?x0 rdf:rest ?after_opening.
+	?after_opening :rest_of_literal (?after_value ?val).
+	?after_value rdf:first "]". ?after_value rdf:rest ?rest.
+}.
+
+{?x0 :statement (?rest ?ast)} <= {
+	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
+
+	?x0 :identifier (?after_identifier ?name).
+	?after_identifier :arrow ?after_arrow.
+	?after_arrow :parses_to_rhs (?rest ?rhs).
+}.
+
+{?x0 :identifier (?rest ?name)} <= {
+	?x0 rdf:first ?f. ?f a :letter.
+	?name rdf:first ?f. ?name rdf:rest ?rest_of_name.
+	?x0 rdf:rest ?r. ?r :rest_of_name (?rest ?rest_of_name).
+}.
+
+{?x0 :rest_of_name (?x0 rdf:nil)} <= {
+}.
+
+{?x0 :rest_of_name (?rest ?name)} <= {
+	?x0 rdf:first ?f. ?name rdf:first ?f. 
+	?f a :alphanum. 
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	?x0 rdf:rest ?r. ?name rdf:rest ?name_rest.
+	?r :rest_of_name (?rest ?name_rest).
+}.
+
+{?x0 :rest_of_literal (?x0 rdf:nil)} <= {
+}.
+
+{?x0 :rest_of_literal (?rest ?val)} <= {
+	?x0 rdf:first ?f. ?val rdf:first ?f. 
+	?f a :member_of_chars_allowed_in_literals. 
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	?x0 rdf:rest ?r. ?val rdf:rest ?val_rest.
+	?r :rest_of_literal (?rest ?val_rest).
+}.
+
+{?x0 :newline ?rest} <= {
+		#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
+	?x0 rdf:first "\n". 
+		#:dummy tau_builtins:output "yes".
+	?x0 rdf:rest ?rest.
+}.
+
+#statement_lines --> statement_line, statement_lines.
+{?x0 :statement_lines (?rest ?items)} <= {
+	?items rdf:first ?item. ?items rdf:rest ?items_rest.
+	?x0 :statement_line (?after_line ?item).
+	?after_line :statement_lines (?rest ?items_rest).
+}.
+
+#statement_lines --> .
+{?x0 :statement_lines (?x0 rdf:nil)} <= {
+}.
+
+#statement_line --> newline.
+{?x0 :statement_line (?rest ?item)} <= {
+	?x0 :newline ?rest.
+	?item a :newline.
+}.
+
+#statement_line --> statement, newline.
+{?x0 :statement_line (?rest ?item)} <= {
+	?x0 :statement (?after_statement ?item).
+	?after_statement :newline ?rest.
+}.
+
+
+
+
+
+{rdf:nil :concrete_to_abstract rdf:nil} <= {
+}.
+
+{?cst :concrete_to_abstract ?ast} <= {
+	?cst rdf:first ?cf. 
+	?cf a :newline.
+	?cst rdf:rest ?cr. ?cr :concrete_to_abstract ?ast.
+}.
+
+{?cst :concrete_to_abstract ?ast} <= {
+	?cst rdf:first ?cstf. ?ast rdf:first ?astf. 
+	?cstf a :statement. ?cstf :concrete_to_abstract_statement ?astf.
+	?cst rdf:rest ?cr. ?ast rdf:rest ?ar. 
+	?cr :concrete_to_abstract ?ar.
+}.
+
+{?c :concrete_to_abstract_statement ?a} <= {
+	?c :lhs ?clhs. ?a :lhs ?alhs.
+	?alhs string_builtins:strXlst ?clhs.
+	?c :rhs ?crhs. ?a :rhs ?arhs.
+	?crhs :concrete_to_abstract_rhs ?arhs.
+}.
+
+{rdf:nil :concrete_to_abstract_rhs rdf:nil} <= {}.
+
+{?c :concrete_to_abstract_rhs ?a} <= {
+	?c rdf:first ?cf. ?a rdf:first ?af. 
+	?cf :concrete_to_abstract_rhs_item ?af.
+	?c rdf:rest ?cr. ?a rdf:rest ?ar. 
+	?cr :concrete_to_abstract_rhs ?ar.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :identifier. ?c :name ?cname.
+	?a a :identifier. ?a :name ?aname.
+	?aname string_builtins:strXlst ?cname.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :literal. ?c :value ?cval.
+	?a a :literal. ?a :value ?cval.
+	#?aval string_builtins:strXlst ?cval.
+}.
+
+
+{(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
+	?depth_predecessor :has_succ ?depth.
+	?rule :memberof ?grammar. 
+		#:dummy tau_builtins:output "rule...". 
+	?rule :lhs ?nont. ?rule :rhs ?rhs.
+		#:dummy tau_builtins:output "lhs matches". 
+	(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
+}.
+
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+{(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast ?depth)} <= {
+		#:dummy tau_builtins:output "parse_rhs". 
+	?ast a :node. ?ast :type ?rhs. ?ast :children ?ch.
+	(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch ?depth).
+}.
+
+{(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch ?depth)} <= {
+		#:dummy tau_builtins:output "parse_rhs_items". 
+	?rhs rdf:first ?rhsf. ?rhs rdf:rest ?rhsr.
+	?ch rdf:first ?chf. ?ch rdf:rest ?chr.
+	(?x0 ?grammar ?rhsf) :parse_rhs_item (?after_item ?chf ?depth).
+	(?after_item ?grammar ?rhsr) :parse_rhs_items (?rest ?chr ?depth).
+}.
+
+{(?x0 ?grammar rdf:nil) :parse_rhs_items (?x0 rdf:nil ?depth)} <= {
+		#:dummy tau_builtins:output "parse_rhs_items nil". 
+}.
+
+{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {
+	?rhs_item a :literal. ?rhs_item :value ?dcgv. 
+		#:dummy tau_builtins:output "parse_rhs_item(lit):". 
+	?astv string_builtins:strXlst ?dcgv. 
+		#:dummy tau_builtins:output "parse_rhs_item(lit):".?dummy tau_builtins:output ?astv.
+	?ast a :literal. ?ast :value ?astv.
+	?x0 :literally_list (?rest ?dcgv). 
+}.
+
+{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {
+		#:dummy tau_builtins:output "parse_rhs_item(nont):".
+	?rhs_item a :identifier. ?rhs_item :name ?name. 
+		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
+		#:dummy tau_builtins:output "parse_nonterminal:". 
+		#:dummy tau_builtins:output ?name. 
+	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
+}.
+
+
+
+fin.
+
+
+
+
+query
+#generation of text from grammar, with max depth
+"""
+sentence --> noun_phrase, space, verb_phrase.
+noun_phrase --> determiner, space, noun.
+verb_phrase --> verb, space, noun_phrase.
+verb_phrase --> verb, space, sentence.
+space --> [ ].
+determiner --> [the].
+determiner --> [a].
+noun --> [cat].
+noun --> [mouse].
+noun --> [dinosaur].
+verb --> [scares].
+verb --> [hates].
+verb --> [chases].
+""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
+?grammar_concrete :concrete_to_abstract ?grammar. 
+:zero :has_succ ?one. 
+?one :has_succ ?two.
+?two :has_succ ?three.
+?three :has_succ ?four.
+?four :has_succ ?five.
+?five :has_succ ?six.
+?six :has_succ ?seven.
+?seven :has_succ ?eight.
+?eight :has_succ ?nine.
+?nine :has_succ ?ten.
+(?generated_list ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ?ten).
+?generated_string string_builtins:strXlst ?generated_list.
+:dummy tau_builtins:output ?generated_string. 
+fin.
+
+
+
+

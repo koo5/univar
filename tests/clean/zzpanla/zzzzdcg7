@@ -255,7 +255,7 @@ kb
 	?rhs_item a :identifier. ?rhs_item :name ?name. 
 		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
 		#:dummy tau_builtins:output "parse_nonterminal:". 
-		:dummy tau_builtins:output ?name. 
+		#:dummy tau_builtins:output ?name. 
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast).
 }.
 

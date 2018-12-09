@@ -116,14 +116,15 @@ kb
 {?x0 :rest_of_name (?rest ?name)} <= {
 	?x0 rdf:first ?f. ?name rdf:first ?f. 
 	?f a :alphanum. 
-	:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
 	?x0 rdf:rest ?r. ?name rdf:rest ?name_rest.
 	?r :rest_of_name (?rest ?name_rest).
 }.
 
 {?x0 :newline ?rest} <= {
-	?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
-	?x0 rdf:first "\n". :dummy tau_builtins:output "yes".
+	#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
+	?x0 rdf:first "\n". 
+	#:dummy tau_builtins:output "yes".
 	?x0 rdf:rest ?rest.
 }.
 

@@ -7,11 +7,16 @@ we use pyin for the Rule class to hold data, and for various bits of shared code
 
 
 from cgen import *
-#Module and Collection are both just a bunch of lines, but more appropriate name for my use is...
-Lines = Collection
+Lines = Collection #both Module and Collection are just a bunch of lines
+
+def nest(block):
+	b = Block()
+	block.append(b)
+	return b
+
 
 import click
-import sys, os
+import sys
 import common
 import pyin
 from collections import defaultdict, OrderedDict
@@ -23,7 +28,6 @@ from ordered_rdflib_store import OrderedStore
 if sys.version_info.major == 3:
 	unicode = str
 
-trace= True
 
 def make_locals(rule):
 	locals_template = []
@@ -57,7 +61,7 @@ def max_number_of_existentials_in_single_original_head_triple(rule):
 
 
 class Emitter(object):
-	do_builtins = False
+
 	codes = OrderedDict()
 	bnode_origin_counter = 0
 	bnodes = {}
@@ -158,7 +162,6 @@ class Emitter(object):
 		return Line(s.case_str() + ":;")
 
 	def generate_cpp(s, goal, goal_graph, trace_output_path):
-
 		if trace:
 			s.prologue.append(Line('#define TRACE'))
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
@@ -442,7 +445,7 @@ int unify(cpppred_state & __restrict__ state)
 		do_ep = (r.head and r.has_body)
 		outer_block = b = Lines()
 		if do_ep:
-			"""we know incoming's have been get_valued before the pred func was called"""
+			#we know incoming's have been get_valued before the pred func was called
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
 			b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
@@ -507,35 +510,10 @@ int unify(cpppred_state & __restrict__ state)
 				]
 			)
 
-	def do_end(s):
-			return Lines(
-				[
-					Statement('state.entry = -1'),
-					Statement('return state.entry'),
-				]
-			)
-
 	def set_entry(s):
 		s._label += 1
 		r = Statement('state.entry = ((char*)&&case' + str(s._label) + ') - ((char*)&&case0)')
 		return r
-
-
-
-class Builtin(object):
-	last_debug_id = 0
-	def __init__(s):
-		s.debug_id = 'builtin'+str(Builtin.last_debug_id)
-		Builtin.last_debug_id += 1
-		s.consts = []
-		s.pred = None
-	def register(s, emitter):
-		if s.pred == None:
-			g = rdflib.Graph(store=OrderedStore())
-			#g.bind("string_builtins", "http://loworbit.now.im/rdf#")
-			g.parse(data=s.example, format='n3')
-			_,s.pred,_ = list(g.triples((None,None,None)))[0]
-		preds[s.pred].append(s)
 
 
 
@@ -560,12 +538,6 @@ def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+
 					 ".push_back(&state)"
 		)
-
-
-def nest(block):
-	b = Block()
-	block.append(b)
-	return b
 
 def cpp_string_literal(s):
 	return '"'+cpp_string_literal_noquote(s)+'"'
@@ -645,6 +617,24 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 
 
 
+
+class Builtin(object):
+	last_debug_id = 0
+	def __init__(s):
+		s.debug_id = 'builtin'+str(Builtin.last_debug_id)
+		Builtin.last_debug_id += 1
+		s.consts = []
+		s.pred = None
+	def register(s, emitter):
+		if s.pred == None:
+			#this didnt work for some reason, so its not used
+			g = rdflib.Graph(store=OrderedStore())
+			#g.bind("string_builtins", "http://loworbit.now.im/rdf#")
+			g.parse(data=s.example, format='n3')
+			_,s.pred,_ = list(g.triples((None,None,None)))[0]
+		preds[s.pred].append(s)
+
+
 def is_pred_used(pred):
 	for _, rules in list(preds.items()) + [(None,[query_rule])]:
 		for rule in rules:
@@ -652,7 +642,6 @@ def is_pred_used(pred):
 				for i in rule.body:
 					if i.pred == pred:
 						return True
-
 
 
 def create_builtins(emitter):
@@ -1048,65 +1037,3 @@ if __name__ == "__main__":
 	query_from_files()
 
 
-
-
-
-
-
-	# 	#ifdef TRACE_PROOF
-	# 		state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1]));
-	# 		state.num_substates = 0;
-	# 		state.set_active(true);
-	# 	#endif
-	# 	Thing *input = state.incoming[0];
-	# 	ThingType input_type = input->type();
-	# 	if (input_type != CONST)
-	# 		goto end_is_split0;
-	# 	Thing *output = state.incoming[1];
-	# 	ThingType output_type = output->type();
-	# 	if ((output_type != BNODE) && (output_type != UNBOUND))
-	# 		goto end_is_split0;
-	# 	string input_string;
-	# 	Constant c = nodeids2consts[input->node_id()];
-	# 	if (c.type == STRING)
-	# 		input_string = c.value;
-	# 	else
-	# 		goto end_is_split0;
-	# 	state.states = grab_states(1);
-	# 	#ifdef TRACE_PROOF
-	# 		state.num_substates = 1;
-	# 	#endif
-	# 	size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
-	# 	state.locals = grab_things(locals_size_int);
-	# 	#define locals_size (*((size_t*)(&state.locals[0])))
-	# 	locals_size = locals_size_int;
-	#
-	# 	state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};
-	# 	for (size_t i = 0; i < input_string.size(); i++)
-	# 	{
-	# 		BnodeOrigin bn;
-	# 		if (i == input_string.size() - 1)
-	# 			bn = r0bnl0_0;
-	# 		else
-	# 			bn = r1bnub1bl5c3;
-	# 		state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
-	# 		string s = input_string.substr(i,1);
-	# 		state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
-	# 	}
-	# }
-	# 	state.states[0].entry = 0;
-	# 	state.states[0].incoming[0] = state.incoming[1];
-	# 	state.states[0].incoming[1] = &state.locals[1];
-	# 	while (unify(state.states[0]))
-	# 	{
-	# 		"""), s.do_yield(), Line("""
-	# 	}
-	# 	for (size_t i = 0; i < (locals_size-2)/2; i++)
-	# 		pop_const();
-	# 	release_things(locals_size);
-	# 	#undef locals_size_thing
-	# 	release_states(1);
-	# 	end_is_split0:;
-	# 	#ifdef TRACE_PROOF
-	# 		state.set_active(false);
-	# 	#endif

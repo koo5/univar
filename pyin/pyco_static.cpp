@@ -1,9 +1,12 @@
+#define SECOND_CHANCE
+
 #ifndef DEBUG
+/*used at least by cassert, of the headers included below*/
 #define NDEBUG
 #endif
 
+
 #include <string>
-#include <unordered_map>
 #include <tuple>
 #include <vector>
 #include <cassert>
@@ -12,34 +15,52 @@
 #include <sstream>
 #include <ctime>
 #include <chrono>
+#include <unordered_map>
+
 
 using namespace std;
+
 
 #ifdef TRACE
 #define IF_TRACE(x) ,x
 #else
 #define IF_TRACE(x)
 #endif
+
+
 #define ASSERT assert
 
 
-
-
-
-
+/*im just allocating one block of hardcoded size for now*/
 const size_t malloc_size = 1024ul*1024ul*480ul;
 size_t block_size = malloc_size;
-char *block;
-char *free_space;
-
-
+char *block; /*this is the start of the block inside which first_free_byte is*/
+char *first_free_byte;
 
 
 string current_ep_comment;
 unsigned long euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
 
+
 chrono::steady_clock::time_point query_start_time;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 string replaceAll(std::string str, const std::string& from, const std::string& to) {
     if(from.empty())
@@ -57,14 +78,44 @@ string jsonize_string(string str)
     return replaceAll(str, "\n", "<br>");
 }
 
+void escape_trace(string& data) {
+    string buffer;
+    buffer.reserve(data.size());
+    for(size_t pos = 0; pos != data.size(); ++pos) {
+        switch(data[pos]) {
+            case '\t': buffer.append("&nbsp;&nbsp;");break;
+            case '&':  buffer.append("&amp;");       break;
+            case '\"': buffer.append("&quot;");      break;
+            case '\'': buffer.append("&apos;");      break;
+            case '<':  buffer.append("&lt;");        break;
+            case '>':  buffer.append("&gt;");        break;
+            default:   buffer.append(&data[pos], 1); break;
+        }
+    }
+    data.swap(buffer);
+}
+
+
+
+
+
+
+
+
+
+
 void print_ep_tables();
 
-void print_euler_steps()
+unsigned long long euler_steps_rate()
 {
     chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
     auto duration = chrono::duration_cast<std::chrono::seconds>(now - query_start_time).count();
-    unsigned long long rate = duration ? (euler_steps / duration) : 0;
-    cerr << euler_steps << " euler_steps, " << rate << "/s." << endl;
+    return duration ? (euler_steps / duration) : 0;
+}
+
+void print_euler_steps()
+{
+    cerr << euler_steps << " euler_steps, " << euler_steps_rate() << "/s." << endl;
     #ifdef TRACE_EP_TABLES
         print_ep_tables();
     #endif
@@ -81,50 +132,59 @@ void maybe_print_euler_steps()
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
 #ifdef TRACE_PROOF
+    string trace_string;
+    ofstream trace;
+    size_t current_trace_file_id = 0;
+    size_t written_bytes;
 
-string trace_string;
-ofstream trace;
-size_t current_trace_file_id = 0;
-size_t written_bytes;
-
-void trace_write_raw(string s)
-{
-    trace_string += s;
-}
-
-void open_trace_file()
-{
-    written_bytes = 0;
-	trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
-	trace_write_raw("window.pyco = Object();window.pyco.frames = [];");
-}
-
-void trace_flush()
-{
-    written_bytes += trace_string.size();
-    trace << trace_string << endl;
-    trace_string.clear();
-    /*trace.close();
-	trace.open(trace_output_path"/trace.js", ios_base::app);*/
-}
-
-void close_trace_file()
-{
-	trace_flush();
-    trace.close();
-}
-
-void maybe_reopen_trace_file()
-{
-    if (written_bytes / (1024*1024*100))
+    void trace_write_raw(string s)
     {
-        close_trace_file();
-        current_trace_file_id++;
-        open_trace_file();
+        trace_string += s;
     }
-}
 
+    void open_trace_file()
+    {
+        written_bytes = 0;
+        trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
+        trace_write_raw("window.pyco = Object();window.pyco.frames = [];");
+    }
+
+    void trace_flush()
+    {
+        written_bytes += trace_string.size();
+        trace << trace_string << endl;
+        trace_string.clear();
+        /*trace.close();
+        trace.open(trace_output_path"/trace.js", ios_base::app);*/
+    }
+
+    void close_trace_file()
+    {
+        trace_flush();
+        trace.close();
+    }
+
+    void maybe_reopen_trace_file()
+    {
+        if (written_bytes / (1024*1024*100))
+        {
+            close_trace_file();
+            current_trace_file_id++;
+            open_trace_file();
+        }
+    }
 #endif
 
 
@@ -133,12 +193,16 @@ void maybe_reopen_trace_file()
 
 
 
+
+
+
+
+
+
+
 typedef unsigned long nodeid;
-
-
-vector<nodeid> consts_stack;
-
 enum ConstantType {URI, STRING};
+typedef pair<nodeid,size_t> nodeid_and_refcount;
 
 struct Constant
 {
@@ -150,24 +214,33 @@ struct Constant
     }
 };
 
-typedef pair<nodeid,size_t> nodeid_and_refcount;
-
 struct ConstantHash {
     size_t operator()(Constant c) const noexcept {
         return hash<ConstantType>()(c.type) ^ hash<string>()(c.value);
     }
 };
-
+/*silly duplication here, should be all merged into one better thought-out datastructure*/
 unordered_map<Constant,nodeid_and_refcount,ConstantHash> consts2nodeids_and_refcounts;
 vector<Constant> nodeids2consts;
+vector<nodeid> consts_stack; /*this is so coroutines can just call pop_const, without having to specify what to pop. That may be unnecessary*/
+
+
+
+
+
+
+
+
+
+
+
 
 enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
 /*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
 reference? http://www.delorie.com/gnu/docs/glibc/libc_31.html
 */
 
-typedef unsigned long BnodeOrigin;
-typedef unsigned BnodeIndex;
+typedef unsigned long BnodeOrigin; /*uniquely specifies rule and thing name*/
 
 
 struct Thing;
@@ -209,33 +282,31 @@ struct Thing
             delete _debug_name;
         }
     #endif
-    Thing (ThingType type
-    #ifdef TRACE
-    ,string debug_name
-    #endif
-    ) : _type{type}
+    Thing (ThingType type IF_TRACE(string debug_name)) : _type{type}
     {
         ASSERT(type == UNBOUND);
         #ifdef TRACE
-        construct();
-        *_debug_name = debug_name;
+            construct();
+            *_debug_name = debug_name;
         #endif
         #ifdef DEBUG
-        set_value((Thing*)666);
+            set_value((Thing*)0x666);
         #endif
     }
-    Thing (ThingType type, unsigned long value
-    #ifdef TRACE
-    ,string debug_name
-    #endif
-    ) : _type{type}
+    Thing (ThingType type, unsigned long value IF_TRACE(string debug_name)) : _type{type}
     {
         #ifdef TRACE
-        construct();
-        *_debug_name = debug_name;
+            construct();
+            *_debug_name = debug_name;
         #endif
         set_value((Thing*)value);
     }
+    /*i put this whole construct/destruct mess here because of the debug_name strings.
+    i think the new-style struct literals mess this up anyway. With the destructor commented out,
+    we get leaks, but at least it works.
+    since we allocate a new string on each Thing construction, this thing is much slower than it needs
+    to be anyway, ideally we should reuse the consts mechanism or something, or just assign pointers
+    */
     /*
     ~Thing()
     {
@@ -275,7 +346,7 @@ struct Thing
     {
         _type = UNBOUND;
         #ifdef DEBUG
-        set_value((Thing*)666);
+            set_value((Thing*)666);
         #endif
     }
 #endif
@@ -284,7 +355,7 @@ struct Thing
 Thing *get_value(Thing *x)
 {
     #ifdef DEBUG
-    size_t counter = 0;
+       size_t counter = 0;
     #endif
     while (x->type() == BOUND)
     {
@@ -298,6 +369,7 @@ Thing *get_value(Thing *x)
     return x;
 }
 
+
 void dump();
 typedef pair<Thing*,Thing*> thingthingpair;
 enum coro_status {INACTIVE, ACTIVE, EP, YIELD};
@@ -307,19 +379,13 @@ struct cpppred_state;
 
 #ifdef CACHE
 typedef cache unordered_map<
-
+/*i think caching(memoization) is doable even with bnodes, and even reuse of half-finished rule states, but the complexity
+quickly adds up..*/
 #endif
 
 
 struct cpppred_state;
-
-struct EpFrame
-{
-    cpppred_state* state;
-    vector<Thing*> *lists[2];
-};
-typedef vector<EpFrame*> ep_table;
-
+typedef vector<cpppred_state*> ep_table;
 
 struct cpppred_state
 {
@@ -327,9 +393,11 @@ struct cpppred_state
     Thing *incoming[2];
     cpppred_state *states;
     Thing *locals;
-    EpFrame ep_frame;
+    #ifdef SECOND_CHANCE
+        vector<Thing*> *ep_lists[2];
+    #endif
     #ifdef CACHE
-    size_t cumulative_euler_steps;
+       size_t cumulative_euler_steps;
     #endif
     #ifdef TRACE_PROOF
         size_t num_substates;
@@ -351,7 +419,7 @@ struct cpppred_state
             comment = new string;
             status = INACTIVE;
             #ifdef CACHE
-            cumulative_euler_steps = 0;
+                cumulative_euler_steps = 0;
             #endif
         }
         void destruct()
@@ -361,130 +429,133 @@ struct cpppred_state
     #endif
 };
 
-string thing_to_string_nogetval(Thing* v);
+cpppred_state *top_level_coro;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef TRACE
+    string thing_to_string(Thing* thing);
+    string thing_to_string_nogetval(Thing* v)
+    {
+      if (v->type() == CONST)
+      {
+        const Constant &c = nodeids2consts[v->node_id()];
+        if (c.type == URI)
+          return "<" + c.value + ">";
+        else
+          return "\"\"\"" + c.value + "\"\"\"";
+      }
+      else
+      {
+        cerr << "("<< ((void*)v) << "/" << ((void*)(first_free_byte - 1)) <<")" << endl;
+        cerr << v->_debug_name << endl;
+        if (v->type() == UNBOUND)
+            return "?"+*v->_debug_name;
+        else if (v->type() == BNODE)
+            return "["+*v->_debug_name+"]";
+        else
+            return "?"+*v->_debug_name+"->"+thing_to_string(v);
+      }
+    }
+
+    string thing_to_string(Thing* thing)
+    {
+      return thing_to_string_nogetval(get_value(thing));
+    }
+#endif
+
+
+
+
+
+
 
 
 
 #ifdef TRACE_EP_TABLES
-
-
-void print_ep_frame_arg(EpFrame &f, size_t i)
-{
-    cerr << thing_to_string_nogetval(f.state->incoming[i]);
-    if (f.lists[i]->size())
+    void print_ep_frame_arg(cpppred_state &f, size_t arg_i)
     {
-        cerr << " ( ";
-        for (Thing *thing : (*(f.lists[i])))
+        cerr << thing_to_string_nogetval(f.incoming[arg_i]);
+        if (f.ep_lists[arg_i]->size())
         {
-            cerr << thing_to_string_nogetval(thing) << " ";
+            cerr << " ( ";
+            for (Thing *thing : (*(f.ep_lists[arg_i])))
+            {
+                cerr << thing_to_string_nogetval(thing) << " ";
+            }
+            cerr << ")";
         }
-        cerr << ")";
     }
-}
 
-void print_ep_table(ep_table &t)
-{
-    for (auto i: t)
+    void print_ep_table(ep_table &t)
     {
-        print_ep_frame_arg(*i, 0);
-        cerr << "   ";
-        print_ep_frame_arg(*i, 1);
+        for (auto i: t)
+        {
+            print_ep_frame_arg(*i, 0);
+            cerr << "   ";
+            print_ep_frame_arg(*i, 1);
+            cerr << endl;
+        }
         cerr << endl;
     }
-    cerr << endl;
-}
 #endif
-
-cpppred_state *query_state;
-
-void escape_trace(string& data) {
-    string buffer;
-    buffer.reserve(data.size());
-    for(size_t pos = 0; pos != data.size(); ++pos) {
-        switch(data[pos]) {
-            case '\t': buffer.append("&nbsp;&nbsp;");break;
-            case '&':  buffer.append("&amp;");       break;
-            case '\"': buffer.append("&quot;");      break;
-            case '\'': buffer.append("&apos;");      break;
-            case '<':  buffer.append("&lt;");        break;
-            case '>':  buffer.append("&gt;");        break;
-            default:   buffer.append(&data[pos], 1); break;
-        }
-    }
-    data.swap(buffer);
-}
 
 #ifdef TRACE_PROOF
 
-void trace_write(string s)
-{
-    escape_trace(s);
-    trace_write_raw(s);
-}
-
-void dump_state(int indent, const cpppred_state &state)
-{
-    if (state.status == INACTIVE)
-        return;
-    trace_write_raw("<li>");
-    if (state.comment)
-        trace_write(jsonize_string(*state.comment));
-    trace_write_raw("</li>");
-    indent += 2;
-    trace_write_raw("<ul>");
-    for (size_t i = 0; i < state.num_substates; i++)
+    void trace_write(string s)
     {
-        dump_state(indent,*(state.states+i));
+        escape_trace(s);
+        trace_write_raw(s);
     }
-    if (state.status == EP)
-        trace_write_raw("<li class=\\\"ep\\\">EP</li>" + jsonize_string(current_ep_comment));
-    else if (state.status == YIELD)
-        trace_write_raw("<li class=\\\"yield\\\">yield.</li>");
-    trace_write_raw("</ul>");
-}
 
-void dump()
-{
-    trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
-        dump_state(0, *query_state);
-    trace_write_raw("</ul><br><br><br><br><br><br><br>\");");
-    trace_flush();
-    maybe_reopen_trace_file();
-    //print_euler_steps();
-}
+    void dump_state(int indent, const cpppred_state &state)
+    {
+        if (state.status == INACTIVE)
+            return;
+        trace_write_raw("<li>");
+        if (state.comment)
+            trace_write(jsonize_string(*state.comment));
+        trace_write_raw("</li>");
+        indent += 2;
+        trace_write_raw("<ul>");
+        for (size_t i = 0; i < state.num_substates; i++)
+        {
+            dump_state(indent,*(state.states+i));
+        }
+        if (state.status == EP)
+            trace_write_raw("<li class=\\\"ep\\\">EP</li>" + jsonize_string(current_ep_comment));
+        else if (state.status == YIELD)
+            trace_write_raw("<li class=\\\"yield\\\">yield.</li>");
+        trace_write_raw("</ul>");
+    }
+
+    void dump()
+    {
+        trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
+            dump_state(0, *top_level_coro);
+        trace_write_raw("</ul><br><br><br><br><br><br><br>\");");
+        trace_flush();
+        maybe_reopen_trace_file();
+        //print_euler_steps();
+    }
 #endif
 
-#ifdef TRACE
-string thing_to_string(Thing* thing);
-string thing_to_string_nogetval(Thing* v)
-{
-  if (v->type() == CONST)
-  {
-    const Constant &c = nodeids2consts[v->node_id()];
-    if (c.type == URI)
-      return "<" + c.value + ">";
-    else
-      return "\"\"\"" + c.value + "\"\"\"";
-  }
-  else
-  {
-    cerr << "("<< ((void*)v) << "/" << ((void*)(free_space - 1)) <<")" << endl;
-    cerr << v->_debug_name << endl;
-    if (v->type() == UNBOUND)
-        return "?"+*v->_debug_name;
-    else if (v->type() == BNODE)
-        return "["+*v->_debug_name+"]";
-    else
-        return "?"+*v->_debug_name+"->"+thing_to_string(v);
-  }
-}
 
-string thing_to_string(Thing* thing)
-{
-  return thing_to_string_nogetval(get_value(thing));
-}
 
-#endif
+
+
 
 
 
@@ -510,11 +581,11 @@ void realloc()
 
 size_t *grab_words(size_t count)
 {
-    size_t *result = (size_t *)free_space;
+    size_t *result = (size_t *)first_free_byte;
     size_t increase = count * sizeof(size_t);
-    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",free_space before = " << free_space<<", after="<<free_space + increase << ", must realloc:"<< (free_space+increase >= block + block_size)<<endl;
-    free_space += increase;
-    while (free_space >= block + block_size)
+    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",first_free_byte before = " << first_free_byte<<", after="<<first_free_byte + increase << ", must realloc:"<< (first_free_byte+increase >= block + block_size)<<endl;
+    first_free_byte += increase;
+    while (first_free_byte >= block + block_size)
         realloc();
     return result;
 }
@@ -531,10 +602,10 @@ cpppred_state *grab_states(size_t count)
 
 void release_states (size_t count)
 {
-    free_space -= count * sizeof(cpppred_state);
+    first_free_byte -= count * sizeof(cpppred_state);
     #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
-            ((cpppred_state*)free_space)[i].destruct();
+            ((cpppred_state*)first_free_byte)[i].destruct();
     #endif
 }
 
@@ -550,10 +621,10 @@ Thing *grab_things(size_t count)
 
 void release_things (size_t count)
 {
-    free_space -= count * sizeof(Thing);
+    first_free_byte -= count * sizeof(Thing);
     #ifdef TRACE
         for (size_t i = 0; i < count; i++)
-            ((Thing*)free_space)[i].destruct();
+            ((Thing*)first_free_byte)[i].destruct();
     #endif
 }
 
@@ -570,7 +641,7 @@ size_t query_list(cpppred_state & __restrict__ state);
 
 vector<Thing*>* query_list_wrapper(Thing *x)
 /*
-this only returns pointers to things, which could be invalid by the time this returns...
+returns pointers to things, which could be invalid by the time this finishes...
 */
 {
     cpppred_state *state = grab_states(1);
@@ -587,7 +658,7 @@ this only returns pointers to things, which could be invalid by the time this re
 		output = new vector<Thing*>;
 		/*we're only interested in the first result, but
 		we gotta keep calling query_list until it comes to it's natural end, thats the easiest way to
-		have all its substates released*/
+		have all the substates released*/
 		//cerr << output << ", " << output->size() << endl;
 	}
     if (result != output)
@@ -597,6 +668,22 @@ this only returns pointers to things, which could be invalid by the time this re
 	//cerr << "returning result " << result << " with size " << result->size() << endl;
 	return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 bool is_bnode_productively_different(const cpppred_state &old, Thing *now)
@@ -668,9 +755,9 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return true;
 }
 
-bool detect_ep(EpFrame &f, cpppred_state &now)
+bool detect_ep(cpppred_state &old, cpppred_state &now)
+/* here we try to detect an ep by comparing a parent state to current one */
 {
-    cpppred_state &old = *f.state;
     #ifdef TRACE_EP_CHECKS
         current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +
         " and " +            thing_to_string_nogetval(old.incoming[1]) + " vs " + thing_to_string_nogetval(now.incoming[1]);
@@ -706,7 +793,7 @@ bool detect_ep(EpFrame &f, cpppred_state &now)
             if (now.incoming[term_arg_i] == old.incoming[term_arg_i])
                 continue;
             vector<Thing*> *lists[2];
-            lists[0] = f.lists[term_arg_i];
+            lists[0] = old.ep_lists[term_arg_i];
             lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
             //cerr << "lists[0]" << lists[0] << endl;
             //cerr << "lists[1]" << lists[1] << endl;
@@ -769,7 +856,7 @@ bool detect_ep(EpFrame &f, cpppred_state &now)
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
-    for (EpFrame *f: *table)
+    for (cpppred_state *f: *table)
     {
         if (detect_ep(*f, now))
             return true;
@@ -797,22 +884,22 @@ int main (int argc, char *argv[])
     block = (char*)malloc(block_size);
     if (block == 0)
         exit(1);
-    free_space = block;
+    first_free_byte = block;
     initialize_consts();
     #ifdef TRACE_PROOF
-    open_trace_file();
+        open_trace_file();
 	#endif
     query_start_time = std::chrono::steady_clock::now();
-    query_state = grab_states(1);
-    query_state->entry = 0;
-    while(query(*query_state)!=0)
+    top_level_coro = grab_states(1);
+    top_level_coro->entry = 0;
+    while(query(*top_level_coro)!=0)
     {
-        print_result(*query_state);
+        print_result(*top_level_coro);
     }
     release_states(1);
     print_euler_steps();
     #ifdef TRACE_PROOF
-    close_trace_file();
+        close_trace_file();
     #endif
     free(block);
 }
@@ -823,9 +910,9 @@ int unify(cpppred_state & __restrict__ state);
 
 
 #ifdef TRACE_PROOF
-#define END {state.set_active(false); return 0;}
+    #define END {state.set_active(false); return 0;}
 #else
-#define END {return 0;}
+    #define END {return 0;}
 #endif
 
 

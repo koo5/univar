@@ -445,7 +445,8 @@ int unify(cpppred_state & __restrict__ state)
 			"""we know incoming's have been get_valued before the pred func was called"""
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
-			b.append(Statement('state.ep_frame = EpFrame{&state, {query_list_wrapper(get_value(state.incoming[0])), query_list_wrapper(get_value(state.incoming[1]))}}'))
+			b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
+			b.append(Statement('state.ep_lists[1] = query_list_wrapper(get_value(state.incoming[1]))'))
 			b.append(push_ep(r))
 			if trace_proof_:
 				outer_block.append(Line('else {state.status = EP;dump();state.status=ACTIVE;}'))
@@ -470,8 +471,8 @@ int unify(cpppred_state & __restrict__ state)
 				b.append(push_ep(r))
 		if do_ep:
 			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
-			inner_block.append(Statement('delete state.ep_frame.lists[0]'))
-			inner_block.append(Statement('delete state.ep_frame.lists[1]'))
+			inner_block.append(Statement('delete state.ep_lists[0]'))
+			inner_block.append(Statement('delete state.ep_lists[1]'))
 
 		outer_block.append(s.euler_step())
 
@@ -557,7 +558,7 @@ def consts_of_rule(rule_index):
 
 def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+
-					 ".push_back(&state.ep_frame)"
+					 ".push_back(&state)"
 		)
 
 
@@ -997,7 +998,7 @@ def create_builtins(emitter):
 				string input_string;
 				Constant c = nodeids2consts[input->node_id()];
 				input_string = c.value;
-				output << "(" << (size_t*)free_space << ") OUTPUT : " << input_string;
+				output << "(" << (size_t*)first_free_byte << ") OUTPUT : " << input_string;
 				/*output << " [";
 				for (char x: input_string)
 					output << (int)x << ",";

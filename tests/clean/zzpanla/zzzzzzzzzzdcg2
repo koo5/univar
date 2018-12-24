@@ -308,6 +308,9 @@ verb --> [hates].
 fin.
 shouldbetrue
 
+#1446189727745 euler_steps, 3992550/s.
+#terminate called after throwing an instance of 'std::bad_alloc'
+#(using about 10gb ram)
 
 
 
@@ -350,3 +353,13 @@ verb --> [hates].
 ?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
 fin.
 shouldbetrue
+
+
+
+
+
+
+
+
+
+

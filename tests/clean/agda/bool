@@ -1,0 +1,32 @@
+
+kb
+
+:bool :a :set. :true :a :bool. :false :a :bool.
+
+:true :bool_not :false. :false :bool_not :true.
+
+(:true ?f) :bool_and ?f.
+(:false ?f) :bool_and :false.
+
+
+
+fin.
+query
+
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
+fin.
+
+shouldbe
+
+?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
+fin.
+
+thatsall
+
+#
+#
+#
+#
+#
+#
+#

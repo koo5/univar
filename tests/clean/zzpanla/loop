@@ -1,0 +1,21 @@
+kb
+
+:zero a :nat.
+{?x a :nat. ?y :has_succ ?x.} <= {?y a :nat}.
+
+
+{:dummy :loop ?depth} <= {
+	?depth :has_succ ?depth_succ.
+	:dummy :loop ?depth_succ.
+}.
+
+
+fin.
+query
+:dummy :loop :zero.
+fin.
+sholdbe
+fin.
+
+
+

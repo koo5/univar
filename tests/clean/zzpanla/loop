@@ -14,7 +14,7 @@ fin.
 query
 :dummy :loop :zero.
 fin.
-sholdbe
+shouldbe
 fin.
 
 

@@ -25,50 +25,7 @@ import memoized
 
 import rdflib
 from rdflib.plugins.parsers import notation3
-
-
-def newList(self, n, f):
-	nil = self.newSymbol('http://www.w3.org/1999/02/22-rdf-syntax-ns#nil')
-
-	if len(n) == 0 or not n:
-		return nil
-
-	first = mmtbf
-	rest = mmtbr
-
-	if hasattr(self.graph, 'last_n3_syntax_list_id'):
-		list_id = self.graph.last_n3_syntax_list_id + 1
-	else:
-		list_id = 0
-	self.graph.last_n3_syntax_list_id = list_id
-
-	def make_bnode(idx):
-		return rdflib.BNode('l' + str(list_id) + '_' + str(idx))
-
-	r = None
-	next = None
-
-	result = []
-
-	for idx, i in enumerate(n):
-		if next == None:
-			a = make_bnode(idx)
-		else:
-			a = next
-		if r == None:
-			r = a
-		result.append((f, first, a, i))
-		if idx == len(n) - 1:
-			next = nil
-		else:
-			next = make_bnode(idx + 1)
-		result.append((f, rest, a, next))
-
-	for i in reversed(result):
-		self.makeStatement(i)
-	return r
-
-notation3.RDFSink.newList = newList
+notation3.RDFSink.newList = common.newList
 
 
 import subprocess

@@ -1,0 +1,69 @@
+kb
+
+#from http://intrologic.stanford.edu/extras/whodunnit.html
+#
+#Introduction to Logic
+#
+#Whodunnit
+#Victor has been murdered, and Art, Bob, and Carl are suspects. Art says he did not do it. He says that Bob was the victim's friend but that Carl hated the victim. Bob says he was out of town the day of the murder, and besides he didn't even know the guy. Carl says he is innocent and he saw Art and Bob with the victim just before the murder. Assuming that everyone - except possibly for the murderer - is telling the truth, encode the facts of the case so that you can use the tools of Propositional Logic to convince people that Bob killed Victor.
+#
+#The key to using Logic to solve this problem is to make the suspects' statements conditional on their innocence. Let's use the symbol ia to mean that Art is innocent; we use ib to mean that Bob is innocent; and we use ic to mean that carl is innocent. We use fa, fb, and fc to mean that Art, Bob, and Carl (respectively) were friends of Victor. We use ka, kb, and kc to mean Art, Bob, and Carl (respectively) knew Victor. We use la, lb, and lc to mean Art, Bob, and Carl (respectively) like Victor. We use ta, tb, and tc to mean Art, Bob, and Carl (respectively) were in town the day of the murder. We use wa, wb, and wc to mean Art, Bob, and Carl (respectively) were with Victor on the day of the murder.
+#
+#Given this vocabulary, we can encode the facts of the case as shown below. 
+#The first two sentences state that, if Art is innocent then Bob was Victor's friend and Carl did not like Victor. 
+#
+#ia ⇒ fb
+#ia ⇒ ¬lc	 	
+{:art :innoncent :true} => {:bob :friend true. :carl :liked false}.
+#The third and fourth axioms capture Bob's claims that he wasn't in town and that he didn't know Victor. 
+#ib ⇒ ¬tb
+#ib ⇒ ¬kb	 	
+{:bob :innoncent :true} => {:bob :town false. :bob :knew false}.
+#The fifth and sixth axioms express Carl's report about Art and Bob having been with Victor on the day of the crime.
+#ic ⇒ wa
+#ic ⇒ wb
+{:carl :innoncent :true} => {:art :with true. :bob :with true}.
+#In addition, we can encode some general facts as shown below. Anyone who was with Victor must have been in town at the time. If anyone was a friend of Victor, he must have known him. And, #if anyone liked Victor, he must have know him.
+#wa ⇒ ta
+#wb ⇒ tb
+#wc ⇒ tc
+{?x :with true} => {?x :town true}.
+#fa ⇒ ka
+#fb ⇒ kb
+#fc ⇒ kc
+{?x :friend true} => {?x :knew true}.
+#la ⇒ ka
+#lb ⇒ kb
+#lc ⇒ kc
+{?x :liked true} => {?x :knew true}.
+
+#Finally, we make the assumption that there is only one guilty party. In other words, out of every pair of people, at least one is innocent. (Those of you who have read Murder on the Orient Express will appreciate this assumption.)
+
+#ia ∨ ib
+#ia ∨ ic
+#ib ∨ ic
+{:art :innoncent false} => {:bob :innoncent true. :carl :innoncent true}.
+{:bob :innoncent false} => {:art :innoncent true. :carl :innoncent true}.
+{:carl :innoncent false} =>{:art :innoncent true. :bob :innoncent true}.
+
+#Once we have formalized the problem in this way, we can use the tools of Propositional Logic to prove Bob's guilt. We can do this by enumerating all possible truth assignments for the propositions and checking that Bob is not innocent in any assignment that satisfies the facts of the case. Alternatively, and more compactly, starting with the facts, we can use symbolic reasoning to prove that Bob is not innocent without enumerating all of the cases.
+
+fin.
+query
+:bob :innoncent true.
+fin.
+shouldbe
+fin.
+
+query
+:art :innoncent true.
+fin.
+shouldbetrue
+
+query
+:carl :innoncent true.
+fin.
+shouldbetrue
+
+
+#meh, lets just execute them all

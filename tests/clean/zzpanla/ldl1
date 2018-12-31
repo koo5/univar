@@ -1,0 +1,43 @@
+:built_in_ldl_initial_specification_text :has_value
+"""
+string_literal_body is a series of string_literal_body_item.
+string_literal_body_item ++> any char except "\"".
+string_literal_body_item ++> "\\\\".
+string_literal_body_item ++> "\\\"".
+
+#node_name is a category.
+node_name_unquoted works as node_name.
+node_name_unquoted ++> string_literal_body.
+node_name_quoted works as node_name.
+node_name_quoted ++> string_literal.
+
+statements is a series of statement separated with newline.
+
+x_is_a_series_of_y_separated_with_z works as statement.
+x_is_a_series_of_y_separated_with_z ++> node_name, " is a series of ", item_type:node_name, " separated with ", separator:string_literal.
+
+subtype works as statement.
+subtype ++> sub:node_name, " works as ", sup:node_name.
+
+grammar works as statement.
+grammar ++> node_name, " ++> ", grammar_items, ".".
+
+grammar_items is a series of grammar_item separated with ", ".
+#grammar_item is a category.
+
+string_literal works as grammar_item.
+string_literal ++> "\"", string_literal_body, "\"".
+node_name works as grammar_item.
+node_name_with_child_name works as grammar item.
+node_name_with_child_name ++> child_name:node_name, ":", type_name:node_name.
+
+comment works as statement.
+comment ++> "#", comment_body.
+comment_body ++> any char except "\n".
+
+""";
+:has_comment """
+this is a declarative definition of the basic building blocks of the ddl and their grammar.
+probably just dcg + "any char except" +  optional child names + "indent"/"dedent" special syntax items.
+now we need to turn this into (at least in-memory) ldl ast.
+""".

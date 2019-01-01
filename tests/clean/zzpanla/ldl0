@@ -57,6 +57,10 @@ kb
 	?end rdf:first ".". ?end rdf:rest ?rest.
 }.
 
+{?x0 :parses_to_rhs (?rest rdf:nil)} <= {
+	?x0 rdf:first ".". ?x0 rdf:rest ?rest.
+}.
+
 {?x0 :maybe_more_rhs_items (?rest ?items)} <= {
 	?items rdf:first ?item. ?items rdf:rest ?items_rest.
 	?x0 rdf:first ",". ?x0 rdf:rest ?after_comma.
@@ -71,7 +75,7 @@ kb
 {?x0 :rhs_item (?rest ?item)} <= {
 	?item a :identifier. ?item :name ?name.
 	?x0 :identifier (?rest ?name).
-}.
+}
 
 {?x0 :rhs_item (?rest ?item)} <= {
 	?item a :literal. ?item :value ?string.
@@ -266,21 +270,51 @@ kb
 		#:dummy tau_builtins:output "parse_rhs_item(nont):".
 	?rhs_item a :identifier. ?rhs_item :name ?name. 
 		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
-		#:dummy tau_builtins:output "parse_nonterminal:".
+		#:dummy tau_builtins:output "parse_nonterminal:". 
 		#:dummy tau_builtins:output ?name. 
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
 }.
 
 
-#
+
 :grammar_of_initial_ldl :has_value
 """
 string_literal --> [\"], string_literal_body, [\"].
+
 string_literal_body --> string_literal_body_item, string_literal_body.
 string_literal_body --> .
+
+string_literal_body_item --> any char except [\"\n].
 string_literal_body_item --> [\\\\].
 string_literal_body_item --> [\\\"].
 string_literal_body_item --> [\\n].
+
+node_name --> node_name_unquoted.
+node_name_unquoted --> string_literal_body.
+node_name --> node_name_quoted.
+node_name_quoted --> string_literal.
+
+statements --> statement, [.\n], statements.
+statements --> [\n], statements.
+statements --> .
+
+statement --> x_is_a_series_of_y_separated_with_z.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
+
+statement --> subtype.
+subtype --> node_name, [ works as ], node_name.
+
+statement --> grammar.
+grammar --> node_name, [ ++> ], grammar_items, [.].
+
+grammar_items --> grammar_item, [, ], grammar_items.
+grammar_items --> grammar_item.
+grammar_items --> .
+
+grammar_item --> string_literal.
+grammar_item --> node_name.
+grammar_item --> node_name_with_child_name.
+node_name_with_child_name --> node_name, [:], node_name.
 """;
 :has_comment """
 need to extend the simple dcg parser with "any char except"

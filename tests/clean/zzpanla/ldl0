@@ -45,7 +45,7 @@ kb
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 {?x a :member_of_chars_allowed_in_literals} <= {?x a :alphanum}.
-{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-=+<>{}'\\\"|,./[\n;:" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-=+<>{}'\"|,./;:" string_builtins:is_split ?l. ?x :memberof ?l.}.
 
 
 #parser of simple dcg
@@ -146,6 +146,18 @@ kb
 	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
 	?x0 rdf:rest ?r. ?val rdf:rest ?val_rest.
 	?r :rest_of_literal (?rest ?val_rest).
+}.
+
+"\n" :has_escape_code "n".
+"\\" :has_escape_code "\\".
+"]" :has_escape_code "]".
+"[" :has_escape_code "[".
+
+{?x0 :rest_of_literal (?rest ?val)} <= {
+	?real :has_escape_code ?escape.
+	?val rdf:first ?real. ?val rdf:rest ?val_rest.
+    ?x0  rdf:first "\\". ?x0 rdf:rest ?x1.  ?x1 rdf:first ?escape. ?x1 rdf:rest ?x2.
+	?x2 :rest_of_literal (?rest ?val_rest).
 }.
 
 {?x0 :newline ?rest} <= {
@@ -284,18 +296,19 @@ string_literal --> ["], string_literal_body, ["].
 string_literal_body --> string_literal_body_item, string_literal_body.
 string_literal_body --> .
 
-string_literal_body_item --> any char except ["\n].
-string_literal_body_item --> [\\\\].
-string_literal_body_item --> [\\"].
-string_literal_body_item --> [\\n].
+string_literal_body_item --> any char except [\\n\\[\\]\\\\].
+string_literal_body_item --> [\\\\n].
+string_literal_body_item --> [\\\\[].
+string_literal_body_item --> [\\\\]].
+string_literal_body_item --> [\\\\\\\\].
 
 node_name --> node_name_unquoted.
 node_name_unquoted --> string_literal_body.
 node_name --> node_name_quoted.
 node_name_quoted --> string_literal.
 
-statements --> statement, [.\n], statements.
-statements --> [\n], statements.
+statements --> statement, [.\\n], statements.
+statements --> [\\n], statements.
 statements --> .
 
 statement --> x_is_a_series_of_y_separated_with_z.

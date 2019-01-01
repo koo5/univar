@@ -459,8 +459,8 @@ cpppred_state *top_level_coro;
       }
       else
       {
-        cerr << "("<< ((void*)v) << "/" << ((void*)(first_free_byte - 1)) <<")" << endl;
-        cerr << v->_debug_name << endl;
+        //cerr << "("<< ((void*)v) << "/" << ((void*)(first_free_byte - 1)) <<")" << endl;
+        //cerr << v->_debug_name << endl;
         if (v->type() == UNBOUND)
             return "?"+*v->_debug_name;
         else if (v->type() == BNODE)

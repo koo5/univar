@@ -35,6 +35,7 @@ kb
 {?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
 {?x a :identifier.  ?x :name ?NAME} <= {}.
 {?x a :literal.  ?x :value ?vALUE} <= {}.
+{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
 {?x a :newline} <= {}.
 
 
@@ -75,6 +76,12 @@ kb
 {?x0 :rhs_item (?rest ?item)} <= {
 	?item a :literal. ?item :value ?string.
 	?x0 :literal (?rest ?string).
+}.
+
+{?x0 :rhs_item (?rest ?item)} <= {
+	?item a :any_char_except. ?item :value ?except.
+	?x0 :literally_string (?before_value "any char except ").
+	?before_value  :literal (?rest ?except).
 }.
 
 {?x0 :arrow ?rest} <= {
@@ -259,149 +266,67 @@ kb
 		#:dummy tau_builtins:output "parse_rhs_item(nont):".
 	?rhs_item a :identifier. ?rhs_item :name ?name. 
 		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
-		#:dummy tau_builtins:output "parse_nonterminal:". 
+		#:dummy tau_builtins:output "parse_nonterminal:".
 		#:dummy tau_builtins:output ?name. 
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
 }.
 
 
-
-fin.
-
-
-
-
-query
-#generation of text from grammar, with max depth
-"""
-sentence --> noun_phrase, space, verb_phrase.
-noun_phrase --> determiner, space, noun.
-verb_phrase --> verb, space, noun_phrase.
-verb_phrase --> verb, space, sentence.
-space --> [ ].
-determiner --> [the].
-determiner --> [a].
-noun --> [cat].
-noun --> [mouse].
-noun --> [dinosaur].
-verb --> [scares].
-verb --> [hates].
-verb --> [chases].
-""" string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
-?grammar_concrete :concrete_to_abstract ?grammar. 
-:zero :has_succ ?one. 
-?one :has_succ ?two.
-?two :has_succ ?three.
-?three :has_succ ?four.
-?four :has_succ ?five.
-?five :has_succ ?six.
-?six :has_succ ?seven.
-?seven :has_succ ?eight.
-?eight :has_succ ?nine.
-?nine :has_succ ?ten.
-(?generated_list ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ?ten).
-?generated_string string_builtins:strXlst ?generated_list.
-:dummy tau_builtins:output ?generated_string. 
-fin.
-
-
-
-
-
-
-
-
-
-
-
-
-
-:built_in_ldl_initial_specification_text :has_value
-"""
-
-string_literal_body is a series of string_literal_body_item.
-string_literal_body_item ++> any char except "\"".
-string_literal_body_item ++> "\\\\".
-string_literal_body_item ++> "\\\"".
-
-#node_name is a category.
-node_name_unquoted works as node_name.
-node_name_unquoted ++> string_literal_body.
-node_name_quoted works as node_name.
-node_name_quoted ++> string_literal.
-
-statements is a series of statement separated with newline.
-
-x_is_a_series_of_y_separated_with_z works as statement.
-x_is_a_series_of_y_separated_with_z ++> node_name, " is a series of ", item_type:node_name, " separated with ", separator:string_literal.
-
-subtype works as statement.
-subtype ++> sub:node_name, " works as ", sup:node_name.
-
-grammar works as statement.
-grammar ++> node_name, " ++> ", grammar_items, ".".
-
-grammar_items is a series of grammar_item separated with ", ".
-#grammar_item is a category.
-
-string_literal works as grammar_item.
-string_literal ++> "\"", string_literal_body, "\"".
-node_name works as grammar_item.
-node_name_with_child_name works as grammar item.
-node_name_with_child_name ++> child_name:node_name, ":", type_name:node_name.
-
-comment works as statement.
-comment ++> "#", comment_body.
-comment_body ++> any char except "\n".
-
-""";
-:has_comment """
-this is a declarative definition of the basic building blocks of the ddl and their grammar.
-probably just dcg + "any char except" +  optional child names + "indent"/"dedent" special syntax items.
-now we need to turn this into (at least in-memory) ldl ast.
-""".
-
-
+#
 :grammar_of_initial_ldl :has_value
 """
-string_literal --> "\"", string_literal_body, "\"".
+string_literal --> [\"], string_literal_body, [\"].
 
 string_literal_body --> string_literal_body_item, string_literal_body.
 string_literal_body --> .
 
-string_literal_body_item --> any char except "\"\n".
-string_literal_body_item --> "\\\\".
-string_literal_body_item --> "\\\"".
-string_literal_body_item --> "\\n".
+string_literal_body_item --> any char except [\"\n].
+string_literal_body_item --> [\\\\].
+string_literal_body_item --> [\\\"].
+string_literal_body_item --> [\\n].
 
 node_name --> node_name_unquoted.
 node_name_unquoted --> string_literal_body.
 node_name --> node_name_quoted.
 node_name_quoted --> string_literal.
 
-statements --> statement, ".\n", statements.
-statements --> "\n", statements.
+statements --> statement, [.\n], statements.
+statements --> [\n], statements.
 statements --> .
 
 statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, " is a series of ", node_name, " separated with ", string_literal.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
 
 statement --> subtype.
-subtype --> node_name, " works as ", node_name.
+subtype --> node_name, [ works as ], node_name.
 
 statement --> grammar.
-grammar --> node_name, " ++> ", grammar_items, ".".
+grammar --> node_name, [ ++> ], grammar_items, [.].
 
-grammar_items --> grammar_item, ", ", grammar_items.
+grammar_items --> grammar_item, [, ], grammar_items.
 grammar_items --> grammar_item.
 grammar_items --> .
 
 grammar_item --> string_literal.
 grammar_item --> node_name.
 grammar_item --> node_name_with_child_name.
-node_name_with_child_name --> node_name, ":", node_name.
+node_name_with_child_name --> node_name, [:], node_name.
 """;
 :has_comment """
 need to extend the simple dcg parser with "any char except"
 then build a parser that works off that ast. i already have a parser that works off a simple dcg, so i'd extend it.
 """.
+
+
+
+
+fin.
+query
+:grammar_of_initial_ldl :has_value ?v.
+?v string_builtins:strXlst ?l. ?l :statement_lines (rdf:nil ?grammar_concrete). 
+
+fin.
+shouldbetrue
+
+
+

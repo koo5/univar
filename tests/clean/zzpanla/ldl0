@@ -298,8 +298,8 @@ string_literal_body --> .
 
 string_literal_body_item --> any char except [\\n\\[\\]\\\\].
 string_literal_body_item --> [\\\\n].
-string_literal_body_item --> [\\\\[].
-string_literal_body_item --> [\\\\]].
+string_literal_body_item --> [\\\\\\[].
+string_literal_body_item --> [\\\\\\]].
 string_literal_body_item --> [\\\\\\\\].
 
 node_name --> node_name_unquoted.
@@ -328,6 +328,7 @@ grammar_item --> string_literal.
 grammar_item --> node_name.
 grammar_item --> node_name_with_child_name.
 node_name_with_child_name --> node_name, [:], node_name.
+
 """;
 :has_comment """
 need to extend the simple dcg parser with "any char except"

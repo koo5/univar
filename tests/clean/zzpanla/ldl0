@@ -75,7 +75,7 @@ kb
 {?x0 :rhs_item (?rest ?item)} <= {
 	?item a :identifier. ?item :name ?name.
 	?x0 :identifier (?rest ?name).
-}
+}.
 
 {?x0 :rhs_item (?rest ?item)} <= {
 	?item a :literal. ?item :value ?string.

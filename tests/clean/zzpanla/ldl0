@@ -276,41 +276,11 @@ kb
 :grammar_of_initial_ldl :has_value
 """
 string_literal --> [\"], string_literal_body, [\"].
-
 string_literal_body --> string_literal_body_item, string_literal_body.
 string_literal_body --> .
-
-string_literal_body_item --> any char except [\"\n].
 string_literal_body_item --> [\\\\].
 string_literal_body_item --> [\\\"].
 string_literal_body_item --> [\\n].
-
-node_name --> node_name_unquoted.
-node_name_unquoted --> string_literal_body.
-node_name --> node_name_quoted.
-node_name_quoted --> string_literal.
-
-statements --> statement, [.\n], statements.
-statements --> [\n], statements.
-statements --> .
-
-statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
-
-statement --> subtype.
-subtype --> node_name, [ works as ], node_name.
-
-statement --> grammar.
-grammar --> node_name, [ ++> ], grammar_items, [.].
-
-grammar_items --> grammar_item, [, ], grammar_items.
-grammar_items --> grammar_item.
-grammar_items --> .
-
-grammar_item --> string_literal.
-grammar_item --> node_name.
-grammar_item --> node_name_with_child_name.
-node_name_with_child_name --> node_name, [:], node_name.
 """;
 :has_comment """
 need to extend the simple dcg parser with "any char except"

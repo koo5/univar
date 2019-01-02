@@ -895,7 +895,6 @@ def load(kb, goal, identification, base):
 	facts = Graph(Triple(un_move_me_ize_pred(fixup3(x[1])),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
 	facts.id=head_triples_triples_id
 	head_triples_triples_id += 1
-
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
 		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
@@ -919,6 +918,15 @@ def load(kb, goal, identification, base):
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((un_move_me_ize_pred(fixup3(body_triple[1]))), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
 			#body.reverse()
+			to_expand = []
+			for triple in head_triples_triples + body:
+				for thing in triple.args:
+					if type(thing) == rdflib.Variable:
+						if str(thing).endswith('_'):
+							to_expand.append(thing)
+			for thing in to_expand:
+				body.insert(0,Triple(rdflib.RDF.first, [thing, rdflib.Variable(str(thing)[:-1]+'f')]))
+				body.insert(0,Triple(rdflib.RDF.rest , [thing, rdflib.Variable(str(thing)[:-1]+'r')]))
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:
 					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")

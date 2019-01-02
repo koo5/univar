@@ -344,6 +344,7 @@ int unify(cpppred_state & __restrict__ state)
 				[
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
+					If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')),
 					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]),
 					Statement('return 0')
 				]
@@ -1027,6 +1028,31 @@ def create_builtins(emitter):
 
 
 	b = Builtin()
+	b.doc = """dummy toggle_tracing dummy."""
+	b.example = """
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>."""
+	def build_in(builtin):
+		return Lines([Line("""
+			{
+			#ifdef TRACE_PROOF
+				tracing_enabled = !tracing_enabled;
+				top_level_tracing_coro = NULL;				
+			#endif
+			"""), emitter.do_yield(), Line("""
+			#ifdef TRACE_PROOF
+				tracing_enabled = !tracing_enabled;		
+				top_level_tracing_coro = NULL;				
+			#endif
+
+			}
+			""")])
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#toggle_tracing')
+	b.register(emitter)
+
+
+
+	b = Builtin()
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
 	"x" const_is_not_equal_to_const "y"."""
@@ -1051,15 +1077,17 @@ def create_builtins(emitter):
 			return Lines([Line("""
 			{
 				#ifdef TRACE_PROOF
+				{
 					string comment = thing_to_string(state.incoming[0]) + " any_char_except " + thing_to_string(state.incoming[1]);
 					//cerr << comment;				
 					state.set_comment(comment); 
 					state.num_substates = 0;
 					state.set_active(true);
+				}
 				#endif
 
-				ASSERT (state.incoming[0] != BOUND);
-				ASSERT (state.incoming[1] != BOUND);
+				ASSERT (state.incoming[0]->type() != BOUND);
+				ASSERT (state.incoming[1]->type() != BOUND);
 
 				#define character  state.incoming[0]
 				#define exceptions state.incoming[1]

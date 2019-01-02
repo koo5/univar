@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python3 -O pyin/pyco.py $@
+PYTHONUNBUFFERED=1 python3 -O pyin/pyco.py $@
 

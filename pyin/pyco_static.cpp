@@ -144,6 +144,7 @@ void maybe_print_euler_steps()
 
 
 #ifdef TRACE_PROOF
+    bool tracing_enabled = true;
     string trace_string;
     ofstream trace;
     size_t current_trace_file_id = 0;
@@ -429,7 +430,7 @@ struct cpppred_state
     #endif
 };
 
-cpppred_state *top_level_coro;
+cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 
@@ -543,8 +544,10 @@ cpppred_state *top_level_coro;
 
     void dump()
     {
+        if (!top_level_tracing_coro)
+            return;
         trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
-            dump_state(0, *top_level_coro);
+        dump_state(0, *top_level_tracing_coro);
         trace_write_raw("</ul><br><br><br><br><br><br><br>\");");
         trace_flush();
         maybe_reopen_trace_file();
@@ -890,7 +893,7 @@ int main (int argc, char *argv[])
         open_trace_file();
 	#endif
     query_start_time = std::chrono::steady_clock::now();
-    top_level_coro = grab_states(1);
+    top_level_tracing_coro = top_level_coro = grab_states(1);
     top_level_coro->entry = 0;
     while(query(*top_level_coro)!=0)
     {

@@ -1067,42 +1067,50 @@ def create_builtins(emitter):
 				if (exceptions->type() != CONST)
 					goto fail_any_char_except;
 				
-				string exceptions_string = nodeids2consts[exceptions->node_id()].value;
-				
 				if(character->type() == CONST)
 				{
-					string character_string = nodeids2consts[character->node_id()].value;
-					if (character_string.size() != 1)
-						goto fail_any_char_except;					
-					
-					char ch = character_string[0];
-					for (size_t exceptions_pos = 0; exceptions_pos < exceptions_string.size(); exceptions_pos++)
-						if (exceptions_string[exceptions_pos] == ch)
-							goto fail_any_char_except;							  
-	
+					{
+						string character_string = nodeids2consts[character->node_id()].value;
+						if (character_string.size() != 1)
+							goto fail_any_char_except;					
+						
+						string exceptions_string = nodeids2consts[exceptions->node_id()].value;
+						{
+							char ch = character_string[0];
+							for (size_t exceptions_pos = 0; exceptions_pos < exceptions_string.size(); exceptions_pos++)
+								if (exceptions_string[exceptions_pos] == ch)
+									goto fail_any_char_except;
+						}							  
+					}
 					"""), emitter.do_yield(), Line("""
 				}
 				else if(character->type() == UNBOUND)
 				{
 					state.states = grab_states(1);
-					state.locals = grab_things(1);
+					state.locals = grab_things(2);
+					#define ch (*((char*)(&state.locals[0])))
+					#define ch_thing state.locals[1]
 					state.states[0].incoming[0] = character;
 					state.states[0].incoming[1] = &state.locals[0];
-					for (char ch = 1; ch <= 255; ch++)
+					for (ch = 1; ch < 127; ch++)
 					{
-						for (size_t exceptions_pos = 0; exceptions_pos < exceptions_string.size(); exceptions_pos++)
-							if (exceptions_string[exceptions_pos] == ch)
-								continue;
-						string ch_string(1, ch);
-					 	state.locals[0] = Thing{CONST,push_const(Constant{STRING, ch_string}) IF_TRACE(ch_string)};
+						{
+							string exceptions_string = nodeids2consts[exceptions->node_id()].value;
+							for (size_t exceptions_pos = 0; exceptions_pos < exceptions_string.size(); exceptions_pos++)
+								if (exceptions_string[exceptions_pos] == ch)
+									goto any_char_except__next_char;
+							string ch_string(1, ch);
+					 		ch_thing = Thing{CONST,push_const(Constant{STRING, ch_string}) IF_TRACE(ch_string)};
+					 	}
 						state.states[0].entry = 0;
 						while (unify(state.states[0]))
 						{
 							"""), emitter.do_yield(), Line("""
 						}
 						pop_const();
+						any_char_except__next_char:;
 					}
-					release_things(1);
+					release_things(2);
 					release_states(1);
 				}
 
@@ -1111,8 +1119,9 @@ def create_builtins(emitter):
 				#ifdef TRACE_PROOF
 					state.set_active(false);
 				#endif
-
-				#endif exceptions
+				#undef ch
+				#undef ch_thing
+				#undef exceptions
 				#undef character  	
 			}
 			""")])

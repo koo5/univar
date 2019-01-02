@@ -47,7 +47,7 @@ kb
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 {?x a :member_of_chars_allowed_in_literals} <= {?x a :alphanum}.
-{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-=+<>{}'\"|,./;:" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-=+<>{}'\"|,./;:`" string_builtins:is_split ?l. ?x :memberof ?l.}.
 
 
 

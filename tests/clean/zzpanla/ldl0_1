@@ -14,6 +14,8 @@ kb
 
 :zero a :nat.
 {?x a :nat. ?y :has_succ ?x.} <= {?y a :nat}.
+:minus_one a :negative_nat.
+{?x a :negative_nat. ?x :has_succ ?y.} <= {?y a :negative_nat}.
 
 {
   ?LIST rdf:first ?FIRST .
@@ -146,7 +148,7 @@ kb
 #parser of simple dcg
 {:dummy :parses_to_rhs (?x0 ?rest ?rhs_)} <= {
 	:dummy :rhs_item (?x0 ?after_rhs_item ?rhsf).
-	:dummy :maybe_more_rhs_items (?x0 ?after_rhs_item ?end ?rhsr).
+	:dummy :maybe_more_rhs_items (?after_rhs_item ?end ?rhsr).
 	?end rdf:first ".". ?end rdf:rest ?rest.
 }.
 
@@ -170,7 +172,7 @@ kb
 	:dummy :identifier (?x0 ?rest ?name).
 }.
 
-{:dummy :rhs_item (:dummy ?rest ?item)} <= {
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
 	?item a :literal. ?item :value ?string.
 	:dummy :literal (?x0 ?rest ?string).
 }.
@@ -258,7 +260,7 @@ kb
 	:dummy :rest_of_literal (?x2 ?rest ?val_rest).
 }.
 
-{:dummy :newline (?rest ?x0)} <= {
+{:dummy :newline (?x0 ?rest)} <= {
 		#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
 	?x0 rdf:first "\n". 
 		#:dummy tau_builtins:output "yes".
@@ -590,7 +592,7 @@ verb --> [chases].
 ?grammar_concrete :concrete_to_abstract ?grammar.
 "the cat chases the dinosaur" string_builtins:strXlst ?input.
 :dummy tau_builtins:output "parse..".
-(?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence ).
+(?input ?grammar "sentence") :parse_nonterminal (rdf:nil ?sentence :minus_one).
 fin.
 shouldbetrue
 

@@ -406,11 +406,13 @@ query
 :grammar_of_initial_ldl :has_value ?v.
 ?v string_builtins:strXlst ?l.
 ?l :statement_lines (rdf:nil ?grammar_concrete).
+:dummy tau_builtins:output "dcg parsed.".
 ?grammar_concrete :concrete_to_abstract ?grammar.
 :initial_ldl_text :has_value ?initial_ldl_text_value.
 ?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
 (?initial_ldl_text_list ?grammar "statements") :eq ?a1.
 (rdf:nil ?initial_ldl ?depth) :eq ?a2.
+:dummy tau_builtins:output "parse_nonterminal...".
 :dummy tau_builtins:toggle_tracing :dummy.
 ?a1 :parse_nonterminal ?a2.
 

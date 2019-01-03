@@ -1,5 +1,3 @@
-#define SECOND_CHANCE
-
 #ifndef DEBUG
 /*used at least by cassert, of the headers included below*/
 #define NDEBUG
@@ -544,7 +542,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
     void dump()
     {
-        if (!top_level_tracing_coro)
+        if (!top_level_tracing_coro || !tracing_enabled)
             return;
         trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
         dump_state(0, *top_level_tracing_coro);
@@ -647,6 +645,10 @@ vector<Thing*>* query_list_wrapper(Thing *x)
 returns pointers to things, which could be invalid by the time this finishes...
 */
 {
+    #ifdef TRACE_PROOF
+        bool was_tracing_enabled = tracing_enabled;
+        tracing_enabled = false;
+    #endif
     cpppred_state *state = grab_states(1);
     state->entry = 0;
     state->incoming[0] = x;
@@ -669,6 +671,9 @@ returns pointers to things, which could be invalid by the time this finishes...
 	#undef output
 	release_states(1);
 	//cerr << "returning result " << result << " with size " << result->size() << endl;
+	#ifdef TRACE_PROOF
+	    tracing_enabled = was_tracing_enabled;
+	#endif
 	return result;
 }
 

@@ -168,6 +168,8 @@ class Emitter(object):
 		return Line(s.case_str() + ":;")
 
 	def generate_cpp(s, goal, goal_graph, trace_output_path):
+		if second_chance_:
+			s.prologue.append(Line('#define SECOND_CHANCE'))
 		if trace:
 			s.prologue.append(Line('#define TRACE'))
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
@@ -190,11 +192,22 @@ class Emitter(object):
 		s.ep_tables = ["ep" + str(rule.debug_id) for rule in all_rules if rule != goal]
 		for pred_name in preds.keys():
 			s.prologue.append(Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))"))
+		consts_done = set()
+		consts = Lines()
+		for rule in all_rules:
+			if type(rule) == Builtin: continue
+			i = rule.original_head
+			if i in consts_done:
+				continue
+			consts_done.add(i)
+			consts.append(
+				Statement("static Locals " + consts_of_rule(i) + s.things_literals(666, rule.consts)))
+
 		r = Module(
 		[
 			Lines([
 				Statement("static ep_table "+x) for x in s.ep_tables]),
-
+			consts,
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
 			s.unification()
@@ -334,9 +347,6 @@ int unify(cpppred_state & __restrict__ state)
 		#max_states_len = max(r.max_states_len for r in rules)
 		return Collection([
 			comment(common.shorten(pred_name) if pred_name else 'query'),
-			Lines(
-				[Statement("static Locals " + consts_of_rule(rule.debug_id) + s.things_literals(666, rule.consts)) for rule in rules]
-			),
 			Line(
 				pred_func_declaration(('pred_'+cppize_identifier(pred_name)) if pred_name else 'query')
 			),
@@ -344,7 +354,7 @@ int unify(cpppred_state & __restrict__ state)
 				[
 					Statement('goto *(((char*)&&case0) + state.entry)'),
 					s.label(),
-					If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')),
+					If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')) if trace_proof_ else Line(),
 					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]),
 					Statement('return 0')
 				]
@@ -528,7 +538,7 @@ def local_expr(name, rule, not_getval = False):
 	if name in rule.locals_map:
 		return ('get_value' if not not_getval else '') +  '(&state.locals[' + str(rule.locals_map[name]) + '])'
 	elif name in rule.consts_map:
-		return '&'+consts_of_rule(rule.debug_id) + '[' + str(rule.consts_map[name])+']'
+		return '&'+consts_of_rule(rule.original_head) + '[' + str(rule.consts_map[name])+']'
 
 def cppize_identifier(i: str) -> str:
 	return common.fix_up_identification(common.shorten(i))
@@ -538,8 +548,8 @@ def pred_func_declaration(pred_name):
 	pred_name = cppize_identifier(pred_name)
 	return "static size_t " + pred_name + "(cpppred_state & __restrict__ state)"
 
-def consts_of_rule(rule_index):
-	return "consts_of_rule_" + str(rule_index)
+def consts_of_rule(original_head_id):
+	return "consts_of_rule_" + str(original_head_id)
 
 def push_ep(rule):
 	return Statement('ep'+str(rule.debug_id)+
@@ -573,12 +583,15 @@ def comment(s):
 @click.option('--notrace', default=False, type=bool)
 @click.option('--nodebug', default=False, type=bool)
 @click.option('--novalgrind', default=False, type=bool)
+@click.option('--profile', default=False, type=bool)
 @click.option('--oneword', default=False, type=bool)
 @click.option('--trace_ep_checks', default=False, type=bool)
 @click.option('--trace_ep_tables', default=False, type=bool)
 @click.option('--trace_proof', default=True, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, oneword, trace_ep_checks, trace_ep_tables, trace_proof):
-	global preds, query_rule, trace, oneword_, trace_ep_tables_, trace_proof_
+@click.option('--second_chance', default=True, type=bool)
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, oneword, trace_ep_checks, trace_ep_tables, trace_proof, second_chance):
+	global preds, query_rule, trace, oneword_, trace_ep_tables_, trace_proof_, second_chance_
+	second_chance_ = second_chance
 	if notrace:
 		trace_proof = False
 		trace_ep_tables = False
@@ -595,7 +608,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	common.log = pyin.log
 	rules, query_rule, goal_graph = pyin.load(kb, goal, identification, base)
 	for rule in rules:
-		preds[rule.head.pred].append(rule)
+		pred = rule.head.pred
+		use = False
+		for rule2 in rules + [query_rule]:
+			for bi in rule2.body:
+				if bi.pred == pred:
+					use = True
+		if use:
+			preds[pred].append(rule)
 	e = Emitter()
 	create_builtins(e)
 	if trace_ep_checks:
@@ -606,17 +626,19 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		e.prologue.append(Line('#define TRACE_PROOF'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 	try:
-		subprocess.check_call(['make', ("pyco" if nodebug else "debug")], cwd = outpath)
+		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)
 	except subprocess.CalledProcessError:
 		sys.exit(1)
+	subprocess.call(["rm", outpath+"trace.js"])
 	print("#ok lets run this")
 	sys.stdout.flush()
-	subprocess.call(["rm", outpath+"trace.js"])
 	pyco_executable = outpath+'/pyco'
-	if novalgrind:
-		subprocess.check_call([pyco_executable], bufsize=1)#still not getting output until the end
+	if profile:
+		subprocess.check_call(('time valgrind --tool=callgrind --dump-instr=yes --dump-line=yes --simulate-cache=yes --collect-jumps=yes --collect-systime=yes  --collect-bus=yes  --branch-sim=yes --cache-sim=yes'.split())+ [pyco_executable])
+	elif novalgrind:
+		subprocess.check_call(['time', pyco_executable], bufsize=1)#still not getting output until the end
 	else:
-		subprocess.check_call(['valgrind',  '--vgdb-error=1', pyco_executable])
+		subprocess.check_call(['time', 'valgrind',  '--vgdb-error=1', pyco_executable])
 
 
 
@@ -794,77 +816,77 @@ def create_builtins(emitter):
 	def build_in(builtin):
 		if not 'r0bnbuiltins_aware_list' in emitter.bnodes:
 			emitter.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
-				{
-					(void)state;
-					return 0;
-				}
+size_t query_list(cpppred_state & __restrict__ state)
+{
+	(void)state;
+	return 0;
+}
 		"""))
 			return Lines()
 		else:
 			emitter.prologue.append(Line("""
-				size_t query_list(cpppred_state & __restrict__ state)
+size_t query_list(cpppred_state & __restrict__ state)
+{
+	Thing *&rdf_list = state.incoming[0];
+	ASSERT(rdf_list->type() != BOUND);
+	if (!(*rdf_list == Thing{BNODE, r0bnbuiltins_aware_list IF_TRACE("whatever")}))
+		return 0;
+	Thing *&result_thing = state.incoming[1];
+	vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
+	const size_t first = 0;
+	const size_t rest = 1; 
+	goto *(((char*)&&case0) + state.entry);
+	case0:
+	#ifdef TRACE_PROOF
+		state.num_substates = 0;
+		state.status = ACTIVE;
+	#endif
+	//cerr << "i" << state.incoming[1] << endl;
+	ASSERT(result_vec);
+	//cerr << (result_vec) << ", " << result_vec->size() << endl;
+	//ASSERT(result_vec->empty());
+	state.states = grab_states(3);
+	state.locals = grab_things(2);
+	state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
+	state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
+	state.states[0].entry = 0;
+	ASSERT(rdf_list->type() != BOUND);
+	state.states[0].incoming[0] = rdf_list;
+	state.states[0].incoming[1] = &state.locals[first];
+	while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
+	{
+		//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
+		ASSERT(state.locals[first].type() == BOUND);
+		result_vec->push_back(state.locals[first].binding());
+		state.states[1].entry = 0;
+		ASSERT(rdf_list->type() != BOUND);
+		state.states[1].incoming[0] = rdf_list;
+		state.states[1].incoming[1] = &state.locals[rest];
+		while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
+		{
+			if (get_value(&state.locals[rest])->type() == CONST and 
+				get_value(&state.locals[rest])->node_id() == consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first)
+			{
+				yield(case1);
+				case1:;
+			}
+			else
+			{
+				state.states[2].entry = 0;
+				state.states[2].incoming[0] = get_value(&state.locals[rest]);
+				state.states[2].incoming[1] = result_thing;
+				while(query_list(state.states[2]))
 				{
-					Thing *&rdf_list = state.incoming[0];
-					ASSERT(rdf_list->type() != BOUND);
-					if (!(*rdf_list == Thing{BNODE, r0bnbuiltins_aware_list IF_TRACE("whatever")}))
-						return 0;
-					Thing *&result_thing = state.incoming[1];
-					vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
-					const size_t first = 0;
-					const size_t rest = 1; 
-					goto *(((char*)&&case0) + state.entry);
-					case0:
-					#ifdef TRACE_PROOF
-						state.num_substates = 0;
-						state.status = ACTIVE;
-					#endif
-					//cerr << "i" << state.incoming[1] << endl;
-					ASSERT(result_vec);
-					//cerr << (result_vec) << ", " << result_vec->size() << endl;
-					//ASSERT(result_vec->empty());
-					state.states = grab_states(3);
-					state.locals = grab_things(2);
-					state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
-					state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
-					state.states[0].entry = 0;
-					ASSERT(rdf_list->type() != BOUND);
-					state.states[0].incoming[0] = rdf_list;
-					state.states[0].incoming[1] = &state.locals[first];
-					while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
-					{
-						//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-						ASSERT(state.locals[first].type() == BOUND);
-						result_vec->push_back(state.locals[first].binding());
-						state.states[1].entry = 0;
-						ASSERT(rdf_list->type() != BOUND);
-						state.states[1].incoming[0] = rdf_list;
-						state.states[1].incoming[1] = &state.locals[rest];
-						while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
-						{
-							if (get_value(&state.locals[rest])->type() == CONST and 
-								get_value(&state.locals[rest])->node_id() == consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first)
-							{
-								yield(case1);
-								case1:;
-							}
-							else
-							{
-								state.states[2].entry = 0;
-								state.states[2].incoming[0] = get_value(&state.locals[rest]);
-								state.states[2].incoming[1] = result_thing;
-								while(query_list(state.states[2]))
-								{
-									yield(case2);
-									case2:;
-								}
-							}
-						}
-					}
-					release_things(2);
-					release_states(3);
-					END;
+					yield(case2);
+					case2:;
 				}
+			}
+		}
+	}
+	release_things(2);
+	release_states(3);
+	END;
+}
 			"""))
 			if not is_pred_used(builtin.pred):
 				return Lines()

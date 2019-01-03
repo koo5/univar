@@ -37,5 +37,4 @@ pip install -r requirements_pyco.txt
 
 
 env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true --notrace true --oneword true     " tests/clean/zzpanla/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S")
-
-
+env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true   --oneword true  --profile true     " tests/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S")

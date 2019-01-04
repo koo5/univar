@@ -32,17 +32,6 @@ kb
 
 
 
-#data declarations
-{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
-{?x a :identifier.  ?x :name ?NAME} <= {}.
-{?x a :literal.  ?x :value ?vALUE} <= {}.
-{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
-{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
-{?x a :newline} <= {}.
-
-
-
-
 #character classess
 "a" :is_letter :true.
 "b" :is_letter :true.
@@ -349,6 +338,7 @@ kb
 
 
 
+
 #parse something with the grammar
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
@@ -359,8 +349,6 @@ kb
 		:dummy tau_builtins:output "rule...".
 	(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
 }.
-
-{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
 
 {(?x0 ?grammar ?rhs) :parse_rhs (?rest ?ast ?depth)} <= {
 		#:dummy tau_builtins:output "parse_rhs".
@@ -470,11 +458,14 @@ grammar_items --> .
 grammar_item --> string_literal.
 grammar_item --> node_name.
 grammar_item --> node_name_with_child_name.
-node_name_with_child_name --> node_name, [:], node_name.
 grammar_item --> any_char_except.
 grammar_item --> all_chars_until_one_of.
+
 any_char_except --> [any char except ], string_literal.
 all_chars_until_one_of --> [all chars until one of ], string_literal.
+
+node_name_with_child_name --> node_name, [:], node_name.
+
 """;
 :has_comment """
 need to extend the simple dcg parser with "any char except"
@@ -491,6 +482,126 @@ this is a declarative definition of the basic building blocks of the ldl and the
 probably just dcg + "any char except" +  optional child names + "indent"/"dedent" special syntax items.
 now we need to turn this into (at least in-memory) ldl ast.
 """.
+
+
+
+
+#string_literal --> [\\[], string_literal_body, [\\]].
+
+
+#string_literal_body --> string_literal_body_item, string_literal_body.
+{?parsed :parsed2builtins ?ldl_} <=
+#parsed is a node:
+#   children is a list of nodes:
+#       string_literal_body_item
+#       string_literal_body
+#ldl is a list of chars
+{
+    ?parsed :type "string_literal_body". ?parsed :children ?body_ch_.
+    #?body_chf :type "string_literal_body_item".
+    ?body_chf :children ?item_ch_.
+    #?item_chf a :literal.
+    ?item_chf :value ?v.
+    ?ldlf :eq ?v.
+    ?body_chr rdf:first ?body2.
+    ?body2 :parsed2builtins ?ldlr.
+}.
+#string_literal_body --> .
+{?parsed :parsed2builtins rdf:nil} <=
+{
+    ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
+}.
+
+string_literal_body_item --> any char except [\\n\\[\\]\\\\].
+string_literal_body_item --> [\\\\n].
+string_literal_body_item --> [\\\\\\[].
+string_literal_body_item --> [\\\\\\]].
+string_literal_body_item --> [\\\\\\\\].
+
+node_name --> node_name_unquoted.
+node_name_unquoted --> string_literal_body.
+node_name --> node_name_quoted.
+node_name_quoted --> string_literal.
+
+statements --> statement, [.\\n], statements.
+statements --> comment, [\\n], statements.
+statements --> [\\n], statements.
+statements --> .
+
+statement --> x_is_a_series_of_y_separated_with_z.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
+
+statement --> subtype.
+subtype --> node_name, [ works as ], node_name.
+
+statement --> grammar.
+grammar --> node_name, [ ++> ], grammar_items, [.].
+
+comment --> [#], all chars until one of [\\n].
+
+grammar_items --> grammar_item, [, ], grammar_items.
+grammar_items --> grammar_item.
+grammar_items --> .
+
+grammar_item --> string_literal.
+grammar_item --> node_name.
+grammar_item --> node_name_with_child_name.
+grammar_item --> any_char_except.
+grammar_item --> all_chars_until_one_of.
+
+any_char_except --> [any char except ], string_literal.
+all_chars_until_one_of --> [all chars until one of ], string_literal.
+
+#node_name_with_child_name --> node_name, [:], node_name.
+{?parsed :parsed2builtins ?ldl_} <=
+{
+    ?parsed :type "node_name_with_child_name". ?parsed :children ?ch0_.
+    ?ch0f a :node. ?chf :parsed2builtins ?ldlf.
+    ?chr :parsed2builtins ?ldlr.
+}.
+
+#statements --> statement, [.\\n], statements.
+#statements --> comment, [\\n], statements.
+{?parsed :parsed2builtins ?ldl_} <=
+{
+    ?parsed :type "statements". ?parsed :children ?ch_.
+    ?chf a :node. ?chf :parsed2builtins ?ldlf.
+    ?chr :parsed2builtins ?ldlr.
+}.
+
+#statements --> [\\n], statements.
+{?parsed :parsed2builtins ?ldl_} <=
+{
+    ?parsed :type "statements". ?parsed :children ?ch_.
+    ?chf a :literal. ?ldlf a ldl:newline.
+    ?chr :parsed2builtins ?ldlr.
+}.
+
+#statements --> .
+{rdf:nil :parsed2builtins rdf:nil} <=
+{}.
+
+
+
+
+
+#data declarations
+#some of these are used both in the concrete and in the abstract phase, so typing differs
+
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+# - name is a string
+{?x a :literal.  ?x :value ?vALUE} <= {}.
+# - value is a string or a list of chars
+{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :newline} <= {}.
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+
+
 
 
 fin.
@@ -512,6 +623,7 @@ query
 :dummy tau_builtins:output "parse_nonterminal...".
 :dummy tau_builtins:toggle_tracing :dummy.
 ?a1 :parse_nonterminal ?a2.
+?initial_ldl :parsed2builtins ?builtins_statements.
 
 fin.
 shouldbetrue
@@ -599,3 +711,12 @@ shouldbetrue
 
 
 
+
+#{?x a :world. ?x :has_modules ?MODULES} <= {}.
+
+
+
+
+#{?path :run :dummy} <= {
+#    ?path :load ?modules.
+#}.

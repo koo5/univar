@@ -111,7 +111,7 @@ def newList(self, n, f):
 	if len(n) == 0 or not n:
 		return nil
 
-	#must_move_to_body, done in pyco.py
+	#mmtb means must_move_to_body, done in pyco.py
 	first = mmtbf
 	rest = mmtbr
 

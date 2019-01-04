@@ -487,6 +487,17 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 
 #string_literal --> [\\[], string_literal_body, [\\]].
+{?parsed :parsed2builtins ?ldl_} <=
+{
+    ?parsed :type "string_literal".
+    ?parsed :children (?string_literal_body_item ?string_literal_body).
+    ?string_literal_body_item :children (?lit).
+    ?lit :value ?ldlf.
+    ?string_literal_body :parsed2builtins ?ldlr.
+}.
+
+
+
 
 
 #string_literal_body --> string_literal_body_item, string_literal_body.
@@ -497,20 +508,26 @@ now we need to turn this into (at least in-memory) ldl ast.
 #       string_literal_body
 #ldl is a list of chars
 {
-    ?parsed :type "string_literal_body". ?parsed :children ?body_ch_.
-    #?body_chf :type "string_literal_body_item".
-    ?body_chf :children ?item_ch_.
-    #?item_chf a :literal.
-    ?item_chf :value ?v.
-    ?ldlf :eq ?v.
-    ?body_chr rdf:first ?body2.
-    ?body2 :parsed2builtins ?ldlr.
+    ?parsed :type "string_literal_body".
+    ?parsed :children (?string_literal_body_item ?string_literal_body).
+    ?string_literal_body_item :children (?lit).
+    ?lit :value ?ldlf.
+    ?string_literal_body :parsed2builtins ?ldlr.
 }.
 #string_literal_body --> .
 {?parsed :parsed2builtins rdf:nil} <=
 {
     ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
 }.
+
+
+
+
+
+
+
+
+
 
 string_literal_body_item --> any char except [\\n\\[\\]\\\\].
 string_literal_body_item --> [\\\\n].

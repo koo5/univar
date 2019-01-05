@@ -524,12 +524,12 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 
 #node_name_with_child_name --> node_name, [:], node_name.
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "node_name_with_child_name". ?parsed :children ?ch0_.
-    ?ch0f a :node. ?chf :parsed2builtins ?ldlf.
-    ?chr :parsed2builtins ?ldlr.
-}.
+    {?parsed :parsed2builtins ?ldl_} <=
+    {
+        ?parsed :type "node_name_with_child_name"; :children (?name ?x, ?type).
+        ?name!:parsed2builtins.
+        
+    }.
 
 #statements --> statement, [.\\n], statements.
 #statements --> comment, [\\n], statements.

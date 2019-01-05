@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="76dbc345-6f01-4fc2-b03a-744946ec425b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyco.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyco.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyin.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -62,7 +59,7 @@
           <entry key="Python Console" value="61" />
           <entry key="cpp" value="11" />
           <entry key="dummy" value="3" />
-          <entry key="ldl0_1" value="198" />
+          <entry key="ldl0_1" value="277" />
           <entry key="py" value="41961" />
           <entry key="txt" value="24" />
         </counts>
@@ -70,7 +67,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="11" />
-          <entry key="PLAIN_TEXT" value="201" />
+          <entry key="PLAIN_TEXT" value="280" />
           <entry key="Python" value="42022" />
           <entry key="Scratch" value="24" />
         </counts>
@@ -164,8 +161,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="482" selection-start-line="482" selection-end-line="482" />
+            <state relative-caret-position="225">
+              <caret line="530" column="8" selection-start-line="530" selection-start-column="8" selection-end-line="530" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -1195,8 +1192,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="482" selection-start-line="482" selection-end-line="482" />
+        <state relative-caret-position="225">
+          <caret line="530" column="8" selection-start-line="530" selection-start-column="8" selection-end-line="530" selection-end-column="8" />
         </state>
       </provider>
     </entry>

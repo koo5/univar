@@ -1,0 +1,4 @@
+{
+ ?x a con:Person.
+ ?x.con:mailbox.log:uri.str:endsWith "@w3.org"
+} => { ?x a :W3CPerson}

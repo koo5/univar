@@ -479,7 +479,11 @@ class Rule(Kbdbgable):
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
-		return "{" + (singleton.head.str(shortener) if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
+		return "{" + (
+			(singleton.head.str(shortener) +
+			(' , original head:' + singleton.original_head_ref.str(shortener))
+			if len(singleton.original_head_ref) > 1 else '')
+			if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
 
 	def make_locals(singleton, head, body, kbdbg_rule):
 		locals = Locals({}, singleton)

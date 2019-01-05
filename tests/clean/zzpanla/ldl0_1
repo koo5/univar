@@ -1,5 +1,6 @@
 @keywords a .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldl:      <http://ldl.ldl#> .
 @prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 @prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
 
@@ -487,38 +488,31 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 
 #string_literal --> [\\[], string_literal_body, [\\]].
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "string_literal".
-    ?parsed :children (?string_literal_body_item ?string_literal_body).
-    ?string_literal_body_item :children (?lit).
-    ?lit :value ?ldlf.
-    ?string_literal_body :parsed2builtins ?ldlr.
-}.
-
-
-
-
+    {?parsed :parsed2builtins ?ldl} <=
+    {
+        ?parsed :type "string_literal"; :children (?x_0 ?body ?x_1).
+        ?ldl a ldl:string_literal; :value ?body!:parsed2builtins^string_builtins:strXlst.
+    }.
 
 #string_literal_body --> string_literal_body_item, string_literal_body.
-{?parsed :parsed2builtins ?ldl_} <=
-#parsed is a node:
-#   children is a list of nodes:
-#       string_literal_body_item
-#       string_literal_body
-#ldl is a list of chars
-{
-    ?parsed :type "string_literal_body".
-    ?parsed :children (?string_literal_body_item ?string_literal_body).
-    ?string_literal_body_item :children (?lit).
-    ?lit :value ?ldlf.
-    ?string_literal_body :parsed2builtins ?ldlr.
-}.
+    {?parsed :parsed2builtins ?ldl_} <=
+    #parsed is a node:
+    #   children is a list of nodes:
+    #       string_literal_body_item
+    #       string_literal_body
+    #ldl is a list of chars
+    {
+        ?parsed :type "string_literal_body".
+        ?parsed :children (?string_literal_body_item ?string_literal_body).
+        ?string_literal_body_item :children (?lit).
+        ?lit :value ?ldlf.
+        ?string_literal_body :parsed2builtins ?ldlr.
+    }.
 #string_literal_body --> .
-{?parsed :parsed2builtins rdf:nil} <=
-{
-    ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
-}.
+    {?parsed :parsed2builtins rdf:nil} <=
+    {
+        ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
+    }.
 
 
 
@@ -528,46 +522,6 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 
 
-
-string_literal_body_item --> any char except [\\n\\[\\]\\\\].
-string_literal_body_item --> [\\\\n].
-string_literal_body_item --> [\\\\\\[].
-string_literal_body_item --> [\\\\\\]].
-string_literal_body_item --> [\\\\\\\\].
-
-node_name --> node_name_unquoted.
-node_name_unquoted --> string_literal_body.
-node_name --> node_name_quoted.
-node_name_quoted --> string_literal.
-
-statements --> statement, [.\\n], statements.
-statements --> comment, [\\n], statements.
-statements --> [\\n], statements.
-statements --> .
-
-statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
-
-statement --> subtype.
-subtype --> node_name, [ works as ], node_name.
-
-statement --> grammar.
-grammar --> node_name, [ ++> ], grammar_items, [.].
-
-comment --> [#], all chars until one of [\\n].
-
-grammar_items --> grammar_item, [, ], grammar_items.
-grammar_items --> grammar_item.
-grammar_items --> .
-
-grammar_item --> string_literal.
-grammar_item --> node_name.
-grammar_item --> node_name_with_child_name.
-grammar_item --> any_char_except.
-grammar_item --> all_chars_until_one_of.
-
-any_char_except --> [any char except ], string_literal.
-all_chars_until_one_of --> [all chars until one of ], string_literal.
 
 #node_name_with_child_name --> node_name, [:], node_name.
 {?parsed :parsed2builtins ?ldl_} <=
@@ -616,6 +570,15 @@ all_chars_until_one_of --> [all chars until one of ], string_literal.
 # - value is a string
 {?x a :newline} <= {}.
 {?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+
+
+
+
+
+
+
+ldl:newline a ldl:node.
 
 
 

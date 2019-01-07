@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="76dbc345-6f01-4fc2-b03a-744946ec425b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -39,8 +41,10 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="cpp" value="1" />
-          <entry key="ldl0_1" value="1" />
-          <entry key="py" value="476" />
+          <entry key="json" value="1" />
+          <entry key="ldl0_1" value="4" />
+          <entry key="ldl_2" value="2" />
+          <entry key="py" value="483" />
           <entry key="pyi" value="1" />
           <entry key="txt" value="1" />
         </counts>
@@ -48,10 +52,10 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="C++" value="1" />
-          <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Python" value="476" />
+          <entry key="PLAIN_TEXT" value="6" />
+          <entry key="Python" value="483" />
           <entry key="PythonStub" value="1" />
-          <entry key="Scratch" value="1" />
+          <entry key="Scratch" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
@@ -59,7 +63,9 @@
           <entry key="Python Console" value="61" />
           <entry key="cpp" value="11" />
           <entry key="dummy" value="3" />
-          <entry key="ldl0_1" value="277" />
+          <entry key="json" value="160" />
+          <entry key="ldl0_1" value="722" />
+          <entry key="ldl_2" value="439" />
           <entry key="py" value="41961" />
           <entry key="txt" value="24" />
         </counts>
@@ -67,102 +73,21 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="11" />
-          <entry key="PLAIN_TEXT" value="280" />
+          <entry key="PLAIN_TEXT" value="1164" />
           <entry key="Python" value="42022" />
-          <entry key="Scratch" value="24" />
+          <entry key="Scratch" value="184" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages" />
     </session>
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/pymantic/sparql.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="48">
-              <caret line="75" column="17" selection-start-line="75" selection-start-column="17" selection-end-line="75" selection-end-column="17" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pyin_main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="22">
-              <caret line="45" column="26" selection-start-line="45" selection-start-column="26" selection-end-line="45" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pyin.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="258">
-              <caret line="775" selection-start-line="775" selection-end-line="775" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/kbdbg2graphviz.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="348">
-              <caret line="410" column="18" selection-start-line="410" selection-start-column="18" selection-end-line="410" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/kbdbg2graphviz3.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="326">
-              <caret line="712" column="8" selection-start-line="712" selection-start-column="8" selection-end-line="712" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugins/parsers/nquads.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="65" selection-start-line="65" selection-end-line="65" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugin.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="104">
-              <caret line="104" selection-start-line="104" selection-end-line="104" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/click/core.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="717" selection-start-line="717" selection-end-line="717" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pyco.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="23">
-              <caret line="365" selection-start-line="365" selection-end-line="365" />
-            </state>
-          </provider>
-        </entry>
-      </file>
+    <leaf>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="530" column="8" selection-start-line="530" selection-start-column="8" selection-end-line="530" selection-end-column="8" />
+            <state relative-caret-position="195">
+              <caret line="761" lean-forward="true" selection-start-line="761" selection-end-line="761" />
             </state>
           </provider>
         </entry>
@@ -178,7 +103,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>fetch_list</find>
       <find>query</find>
       <find>???</find>
       <find>list_subquery</find>
@@ -208,6 +132,7 @@
       <find>= prefi</find>
       <find>kbdbg_te</find>
       <find>check_fu</find>
+      <find>initial_ldl_text</find>
     </findStrings>
     <replaceStrings>
       <replace>log</replace>
@@ -246,12 +171,13 @@
         <option value="$PROJECT_DIR$/kbdbg2graphviz.py" />
         <option value="$PROJECT_DIR$/kbdbg2graphviz3.py" />
         <option value="$PROJECT_DIR$/pyin.py" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.json" />
+        <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" />
         <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="-1" />
+  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
     <option name="y" value="25" />
     <option name="width" value="834" />
     <option name="height" value="495" />
@@ -511,8 +437,8 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value="pyco&#9;null&#9;null&#10;kbdbg&#9;FILE&#9;file:///home/koom/univar/pyin/kbdbg2graphviz3.py&#10;kbdb&#9;FILE&#9;file:///home/koom/univar/pyin/kbdbg2graphviz.py&#10;comm&#9;FILE&#9;file:///home/koom/univar/pyin/common.py&#10;pyin&#9;FILE&#9;file:///home/koom/univar/pyin/pyin.py&#10;main&#9;FILE&#9;file:///home/koom/univar/pyin/pyin_main.py&#10;kbd&#9;FILE&#9;file:///home/koom/univar/pyin/kbdbg2graphviz3.py&#10;3&#9;FILE&#9;file:///home/koom/univar/pyin/kbdbg2graphviz3.py&#10;p&#9;null&#9;null&#10;tau&#9;FILE&#9;file:///home/koom/univar/pyin/tau2.py&#10;sparql&#9;null&#9;null&#10;tau2&#9;FILE&#9;file:///home/koom/univar/pyin/tau2.py&#10;mai&#9;FILE&#9;file:///home/koom/univar/pyin/pyin_main.py&#10;kb&#9;FILE&#9;file:///home/koom/univar/pyin/kbdbg2graphviz.py&#10;store&#9;null&#9;null&#10;banana&#9;null&#9;null&#10;m&#9;FILE&#9;file:///home/koom/univar/pyin/pyin_main.py&#10;notat&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/parsers/notation3.py&#10;nqu&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/serializers/nquads.py&#10;_&#9;FILE&#9;file:///home/koom/univar/pyin/pyin_main.py&#10;Quoted&#9;null&#9;null&#10;prep&#9;FILE&#9;file:///home/koom/univar/pyin/preprocess.py&#10;_ma&#9;FILE&#9;file:///home/koom/univar/pyin/pyin_main.py&#10;nquad&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/parsers/nquads.py&#10;term&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/term.py&#10;terms&#9;null&#9;null&#10;nqua&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/serializers/nquads.py&#10;ntri&#9;null&#9;null&#10;proc&#9;FILE&#9;file:///home/koom/univar/pyin/preprocess.py&#10;seriali&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/serializer.py&#10;n3&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/parsers/notation3.py&#10;order&#9;FILE&#9;file:///home/koom/univar/pyin/ordered_rdflib_store.py&#10;nota&#9;FILE&#9;file:///home/koom/univar/venv/site-packages/rdflib/plugins/parsers/notation3.py&#10;serial&#9;null&#9;null&#10;format&#9;ACTION&#9;ReformatCode&#10;indent&#9;ACTION&#9;AutoIndentLines&#10;configurations&#9;ACTION&#9;editRunConfigurations&#10;key map&#9;ACTION&#9;ChangeKeymap&#10;step th&#9;ACTION&#9;EduDebug" />
-    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="TEXT" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/pymantic" />
+    <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="JSON&#10;TEXT" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../tests/clean/zzpanla" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="preferences.general" />
   </component>
@@ -521,6 +447,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../tests/clean/zzpanla" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
@@ -782,7 +709,7 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="25" width="834" height="495" extended-state="0" />
+    <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.38341346" />
@@ -856,20 +783,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugins/stores/sparqlstore.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2464">
-          <caret line="115" selection-start-line="115" selection-end-line="115" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/_collections_abc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="355">
-          <caret line="674" selection-start-line="674" selection-end-line="674" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/requests/models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15730">
@@ -1141,59 +1054,73 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pyin.py">
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="258">
-          <caret line="775" selection-start-line="775" selection-end-line="775" />
+        <state relative-caret-position="45">
+          <caret line="3" column="8" lean-forward="true" selection-start-line="3" selection-start-column="8" selection-end-line="3" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/kbdbg2graphviz.py">
+    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="348">
-          <caret line="410" column="18" selection-start-line="410" selection-start-column="18" selection-end-line="410" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/kbdbg2graphviz3.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="326">
-          <caret line="712" column="8" selection-start-line="712" selection-start-column="8" selection-end-line="712" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugins/parsers/nquads.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="65" selection-start-line="65" selection-end-line="65" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugin.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="104">
-          <caret line="104" selection-start-line="104" selection-end-line="104" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/click/core.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="717" selection-start-line="717" selection-end-line="717" />
+        <state>
+          <caret line="11" column="32" selection-start-line="11" selection-start-column="32" selection-end-line="11" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pyco.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="23">
+        <state relative-caret-position="5475">
           <caret line="365" selection-start-line="365" selection-end-line="365" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/click/core.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10500">
+          <caret line="717" selection-start-line="717" selection-end-line="717" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1425">
+          <caret line="104" selection-start-line="104" selection-end-line="104" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../cpython3/lib/python3.6/site-packages/rdflib/plugins/parsers/nquads.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="750">
+          <caret line="65" selection-start-line="65" selection-end-line="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/kbdbg2graphviz3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10425">
+          <caret line="712" column="8" selection-start-line="712" selection-start-column="8" selection-end-line="712" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/kbdbg2graphviz.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5865">
+          <caret line="410" column="18" selection-start-line="410" selection-start-column="18" selection-end-line="410" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pyin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11535">
+          <caret line="775" selection-start-line="775" selection-end-line="775" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="530" column="8" selection-start-line="530" selection-start-column="8" selection-end-line="530" selection-end-column="8" />
+        <state relative-caret-position="195">
+          <caret line="761" lean-forward="true" selection-start-line="761" selection-end-line="761" />
         </state>
       </provider>
     </entry>

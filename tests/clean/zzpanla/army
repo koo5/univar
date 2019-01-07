@@ -1,0 +1,10 @@
+
+
+
+
+army ++> determiner(number), " ", noun(number).
+determiner(singular) ++> "this".
+determiner(plural) ++> "these".
+noun(singular) ++> "knight".
+noun(plural) ++> "knights".
+

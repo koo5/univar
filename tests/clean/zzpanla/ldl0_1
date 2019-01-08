@@ -30,7 +30,11 @@ kb
   ?X :memberof ?R1 .
 } .
 
+#"ahoj" :say "kato".
 
+{?x :say ?y} <= {
+    :dummy tau_builtins:output (?x ?y)^tau_builtins:strXlst.
+}.
 
 
 #character classess
@@ -394,12 +398,9 @@ kb
     ?string string_builtins:strXlst ?char_list.
 }.
 
-{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {
-		#:dummy tau_builtins:output "parse_rhs_item(nont):".
-	?rhs_item a :identifier. ?rhs_item :name ?name. 
-		#:dummy tau_builtins:output "parse_rhs_item(nont):". :dummy tau_builtins:output ?name.
-		#:dummy tau_builtins:output "parse_nonterminal:".
-		#:dummy tau_builtins:output ?name.
+{?a0 :parse_rhs_item ?a1} <= {
+    (?x0 ?grammar [a :identifier. :name ?name]) :eq ?a0. ?a1 :eq (?rest ?ast ?depth).
+		#"parse_rhs_item(nont):". :say ?name.
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
 }.
 
@@ -422,14 +423,15 @@ kb
 """
 string_literal --> [\\[], string_literal_body, [\\]].
 
-string_literal_body --> string_literal_body_item, string_literal_body.
-string_literal_body --> .
+string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
+string_literal_raw_body --> .
 
-string_literal_body_item --> any char except [\\n\\[\\]\\\\].
-string_literal_body_item --> [\\\\n].
-string_literal_body_item --> [\\\\\\[].
-string_literal_body_item --> [\\\\\\]].
-string_literal_body_item --> [\\\\\\\\].
+string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
+string_literal_raw_body_item --> [\\\\n].
+string_literal_raw_body_item --> [\\\\\\[].
+string_literal_raw_body_item --> [\\\\\\]].
+string_literal_raw_body_item --> [\\\\\\\\].
+string_literal is builtin-postprocessed from string_literal_raw.
 
 node_name --> node_name_unquoted.
 node_name_unquoted --> string_literal_body.
@@ -759,17 +761,4 @@ shouldbetrue
 """
 lol_module_raw is a kind of module with lol_statement items.
 lol_module is builtin-postprocessed lol_module_raw.
-
-
-
-
-
-
-
-
-
-
-
-
-
 """

@@ -35,6 +35,4 @@ pip install -r requirements_pyco.txt
 #pyco will output a trace, point your browser to the pyco_visualization directory and use left and right arrows to move around the trace steps
 
 
-
-env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true --notrace true --oneword true     " tests/clean/zzpanla/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S")
-env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true   --oneword true  --profile true     " tests/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S")
+env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true   --oneword true  --profile false   " tests/clean/zzpanla/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S") | tee runs/last

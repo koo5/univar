@@ -20,16 +20,47 @@ kb
   ?LC :clone_of ?L .
 } => {
   ?LC :first ?F .
-  ?LC :rest ?RC .
+  ?LC :rest ?rc .
   ?rc :clone_of ?R .
 } .
 fin.
+
 query
 ?a :clone_of ?b.
 fin.
+shouldbe
+<http://jmv.fr#l0c> <http://jmv.fr#clone_of> <http://jmv.fr#l0> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> <http://jmv.fr#l1> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> <http://jmv.fr#l2> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> :nil .
+fin.
+thatsall
 
-##result: <http://jmv.fr#l0c> <http://jmv.fr#clone_of> <http://jmv.fr#l0>.
-##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#l1>.
-##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#l2>.
-##result: ?a <http://jmv.fr#clone_of> <http://jmv.fr#nil>.
-#pyin 3 hours
+query
+?a :clone_of :l2.
+?a :first :v2 ; :rest ?rc. 
+?rc :clone_of :nil .
+fin.
+shouldbetrue
+thatsall
+
+query
+?a :clone_of :l2.
+?a :first :v1. 
+fin.
+shouldbe
+fin.
+
+query
+?a :clone_of :nil.
+?a :first ?v.
+fin.
+shouldbe
+fin.
+

@@ -1,0 +1,60 @@
+@prefix : <http://jmv.fr#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+kb
+
+# clone an RDF list by a forward recursion - design pattern
+
+:l0 rdf:first :v0 ;
+    rdf:rest  :l1 .
+:l1 rdf:first :v1 ;
+    rdf:rest  :l2 .
+:l2 rdf:first :v2 ;
+    rdf:rest  rdf:nil .
+
+# initial condition
+:l0c :clone_of :l0 .
+
+{
+  ?L rdf:first ?F .
+  ?L rdf:rest  ?R .
+  ?LC :clone_of ?L .
+} => {
+  ?LC rdf:first ?F .
+  ?LC rdf:rest ?rc .
+  ?rc :clone_of ?R .
+} .
+fin.
+
+query
+:l0c :clone_of ?b.
+fin.
+shouldbe
+:l0c :clone_of :l0.
+fin.
+thatsall
+
+query
+?a :clone_of ?b.
+fin.
+shouldbe
+<http://jmv.fr#l0c> <http://jmv.fr#clone_of> <http://jmv.fr#l0> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> <http://jmv.fr#l1> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> <http://jmv.fr#l2> . 
+fin.
+shouldbe
+?a <http://jmv.fr#clone_of> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .
+fin.
+
+
+query
+?a :clone_of :l2.
+?a rdf:first :v2 ; rdf:rest ?rc. 
+?rc :clone_of rdf:nil .
+fin.
+shouldbetrue
+thatsall

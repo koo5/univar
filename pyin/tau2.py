@@ -151,6 +151,8 @@ def tau(command, files, only_id):
 			echo('file not ended properly?')
 			fail()
 			exit()
+	echo(":test:that's all, folks")
+
 
 def process_output(output_line):
 	print(output_line)

@@ -62,7 +62,7 @@
           <entry key="cpp" value="11" />
           <entry key="dummy" value="3" />
           <entry key="json" value="160" />
-          <entry key="ldl0_1" value="2168" />
+          <entry key="ldl0_1" value="2419" />
           <entry key="ldl_2" value="439" />
           <entry key="py" value="41996" />
           <entry key="txt" value="24" />
@@ -71,7 +71,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="11" />
-          <entry key="PLAIN_TEXT" value="2610" />
+          <entry key="PLAIN_TEXT" value="2861" />
           <entry key="Python" value="42057" />
           <entry key="Scratch" value="184" />
         </counts>
@@ -156,8 +156,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="641" column="1" selection-start-line="641" selection-start-column="1" selection-end-line="641" selection-end-column="1" />
+            <state relative-caret-position="264">
+              <caret line="605" column="38" selection-start-line="605" selection-start-column="38" selection-end-line="605" selection-end-column="38" />
             </state>
           </provider>
         </entry>
@@ -182,7 +182,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>???</find>
       <find>list_subquery</find>
       <find>query_list</find>
       <find>emit_terms</find>
@@ -212,6 +211,7 @@
       <find>check_fu</find>
       <find>initial_ldl_text</find>
       <find>lower</find>
+      <find>:parse_rhs</find>
     </findStrings>
     <replaceStrings>
       <replace>log</replace>
@@ -1198,8 +1198,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="641" column="1" selection-start-line="641" selection-start-column="1" selection-end-line="641" selection-end-column="1" />
+        <state relative-caret-position="264">
+          <caret line="605" column="38" selection-start-line="605" selection-start-column="38" selection-end-line="605" selection-end-column="38" />
         </state>
       </provider>
     </entry>

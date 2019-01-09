@@ -37,6 +37,90 @@ kb
 }.
 
 
+
+
+
+#data declarations
+#some of these are used both in the concrete and in the abstract phase, so typing differs
+
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+# - name is a string
+{?x a :literal.  ?x :value ?vALUE} <= {}.
+# - value is a string or a list of chars
+{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :builtin_postprocessed.  ?x :value ?vALUE} <= {}.
+# - value is an identifier
+{?x a :newline} <= {}.
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+
+
+
+
+
+:grammar_of_initial_ldl :has_value
+"""
+string_literal --> [\\[], string_literal_body, [\\]].
+
+string_literal_body --> builtin-postprocessed string_literal_raw_body.
+string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
+string_literal_raw_body --> .
+
+string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
+string_literal_raw_body_item --> [\\\\n].
+string_literal_raw_body_item --> [\\\\\\[].
+string_literal_raw_body_item --> [\\\\\\]].
+string_literal_raw_body_item --> [\\\\\\\\].
+
+node_name --> node_name_unquoted.
+node_name_unquoted --> string_literal_body.
+node_name --> node_name_quoted.
+node_name_quoted --> string_literal.
+
+statements --> statement, [.\\n], statements.
+statements --> comment, [\\n], statements.
+statements --> [\\n], statements.
+statements --> .
+
+statement --> x_is_a_series_of_y_separated_with_z.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
+
+statement --> subtype.
+subtype --> node_name, [ works as ], node_name.
+
+statement --> grammar.
+grammar --> node_name, [ ++> ], grammar_items, [.].
+
+comment --> [#], all chars until one of [\\n].
+
+grammar_items --> grammar_item, [, ], grammar_items.
+grammar_items --> grammar_item.
+grammar_items --> .
+
+grammar_item --> string_literal.
+grammar_item --> node_name.
+grammar_item --> node_name_with_child_name.
+grammar_item --> any_char_except.
+grammar_item --> all_chars_until_one_of.
+
+any_char_except --> [any char except ], string_literal.
+all_chars_until_one_of --> [all chars until one of ], string_literal.
+
+node_name_with_child_name --> node_name, [:], node_name.
+
+""";
+:has_comment """
+need to extend the simple dcg parser with "any char except"
+then build a parser that works off that ast. i already have a parser that works off a simple dcg, so i'd extend it.
+""".
+
+
+
+
 #character classess
 "a" :is_letter :true.
 "b" :is_letter :true.
@@ -139,7 +223,8 @@ kb
 
 
 
-#parser of simple dcg
+#parser of initial dcg
+
 {:dummy :parses_to_rhs (?x0 ?rest ?rhs_)} <= {
 	:dummy :rhs_item (?x0 ?after_rhs_item ?rhsf).
 	:dummy :maybe_more_rhs_items (?after_rhs_item ?end ?rhsr).
@@ -181,6 +266,12 @@ kb
 	?item a :all_chars_until_one_of. ?item :value ?except.
 	:dummy :literally_string (?x0 ?before_value "all chars until one of ").
 	:dummy :literal (?before_value ?rest ?except).
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :builtin_postprocessed. ?item :value ?value.
+	:dummy :literally_string (?x0 ?before_value "builtin-postprocessed ").
+	:dummy :identifier (?before_value ?rest ?value).
 }.
 
 {:dummy :arrow (?x0 ?rest)} <= {
@@ -288,7 +379,7 @@ kb
 
 
 
-#a post-processor for the dcg
+#a post-processor for the initial dcg
 {rdf:nil :concrete_to_abstract rdf:nil} <= {
 }.
 
@@ -324,6 +415,12 @@ kb
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :builtin_postprocessed. ?c :value ?cv.
+	?a a :builtin_postprocessed. ?a :value ?av.
+	?cv :concrete_to_abstract_rhs_item ?av.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :any_char_except. ?c :value ?cv.
 	?a a :any_char_except. ?a :value ?av.
 	?av string_builtins:strXlst ?cv.
@@ -344,7 +441,62 @@ kb
 
 
 
-#parse something with the grammar
+:initial_ldl_text :has_value
+"""
+string_literal is builtin-postprocessed string_literal_raw.
+string_literal_raw ++> [\\[], string_literal_body, [\\]].
+string_literal_body is builtin-postprocessed string_literal_raw_body.
+string_literal_raw_body is a series of string_literal_body_item.
+string_literal_raw_body_item ++> any char except [\\n\\[\\]\\\\].
+string_literal_raw_body_item ++> [\\\\n].
+string_literal_raw_body_item ++> [\\\\\\[].
+string_literal_raw_body_item ++> [\\\\\\]].
+string_literal_raw_body_item ++> [\\\\\\\\].
+
+
+#node_name is a category.
+node_name_unquoted works as node_name.
+node_name_unquoted ++> string_literal_body.
+node_name_quoted works as node_name.
+node_name_quoted ++> string_literal.
+
+statements is a series of statement separated with newline.
+
+x_is_a_series_of_y_separated_with_z works as statement.
+x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:string_literal, [.].
+
+subtype works as statement.
+subtype ++> sub:node_name, [ works as ], sup:node_name, [.].
+
+grammar works as statement.
+grammar ++> node_name, [ ++> ], grammar_items, [.].
+
+grammar_items is a series of grammar_item separated with [, ].
+#grammar_item is a category.
+
+string_literal works as grammar_item.
+node_name works as grammar_item.
+node_name_with_child_name works as grammar item.
+node_name_with_child_name ++> child_name:node_name, [:], type_name:node_name.
+
+comment works as statement.
+comment ++> [#], comment_body.
+comment_body ++> all chars until one of [\\n].
+
+""";
+:has_comment """
+this is a declarative definition of the basic building blocks of the ldl and their grammar.
+probably just dcg + "any char except" +  optional child names + "indent"/"dedent" special syntax items.
+now we need to turn this into (at least in-memory) ldl ast.
+""".
+
+
+
+
+
+
+#parse the "++" text through the initial grammar
+
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar. 
@@ -404,6 +556,12 @@ kb
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
 }.
 
+{(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {
+	?rhs_item a :builtin_postprocessed. ?rhs_item :value ?raw_identifier.
+	(?x0 ?grammar ?raw_identifier) :parse_nonterminal (?rest ?raw_ast ?depth).
+	?raw_ast :postprocess ?ast.
+}.
+
 {?x_ :all_chars_until_one_of (?rest ?except ?char_list_).} <= {
     ?xf string_builtins:any_char_except ?except.
     ?char_listf :eq ?xf.
@@ -415,116 +573,41 @@ kb
     ?xf :memberof ?except_list.
 }.
 
+{?raw :postprocess ?cooked} <= {
+    ?raw :eq [a :node. :type ?type. :children ?ch].
+    "" :say ("postprocess " ?type).
+    ?type :eq "string_literal_raw_body".
+    ?cooked :eq [a :literal. :type :string. :value ?v].
+    ?v_list :is_collected_string_literal_raw_body ?raw.
+    ?v string_builtins:strXlst ?v_list.
+}.
+
+{rdf:nil :is_collected_string_literal_raw_body ?raw} <= {
+    ?raw :children rdf:nil.
+}.
+
+{?v_ :is_collected_string_literal_raw_body ?raw} <= {
+    ?raw :children ([:children (?literal)] ?tail).
+    ?vf :eq :literal.
+    ?vr :is_collected_string_literal_raw_body ?tail.
+}.
 
 
 
 
-:grammar_of_initial_ldl :has_value
-"""
-string_literal --> [\\[], string_literal_body, [\\]].
 
-string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
-string_literal_raw_body --> .
+#lemon ast
 
-string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
-string_literal_raw_body_item --> [\\\\n].
-string_literal_raw_body_item --> [\\\\\\[].
-string_literal_raw_body_item --> [\\\\\\]].
-string_literal_raw_body_item --> [\\\\\\\\].
-string_literal is builtin-postprocessed from string_literal_raw.
-
-node_name --> node_name_unquoted.
-node_name_unquoted --> string_literal_body.
-node_name --> node_name_quoted.
-node_name_quoted --> string_literal.
-
-statements --> statement, [.\\n], statements.
-statements --> comment, [\\n], statements.
-statements --> [\\n], statements.
-statements --> .
-
-statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
-
-statement --> subtype.
-subtype --> node_name, [ works as ], node_name.
-
-statement --> grammar.
-grammar --> node_name, [ ++> ], grammar_items, [.].
-
-comment --> [#], all chars until one of [\\n].
-
-grammar_items --> grammar_item, [, ], grammar_items.
-grammar_items --> grammar_item.
-grammar_items --> .
-
-grammar_item --> string_literal.
-grammar_item --> node_name.
-grammar_item --> node_name_with_child_name.
-grammar_item --> any_char_except.
-grammar_item --> all_chars_until_one_of.
-
-any_char_except --> [any char except ], string_literal.
-all_chars_until_one_of --> [all chars until one of ], string_literal.
-
-node_name_with_child_name --> node_name, [:], node_name.
-
-""";
-:has_comment """
-need to extend the simple dcg parser with "any char except"
-then build a parser that works off that ast. i already have a parser that works off a simple dcg, so i'd extend it.
-""".
-
-
-:initial_ldl_text :has_value
-"""
-string_literal_raw ++> [\\[], string_literal_raw_body, [\\]].
-string_literal_raw_body is a series of string_literal_body_item.
-string_literal_raw_body_item ++> any char except [\\n\\[\\]\\\\].
-string_literal_raw_body_item ++> [\\\\n].
-string_literal_raw_body_item ++> [\\\\\\[].
-string_literal_raw_body_item ++> [\\\\\\]].
-string_literal_raw_body_item ++> [\\\\\\\\].
-string_literal is builtin-postprocessed from string_literal_raw.
-
-#node_name is a category.
-node_name_unquoted works as node_name.
-node_name_unquoted ++> string_literal_body.
-node_name_quoted works as node_name.
-node_name_quoted ++> string_literal.
-
-statements is a series of statement separated with newline.
-
-x_is_a_series_of_y_separated_with_z works as statement.
-x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:string_literal, [.].
-
-subtype works as statement.
-subtype ++> sub:node_name, [ works as ], sup:node_name, [.].
-
-grammar works as statement.
-grammar ++> node_name, [ ++> ], grammar_items, [.].
-
-grammar_items is a series of grammar_item separated with [, ].
-#grammar_item is a category.
-
-string_literal works as grammar_item.
-node_name works as grammar_item.
-node_name_with_child_name works as grammar item.
-node_name_with_child_name ++> child_name:node_name, [:], type_name:node_name.
-
-comment works as statement.
-comment ++> [#], comment_body.
-comment_body ++> all chars until one of [\\n].
-
-""";
-:has_comment """
-this is a declarative definition of the basic building blocks of the ldl and their grammar.
-probably just dcg + "any char except" +  optional child names + "indent"/"dedent" special syntax items.
-now we need to turn this into (at least in-memory) ldl ast.
-""".
+{?x a ldl:newline} <= {}.
+{?x a ldl:literal; :value ?V} <= {}.
+{?x a ldl:compound; :children ?CH} <= {}.
 
 
 
+
+
+
+#woohoo, now we can transform the output of the above parser into a true lemon ast
 
 #string_literal --> [\\[], string_literal_body, [\\]].
     {?parsed :parsed2builtins ?ldl} <=
@@ -604,36 +687,6 @@ now we need to turn this into (at least in-memory) ldl ast.
     ?pre "is postprocessed" ?post in grammar..
 
 }.
-
-
-
-
-
-
-
-#data declarations
-#some of these are used both in the concrete and in the abstract phase, so typing differs
-
-{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
-{?x a :identifier.  ?x :name ?NAME} <= {}.
-# - name is a string
-{?x a :literal.  ?x :value ?vALUE} <= {}.
-# - value is a string or a list of chars
-{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
-# - value is a string
-{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
-# - value is a string
-{?x a :newline} <= {}.
-{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
-
-
-
-
-
-
-
-
-ldl:newline a ldl:node.
 
 
 

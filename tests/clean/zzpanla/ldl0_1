@@ -599,7 +599,7 @@ now we need to turn this into (at least in-memory) ldl ast.
 #lemon ast
 
 {?x a ldl:newline} <= {}.
-{?x a ldl:literal; :value ?V} <= {}.
+{?x a ldl:literal; :value ?V; :type ?T} <= {}.
 {?x a ldl:compound; :children ?CH} <= {}.
 
 
@@ -609,84 +609,82 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 #woohoo, now we can transform the output of the above parser into a true lemon ast
 
-#string_literal --> [\\[], string_literal_body, [\\]].
-    {?parsed :parsed2builtins ?ldl} <=
-    {
-        ?parsed :type "string_literal"; :children (?x0 ?body ?x1).
-        ?ldl a ldl:node; :type "string_literal"; :has_children
-        (
-            [a ldl:node; :type "string_literal_body";
-    }.
 
-#string_literal_body --> string_literal_body_item, string_literal_body.
-    {?parsed :parsed2builtins ?ldl_} <=
-    #parsed is a node:
-    #   children is a list of nodes:
-    #       string_literal_body_item
-    #       string_literal_body
-    #ldl is a list of chars
-    {
-        ?parsed :type "string_literal_body".
-        ?parsed :children (?string_literal_body_item ?string_literal_body).
-        ?string_literal_body_item :children (?lit).
-        ?lit :value ?ldlf.
-        ?string_literal_body :parsed2builtins ?ldlr.
-    }.
-#string_literal_body --> .
-    {?parsed :parsed2builtins rdf:nil} <=
-    {
-        ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
-    }.
+##string_literal --> [\\[], string_literal_body, [\\]].
+#    {?parsed :parsed2builtins ?ldl} <=
+#    {
+#        ?parsed :type "string_literal"; :children (?x0 ?body ?x1).
+#        ?ldl a ldl:node; :type "string_literal"; :has_children
+#        (
+#            [a ldl:node; :type "string_literal_body";
+#    }.
+#
+##string_literal_body --> string_literal_body_item, string_literal_body.
+#    {?parsed :parsed2builtins ?ldl_} <=
+#    #parsed is a node:
+#    #   children is a list of nodes:
+#    #       string_literal_body_item
+#    #       string_literal_body
+#    #ldl is a list of chars
+#    {
+#        ?parsed :type "string_literal_body".
+#        ?parsed :children (?string_literal_body_item ?string_literal_body).
+#        ?string_literal_body_item :children (?lit).
+#        ?lit :value ?ldlf.
+#        ?string_literal_body :parsed2builtins ?ldlr.
+#    }.
+##string_literal_body --> .
+#    {?parsed :parsed2builtins rdf:nil} <=
+#    {
+#        ?parsed :type "string_literal_body". ?parsed :children rdf:nil.
+#    }.
+#
+#
+#
+##node_name_with_child_name --> node_name, [:], node_name.
+#    {?parsed :parsed2builtins ?ldl_} <=
+#    {
+#        ?parsed :type "node_name_with_child_name"; :children (?name ?x, ?type).
+#        ?ldl a ldl:node; type
+#        ?name!:parsed2builtins.
+#
+#    }.
 
 
 
+#-----------
+#?parsed is a node
+#?ldl is a rdf list
 
-
-
-
-
-
-
-#node_name_with_child_name --> node_name, [:], node_name.
-    {?parsed :parsed2builtins ?ldl_} <=
-    {
-        ?parsed :type "node_name_with_child_name"; :children (?name ?x, ?type).
-        ?ldl a ldl:node; type
-        ?name!:parsed2builtins.
-
-    }.
-
-#statements --> statement, [.\\n], statements.
-#statements --> comment, [\\n], statements.
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "statements". ?parsed :children ?ch_.
-    ?chf a :node. ?chf :parsed2builtins ?ldlf.
-    ?chr :parsed2builtins ?ldlr.
+#statements --> .
+{?parsed :parsed2builtins_statements rdf:nil} <= {
+    ?parsed :children ().
 }.
 
 #statements --> [\\n], statements.
-{?parsed :parsed2builtins ?ldl_} <=
+{?parsed :parsed2builtins_statements ?ldl_} <=
 {
-    ?parsed :type "statements". ?parsed :children ?ch_.
-    ?chf a :literal. ?ldlf a ldl:newline.
-    ?chr :parsed2builtins ?ldlr.
+    ?parsed :children ([:value "\n"] ?tail).
+    ?ldlf a ldl:newline.
+    ?tail :parsed2builtins_statements ?ldlr.
 }.
 
-#statements --> .
-{rdf:nil :parsed2builtins rdf:nil} <=
-{}.
-
-
-
-
-
-
-
-{?pre :postprocess ?post} <= {
-    ?pre "is postprocessed" ?post in grammar..
-
+#statements --> statement, [.\\n], statements.
+{?parsed :parsed2builtins_statements ?ldl_} <=
+{
+    ?parsed :children (?head [:value ".\n"] ?tail).
+    ?head :parsed2builtins_statement ?ldlf.
+    ?tail :parsed2builtins_statements ?ldlr.
 }.
+
+#statements --> comment, [\\n], statements.
+{?parsed :parsed2builtins_statements ?ldl_} <=
+{
+    ?parsed :children (?head [:value "\n"] ?tail).
+    ?head :parsed2builtins_comment ?ldlf.
+    ?tail :parsed2builtins_statements ?ldlr.
+}.
+
 
 
 

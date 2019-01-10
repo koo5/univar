@@ -1,9 +1,19 @@
-:builtins a :node; type :module.
-:builtins_statements a :node; type :statements; :has_parent :builtins; :has_role :module_role_statements.
-:builtins_statements :has_items
-(
+{?x a :builtins} <= {
+    ?x a :node; :type "builtins/module"; :children (
+        [a :node; :type "builtins/statements"; :has_role "statements"; :has_items
+        (
+            [a :node; :type "builtins/grammar"; :children (
+                newline ++> [\\n].
+statement works as top_level_item.
+newline works as top_level_item.
+statements is a series of top_level_item separated with newline.
 
-)
+
+
+
+
+
+
 
 #string_literal ++> [\\[], string_literal_body, [\\]].
     :string_literal a :node; :type :grammar.

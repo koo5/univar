@@ -460,7 +460,10 @@ node_name_unquoted ++> string_literal_body.
 node_name_quoted works as node_name.
 node_name_quoted ++> string_literal.
 
-statements is a series of statement separated with newline.
+newline ++> [\\n].
+statement works as top_level_item.
+newline works as top_level_item.
+statements is a series of top_level_item separated with newline.
 
 x_is_a_series_of_y_separated_with_z works as statement.
 x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:string_literal, [.].
@@ -650,11 +653,8 @@ now we need to turn this into (at least in-memory) ldl ast.
 #comment --> [#], all chars until one of [\\n].
 {?parsed :parsed2builtins_comment ?ldl} <= {
     ?parsed :children (?hash ?body).
-    ?ldl a ldl:comment; ?value
-
-
-
-}
+    ?ldl a ldl:compound; ?type "statement"; :value ?body.
+}.
 
 
 

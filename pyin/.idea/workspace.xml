@@ -4,6 +4,7 @@
     <list default="true" id="76dbc345-6f01-4fc2-b03a-744946ec425b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -62,8 +63,8 @@
           <entry key="cpp" value="11" />
           <entry key="dummy" value="3" />
           <entry key="json" value="160" />
-          <entry key="ldl0_1" value="2419" />
-          <entry key="ldl_2" value="439" />
+          <entry key="ldl0_1" value="2492" />
+          <entry key="ldl_2" value="588" />
           <entry key="py" value="41996" />
           <entry key="txt" value="24" />
         </counts>
@@ -71,7 +72,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="11" />
-          <entry key="PLAIN_TEXT" value="2861" />
+          <entry key="PLAIN_TEXT" value="3083" />
           <entry key="Python" value="42057" />
           <entry key="Scratch" value="184" />
         </counts>
@@ -153,20 +154,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="605" column="38" selection-start-line="605" selection-start-column="38" selection-end-line="605" selection-end-column="38" />
+            <state relative-caret-position="291">
+              <caret line="466" lean-forward="true" selection-start-line="462" selection-end-line="466" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="930">
-              <caret line="62" lean-forward="true" selection-start-line="62" selection-end-line="62" />
+            <state relative-caret-position="110">
+              <caret line="5" column="16" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -250,9 +251,9 @@
         <option value="$PROJECT_DIR$/kbdbg2graphviz3.py" />
         <option value="$PROJECT_DIR$/pyin.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.json" />
-        <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" />
         <option value="$PROJECT_DIR$/tau2.py" />
         <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" />
+        <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" />
       </list>
     </option>
   </component>
@@ -1189,17 +1190,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
+    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="930">
-          <caret line="62" lean-forward="true" selection-start-line="62" selection-end-line="62" />
+        <state relative-caret-position="291">
+          <caret line="466" lean-forward="true" selection-start-line="462" selection-end-line="466" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
+    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="605" column="38" selection-start-line="605" selection-start-column="38" selection-end-line="605" selection-end-column="38" />
+        <state relative-caret-position="110">
+          <caret line="5" column="16" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
         </state>
       </provider>
     </entry>

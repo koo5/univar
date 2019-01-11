@@ -212,6 +212,9 @@ class Emitter(object):
 			s.print_result(goal, goal_graph),
 			s.unification()
 		])
+		import sys
+		sys.setrecursionlimit(15000)
+
 		return (str(s.get_prologue()) + '\n' +
 			str(r) + '\n' +
 			str(s.ep_tables_printer()))

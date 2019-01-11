@@ -3,8 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="76dbc345-6f01-4fc2-b03a-744946ec425b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyco.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyco.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/multiple_existentials_in_head/slower/einstein.n3" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/multiple_existentials_in_head/slower/einstein.n3" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +44,7 @@
           <entry key="json" value="1" />
           <entry key="ldl0_1" value="5" />
           <entry key="ldl_2" value="3" />
+          <entry key="n3" value="1" />
           <entry key="py" value="491" />
           <entry key="pyi" value="1" />
           <entry key="txt" value="1" />
@@ -51,7 +53,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="C++" value="1" />
-          <entry key="PLAIN_TEXT" value="8" />
+          <entry key="PLAIN_TEXT" value="9" />
           <entry key="Python" value="491" />
           <entry key="PythonStub" value="1" />
           <entry key="Scratch" value="2" />
@@ -63,17 +65,18 @@
           <entry key="cpp" value="11" />
           <entry key="dummy" value="3" />
           <entry key="json" value="160" />
-          <entry key="ldl0_1" value="2935" />
+          <entry key="ldl0_1" value="3038" />
           <entry key="ldl_2" value="680" />
-          <entry key="py" value="41996" />
+          <entry key="n3" value="2" />
+          <entry key="py" value="42010" />
           <entry key="txt" value="24" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C++" value="11" />
-          <entry key="PLAIN_TEXT" value="3618" />
-          <entry key="Python" value="42057" />
+          <entry key="PLAIN_TEXT" value="3723" />
+          <entry key="Python" value="42071" />
           <entry key="Scratch" value="184" />
         </counts>
       </usages-collector>
@@ -82,15 +85,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pyin.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9660">
-              <caret line="650" column="31" selection-start-line="650" selection-start-column="31" selection-end-line="650" selection-end-column="31" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kbdbg2graphviz.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -139,8 +133,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pyco.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9900">
-              <caret line="660" column="50" selection-start-line="660" selection-start-column="50" selection-end-line="660" selection-end-column="50" />
+            <state relative-caret-position="189">
+              <caret line="215" column="35" selection-start-line="215" selection-start-column="35" selection-end-line="215" selection-end-column="35" />
             </state>
           </provider>
         </entry>
@@ -154,11 +148,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="352">
-              <caret line="655" column="39" selection-start-line="655" selection-start-column="39" selection-end-line="655" selection-end-column="39" />
+            <state relative-caret-position="264">
+              <caret line="12" lean-forward="true" selection-start-line="1" selection-end-line="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../tests/multiple_existentials_in_head/slower/einstein.n3">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="329">
+              <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
             </state>
           </provider>
         </entry>
@@ -250,13 +253,16 @@
         <option value="$PROJECT_DIR$/tau2.py" />
         <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2" />
         <option value="$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1" />
+        <option value="$PROJECT_DIR$/../tests/multiple_existentials_in_head/slower/einstein.n3" />
+        <option value="$PROJECT_DIR$/pyco.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="25" />
-    <option name="width" value="834" />
-    <option name="height" value="495" />
+    <option name="x" value="136" />
+    <option name="y" value="-144" />
+    <option name="width" value="826" />
+    <option name="height" value="490" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -785,7 +791,7 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="25" width="1282" height="696" extended-state="6" />
+    <frame x="-1" y="25" width="850" height="456" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.3828125" />
@@ -859,13 +865,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///usr/lib/python3.6/logging/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="1005" column="55" selection-start-line="1005" selection-start-column="55" selection-end-line="1005" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/lib/python3.6/multiprocessing/synchronize.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="556">
@@ -1172,10 +1171,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/pyco.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9900">
-          <caret line="660" column="50" selection-start-line="660" selection-start-column="50" selection-end-line="660" selection-end-column="50" />
+        <state relative-caret-position="189">
+          <caret line="215" column="35" selection-start-line="215" selection-start-column="35" selection-end-line="215" selection-end-column="35" />
         </state>
       </provider>
     </entry>
@@ -1186,13 +1188,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl_2">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/../tests/clean/zzpanla/ldl0_1">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="352">
-          <caret line="655" column="39" selection-start-line="655" selection-start-column="39" selection-end-line="655" selection-end-column="39" />
+        <state relative-caret-position="264">
+          <caret line="12" lean-forward="true" selection-start-line="1" selection-end-line="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../tests/multiple_existentials_in_head/slower/einstein.n3">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
         </state>
       </provider>
     </entry>

@@ -95,10 +95,7 @@ all_chars_until_one_of --> [all chars until one of ], string_literal.
 
 node_name_with_child_name --> node_name, [:], node_name.
 
-node_name --> node_name_unquoted.
-node_name_unquoted --> string_literal_body, [].
-node_name --> node_name_quoted.
-node_name_quoted --> string_literal, [].
+node_name --> string_literal_body, [].
 
 string_literal --> [\\[], string_literal_body, [\\]].
 
@@ -449,10 +446,7 @@ string_literal_raw_body_item ++> [\\\\\\[].
 string_literal_raw_body_item ++> [\\\\\\]].
 string_literal_raw_body_item ++> [\\\\\\\\].
 
-node_name_unquoted works as node_name.
-node_name_unquoted ++> string_literal_body.
-node_name_quoted works as node_name.
-node_name_quoted ++> string_literal.
+node_name ++> string_literal_body.
 
 newline ++> [\\n].
 statement works as top_level_item.
@@ -661,7 +655,10 @@ now we need to turn this into (at least in-memory) ldl ast.
     ).
 }.
 
+{?parsed :parsed2builtins_node_name ?ldl} <= {
 
+
+}.
 
 
 

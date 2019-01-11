@@ -64,3 +64,4 @@ pyco
 pyco_out.cpp
 .settings/
 pyin/.ipynb_checkpoints/
+pyin/.idea/workspace.xml

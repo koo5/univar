@@ -64,38 +64,21 @@ kb
 
 :grammar_of_initial_ldl :has_value
 """
-string_literal --> [\\[], string_literal_body, [\\]].
-
-string_literal_body --> builtin-postprocessed string_literal_raw_body.
-string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
-string_literal_raw_body --> .
-
-string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
-string_literal_raw_body_item --> [\\\\n].
-string_literal_raw_body_item --> [\\\\\\[].
-string_literal_raw_body_item --> [\\\\\\]].
-string_literal_raw_body_item --> [\\\\\\\\].
-
-node_name --> node_name_unquoted.
-node_name_unquoted --> string_literal_body.
-node_name --> node_name_quoted.
-node_name_quoted --> string_literal.
-
 statements --> statement, [.\\n], statements.
 statements --> comment, [\\n], statements.
 statements --> [\\n], statements.
 statements --> .
 
+comment --> [#], all chars until one of [\\n].
+
 statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], string_literal.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], grammar_item.
 
 statement --> subtype.
 subtype --> node_name, [ works as ], node_name.
 
 statement --> grammar.
 grammar --> node_name, [ ++> ], grammar_items, [.].
-
-comment --> [#], all chars until one of [\\n].
 
 grammar_items --> grammar_item, [, ], grammar_items.
 grammar_items --> grammar_item.
@@ -112,10 +95,23 @@ all_chars_until_one_of --> [all chars until one of ], string_literal.
 
 node_name_with_child_name --> node_name, [:], node_name.
 
-""";
-:has_comment """
-need to extend the simple dcg parser with "any char except"
-then build a parser that works off that ast. i already have a parser that works off a simple dcg, so i'd extend it.
+node_name --> node_name_unquoted.
+node_name_unquoted --> string_literal_body, [].
+node_name --> node_name_quoted.
+node_name_quoted --> string_literal, [].
+
+string_literal --> [\\[], string_literal_body, [\\]].
+
+string_literal_body --> builtin-postprocessed string_literal_raw_body.
+string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
+string_literal_raw_body --> .
+
+string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
+string_literal_raw_body_item --> [\\\\n].
+string_literal_raw_body_item --> [\\\\\\[].
+string_literal_raw_body_item --> [\\\\\\]].
+string_literal_raw_body_item --> [\\\\\\\\].
+
 """.
 
 
@@ -453,8 +449,6 @@ string_literal_raw_body_item ++> [\\\\\\[].
 string_literal_raw_body_item ++> [\\\\\\]].
 string_literal_raw_body_item ++> [\\\\\\\\].
 
-
-#node_name is a category.
 node_name_unquoted works as node_name.
 node_name_unquoted ++> string_literal_body.
 node_name_quoted works as node_name.
@@ -466,7 +460,7 @@ newline works as top_level_item.
 statements is a series of top_level_item separated with newline.
 
 x_is_a_series_of_y_separated_with_z works as statement.
-x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:string_literal, [.].
+x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:grammar_item, [.].
 
 subtype works as statement.
 subtype ++> sub:node_name, [ works as ], sup:node_name, [.].
@@ -475,7 +469,6 @@ grammar works as statement.
 grammar ++> node_name, [ ++> ], grammar_items, [.].
 
 grammar_items is a series of grammar_item separated with [, ].
-#grammar_item is a category.
 
 string_literal works as grammar_item.
 node_name works as grammar_item.
@@ -496,8 +489,6 @@ now we need to turn this into (at least in-memory) ldl ast.
 
 
 
-
-
 #parse the "++" text through the initial grammar
 
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
@@ -509,7 +500,7 @@ now we need to turn this into (at least in-memory) ldl ast.
 		:dummy tau_builtins:output "rule...".
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
 }.
-#todo type lhs
+
 {(?x0 ?grammar ?type rdf:nil) :parse_rhs (?rest ?ast ?depth)} <= {
 	?ast a :node. ?ast :type ?type. ?ast :children rdf:nil.
 }.
@@ -649,21 +640,36 @@ now we need to turn this into (at least in-memory) ldl ast.
     ?tail :parsed2builtins_statements ?ldlr.
 }.
 
-
 #comment --> [#], all chars until one of [\\n].
 {?parsed :parsed2builtins_comment ?ldl} <= {
     ?parsed :children (?hash ?body).
-    ?ldl a ldl:compound; ?type "statement"; :value ?body.
+    ?ldl a ldl:compound; ?type "builtins/comment"; :value ?body.
+}.
+
+#statement --> x_is_a_series_of_y_separated_with_z.
+#x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], grammar_item.
+{?parsed :parsed2builtins_statement ?ldl} <= {
+    ?parsed :type "x_is_a_series_of_y_separated_with_z"; :children
+        (?x ?l0 ?y ?l1 ?z).
+    ?x :parsed2builtins_node_name ?x_ldl.
+    ?y :parsed2builtins_node_name ?y_ldl.
+    ?z :parsed2builtins_grammar_item ?z_ldl.
+    ?ldl a :componund; :type "builtins/x_is_a_series_of_y_separated_with_z" :children (
+        [:key "x"; :value ?x_ldl]
+        [:key "y"; :value ?y_ldl]
+        [:key "z"; :value ?z_ldl]
+    ).
 }.
 
 
 
 
+
 ##string_literal --> [\\[], string_literal_body, [\\]].
-#    {?parsed :parsed2builtins ?ldl} <=
-#    {
-#        ?parsed :type "string_literal"; :children (?x0 ?body ?x1).
-#        ?ldl a ldl:node; :type "string_literal"; :has_children
+#{?parsed :parsed2builtins_string_literal ?ldl} <=
+#{
+#    ?parsed :type "string_literal"; :children (?x0 ?body ?x1).
+#    ?ldl a ldl:node; :type "string_literal"; :has_children
 #        (
 #            [a ldl:node; :type "string_literal_body";
 #    }.
@@ -698,6 +704,7 @@ now we need to turn this into (at least in-memory) ldl ast.
 #        ?name!:parsed2builtins.
 #
 #    }.
+
 
 
 

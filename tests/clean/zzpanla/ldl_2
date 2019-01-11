@@ -2,8 +2,11 @@
     ?x a :node; :type "builtins/module"; :children (
         [a :node; :type "builtins/statements"; :has_role "statements"; :has_items
         (
+            #newline ++> [\\n].
             [a :node; :type "builtins/grammar"; :children (
-                newline ++> [\\n].
+                [a :node; :type "builtins/node_name_unquoted"; :children (
+                    [a :node; :type "builtins/string_literal"; :value "newline"]
+
 statement works as top_level_item.
 newline works as top_level_item.
 statements is a series of top_level_item separated with newline.

@@ -219,6 +219,8 @@ struct ConstantHash {
     }
 };
 /*silly duplication here, should be all merged into one better thought-out datastructure*/
+#include <functional>
+
 unordered_map<Constant,nodeid_and_refcount,ConstantHash> consts2nodeids_and_refcounts;
 vector<Constant> nodeids2consts;
 vector<nodeid> consts_stack; /*this is so coroutines can just call pop_const, without having to specify what to pop. That may be unnecessary*/

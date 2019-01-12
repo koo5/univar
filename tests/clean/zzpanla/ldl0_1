@@ -14,7 +14,8 @@ kb
 {?X :eq ?X.} <= {}.
 
 :zero a :nat.
-{?x a :nat. ?y :has_succ ?x.} <= {?y a :nat}.
+{?x a :nat. ?y :has_succ ?x. } <= {?y a :nat}.
+
 :minus_one a :negative_nat.
 {?x a :negative_nat. ?x :has_succ ?y.} <= {?y a :negative_nat}.
 
@@ -72,7 +73,7 @@ statements --> .
 comment --> [#], all chars until one of [\\n].
 
 statement --> x_is_a_series_of_y_separated_with_z.
-x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], grammar_item.
+x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], grammar_item, [ separated with ], grammar_item.
 
 statement --> subtype.
 subtype --> node_name, [ works as ], node_name.
@@ -439,14 +440,17 @@ string_literal_raw_body_item --> [\\\\\\\\].
 string_literal is builtin-postprocessed string_literal_raw.
 string_literal_raw ++> [\\[], string_literal_body, [\\]].
 string_literal_body is builtin-postprocessed string_literal_raw_body.
-string_literal_raw_body is a series of string_literal_body_item.
+string_literal_raw_body is a series of string_literal_body_item separated with [].
 string_literal_raw_body_item ++> any char except [\\n\\[\\]\\\\].
 string_literal_raw_body_item ++> [\\\\n].
 string_literal_raw_body_item ++> [\\\\\\[].
 string_literal_raw_body_item ++> [\\\\\\]].
 string_literal_raw_body_item ++> [\\\\\\\\].
 
-node_name ++> string_literal_body.
+identifier is builtin-postprocessed identifier_raw.
+identifier_raw is a series of any char except [\\n\\[\\]\\\\ ] separated with [].
+
+identifier works as node_name.
 
 newline ++> [\\n].
 statement works as top_level_item.
@@ -454,7 +458,7 @@ newline works as top_level_item.
 statements is a series of top_level_item separated with newline.
 
 x_is_a_series_of_y_separated_with_z works as statement.
-x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:node_name, [ separated with ], separator:grammar_item, [.].
+x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:grammar_item, [ separated with ], separator:grammar_item, [.].
 
 subtype works as statement.
 subtype ++> sub:node_name, [ works as ], sup:node_name, [.].
@@ -569,7 +573,7 @@ now we need to turn this into (at least in-memory) ldl ast.
     ?raw :eq [a :node. :type ?type. :children ?ch].
     "" :say ("postprocess " ?type).
     ?type :eq "string_literal_raw_body".
-    ?cooked :eq [a :literal. :type :string. :value ?v].
+    ?cooked :eq [a :literal. :type :string_literal_body. :value ?v].
     ?v_list :is_collected_string_literal_raw_body ?raw.
     ?v string_builtins:strXlst ?v_list.
 }.
@@ -603,7 +607,6 @@ now we need to turn this into (at least in-memory) ldl ast.
 #-----------
 
 #?parsed is a node
-#?ldl is a rdf list
 
 #statements --> .
 {?parsed :parsed2builtins_statements rdf:nil} <= {
@@ -641,7 +644,7 @@ now we need to turn this into (at least in-memory) ldl ast.
 }.
 
 #statement --> x_is_a_series_of_y_separated_with_z.
-#x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], node_name, [ separated with ], grammar_item.
+#x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], grammar_item, [ separated with ], grammar_item.
 {?parsed :parsed2builtins_statement ?ldl} <= {
     ?parsed :type "x_is_a_series_of_y_separated_with_z"; :children
         (?x ?l0 ?y ?l1 ?z).

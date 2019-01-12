@@ -1,0 +1,6 @@
+sudo apt-get install software-properties-common 
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get install gcc-8 libc++abi-8-dev
+wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+sudo mcedit /etc/apt/sources.list
+sudo apt-get install clang-8

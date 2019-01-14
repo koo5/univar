@@ -26,5 +26,5 @@
     :dummy tau_builtins:output (?x ?y)^string_builtins:strXlst.
 }.
 
-{?x a :key_value_pair; :key ?K; :value ?V}.
+{?x a :key_value_pair; :key ?K; :value ?V} <= {}.
 

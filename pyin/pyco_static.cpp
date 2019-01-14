@@ -841,11 +841,11 @@ bool detect_ep(cpppred_state &old, cpppred_state &now)
                     goto not_different;
                     falsies:;
                     #ifdef TRACE
-                        cerr << "SECOND_CHANCE:" << thing_to_string_nogetval((*lists[0])[list_item_i]) <<
+                        /*cerr << "SECOND_CHANCE:" << thing_to_string_nogetval((*lists[0])[list_item_i]) <<
                         "(" << &((*lists[0])[list_item_i]) << ")" <<
                         ", " << thing_to_string_nogetval((*lists[1])[list_item_i]) <<
                          "(" << &((*lists[1])[list_item_i]) << ")"
-                         << endl;
+                         << endl;*/
                     #endif
                     delete lists[1];
                     return false;

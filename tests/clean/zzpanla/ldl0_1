@@ -24,6 +24,7 @@ query
 :dummy :statement_lines (?l rdf:nil ?grammar_concrete).
 :dummy tau_builtins:output "dcg parsed.".
 ?grammar_concrete :concrete_to_abstract ?grammar.
+:dummy tau_builtins:output "concrete_to_abstract.".
 :initial_ldl_text :has_value ?initial_ldl_text_value.
 ?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
 (?initial_ldl_text_list ?grammar "statements") :eq ?a1.

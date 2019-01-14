@@ -1,0 +1,47 @@
+@include ../lib/digits_count_up
+
+{?V :is_escaped_for_n3 ?V.} <= {}.
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
+    ?x a ldl:literal; :type ?T; :value ?V.
+    ?uri :eq (":node" ?uri_counter_before^string_builtins:strXlst)^string_builtins:strXlst.
+    ?s string_builtins:strXlst (
+        ?uri " a ldl:literal; :type \"" ?T "\""
+        "; :value \""
+        ?V^:is_escaped_for_n3
+        "\".\n").
+    ?uri_counter_before :has_succ ?uri_counter_after.
+}.
+
+{:dummy :is_serialized (rdf:nil "" ?uri_counter ?uri_counter "")} <= {}.
+
+{:dummy :is_serialized (?list_ ?s ?uri_counter_before ?uri_counter_after ?uris)} <= {
+    :dummy :is_serialized (?listf ?item_s ?uri_counter_before ?uri_counter_mid ?item_uri).
+    :dummy :is_serialized (?listr ?rest_s ?uri_counter_mid ?uri_counter_after ?rest_uris).
+    ?uris string_builtins::strXlst (?item_uri " " ?rest_uris).
+}.
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
+    ?x a ldl:compound; :type ?T; :children ?CH.
+    ?uri :eq (":node" ?uri_counter_before^string_builtins:strXlst)^string_builtins:strXlst.
+    ?uri_counter_before :has_succ ?uri_counter_mid.
+    :dummy :is_serialized (?CH ?children_s ?uri_counter_mid ?uri_counter_after ?children_uris).
+    ?s string_builtins:strXlst (
+        ?children_s
+        ?uri " a ldl:compound; :type \"" ?T "\""
+        "; :children ("
+        ?children_uris^string_builtins:strXlst
+        ").\n").
+}.
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
+    ?x a :key_value_pair; :key ?k; :value ?v.
+    ?uri :eq (":node" ?uri_counter_before^string_builtins:strXlst)^string_builtins:strXlst.
+    ?uri_counter_before :has_succ ?uri_counter_mid.
+    :dummy :is_serialized (?v ?value_s ?uri_counter_mid ?uri_counter_after ?value_uri).
+    ?s string_builtins:strXlst (
+        ?uri " a :key_value_pair; :key \"" ?key "\""
+        "; :value \"" ?value_uri "\""
+        ".\n"
+        ?value_s).
+}.

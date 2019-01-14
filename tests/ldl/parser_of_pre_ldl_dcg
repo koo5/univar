@@ -1,0 +1,336 @@
+
+#data declarations
+#some of these are used both in the concrete and in the abstract phase, so typing differs
+
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+# - name is a string
+{?x a :literal.  ?x :value ?vALUE} <= {}.
+# - value is a string or a list of chars
+{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :builtin_postprocessed.  ?x :value ?vALUE} <= {}.
+# - value is an identifier
+{?x a :newline} <= {}.
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+
+
+
+
+#character classess
+"a" :is_letter :true.
+"b" :is_letter :true.
+"c" :is_letter :true.
+"d" :is_letter :true.
+"e" :is_letter :true.
+"f" :is_letter :true.
+"g" :is_letter :true.
+"h" :is_letter :true.
+"i" :is_letter :true.
+"j" :is_letter :true.
+"k" :is_letter :true.
+"l" :is_letter :true.
+"m" :is_letter :true.
+"n" :is_letter :true.
+"o" :is_letter :true.
+"p" :is_letter :true.
+"q" :is_letter :true.
+"r" :is_letter :true.
+"s" :is_letter :true.
+"t" :is_letter :true.
+"u" :is_letter :true.
+"v" :is_letter :true.
+"w" :is_letter :true.
+"x" :is_letter :true.
+"y" :is_letter :true.
+"z" :is_letter :true.
+"A" :is_letter :true.
+"B" :is_letter :true.
+"C" :is_letter :true.
+"D" :is_letter :true.
+"E" :is_letter :true.
+"F" :is_letter :true.
+"G" :is_letter :true.
+"H" :is_letter :true.
+"I" :is_letter :true.
+"J" :is_letter :true.
+"K" :is_letter :true.
+"L" :is_letter :true.
+"M" :is_letter :true.
+"N" :is_letter :true.
+"O" :is_letter :true.
+"P" :is_letter :true.
+"Q" :is_letter :true.
+"R" :is_letter :true.
+"S" :is_letter :true.
+"T" :is_letter :true.
+"U" :is_letter :true.
+"V" :is_letter :true.
+"W" :is_letter :true.
+"X" :is_letter :true.
+"Y" :is_letter :true.
+"Z" :is_letter :true.
+"_" :allowed_as_identifier_first_char :true.
+{?x :allowed_as_identifier_first_char :true} <= {?x :is_letter :true}.
+{?x :allowed_as_identifier_char :true} <= {?x :allowed_as_identifier_first_char :true}.
+{?x :allowed_as_identifier_char :true} <= {?x :is_number :true}.
+
+"0" :is_number :true.
+"1" :is_number :true.
+"2" :is_number :true.
+"3" :is_number :true.
+"4" :is_number :true.
+"5" :is_number :true.
+"6" :is_number :true.
+"7" :is_number :true.
+"8" :is_number :true.
+"9" :is_number :true.
+
+{?x :allowed_in_literal :true} <= {?x :allowed_as_identifier_char :true}.
+" " :allowed_in_literal :true.
+"~" :allowed_in_literal :true.
+"!" :allowed_in_literal :true.
+"@" :allowed_in_literal :true.
+"#" :allowed_in_literal :true.
+"$" :allowed_in_literal :true.
+"%" :allowed_in_literal :true.
+"^" :allowed_in_literal :true.
+"&" :allowed_in_literal :true.
+"*" :allowed_in_literal :true.
+"(" :allowed_in_literal :true.
+")" :allowed_in_literal :true.
+"-" :allowed_in_literal :true.
+"=" :allowed_in_literal :true.
+"+" :allowed_in_literal :true.
+"<" :allowed_in_literal :true.
+">" :allowed_in_literal :true.
+"{" :allowed_in_literal :true.
+"}" :allowed_in_literal :true.
+"'" :allowed_in_literal :true.
+"\"" :allowed_in_literal :true.
+"|" :allowed_in_literal :true.
+"," :allowed_in_literal :true.
+"." :allowed_in_literal :true.
+"/" :allowed_in_literal :true.
+";" :allowed_in_literal :true.
+":" :allowed_in_literal :true.
+"`" :allowed_in_literal :true.
+
+
+
+
+#parser of initial dcg
+
+{:dummy :parses_to_rhs (?x0 ?rest ?rhs_)} <= {
+	:dummy :rhs_item (?x0 ?after_rhs_item ?rhsf).
+	:dummy :maybe_more_rhs_items (?after_rhs_item ?end ?rhsr).
+	?end rdf:first ".". ?end rdf:rest ?rest.
+}.
+
+{:dummy :parses_to_rhs (?x0 ?rest rdf:nil)} <= {
+	?x0 rdf:first ".". ?x0 rdf:rest ?rest.
+}.
+
+{:dummy :maybe_more_rhs_items (?x0 ?rest ?items)} <= {
+	?items rdf:first ?item. ?items rdf:rest ?items_rest.
+	?x0 rdf:first ",". ?x0 rdf:rest ?after_comma.
+	?after_comma rdf:first " ". ?after_comma rdf:rest ?after_space.
+	:dummy :rhs_item (?after_space ?after_item ?item).
+	:dummy :maybe_more_rhs_items (?after_item ?rest ?items_rest).
+}.
+
+{:dummy :maybe_more_rhs_items (?x0 ?x0 rdf:nil)} <= {
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :identifier. ?item :name ?name.
+	:dummy :identifier (?x0 ?rest ?name).
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :literal. ?item :value ?string.
+	:dummy :literal (?x0 ?rest ?string).
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :any_char_except. ?item :value ?except.
+	:dummy :literally_string (?x0 ?before_value "any char except ").
+	:dummy :literal (?before_value ?rest ?except).
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :all_chars_until_one_of. ?item :value ?except.
+	:dummy :literally_string (?x0 ?before_value "all chars until one of ").
+	:dummy :literal (?before_value ?rest ?except).
+}.
+
+{:dummy :rhs_item (?x0 ?rest ?item)} <= {
+	?item a :builtin_postprocessed. ?item :value ?value.
+	:dummy :literally_string (?x0 ?before_value "builtin-postprocessed ").
+	:dummy :identifier (?before_value ?rest ?value).
+}.
+
+{:dummy :arrow (?x0 ?rest)} <= {
+	:dummy :literally_string (?x0 ?rest " --> ").
+}.
+
+{:dummy :literally_string (?x0 ?rest ?value)} <= {
+	?value string_builtins:is_split ?l.
+	:dummy :literally_list (?x0 ?rest ?l).
+}.
+
+{:dummy :literally_list (?x_ ?rest ?value)} <= {
+	?value rdf:first ?xf.
+	?value rdf:rest ?vr.
+	:dummy :literally_list (?xr ?rest ?vr).
+}.
+
+{:dummy :literally_list (?x0 ?x0 rdf:nil)} <= {
+}.
+
+{:dummy :literal (?x0 ?rest ?val)} <= {
+	?x0 rdf:first "[". ?x0 rdf:rest ?after_opening.
+	:dummy :rest_of_literal (?after_opening ?after_value ?val).
+	?after_value rdf:first "]". ?after_value rdf:rest ?rest.
+}.
+
+{:dummy :statement (?x0 ?rest ?ast)} <= {
+	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
+
+	:dummy :identifier (?x0 ?after_identifier ?name).
+	:dummy :arrow (?after_identifier ?after_arrow).
+	:dummy :parses_to_rhs (?after_arrow ?rest ?rhs).
+}.
+
+{:dummy :identifier (?x_ ?rest ?name)} <= {
+	?xf :allowed_as_identifier_first_char :true.
+	?name rdf:first ?xf. ?name rdf:rest ?rest_of_name.
+	:dummy :rest_of_name (?xr ?rest ?rest_of_name).
+}.
+
+{:dummy :rest_of_name (?x0 ?x0 rdf:nil)} <= {
+}.
+
+{:dummy :rest_of_name (?x0 ?rest ?name)} <= {
+	?x0 rdf:first ?f. ?name rdf:first ?f. 
+	?f :allowed_as_identifier_char :true.
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?f.
+	?x0 rdf:rest ?r. ?name rdf:rest ?name_rest.
+	:dummy :rest_of_name (?r ?rest ?name_rest).
+}.
+
+{:dummy :rest_of_literal (?x0 ?x0 rdf:nil)} <= {
+}.
+
+{:dummy :rest_of_literal (?x_ ?rest ?val_)} <= {
+	?valf :eq ?xf.
+	?xf :allowed_in_literal :true.
+	#:dummy tau_builtins:output "rest of name:". :dummy tau_builtins:output ?xf.
+	:dummy :rest_of_literal (?xr ?rest ?valr).
+}.
+
+"\n" :has_escape_code "n".
+"\\" :has_escape_code "\\".
+"]" :has_escape_code "]".
+"[" :has_escape_code "[".
+
+{:dummy :rest_of_literal (?x0 ?rest ?val)} <= {
+	?real :has_escape_code ?escape.
+	?val rdf:first ?real. ?val rdf:rest ?val_rest.
+    ?x0  rdf:first "\\". ?x0 rdf:rest ?x1.  ?x1 rdf:first ?escape. ?x1 rdf:rest ?x2.
+	:dummy :rest_of_literal (?x2 ?rest ?val_rest).
+}.
+
+{:dummy :newline (?x0 ?rest)} <= {
+		#?x0 rdf:first ?f.:dummy tau_builtins:output "newline?:". :dummy tau_builtins:output ?f.
+	?x0 rdf:first "\n". 
+		#:dummy tau_builtins:output "yes".
+	?x0 rdf:rest ?rest.
+}.
+
+#statement_lines --> statement_line, statement_lines.
+{:dummy :statement_lines (?x0 ?rest ?items)} <= {
+	?items rdf:first ?item. ?items rdf:rest ?items_rest.
+	:dummy :statement_line (?x0 ?after_line ?item).
+	:dummy :statement_lines (?after_line ?rest ?items_rest).
+}.
+
+#statement_lines --> .
+{:dummy :statement_lines (?x0 ?x0 rdf:nil)} <= {
+}.
+
+#statement_line --> newline.
+{:dummy :statement_line (?x0 ?rest ?item)} <= {
+	:dummy :newline (?x0 ?rest).
+	?item a :newline.
+}.
+
+#statement_line --> statement, newline.
+{:dummy :statement_line (?x0 ?rest ?item)} <= {
+	:dummy :statement (?x0 ?after_statement ?item).
+	:dummy :newline (?after_statement ?rest).
+}.
+
+
+
+
+
+#a post-processor for the initial dcg
+{rdf:nil :concrete_to_abstract rdf:nil} <= {
+}.
+
+{?cst :concrete_to_abstract ?ast} <= {
+	?cst rdf:first ?cf.
+	?cf a :newline.
+	?cst rdf:rest ?cr. ?cr :concrete_to_abstract ?ast.
+}.
+
+{?c_ :concrete_to_abstract ?a_} <= {
+	?cf a :statement. ?cf :concrete_to_abstract_statement ?af.
+	?cr :concrete_to_abstract ?ar.
+}.
+
+{?c :concrete_to_abstract_statement ?a} <= {
+	?c :lhs ?clhs. ?a :lhs ?alhs.
+	?alhs string_builtins:strXlst ?clhs.
+	?c :rhs ?crhs. ?a :rhs ?arhs.
+	?crhs :concrete_to_abstract_rhs ?arhs.
+}.
+
+{rdf:nil :concrete_to_abstract_rhs rdf:nil} <= {}.
+
+{?c_ :concrete_to_abstract_rhs ?a_} <= {
+	?cf :concrete_to_abstract_rhs_item ?af.
+	?cr :concrete_to_abstract_rhs ?ar.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :identifier. ?c :name ?cname.
+	?a a :identifier. ?a :name ?aname.
+	?aname string_builtins:strXlst ?cname.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :builtin_postprocessed. ?c :value ?cv.
+	?a a :builtin_postprocessed. ?a :value ?av.
+	?cv :concrete_to_abstract_rhs_item ?av.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :any_char_except. ?c :value ?cv.
+	?a a :any_char_except. ?a :value ?av.
+	?av string_builtins:strXlst ?cv.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?a} <= {
+	?c a :all_chars_until_one_of. ?c :value ?cv.
+	?a a :all_chars_until_one_of. ?a :value ?av.
+	?av string_builtins:strXlst ?cv.
+}.
+
+{?c :concrete_to_abstract_rhs_item ?c} <= {
+	?c a :literal.
+}.

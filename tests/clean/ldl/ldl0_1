@@ -3,206 +3,18 @@
 @prefix ldl:      <http://ldl.ldl#> .
 @prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 @prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
-
 @prefix : <file://>.
-
 
 kb
 
-?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
-
-{?X :eq ?X.} <= {}.
-
-:zero a :nat.
-{?x a :nat. ?y :has_succ ?x. } <= {?y a :nat}.
-
-:minus_one a :negative_nat.
-{?x a :negative_nat. ?x :has_succ ?y.} <= {?y a :negative_nat}.
-
-{
-  ?LIST rdf:first ?FIRST .
-} => {
-  ?FIRST :memberof ?LIST .
-} .
-{
-  ?R1 rdf:rest ?R .
-  ?X :memberof ?R .
-} => { 
-  ?X :memberof ?R1 .
-} .
-
-#"ahoj" :say "kato".
-
-{?x :say ?y} <= {
-    :dummy tau_builtins:output (?x ?y)^tau_builtins:strXlst.
-}.
-
-
-
-
-
-
-
-
+@include utils
 @include pre_ldl_dcg
 @include parser_of_pre_ldl_dcg
 @include initial_ldl_text
 @include parse_initial_ldl_text_with_the_dcg
-
-
-
-
-
-#lemon ast
-
-{?x a ldl:newline} <= {}.
-{?x a ldl:literal; :type ?T; :value ?V} <= {}.
-{?x a ldl:compound; :type ?T; :children ?CH} <= {}.
-
-
-
-#woohoo, now we can transform the output of the bootstrap parser into a true lemon ast
-#-----------
-
-#?parsed is a dcg-parser node, ?ldl is a lemon node
-
-#statements --> .
-{?parsed :parsed2builtins rdf:nil} <= {
-    ?parsed :type "statements".
-    ?parsed :children ().
-}.
-
-#statements --> [\\n], statements.
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "statements".
-    ?parsed :children ([:value "\n"] ?tail).
-    ?ldlf a ldl:newline.
-    ?tail :parsed2builtins_statements ?ldlr.
-}.
-
-#statements --> statement, [.\\n], statements.
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "statements".
-    ?parsed :children (?head [:value ".\n"] ?tail).
-    ?head :parsed2builtins_statement ?ldlf.
-    ?tail :parsed2builtins_statements ?ldlr.
-}.
-
-#statements --> comment, [\\n], statements.
-{?parsed :parsed2builtins ?ldl_} <=
-{
-    ?parsed :type "statements".
-    ?parsed :children (?head [:value "\n"] ?tail).
-    ?head :parsed2builtins_comment ?ldlf.
-    ?tail :parsed2builtins_statements ?ldlr.
-}.
-
-#comment --> [#], all chars until one of [\\n].
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "comment".
-    ?parsed :children (?hash ?body).
-    ?ldl a ldl:compound; :type "builtins/comment"; :value ?body.
-}.
-
-#x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], grammar_item, [ separated with ], grammar_item.
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "x_is_a_series_of_y_separated_with_z";
-    :children (?x ?l0 ?y ?l1 ?z).
-    ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl. ?z :parsed2builtins ?z_ldl.
-    ?ldl a :componund; :type "builtins/x_is_a_series_of_y_separated_with_z"; :children (
-        [:key "x"; :value ?x_ldl]
-        [:key "y"; :value ?y_ldl]
-        [:key "z"; :value ?z_ldl]
-    ).
-}.
-
-#node_name --> string_literal_body, [].
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "node_name"; :children (?x ?y).
-    ?ldl a :literal; :type "builtins/identifier"; :value ?x_ldl!:value.
-}.
-
-#node_name_with_child_name --> node_name, [:], node_name.
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "node_name_with_child_name";
-    :children (?x ?l0 ?y).
-    ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
-    ?ldl a :componund; :type "builtins/x_is_a_series_of_y_separated_with_z"; :children (
-        [:key "name"; :value ?x_ldl]
-        [:key "type"; :value ?y_ldl]
-    ).
-}
-
-#any_char_except --> [any char except ], string_literal.
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "any_char_except";
-    :children (?l0 ?x).
-    ?x :parsed2builtins ?x_ldl.
-    ?ldl a :componund; :type "builtins/any_char_except"; :children (
-        [:key "except"; :value ?x_ldl]
-    ).
-}
-
-#all_chars_until_one_of --> [all chars until one of ], string_literal.
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "all_chars_until_one_of";
-    :children (?l0 ?x).
-    ?x :parsed2builtins ?x_ldl.
-    ?ldl a :componund; :type "builtins/all_chars_until_one_of"; :children (
-        [:key "until"; :value ?x_ldl]
-    ).
-}
-
-#subtype --> node_name, [ works as ], node_name.
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "subtype";
-    :children (?x ?l0 ?y).
-    ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
-    ?ldl a :componund; :type "builtins/subtype"; :children (
-        [:key "x"; :value ?x_ldl]
-        [:key "y"; :value ?y_ldl]
-    ).
-}
-
-#grammar --> node_name, [ ++> ], grammar_items, [.].
-{?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "grammar";
-    :children (?x ?l0 ?y ?l1).
-    ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
-    ?ldl a :componund; :type "builtins/grammar"; :children (
-        [:key "node_name"; :value ?x_ldl]
-        [:key "grammar_items"; :value ?y_ldl]
-    ).
-}
-
-#grammar_items --> grammar_item, [, ], grammar_items.
-{?parsed :parsed2builtins ?ldl_} <= {
-    ?parsed :type "grammar_items";
-    :children (?x ?l0 ?y).
-    ?x :parsed2builtins ?ldlf. ?y :parsed2builtins ?ldlr.
-}
-
-#grammar_items --> grammar_item, [].
-{?parsed :parsed2builtins ?ldl_} <= {
-    ?parsed :type "grammar_items";
-    :children (?x).
-    ?x :parsed2builtins ?ldlf. ?y :parsed2builtins rdf:nil.
-}
-
-#grammar_items --> .
-{?parsed :parsed2builtins rdf:nil} <= {
-    ?parsed :type "grammar_items";
-    :children ().
-}
-
-
+@include bootstrap2lemon
 
 fin.
-
-
-
 
 query
 :dummy tau_builtins:toggle_tracing :dummy.
@@ -244,7 +56,7 @@ shouldbetrue
 
 
 
-"""
-lol_module_raw is a kind of module with lol_statement items.
-lol_module is builtin-postprocessed lol_module_raw.
-"""
+#"""
+#lol_module_raw is a kind of module with lol_statement items.
+#lol_module is builtin-postprocessed lol_module_raw.
+#"""

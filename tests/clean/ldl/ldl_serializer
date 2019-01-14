@@ -1,0 +1,37 @@
+@include ../lib/digits_count_up
+
+{?V :is_escaped_for_n3 ?V.} <= {}.
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after)} <= {
+    ?x a ldl:literal; :type ?T; :value ?V.
+    ?s string_builtins:strXlst (
+        ":node"
+        ?uri_counter_before^string_builtins:strXlst
+        " a :ldl:literal; :type \""
+        ?T
+        \""
+        "; :value \""
+        ?V^:is_escaped_for_n3
+        "\".\n").
+    ?uri_counter_before :has_succ ?uri_counter_after.
+}.
+
+{:dummy :is_serialized (rdf:nil "" ?uri_counter ?uri_counter "")} <= {
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after)} <= {
+    ?x a ldl:compound; :type ?T; :children ?CH.
+    :dummy :is_serialized (?CH ?children_s ?uri_counter_before ?uri_counter_mid ?children_uris).
+    ?s string_builtins:strXlst (
+        ?children_s
+        ":node"
+        ?uri_counter_mid^string_builtins:strXlst
+        " a :ldl:compound; :type \""
+        ?T
+        \""
+        "; :children ("
+        ?children_uris^string_builtins::strXlst
+        )".\n").
+    ?uri_counter_before :has_succ ?uri_counter_after.
+}.
+
+:dummy :is_serialized (?builtins ?n3 (0) ?uri_counter_after)

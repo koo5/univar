@@ -23,6 +23,8 @@
 #"ahoj" :say "kato".
 
 {?x :say ?y} <= {
-    :dummy tau_builtins:output (?x ?y)^tau_builtins:strXlst.
+    :dummy tau_builtins:output (?x ?y)^string_builtins:strXlst.
 }.
+
+{?x a :key_value_pair; :key ?K; :value ?V}.
 

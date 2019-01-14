@@ -13,6 +13,7 @@ kb
 @include initial_ldl_text
 @include parse_initial_ldl_text_with_the_dcg
 @include bootstrap2lemon
+@include ldl_serializer
 
 fin.
 

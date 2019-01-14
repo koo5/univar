@@ -59,7 +59,7 @@
 }.
 
 {?a0 :parse_rhs_item ?a1} <= {
-    (?x0 ?grammar [a :identifier. :name ?name]) :eq ?a0. ?a1 :eq (?rest ?ast ?depth).
+    (?x0 ?grammar [a :identifier; :name ?name]) :eq ?a0. ?a1 :eq (?rest ?ast ?depth).
 		#"parse_rhs_item(nont):". :say ?name.
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
 }.
@@ -82,10 +82,10 @@
 }.
 
 {?raw :postprocess ?cooked} <= {
-    ?raw :eq [a :node. :type ?type. :children ?ch].
+    ?raw :eq [a :node; :type ?type; :children ?ch].
     "" :say ("postprocess " ?type).
     ?type :eq "string_literal_raw_body".
-    ?cooked :eq [a :literal. :type :string_literal_body. :value ?v].
+    ?cooked :eq [a :literal; :type :string_literal_body; :value ?v].
     ?v_list :is_collected_string_literal_raw_body ?raw.
     ?v string_builtins:strXlst ?v_list.
 }.

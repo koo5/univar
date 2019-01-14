@@ -6,7 +6,7 @@
     ?x a ldl:literal; :type ?T; :value ?V.
     ?uri :eq string_builtins:strXlst (":node" ?uri_counter_before^string_builtins:strXlst).
     ?s string_builtins:strXlst (
-        ?uri " a :ldl:literal; :type \"" ?T \""
+        ?uri " a ldl:literal; :type \"" ?T \""
         "; :value \""
         ?V^:is_escaped_for_n3
         "\".\n").
@@ -28,7 +28,20 @@
     :dummy :is_serialized (?CH ?children_s ?uri_counter_mid ?uri_counter_after ?children_uris).
     ?s string_builtins:strXlst (
         ?children_s
-        ?uri " a :ldl:compound; :type \"" ?T \""
+        ?uri " a ldl:compound; :type \"" ?T "\""
+        "; :children ("
+        ?children_uris^string_builtins::strXlst
+        )".\n").
+}.
+
+{:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
+    ?x a :key_value_pair; :key ?k; :value ?v.
+    ?uri :eq string_builtins:strXlst (":node" ?uri_counter_before^string_builtins:strXlst).
+    ?uri_counter_before :has_succ ?uri_counter_mid.
+    :dummy :is_serialized (?v ?value_s ?uri_counter_mid ?uri_counter_after ?value_uri).
+    ?s string_builtins:strXlst (
+        ?value_s
+        ?uri " a :key_value_pair; :key \"" ?key "\""
         "; :children ("
         ?children_uris^string_builtins::strXlst
         )".\n").

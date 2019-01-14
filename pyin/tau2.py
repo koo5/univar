@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 import time, os
 import common
@@ -50,7 +51,7 @@ def tau(command, files, only_id):
 		prefixes = ['@prefix : <file://>.\n']
 		output = ''
 		buffer = []
-		for line_number, l in enumerate(open(fn).readlines()):
+		for line_number, l in enumerate(do_includes(fn)):
 			line_number += 1
 			l_stripped = l.strip()
 			if mode == Mode.none:
@@ -153,6 +154,15 @@ def tau(command, files, only_id):
 			exit()
 	echo(":test:that's all, folks")
 
+def do_includes(fn):
+	result = []
+	for l in open(fn).readlines():
+		match = re.match(r"^@include (.*)", l)
+		if match:
+			result += do_includes(os.path.dirname(fn) + '/' + match.groups()[0])
+		else:
+			result.append(l)
+	return result
 
 def process_output(output_line):
 	print(output_line)

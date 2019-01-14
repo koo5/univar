@@ -23,7 +23,7 @@
     ?parsed :type "statements".
     ?parsed :children ([:value "\n"] ?tail).
     ?ldl a ldl:compound; :type "builtins/newline"; :children ().
-    ?tail :parsed2builtins_statements ?ldlr.
+    ?tail :parsed2builtins ?ldlr.
 }.
 
 #statements --> statement, [.\\n], statements.
@@ -31,8 +31,8 @@
 {
     ?parsed :type "statements".
     ?parsed :children (?head [:value ".\n"] ?tail).
-    ?head :parsed2builtins_statement ?ldlf.
-    ?tail :parsed2builtins_statements ?ldlr.
+    ?head :parsed2builtins ?ldlf.
+    ?tail :parsed2builtins ?ldlr.
 }.
 
 #statements --> comment, [\\n], statements.
@@ -40,8 +40,8 @@
 {
     ?parsed :type "statements".
     ?parsed :children (?head [:value "\n"] ?tail).
-    ?head :parsed2builtins_comment ?ldlf.
-    ?tail :parsed2builtins_statements ?ldlr.
+    ?head :parsed2builtins ?ldlf.
+    ?tail :parsed2builtins ?ldlr.
 }.
 
 #comment --> [#], all chars until one of [\\n].
@@ -78,7 +78,7 @@
         [:key "name"; :value ?x_ldl]
         [:key "type"; :value ?y_ldl]
     ).
-}
+}.
 
 #any_char_except --> [any char except ], string_literal.
 {?parsed :parsed2builtins ?ldl} <= {
@@ -88,7 +88,7 @@
     ?ldl a :componund; :type "builtins/any_char_except"; :children (
         [:key "except"; :value ?x_ldl]
     ).
-}
+}.
 
 #all_chars_until_one_of --> [all chars until one of ], string_literal.
 {?parsed :parsed2builtins ?ldl} <= {
@@ -98,7 +98,7 @@
     ?ldl a :componund; :type "builtins/all_chars_until_one_of"; :children (
         [:key "until"; :value ?x_ldl]
     ).
-}
+}.
 
 #subtype --> node_name, [ works as ], node_name.
 {?parsed :parsed2builtins ?ldl} <= {
@@ -109,7 +109,7 @@
         [:key "x"; :value ?x_ldl]
         [:key "y"; :value ?y_ldl]
     ).
-}
+}.
 
 #grammar --> node_name, [ ++> ], grammar_items, [.].
 {?parsed :parsed2builtins ?ldl} <= {
@@ -120,26 +120,26 @@
         [:key "node_name"; :value ?x_ldl]
         [:key "grammar_items"; :value ?y_ldl]
     ).
-}
+}.
 
 #grammar_items --> grammar_item, [, ], grammar_items.
 {?parsed :parsed2builtins ?ldl_} <= {
     ?parsed :type "grammar_items";
     :children (?x ?l0 ?y).
     ?x :parsed2builtins ?ldlf. ?y :parsed2builtins ?ldlr.
-}
+}.
 
 #grammar_items --> grammar_item, [].
 {?parsed :parsed2builtins ?ldl_} <= {
     ?parsed :type "grammar_items";
     :children (?x).
     ?x :parsed2builtins ?ldlf. ?y :parsed2builtins rdf:nil.
-}
+}.
 
 #grammar_items --> .
 {?parsed :parsed2builtins rdf:nil} <= {
     ?parsed :type "grammar_items";
     :children ().
-}
+}.
 
 

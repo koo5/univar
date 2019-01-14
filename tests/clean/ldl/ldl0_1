@@ -18,7 +18,7 @@ fin.
 
 query
 :dummy tau_builtins:toggle_tracing :dummy.
-:grammar_of_initial_ldl :has_value ?v.
+:pre_ldl_dcg :has_value ?v.
 ?v string_builtins:strXlst ?l.
 :dummy :statement_lines (?l rdf:nil ?grammar_concrete).
 :dummy tau_builtins:output "dcg parsed.".
@@ -31,11 +31,10 @@ query
 :dummy tau_builtins:toggle_tracing :dummy.
 ?a1 :parse_nonterminal ?a2.
 ?initial_ldl :parsed2builtins ?builtins_statements.
-
+:dummy :is_serialized (?builtins_statements ?n3 (0) ?uri_counter_after).
+"output: " :say ?n3.
 fin.
 shouldbetrue
-
-
 
 
 

@@ -6,7 +6,7 @@
     ?x a ldl:literal; :type ?T; :value ?V.
     ?uri :eq string_builtins:strXlst (":node" ?uri_counter_before^string_builtins:strXlst).
     ?s string_builtins:strXlst (
-        ?uri " a ldl:literal; :type \"" ?T \""
+        ?uri " a ldl:literal; :type \"" ?T "\""
         "; :value \""
         ?V^:is_escaped_for_n3
         "\".\n").

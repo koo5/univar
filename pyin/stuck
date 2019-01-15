@@ -1,0 +1,23 @@
+while unify incoming with locals:
+    set progress false
+	while ep:
+		set suspended true
+		yield
+	set progress true
+	while bi0():
+		while bi1():
+			while any bi is suspended:
+			    if not progress(bi0) and not progress(bi1):
+			        set suspended true
+			        yield
+				if suspended(bi0):
+				    bi0()
+					if failed (bi0):
+					    fail
+    			if suspended(bi1):
+    			    bi1()
+				    if failed (bi1):
+				        fail
+			set suspended false
+				yield
+

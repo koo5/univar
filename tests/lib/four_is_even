@@ -1,0 +1,8 @@
+fin.
+
+query
+?four is even. ?three :has_succ ?four. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three.
+fin.
+shouldbetrue
+
+

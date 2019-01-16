@@ -1,0 +1,2 @@
+:zero a :Nat.
+{?x :has_succ ?y. ?y a :Nat} <= {?x a :Nat}.

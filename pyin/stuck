@@ -1,10 +1,10 @@
 while unify incoming with locals:
-    set progress false
 	while ep:
 		set suspended true
 		yield
-	set progress true
-	while bi0():
+	set suspended false
+	new bi0
+	while ((any_bi_is_suspended and suspended(bi0)) or no_bi_is_suspended) and bi0()
 		while bi1():
 			while any bi is suspended:
 			    if not progress(bi0) and not progress(bi1):
@@ -13,11 +13,148 @@ while unify incoming with locals:
 				if suspended(bi0):
 				    bi0()
 					if failed (bi0):
-					    fail
+					    goto fail
     			if suspended(bi1):
     			    bi1()
 				    if failed (bi1):
-				        fail
+				        goto fail
 			set suspended false
 				yield
+	fail:
+..next rule..
+
+
+
+progress(): return entry - old_entry
+
+
+
+
+while unify incoming with locals:
+    success = false
+	while ep:
+		yield
+		label0
+	new bi0 (old_entry = -1, entry = 0, incoming = ...)
+	while some bi didnt have progress but bi0.success, or bi0():
+	    new bi1
+    	while some bi didnt have progress but bi1 did, or bi1():
+    	    if bi0.success and bi1.success:
+    	        success = true
+        		yield
+    	        success = false
+    	    elif sum(biX.progress if not biX.success):
+    	        progress = 1
+    			yield
+   	            success = false
+..next rule..
+
+
+{?x a kiwi} <= {}.
+{?x a banana} <= {}.
+{?x a monkey; color ?C; lives ?L} <= {}.
+
+{?food color_a_monkey ?monkey} <= {
+    ?food a kiwi. ?y a monkey; color green; lives ?nat. ?nat a nat.
+}.
+{?food color_a_monkey ?monkey} <= {
+    ?x a banana. ?y a monkey; color yellow
+}.
+
+ ?food color_a_monkey ?monkey. ?monkey color yellow; lives 20.
+ #food = banana
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{?x a banana} <= {}.
+{?x a crayon; color ?C} <= {}.
+{?x a monkey; color ?C} <= {}.
+
+{?food color_a_monkey ?monkey} <= {
+    ?food a crayon; color ?c. ?y a monkey; color ?c
+}.
+{?food color_a_monkey ?monkey} <= {
+    ?x a banana. ?y a monkey; color yellow
+}.
+
+
+ ?monkey color yellow. ?food color_a_monkey ?monkey.
+ #food = yellow crayon
+ #food = banana
+
+ ?monkey color blue. ?food color_a_monkey ?monkey.
+ #food = blue crayon
+
+?food color_a_monkey ?monkey. ?monkey color yellow
+
+
+
+
+
+
+
+
+{?x a kiwi} <= {}.
+{?x a banana} <= {}.
+{?x a monkey; color ?C} <= {}.
+
+{?food color_a_monkey ?monkey} <= {
+    ?food a kiwi. ?y a monkey; color green
+}.
+{?food color_a_monkey ?monkey} <= {
+    ?x a banana. ?y a monkey; color yellow
+}.
+
+ ?monkey color yellow. ?food color_a_monkey ?monkey.
+ #food = banana
+
+ ?food color_a_monkey ?monkey. ?monkey color yellow
+ #food = banana
+
+
 

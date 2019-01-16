@@ -1,0 +1,40 @@
+{?x a fruit; color ?C} <= {}.
+
+
+{dinner dinner dinner} <= {
+	?x a dinner.
+	?x color orange.
+}
+
+{?x a dinner} <= {
+	?x a fruit.
+	?three :has_succ ?four. :zero :has_succ ?one. ?one :has_succ ?two. ?two :has_succ ?three.
+	?x color yellow.
+}
+
+{?x a dinner} <= {
+	?x a fruit.
+}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+?x a nat <= ?x a nat
+
+
+?x a nat. ?y a nat. 
+
+
+
+

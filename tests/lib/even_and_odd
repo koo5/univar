@@ -1,0 +1,3 @@
+{?x is even} <= {?p has_succ ?x. ?p is odd.}.
+{?x is odd.} <= {?p has_succ ?x. ?p is even}.
+:zero is even.

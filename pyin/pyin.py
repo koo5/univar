@@ -481,8 +481,8 @@ class Rule(Kbdbgable):
 	def __str__(singleton, shortener = lambda x:x):
 		return "{" + (
 			(singleton.head.str(shortener) +
-			(' , original head:' + singleton.original_head_ref.str(shortener))
-			if len(singleton.original_head_ref) > 1 else '')
+			((' , original head:' + singleton.original_head_ref.str(shortener))
+			if len(singleton.original_head_ref) > 1 else ''))
 			if singleton.head else '') + "} <= " + (singleton.body.str(shortener)  if singleton.body else '{}')
 
 	def make_locals(singleton, head, body, kbdbg_rule):

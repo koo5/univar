@@ -1033,7 +1033,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					output <<  " - " << thing_to_string_nogetval(input);
 				#endif
 			}
-			cerr << output.str() << endl;
+			cout << output.str() << endl;
 			#ifdef TRACE_PROOF
 				state.set_comment(output.str()); 
 				state.num_substates = 0;

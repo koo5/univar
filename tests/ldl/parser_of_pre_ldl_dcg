@@ -168,7 +168,7 @@
 }.
 
 {:dummy :rhs_item (?x0 ?rest ?item)} <= {
-	?item a :builtin_postprocessed. ?item :value ?value.
+	?item a :builtin_postprocessed. ?item :value [a :identifier; :name ?value].
 	:dummy :literally_string (?x0 ?before_value "builtin-postprocessed ").
 	:dummy :identifier (?before_value ?rest ?value).
 }.
@@ -278,7 +278,16 @@
 
 
 
+
+
+
+
+
+
+
+
 #a post-processor for the initial dcg
+
 {rdf:nil :concrete_to_abstract rdf:nil} <= {
 }.
 
@@ -311,12 +320,16 @@
 	?c a :identifier. ?c :name ?cname.
 	?a a :identifier. ?a :name ?aname.
 	?aname string_builtins:strXlst ?cname.
+	"" :say "identifier.....!".
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :builtin_postprocessed. ?c :value ?cv.
 	?a a :builtin_postprocessed. ?a :value ?av.
+	:dummy tau_builtins:toggle_tracing :dummy.
+	"" :say "builtin_postprocessed...".
 	?cv :concrete_to_abstract_rhs_item ?av.
+	"" :say "builtin_postprocessed.".
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {

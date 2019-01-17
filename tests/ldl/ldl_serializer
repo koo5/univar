@@ -2,6 +2,15 @@
 
 {?V :is_escaped_for_n3 ?V.} <= {}.
 
+{:dummy :is_serialized (rdf:nil "nil" ?uri_counter ?uri_counter "")} <= {}.
+
+{:dummy :is_serialized (?list_ ?s ?uri_counter_before ?uri_counter_after ?uris)} <= {
+    :dummy :is_serialized (?listf ?item_s ?uri_counter_before ?uri_counter_mid ?item_uri).
+    :dummy :is_serialized (?listr ?rest_s ?uri_counter_mid ?uri_counter_after ?rest_uris).
+    ?uris string_builtins:strXlst (?item_uri " " ?rest_uris).
+    ?s string_builtins:strXlst ("ola" ?item_s " " ?rest_s).
+}.
+
 {:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
     ?x a ldl:literal; :type ?T; :value ?V.
     ?uri :eq (":node" ?uri_counter_before^string_builtins:strXlst)^string_builtins:strXlst.
@@ -11,14 +20,6 @@
         ?V^:is_escaped_for_n3
         "\".\n").
     ?uri_counter_before :has_succ ?uri_counter_after.
-}.
-
-{:dummy :is_serialized (rdf:nil "" ?uri_counter ?uri_counter "")} <= {}.
-
-{:dummy :is_serialized (?list_ ?s ?uri_counter_before ?uri_counter_after ?uris)} <= {
-    :dummy :is_serialized (?listf ?item_s ?uri_counter_before ?uri_counter_mid ?item_uri).
-    :dummy :is_serialized (?listr ?rest_s ?uri_counter_mid ?uri_counter_after ?rest_uris).
-    ?uris string_builtins:strXlst (?item_uri " " ?rest_uris).
 }.
 
 {:dummy :is_serialized (?node ?s ?uri_counter_before ?uri_counter_after ?uri)} <= {
@@ -45,3 +46,4 @@
         ".\n"
         ?value_s).
 }.
+

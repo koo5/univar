@@ -1,0 +1,10 @@
+{rdf:nil :is_a_list_with_first_y_items_from_z (:zero ?z)} <= {
+
+}.
+
+{?x_ :is_a_list_with_first_y_items_from_z (?y ?z_)} <= {
+    ?p :has_succ ?y.
+    ?xf :eq ?zf.
+    ?xr :is_a_list_with_first_y_items_from_z (?p ?zr).
+}.
+

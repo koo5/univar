@@ -210,7 +210,9 @@ class Emitter(object):
 			consts,
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
-			s.unification()
+			s.unification(),
+			(s.bnode_printer() if trace else Lines([]))
+
 		])
 		import sys
 		sys.setrecursionlimit(15000)
@@ -304,6 +306,35 @@ int unify(cpppred_state & __restrict__ state)
 }"""))
 		return result
 
+	def bnode_printer(s):
+		result = Lines([Line(
+			"""
+string bnode_to_string(Thing* thing)
+{
+	stringstream result;
+	cerr << "xxxxxxxxxxx"<< endl;
+	cerr << thing<< endl;
+	cerr << thing->origin()<< endl;
+	cerr << "xxxxxxxxxxx"<< endl;
+	switch (thing->origin())
+	{
+""")])
+		def do_arg(arg):
+			result.append(s.substituted_arg2('result', locals, rule, arg, arg!=bnode_name))
+		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
+			result.append(Line('case ' + bnode_cpp_name + ':'))
+			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
+				bnode_idx = rule.locals_map[bnode_name]
+				locals = 'thing - '+str(bnode_idx)
+				do_arg(triple.args[0])
+				result.append(Statement('result << " <' + str(triple.pred) + '> "'))
+				do_arg(triple.args[1])
+				if not is_last: result.append(Statement('result << ". "'))
+			result.append(Statement('break'))
+			#from IPython import embed; embed();exit()
+		result.append(Line('}; return result.str();}'))
+		return result
+
 	def substate(s):
 		return '(state.states+'+str(s.state_index)+')'
 
@@ -323,6 +354,29 @@ int unify(cpppred_state & __restrict__ state)
 					Statement('cout << "?' + str(arg) +' "'))
 				])
 		assert(False)
+
+	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes):
+		if type(arg) == rdflib.Literal:
+			return Statement(outstream+' << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
+		if type(arg) == rdflib.URIRef:
+			return Statement(outstream+' << "<' + cpp_string_literal_noquote(arg) +'> "')
+		if type(arg) == rdflib.Variable:
+			return Block([
+				Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'),
+				If('v->type() == CONST',
+					If ('nodeids2consts[v->node_id()].type == URI',
+						Statement(outstream+' <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
+						Statement(outstream+' << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "')
+					),
+				   (If ('v->type() == BNODE',
+						Statement(outstream+' << bnode_to_string(v)'),
+						Statement(outstream+' << "?' + str(arg) +'"'))
+				   if do_bnodes else
+				   		Statement(outstream+' << "?' + str(arg) +'"'))
+				)
+				])
+		assert(False)
+
 
 
 	def print_result(s, r, goal_graph):
@@ -782,7 +836,7 @@ def create_builtins(emitter):
 			state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 			for (size_t i = 0; i < input_string.size(); i++)
 			{
-				const BnodeOrigin bn = r0bnbuiltins_aware_list;
+				const BnodeOrigin bn = r1bnbuiltins_aware_list;
 				state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
 				string s = input_string.substr(i,1);
 				state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
@@ -817,7 +871,7 @@ def create_builtins(emitter):
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	"xy" string_builtins:strXlst ("x" "y") ."""
 	def build_in(builtin):
-		if not 'r0bnbuiltins_aware_list' in emitter.bnodes:
+		if not 'r1bnbuiltins_aware_list' in emitter.bnodes:
 			emitter.prologue.append(Line("""
 size_t query_list(cpppred_state & __restrict__ state)
 {
@@ -832,7 +886,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 {
 	Thing *&rdf_list = state.incoming[0];
 	ASSERT(rdf_list->type() != BOUND);
-	if (!(*rdf_list == Thing{BNODE, r0bnbuiltins_aware_list IF_TRACE("whatever")}))
+	if (!(*rdf_list == Thing{BNODE, r1bnbuiltins_aware_list IF_TRACE("whatever")}))
 		return 0;
 	Thing *&result_thing = state.incoming[1];
 	vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
@@ -929,7 +983,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 						state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 						for (size_t i = 0; i < input_string.size(); i++)
 						{
-							const BnodeOrigin bn = r0bnbuiltins_aware_list;
+							const BnodeOrigin bn = r1bnbuiltins_aware_list;
 							state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
 							string s = input_string.substr(i,1);
 							state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};

@@ -146,3 +146,7 @@ def newList(self, n, f):
 	for i in reversed(result):
 		self.makeStatement(i)
 	return r
+
+def tell_if_is_last_element(x):
+	for i, j in enumerate(x):
+		yield j, (i == (len(x) - 1))

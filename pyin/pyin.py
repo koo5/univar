@@ -226,7 +226,7 @@ class AtomVar(Kbdbgable):
 				s.debug_locals = weakref(debug_locals)
 			if s.debug_locals != None:
 				s.kbdbg_name = s.debug_locals().kbdbg_frame
-			assert(debug_name)
+			assert(debug_name != None)
 			s.kbdbg_name += "_" + quote_plus(debug_name)
 
 	def __short__str__(s):
@@ -714,7 +714,7 @@ def query(input_rules, query_rule, goal_graph):
 	for i, locals in enumerate(query_rule.match()):
 		uri = ":result" + str(i)
 		nolog or kbdbg(uri + " rdf:type kbdbg:result")
-		terms = [substitute_term(term, locals) for term in goal_graph]
+		terms = substitute_graph(goal_graph, locals)
 		if not nolog:
 			result_terms_uri = emit_list(emit_terms(terms))
 			kbdbg(uri + " rdf:value " + result_terms_uri)
@@ -770,6 +770,9 @@ def print_bnode(v):
 			r += str(k) + ' --->>> ' + (get_value(vv).__short__str__()) + '\n'
 	r += ']'
 	return r
+
+def substitute_graph(graph, locals):
+	return [substitute_term(term, locals) for term in graph]
 
 def substitute_term(term, locals):
 	return Triple(term.pred, [substitute(x, locals) for x in term.args])

@@ -447,6 +447,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 #ifdef TRACE
+string bnode_to_string(Thing* thing);
     string thing_to_string(Thing* thing);
     string thing_to_string_nogetval(Thing* v)
     {
@@ -465,7 +466,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
         if (v->type() == UNBOUND)
             return "?"+*v->_debug_name;
         else if (v->type() == BNODE)
-            return "["+*v->_debug_name+"]";
+            return "["+bnode_to_string(v)+"]";
         else
             return "?"+*v->_debug_name+"->"+thing_to_string(v);
       }

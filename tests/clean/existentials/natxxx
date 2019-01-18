@@ -1,0 +1,15 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix : <file://>.
+
+kb
+:zero a :Nat.
+{?x :has_succ ?y. ?y a :Nat} <= {?x a :Nat}.
+fin.
+
+#0
+query
+:zero :has_succ :zero.
+fin.
+???????
+

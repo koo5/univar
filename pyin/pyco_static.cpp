@@ -4,6 +4,7 @@
 #endif
 
 
+#include <set>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -466,7 +467,7 @@ string bnode_to_string(Thing* thing);
         if (v->type() == UNBOUND)
             return "?"+*v->_debug_name;
         else if (v->type() == BNODE)
-            return "["+bnode_to_string(v)+"]";
+            return bnode_to_string(v);
         else
             return "?"+*v->_debug_name+"->"+thing_to_string(v);
       }

@@ -309,13 +309,12 @@ int unify(cpppred_state & __restrict__ state)
 	def bnode_printer(s):
 		result = Lines([Line(
 			"""
-string bnode_to_string(Thing* thing)
+string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 {
+	processing.insert(thing);
 	stringstream result;
-	cerr << "xxxxxxxxxxx"<< endl;
-	cerr << thing<< endl;
-	cerr << thing->origin()<< endl;
-	cerr << "xxxxxxxxxxx"<< endl;
+	result << "[";
+	//cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;
 	switch (thing->origin())
 	{
 """)])
@@ -332,11 +331,41 @@ string bnode_to_string(Thing* thing)
 				if not is_last: result.append(Statement('result << ". "'))
 			result.append(Statement('break'))
 			#from IPython import embed; embed();exit()
-		result.append(Line('}; return result.str();}'))
+		result.append(Line('}; result << "]"; processing.erase(thing);'))
+		#result.append(Line('cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;'))
+		result.append(Line('return result.str();}'))
+		result.append(Line("""
+		string bnode_to_string(Thing* thing)
+		{
+			set<Thing*> processing;
+			return bnode_to_string2(processing, thing);
+		}
+		"""))
 		return result
 
-	def substate(s):
-		return '(state.states+'+str(s.state_index)+')'
+	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes):
+		if type(arg) == rdflib.Literal:
+			return Statement(outstream+' << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
+		if type(arg) == rdflib.URIRef:
+			return Statement(outstream+' << "<' + cpp_string_literal_noquote(arg) +'> "')
+		if type(arg) == rdflib.Variable:
+			return Block([
+				Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'),
+				If('v->type() == CONST',
+					If ('nodeids2consts[v->node_id()].type == URI',
+						Statement(outstream+' <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
+						Statement(outstream+' << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "')
+					),
+				   (If ('v->type() == BNODE',
+						If ('processing.find(v) != processing.end()',
+							Statement(outstream+' << "LOOPSIE"'),
+							Statement(outstream+' << bnode_to_string2(processing, v)')),
+						Statement(outstream+' << "?' + str(arg) +'"'))
+				   if do_bnodes else
+				   		Statement(outstream+' << "?' + str(arg) +'"'))
+				)
+				])
+		assert(False)
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
@@ -355,30 +384,6 @@ string bnode_to_string(Thing* thing)
 				])
 		assert(False)
 
-	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes):
-		if type(arg) == rdflib.Literal:
-			return Statement(outstream+' << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
-		if type(arg) == rdflib.URIRef:
-			return Statement(outstream+' << "<' + cpp_string_literal_noquote(arg) +'> "')
-		if type(arg) == rdflib.Variable:
-			return Block([
-				Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'),
-				If('v->type() == CONST',
-					If ('nodeids2consts[v->node_id()].type == URI',
-						Statement(outstream+' <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
-						Statement(outstream+' << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "')
-					),
-				   (If ('v->type() == BNODE',
-						Statement(outstream+' << bnode_to_string(v)'),
-						Statement(outstream+' << "?' + str(arg) +'"'))
-				   if do_bnodes else
-				   		Statement(outstream+' << "?' + str(arg) +'"'))
-				)
-				])
-		assert(False)
-
-
-
 	def print_result(s, r, goal_graph):
 		outer_block = b = Lines()
 		b.append(Line('void print_result(cpppred_state &state)'))
@@ -396,6 +401,9 @@ string bnode_to_string(Thing* thing)
 		b.append(Statement('cout << endl'))
 		b.append(Statement('cout << endl << flush'))
 		return outer_block
+
+	def substate(s):
+		return '(state.states+'+str(s.state_index)+')'
 
 	def pred(s, pred_name, rules):
 		s._label = 0
@@ -695,8 +703,8 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	elif novalgrind:
 		subprocess.check_call(['time', pyco_executable], bufsize=1)#still not getting output until the end
 	else:
-		subprocess.check_call(['time', 'valgrind',  '--vgdb-error=1', pyco_executable])
-
+		subprocess.check_call(['time', 'valgrind', '--main-stacksize=128000000', '--vgdb-error=1', pyco_executable])
+		#
 
 
 

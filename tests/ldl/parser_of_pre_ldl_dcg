@@ -326,7 +326,6 @@
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :builtin_postprocessed. ?c :value ?cv.
 	?a a :builtin_postprocessed. ?a :value ?av.
-	:dummy tau_builtins:toggle_tracing :dummy.
 	"" :say "builtin_postprocessed...".
 	?cv :concrete_to_abstract_rhs_item ?av.
 	"" :say "builtin_postprocessed.".

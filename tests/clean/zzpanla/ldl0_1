@@ -23,10 +23,12 @@ query
 ?v string_builtins:strXlst ?l.
 :dummy :statement_lines (?l rdf:nil ?grammar_concrete).
 :dummy tau_builtins:output "dcg parsed.".
+#:dummy tau_builtins:output ?grammar_concrete!rdf:rest!rdf:first!:rhs!rdf:first!:name.
 #:dummy tau_builtins:output ?grammar_concrete.
 ?grammar_concrete :concrete_to_abstract ?grammar.
 :dummy tau_builtins:output "concrete_to_abstract.".
 :dummy tau_builtins:output ?grammar.
+#:dummy tau_builtins:output ?grammar!rdf:
 :initial_ldl_text :has_value ?initial_ldl_text_value.
 ?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
 (?initial_ldl_text_list ?grammar "statements") :eq ?a1.

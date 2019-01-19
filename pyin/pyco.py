@@ -115,8 +115,9 @@ class Emitter(object):
 		r.append(Line('void initialize_consts(){'))
 		for atom, (kind,cpp_name, code) in s.codes.items():
 			c = 'Constant{'+kind+','+cpp_string_literal(str(atom))+'}'
-			r.append(Line('consts2nodeids_and_refcounts['+c+']=nodeid_and_refcount{'+code+',1};'))
-			r.append(Statement('nodeids2consts.push_back('+c+')'))
+			r.append(Statement('consts2nodeids_and_refcounts['+c+']\n=nodeid_and_refcount{'+code+',1}'))
+			r.append(Statement('nodeids2consts.push_back    ('+c+')'))
+			r.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
 		r.append(Line('}'))
 		return r
@@ -431,6 +432,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			raise Exception("too many existentials in " + str(r) +"\nexistentials: " + str(r.existentials))
 		outer_block = b = Lines()
 		b.append(comment(r.__str__(shortener = common.shorten)))
+		b.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = grab_things(" + str(len(r.locals_template))  + ')'))
 			for k,v in r.locals_map.items():
@@ -1035,9 +1037,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 								ASSERT (t->type() != BOUND);
 								if (t->type() == CONST)
 								{
-									cerr << "adding " << t->node_id() << endl;
+									/*cerr << "adding " << t->node_id() << endl;
 									cerr << "thats " << nodeids2consts[t->node_id()].value << endl;
-									
+									*/
 									Constant c = nodeids2consts[t->node_id()];
 									result += c.value;
 								}
@@ -1045,12 +1047,12 @@ size_t query_list(cpppred_state & __restrict__ state)
 									goto is_joined_end;
 							}
 							{
-								//cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
+								cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
 								nodeid ndid = push_const(Constant{STRING, result});
-								//cerr << "ndid:" << ndid << endl;
+								cerr << "ndid:" << ndid << endl;
 								state.locals[1] = Thing{CONST,ndid IF_TRACE(result)};
-								//cerr << "ndid." << state.locals[1].node_id() << endl;
-								//cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
+								cerr << "ndid." << state.locals[1].node_id() << endl;
+								cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
 							}
 						}
 						state.states[1].entry = 0;
@@ -1058,6 +1060,12 @@ size_t query_list(cpppred_state & __restrict__ state)
 						state.states[1].incoming[1] = &state.locals[1];
 						while (unify(state.states[1]))
 						{
+							{
+								Thing * str2 = get_value(str);
+								cerr << "unified0: " << str2 << endl;
+								cerr << "unified1: " << str2->node_id() << endl;
+								cerr << "unified0: " << nodeids2consts[str2->node_id()].value << endl;
+							}
 							"""), emitter.do_yield(), Line("""
 						}
 						pop_const();
@@ -1113,7 +1121,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					output <<  " - " << thing_to_string_nogetval(input);
 				#endif
 			}
-			cout << output.str() << endl;
+			cerr << output.str() << endl;
 			#ifdef TRACE_PROOF
 				state.set_comment(output.str()); 
 				state.num_substates = 0;

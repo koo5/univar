@@ -893,11 +893,13 @@ int main (int argc, char *argv[])
 {
     (void )argc;
     (void )argv;
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     block = (char*)malloc(block_size);
     if (block == 0)
         exit(1);
     first_free_byte = block;
     initialize_consts();
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     #ifdef TRACE_PROOF
         open_trace_file();
 	#endif
@@ -930,26 +932,35 @@ int unify(cpppred_state & __restrict__ state);
 
 nodeid push_const(Constant c)
 {
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     auto it = consts2nodeids_and_refcounts.begin();
     nodeid id;
 	if ((it = consts2nodeids_and_refcounts.find(c)) != consts2nodeids_and_refcounts.end())
 	{
+	    ASSERT (c.value == (it->first).value);
 	    id = it->second.first;
+	    cerr << "const found: " << c.value << ", id:" << id <<endl;
 	    size_t refcount = it->second.second;
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount+1};
     }
     else
     {
+        cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size();
+        cerr << "nodeids2consts.size():" << nodeids2consts.size();
         id = consts2nodeids_and_refcounts.size();
+        cerr << "const not found: " << c.value << ", new id:" << id <<endl;
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id,1};
         nodeids2consts.push_back(c);
+        cerr << "added: " << nodeids2consts[id].value << endl;
     }
     consts_stack.push_back(id);
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     return id;
 }
 
 void pop_const()
 {
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     nodeid id = consts_stack.back();
     consts_stack.pop_back();
     Constant c = nodeids2consts[id];
@@ -962,6 +973,7 @@ void pop_const()
         consts2nodeids_and_refcounts.erase(c);
         nodeids2consts.pop_back();
     }
+    ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
 }
 
 Constant rdf_nil = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"};

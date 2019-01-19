@@ -11,7 +11,7 @@
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
 }.
 
-{(?x0 ?grammar ?type rdf:nil) :parse_rhs (?rest ?ast ?depth)} <= {
+{(?x0 ?grammar ?type rdf:nil) :parse_rhs (?x0 ?ast ?depth)} <= {
         :dummy tau_builtins:output "parse_rhs nil".
 	?ast a :node. ?ast :type ?type. ?ast :children rdf:nil.
 }.

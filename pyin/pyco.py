@@ -1028,7 +1028,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					}
 					for (size_t i = 0; i < (locals_size-2)/2; i++)
 						pop_const();
-					release_things(locals_size);
+					release_things_clobbered(locals_size);
 					#undef locals_size_thing 
 					release_states(1);
 				}
@@ -1088,8 +1088,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 						state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
 					}
 					is_joined_end:
+					release_things(1);
 					delete *((vector<Thing*>**)(&state.locals[0]));
-					release_things(2);
+					release_things_clobbered(1);
 					release_states(2);
 				}
 				end_str2list:;

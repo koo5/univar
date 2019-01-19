@@ -624,13 +624,18 @@ Thing *grab_things(size_t count)
     return r;
 }
 
+void release_things_clobbered (size_t count)
+{
+    first_free_byte -= count * sizeof(Thing);
+}
+
 void release_things (size_t count)
 {
     first_free_byte -= count * sizeof(Thing);
-    #ifdef TRACE
+/*    #ifdef TRACE
         for (size_t i = 0; i < count; i++)
             ((Thing*)first_free_byte)[i].destruct();
-    #endif
+    #endif*/
 }
 
 

@@ -289,67 +289,67 @@
 #a post-processor for the initial dcg
 
 {rdf:nil :concrete_to_abstract rdf:nil} <= {
-        :dummy tau_builtins:output "concrete_to_abstract rdf:nil".
+        #:dummy tau_builtins:output "concrete_to_abstract rdf:nil".
 }.
 
 {?cst :concrete_to_abstract ?ast} <= {
 	?cst rdf:first ?cf.
 	?cf a :newline.
-    	:dummy tau_builtins:output "concrete_to_abstract newline".
+    	#:dummy tau_builtins:output "concrete_to_abstract newline".
 	?cst rdf:rest ?cr. ?cr :concrete_to_abstract ?ast.
-	    :dummy tau_builtins:output "concrete_to_abstract newline".
-	    :dummy tau_builtins:output ?ast.
+	    #:dummy tau_builtins:output "concrete_to_abstract newline".
+	    #:dummy tau_builtins:output ?ast.
 }.
 
 {?c_ :concrete_to_abstract ?a_} <= {
 	?cf a :statement. ?cf :concrete_to_abstract_statement ?af.
-	    :dummy tau_builtins:output "concrete_to_abstract:".
-	    :dummy tau_builtins:output ?af.
+	    #:dummy tau_builtins:output "concrete_to_abstract:".
+	    #:dummy tau_builtins:output ?af.
 	?cr :concrete_to_abstract ?ar.
-	    :dummy tau_builtins:output "concrete_to_abstract2:".
-	    :dummy tau_builtins:output ?ar.
+	    #:dummy tau_builtins:output "concrete_to_abstract2:".
+	    #:dummy tau_builtins:output ?ar.
 }.
 
 {?c :concrete_to_abstract_statement ?a} <= {
 	?c :lhs ?clhs. ?a :lhs ?alhs.
 	?alhs string_builtins:strXlst ?clhs.
 	?c :rhs ?crhs. ?a :rhs ?arhs.
-	:dummy tau_builtins:output "concrete_to_abstract_statement c:".
-	:dummy tau_builtins:output ?c.
-	:dummy tau_builtins:output "concrete_to_abstract_statement a:".
-	:dummy tau_builtins:output ?a.
+	#:dummy tau_builtins:output "concrete_to_abstract_statement c:".
+	#:dummy tau_builtins:output ?c.
+	#:dummy tau_builtins:output "concrete_to_abstract_statement a:".
+	#:dummy tau_builtins:output ?a.
 	?crhs :concrete_to_abstract_rhs ?arhs.
 	#:dummy tau_builtins:output "concrete_to_abstract_statement c 2:".
 	#:dummy tau_builtins:output ?c.
-	:dummy tau_builtins:output "concrete_to_abstract_statement a 2:".
-	:dummy tau_builtins:output ?a.
+	#:dummy tau_builtins:output "concrete_to_abstract_statement a 2:".
+	#:dummy tau_builtins:output ?a.
 }.
 
 {rdf:nil :concrete_to_abstract_rhs rdf:nil} <= {}.
 
 {?c_ :concrete_to_abstract_rhs ?a_} <= {
-        :dummy tau_builtins:output "concrete_to_abstract_rhs1:".
-        :dummy tau_builtins:output ?af.
+        #:dummy tau_builtins:output "concrete_to_abstract_rhs1:".
+        #:dummy tau_builtins:output ?af.
 	?cf :concrete_to_abstract_rhs_item ?af.
-        :dummy tau_builtins:output "concrete_to_abstract_rhs2:".
-        :dummy tau_builtins:output ?af.
+        #:dummy tau_builtins:output "concrete_to_abstract_rhs2:".
+        #:dummy tau_builtins:output ?af.
 	?cr :concrete_to_abstract_rhs ?ar.
-        :dummy tau_builtins:output "concrete_to_abstract_rhs3:".
-        :dummy tau_builtins:output ?ar.
+        #:dummy tau_builtins:output "concrete_to_abstract_rhs3:".
+        #:dummy tau_builtins:output ?ar.
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :identifier. ?c :name ?cname.
 	?a a :identifier. ?a :name ?aname.
-	:dummy tau_builtins:output "identifier.....!".
+	#:dummy tau_builtins:output "identifier.....!".
 	?aname string_builtins:strXlst ?cname.
 	#:dummy tau_builtins:output ?cname.
-	:dummy tau_builtins:output ":aname:".
-	:dummy tau_builtins:output ?aname.
-	:dummy tau_builtins:output ?a!:name.
-	:dummy tau_builtins:output ":aname:".
-	:dummy tau_builtins:output ?aname.
-	:dummy tau_builtins:output ?a!:name.
+	#:dummy tau_builtins:output ":aname:".
+	#:dummy tau_builtins:output ?aname.
+	#:dummy tau_builtins:output ?a!:name.
+	#:dummy tau_builtins:output ":aname:".
+	#:dummy tau_builtins:output ?aname.
+	#:dummy tau_builtins:output ?a!:name.
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {

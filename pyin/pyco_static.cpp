@@ -201,7 +201,7 @@ void maybe_print_euler_steps()
 
 
 typedef unsigned long nodeid;
-enum ConstantType {URI, STRING};
+enum ConstantType {URI, STRING, INTEGER};
 typedef pair<nodeid,size_t> nodeid_and_refcount;
 
 struct Constant
@@ -939,19 +939,19 @@ nodeid push_const(Constant c)
 	{
 	    ASSERT (c.value == (it->first).value);
 	    id = it->second.first;
-	    cerr << "const found: " << c.value << ", id:" << id <<endl;
+	    //cerr << "const found: " << c.value << ", id:" << id <<endl;
 	    size_t refcount = it->second.second;
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id, refcount+1};
     }
     else
     {
-        cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size();
-        cerr << "nodeids2consts.size():" << nodeids2consts.size();
+        //cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size();
+        //cerr << "nodeids2consts.size():" << nodeids2consts.size();
         id = consts2nodeids_and_refcounts.size();
-        cerr << "const not found: " << c.value << ", new id:" << id <<endl;
+        //cerr << "const not found: " << c.value << ", new id:" << id <<endl;
         consts2nodeids_and_refcounts[c] = nodeid_and_refcount{id,1};
         nodeids2consts.push_back(c);
-        cerr << "added: " << nodeids2consts[id].value << endl;
+        //cerr << "added: " << nodeids2consts[id].value << endl;
     }
     consts_stack.push_back(id);
     ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());

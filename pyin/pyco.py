@@ -100,7 +100,19 @@ class Emitter(object):
 		cpp_name += cppize_identifier(str(atom))
 		while s.find_code_by_cppname(cpp_name) is not None:
 			cpp_name += "2"
-		kind = "URI" if type(atom) == rdflib.URIRef else "STRING"
+		if type(atom) == rdflib.URIRef:
+			kind = "URI"
+		else:
+			for atom2, (kind2,cpp_name2, code2) in s.codes.items():
+				if kind2 != "URI":
+					if str(atom2.value) == str(atom.value):
+						#from IPython import embed; embed();
+						raise Exception("not_implemented:"+str(atom2) + " in kb with " + str(atom))
+			#from IPython import embed; embed();
+			#if atom.datatype == rdflib.term.URIRef('http://www.w3.org/2001/XMLSchema#integer'):
+			#	kind = "INTEGER"
+			#else:
+			kind = "STRING"
 		code = str(len(s.codes))
 		s.codes[atom] = kind,cpp_name, code
 		return cpp_name
@@ -1047,12 +1059,12 @@ size_t query_list(cpppred_state & __restrict__ state)
 									goto is_joined_end;
 							}
 							{
-								cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
+								//cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
 								nodeid ndid = push_const(Constant{STRING, result});
-								cerr << "ndid:" << ndid << endl;
+								//cerr << "ndid:" << ndid << endl;
 								state.locals[1] = Thing{CONST,ndid IF_TRACE(result)};
-								cerr << "ndid." << state.locals[1].node_id() << endl;
-								cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
+								//cerr << "ndid." << state.locals[1].node_id() << endl;
+								//cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
 							}
 						}
 						state.states[1].entry = 0;
@@ -1061,10 +1073,12 @@ size_t query_list(cpppred_state & __restrict__ state)
 						while (unify(state.states[1]))
 						{
 							{
+								/*
 								Thing * str2 = get_value(str);
 								cerr << "unified0: " << str2 << endl;
 								cerr << "unified1: " << str2->node_id() << endl;
 								cerr << "unified0: " << nodeids2consts[str2->node_id()].value << endl;
+								*/
 							}
 							"""), emitter.do_yield(), Line("""
 						}

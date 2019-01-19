@@ -28,13 +28,14 @@
 "0" digit_succ "1". "1" digit_carry false.
 "1" digit_succ "0". "0" digit_carry true.
 
-0 digit_succ 1. 1 digit_carry false.
-1 digit_succ 2. 2 digit_carry false.
-2 digit_succ 3. 3 digit_carry false.
-3 digit_succ 4. 4 digit_carry false.
-4 digit_succ 5. 5 digit_carry false.
-5 digit_succ 6. 6 digit_carry false.
-6 digit_succ 7. 7 digit_carry false.
-7 digit_succ 8. 8 digit_carry false.
-8 digit_succ 9. 9 digit_carry false.
-9 digit_succ 0. 0 digit_carry true.
+#integers arent implemented
+#0 digit_succ 1. 1 digit_carry false.
+#1 digit_succ 2. 2 digit_carry false.
+#2 digit_succ 3. 3 digit_carry false.
+#3 digit_succ 4. 4 digit_carry false.
+#4 digit_succ 5. 5 digit_carry false.
+#5 digit_succ 6. 6 digit_carry false.
+#6 digit_succ 7. 7 digit_carry false.
+#7 digit_succ 8. 8 digit_carry false.
+#8 digit_succ 9. 9 digit_carry false.
+#9 digit_succ 0. 0 digit_carry true.

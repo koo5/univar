@@ -18,7 +18,7 @@
     :dummy tau_builtins:output ?y!:type.
     :dummy tau_builtins:output ":children:".
     :dummy tau_builtins:output ?y!:children.
-    0 :cut 0.
+    x :cut x.
 }.
 
 #statements --> .

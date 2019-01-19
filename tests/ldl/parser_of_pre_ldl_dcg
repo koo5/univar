@@ -319,8 +319,10 @@
 {?c :concrete_to_abstract_rhs_item ?a} <= {
 	?c a :identifier. ?c :name ?cname.
 	?a a :identifier. ?a :name ?aname.
+	:dummy tau_builtins:output "identifier.....!".
 	?aname string_builtins:strXlst ?cname.
-	"" :say "identifier.....!".
+	:dummy tau_builtins:output ?cname.
+	:dummy tau_builtins:output ?aname.
 }.
 
 {?c :concrete_to_abstract_rhs_item ?a} <= {

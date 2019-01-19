@@ -966,9 +966,10 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 				#ifdef TRACE
 				{
+					string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
+					cerr << comment << endl;				
 					#ifdef TRACE_PROOF
 						string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
-						//cerr << comment;				
 						state.set_comment(comment); 
 						state.num_substates = 0;
 						state.set_active(true);
@@ -1034,13 +1035,23 @@ size_t query_list(cpppred_state & __restrict__ state)
 								ASSERT (t->type() != BOUND);
 								if (t->type() == CONST)
 								{
+									cerr << "adding " << t->node_id() << endl;
+									cerr << "thats " << nodeids2consts[t->node_id()].value << endl;
+									
 									Constant c = nodeids2consts[t->node_id()];
 									result += c.value;
 								}
 								else
 									goto is_joined_end;
 							}
-							state.locals[1] = Thing{CONST,push_const(Constant{STRING, result}) IF_TRACE(result)};
+							{
+								//cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
+								nodeid ndid = push_const(Constant{STRING, result});
+								//cerr << "ndid:" << ndid << endl;
+								state.locals[1] = Thing{CONST,ndid IF_TRACE(result)};
+								//cerr << "ndid." << state.locals[1].node_id() << endl;
+								//cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
+							}
 						}
 						state.states[1].entry = 0;
 						state.states[1].incoming[0] = str;

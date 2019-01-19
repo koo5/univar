@@ -1,0 +1,16 @@
+
+kb
+ 
+zero a Nat.
+{?x a Nat} => {?x suc ?y. ?y a Nat}.
+{} => {?x id ?x}.
+ 
+query
+zero suc ?one.
+?one suc ?two.
+?two suc ?three.
+...
+?nine suc ?ten.
+?x a Nat.        <-- this will fail due to ep-cuts before counting up to 10
+?x id ?ten.
+fin.

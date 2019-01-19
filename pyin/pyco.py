@@ -649,13 +649,13 @@ def comment(s):
 @click.option('--nodebug', default=False, type=bool)
 @click.option('--novalgrind', default=False, type=bool)
 @click.option('--profile', default=False, type=bool)
-@click.option('--oneword', default=False, type=bool)
+@click.option('--oneword', default='auto', type=click.Choice(['true','false','auto']))
 @click.option('--trace_ep_checks', default=False, type=bool)
 @click.option('--trace_ep_tables', default=False, type=bool)
 @click.option('--trace_proof', default=True, type=bool)
 @click.option('--second_chance', default=True, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, oneword, trace_ep_checks, trace_ep_tables, trace_proof, second_chance):
-	global preds, query_rule, trace, oneword_, trace_ep_tables_, trace_proof_, second_chance_
+	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, second_chance_
 	second_chance_ = second_chance
 	if notrace:
 		trace_proof = False
@@ -664,7 +664,6 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
 	preds = defaultdict(list)
-	oneword_ = oneword
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['cp', '-r', 'pyco_visualization/html', outpath])
 	subprocess.call(['cp', '-r', 'pyco_makefile', outpath+'Makefile'])
@@ -683,6 +682,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 			preds[pred].append(rule)
 	e = Emitter()
 	create_builtins(e)
+	if oneword == 'auto':
+		oneword = not trace
+	elif oneword == 'true':
+		oneword = True
+	else:
+		oneword = False
+	if oneword:
+		e.prologue.append(Line('#define ONEWORD'))
 	if trace_ep_checks:
 		e.prologue.append(Line('#define TRACE_EP_CHECKS'))
 	if trace_ep_tables:

@@ -326,6 +326,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 {
 	processing.insert(thing);
 	stringstream result;
+	result << endl;
+	for (size_t i = 0; i < processing.size(); i++)
+		result << "  ";
 	result << "[";
 	//cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;
 	switch (thing->origin())
@@ -339,7 +342,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				bnode_idx = rule.locals_map[bnode_name]
 				locals = 'thing - '+str(bnode_idx)
 				do_arg(triple.args[0])
-				result.append(Statement('result << " <' + str(triple.pred) + '> "'))
+				result.append(Statement('result << " <' + common.shorten(triple.pred) + '> "'))
 				do_arg(triple.args[1])
 				if not is_last: result.append(Statement('result << ". "'))
 			result.append(Statement('break'))

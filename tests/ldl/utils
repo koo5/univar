@@ -28,3 +28,39 @@
 
 {?x a :key_value_pair; :key ?K; :value ?V} <= {}.
 
+{:dummy :is_with_replacement (rdf:nil rdf:nil ?replacement)} <= {
+}.
+
+{:dummy :is_with_replacement (?x_ ?y_ ?replacement)} <= {
+    :dummy :replace (?xf ?yf ?replacement).
+    :dummy :is_with_replacement (?xr ?yr ?replacement).
+}.
+
+{:dummy :replace (?x ?x ?replacement)} <= {
+    ?x string_builtins:const_is_not_equal_to_const ?replacement!rdf:first.
+}.
+
+{:dummy :replace (?x ?y (?x ?y))} <= {
+}.
+
+
+{:dummy :from_x_put_first_y_items_into_z (?x_ ?y ?z_)} <= {
+    ?p :has_succ ?y.
+    ?xf :eq ?zf.
+    :dummy :from_x_put_first_y_items_into_z (?xr ?p ?zr).
+}.
+
+{:dummy :from_x_put_first_y_items_into_z (?x :zero rdf:nil)} <= {
+}.
+
+{:dummy :from_x_put_first_y_items_into_z (rdf:nil ?remaining rdf:nil)} <= {
+}.
+
+finishme
+{:dummy :from_x_put_until_y_into_z (?x_ ?y ?z_)} <= {
+    ?xf :eq ?zf.
+    :dummy :from_x_put_until_y_into_z (?xr ?y ?zr).
+}.
+
+{:dummy :from_x_put_until_y_into_z (?xy ?xy rdf:nil)} <= {
+}.

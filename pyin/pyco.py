@@ -763,6 +763,7 @@ def is_pred_used(pred):
 
 
 def create_builtins(emitter):
+
 	b = Builtin()
 	b.doc = """(input)"x" is joined(y)."""
 	b.example = """
@@ -983,8 +984,10 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 				#ifdef TRACE
 				{
+					/*
 					string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
-					cerr << comment << endl;				
+					cerr << comment << endl;
+					*/				
 					#ifdef TRACE_PROOF
 						string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
 						state.set_comment(comment); 
@@ -1185,13 +1188,26 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 	b = Builtin()
 	b.example = """
-	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	"x" const_is_not_equal_to_const "y"."""
 	def build_in(builtin):
-		pass
+		return Lines([Line("""
+			{
+				#define i0 state.incoming[0]
+				#define i1 state.incoming[1]
+				if (i0->type() != CONST || i1->type() != CONST)
+					goto const_is_not_equal_to_const_end;
+				if (nodeids2consts[i0->node_id()].value == nodeids2consts[i1->node_id()].value)
+					goto const_is_not_equal_to_const_end;
+			"""), emitter.do_yield(), Line("""
+				const_is_not_equal_to_const_end:;
+				#undef i0
+				#undef i1
+			}
+			""")])
 	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#const_is_not_equal_to_const')
-	#b.register(emitter)
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#const_is_not_equal_to_const')
+	b.register(emitter)
 
 
 

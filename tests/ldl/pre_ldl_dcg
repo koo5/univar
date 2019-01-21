@@ -8,6 +8,9 @@ statements --> .
 
 comment --> [#], all chars until one of [\\n].
 
+statement --> is_builtin_postprocessed.
+is_builtin_postprocessed --> node_name, [ is builtin-postprocessed ], node_name.
+
 statement --> x_is_a_series_of_y_separated_with_z.
 x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], grammar_item, [ separated with ], grammar_item.
 
@@ -45,5 +48,8 @@ string_literal_raw_body_item --> [\\\\n].
 string_literal_raw_body_item --> [\\\\\\[].
 string_literal_raw_body_item --> [\\\\\\]].
 string_literal_raw_body_item --> [\\\\\\\\].
+
+statement --> error.
+error --> all chars until one of [\\n], [].
 """.
 

@@ -24,7 +24,7 @@ query
 :dummy :statement_lines (?l rdf:nil ?grammar_concrete).
 :dummy tau_builtins:output "dcg parsed.".
 #:dummy tau_builtins:output ?grammar_concrete!rdf:rest!rdf:first!:rhs!rdf:first!:name.
-:dummy tau_builtins:output ?grammar_concrete.
+#:dummy tau_builtins:output ?grammar_concrete.
 ?grammar_concrete :concrete_to_abstract ?grammar.
 :dummy tau_builtins:output "concrete_to_abstract.".
 :dummy tau_builtins:output ?grammar.

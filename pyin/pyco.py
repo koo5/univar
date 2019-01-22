@@ -1210,6 +1210,29 @@ size_t query_list(cpppred_state & __restrict__ state)
 	b.register(emitter)
 
 
+	#this one is bad, maybe does_not_unify?
+	b = Builtin()
+	b.example = """
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+	"x" const_is_not_equal_to_const "y"."""
+	def build_in(builtin):
+		return Lines([Line("""
+			{
+				#define i0 state.incoming[0]
+				#define i1 state.incoming[1]
+				if (i0 != i1)
+				{
+			"""), emitter.do_yield(), Line("""
+				}
+				#undef i0
+				#undef i1
+			}
+			""")])
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#things_are_different')
+	b.register(emitter)
+
+
 
 
 

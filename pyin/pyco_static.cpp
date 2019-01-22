@@ -901,7 +901,10 @@ int main (int argc, char *argv[])
     ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     block = (char*)malloc(block_size);
     if (block == 0)
+    {
+        cerr << "cant allocate ram" << endl;
         exit(1);
+    }
     first_free_byte = block;
     initialize_consts();
     ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());

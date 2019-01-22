@@ -2,7 +2,7 @@
 #data declarations
 #some of these are used both in the concrete and in the abstract phase, so typing differs
 
-{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z} <= {}.
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z; :description ?D} <= {}.
 {?x a :identifier.  ?x :name ?NAME} <= {}.
 # - name is a string
 {?x a :literal.  ?x :value ?vALUE} <= {}.
@@ -198,11 +198,12 @@
 }.
 
 {:dummy :statement (?x0 ?rest ?ast)} <= {
-	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs.
+	?ast a :statement. ?ast :lhs ?name. ?ast :rhs ?rhs. ?ast :description ?d.
 
 	:dummy :identifier (?x0 ?after_identifier ?name).
 	:dummy :arrow (?after_identifier ?after_arrow).
 	:dummy :parses_to_rhs (?after_arrow ?rest ?rhs).
+	:dummy :from_x_put_until_y_into_z (?x0 ?rest ?d).
 }.
 
 {:dummy :identifier (?x_ ?rest ?name)} <= {
@@ -311,6 +312,8 @@
 }.
 
 {?c :concrete_to_abstract_statement ?a} <= {
+	?c :description ?cdescription. ?a :description ?adescription.
+	?adescription string_builtins:strXlst ?cdescription.
 	?c :lhs ?clhs. ?a :lhs ?alhs.
 	?alhs string_builtins:strXlst ?clhs.
 	?c :rhs ?crhs. ?a :rhs ?arhs.

@@ -56,8 +56,9 @@
 {:dummy :from_x_put_first_y_items_into_z (rdf:nil ?remaining rdf:nil)} <= {
 }.
 
-finishme
+
 {:dummy :from_x_put_until_y_into_z (?x_ ?y ?z_)} <= {
+    ?x tau_builtins:things_are_different ?y.
     ?xf :eq ?zf.
     :dummy :from_x_put_until_y_into_z (?xr ?y ?zr).
 }.

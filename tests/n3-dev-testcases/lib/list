@@ -1,2 +1,0 @@
-{?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.} <= {}.
-

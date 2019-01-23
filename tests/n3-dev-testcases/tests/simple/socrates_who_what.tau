@@ -1,8 +1,0 @@
-kb
-:socrates :a :man .
-#forall ?x , (?x a man) -> (?x a mortal)
-{ ?x :a :man. } => { ?x :a :mortal } .
-fin.
-query
-?who :a ?what .
-fin.

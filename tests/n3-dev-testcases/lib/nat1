@@ -1,2 +1,0 @@
-{?P :has_succ ?x. ?x a :Nat} <= {?P a :Nat}.
-:zero a :Nat.

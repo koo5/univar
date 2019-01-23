@@ -45,7 +45,7 @@
 :n41 :has_succ :n42.
 
 {:dummy :shorten_location_printout (?x0 ?shortened)} <= {
-    :dummy :from_x_put_first_y_items_into_z (?x0 :n42 ?shortened).
+    :dummy :from_x_put_first_y_items_into_z (?x0 :two ?shortened).
 }.
 
 {:dummy :escape_newlines_in_list (?x ?y)} <= {

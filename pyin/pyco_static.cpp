@@ -274,47 +274,25 @@ struct Thing
         BnodeOrigin _origin;
     };
     #ifdef TRACE
-        string *_debug_name;
-        void construct()
-        {
-            _debug_name = new string;
-        }
-        void destruct()
-        {
-            delete _debug_name;
-        }
+        char *_debug_name;
     #endif
-    Thing (ThingType type IF_TRACE(string debug_name)) : _type{type}
+    Thing (ThingType type IF_TRACE(char *debug_name)) : _type{type}
     {
         ASSERT(type == UNBOUND);
         #ifdef TRACE
-            construct();
-            *_debug_name = debug_name;
+            _debug_name = debug_name;
         #endif
         #ifdef DEBUG
             set_value((Thing*)0x666);
         #endif
     }
-    Thing (ThingType type, unsigned long value IF_TRACE(string debug_name)) : _type{type}
+    Thing (ThingType type, unsigned long value IF_TRACE(char *debug_name)) : _type{type}
     {
         #ifdef TRACE
-            construct();
-            *_debug_name = debug_name;
+            _debug_name = debug_name;
         #endif
         set_value((Thing*)value);
     }
-    /*i put this whole construct/destruct mess here because of the debug_name strings.
-    i think the new-style struct literals mess this up anyway. With the destructor commented out,
-    we get leaks, but at least it works.
-    since we allocate a new string on each Thing construction, this thing is much slower than it needs
-    to be anyway, ideally we should reuse the consts mechanism or something, or just assign pointers
-    */
-    /*
-    ~Thing()
-    {
-        destruct();
-    }
-    */
     bool operator==(const Thing& b) const
     {    //just bitwise comparison, not recursive check of equality of bindings
         return this->_type == b._type && this->_binding == b._binding;
@@ -377,13 +355,6 @@ typedef pair<Thing*,Thing*> thingthingpair;
 enum coro_status {INACTIVE, ACTIVE, EP, YIELD};
 struct cpppred_state;
 
-
-
-#ifdef CACHE
-typedef cache unordered_map<
-/*i think caching(memoization) is doable even with bnodes, and even reuse of half-finished rule states, but the complexity
-quickly adds up..*/
-#endif
 
 
 struct cpppred_state;
@@ -465,11 +436,11 @@ string bnode_to_string(Thing* thing);
         //cerr << "("<< ((void*)v) << "/" << ((void*)(first_free_byte - 1)) <<")" << endl;
         //cerr << v->_debug_name << endl;
         if (v->type() == UNBOUND)
-            return "?"+*v->_debug_name;
+            return string("?")+*v->_debug_name;
         else if (v->type() == BNODE)
             return bnode_to_string(v);
         else
-            return "?"+*v->_debug_name+"->"+thing_to_string(v);
+            return string("?")+*v->_debug_name+"->"+thing_to_string(v);
       }
     }
 
@@ -617,33 +588,13 @@ void release_states (size_t count)
 Thing *grab_things(size_t count)
 {
     auto r = (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
-    #ifdef TRACE
-        for (size_t i = 0; i < count; i++)
-            r[i].construct();
-    #endif
     return r;
 }
 
-void release_things_clobbered (size_t count)
+void release_things(size_t count)
 {
     first_free_byte -= count * sizeof(Thing);
 }
-
-void release_things (size_t count)
-{
-    first_free_byte -= count * sizeof(Thing);
-    #ifdef TRACE
-        for (size_t i = 0; i < count; i++)
-            ((Thing*)first_free_byte)[i].destruct();
-    #endif
-}
-
-
-
-
-
-
-
 
 
 size_t query_list(cpppred_state & __restrict__ state);
@@ -996,3 +947,14 @@ later, for optimalization, we dont need to call get_value in every case.
 the pred function knows when its unifying two constants, for example,
 and can trivially yield/continue on.
 */
+
+
+
+
+#ifdef CACHE
+typedef cache unordered_map<
+/*i think caching(memoization) is doable even with bnodes, and even reuse of half-finished rule states, but the complexity
+quickly adds up..*/
+#endif
+
+

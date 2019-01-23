@@ -763,152 +763,6 @@ def is_pred_used(pred):
 
 
 def create_builtins(emitter):
-
-	b = Builtin()
-	b.doc = """(input)"x" is joined(y)."""
-	b.example = """
-	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
-	("x" "y") string_builtins:is_joined "xy"."""
-	def build_in(builtin):
-		return Lines([Line("""
-	state.states = grab_states(2);
-	state.locals = grab_things(2);
-	#ifdef TRACE
-		state.locals[0].destruct();
-	#endif
-	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
-	{
-		Thing *t = state.incoming[0];
-		ASSERT (t->type() != BOUND);
-		if (t->type() == UNBOUND)
-		{
-			cerr << "cant join this" << endl;
-			goto is_joined_end;
-		}
-	}
-	state.states[0].entry = 0;
-	state.states[0].incoming[0] = state.incoming[0];
-	state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
-	while (query_list(state.states[0]))
-	{
-		{
-			string result;
-			for (Thing *t: **((vector<Thing*>**)(&state.locals[0])))
-			{
-				ASSERT (t->type() != BOUND);
-				if (t->type() == UNBOUND)
-					goto is_joined_end;
-				else if (t->type() == CONST)
-				{
-					Constant c = nodeids2consts[t->node_id()];
-					if (c.type == STRING)
-						result += c.value;
-					else
-						goto is_joined_end;
-				}
-				else ASSERT(false);
-			}
-			state.locals[1] = Thing{CONST,push_const(Constant{STRING, result}) IF_TRACE(result)};
-		}
-		state.states[1].entry = 0;
-		state.states[1].incoming[0] = state.incoming[1];
-		state.states[1].incoming[1] = &state.locals[1];
-		while (unify(state.states[1]))
-		{
-			"""), emitter.do_yield(), Line("""
-		}
-		pop_const();
-		delete *((vector<Thing*>**)(&state.locals[0]));
-		*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
-		state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
-	}
-	is_joined_end:
-	delete *((vector<Thing*>**)(&state.locals[0]));
-	release_things(1);
-	release_things_clobbered(1);
-	release_states(2);
-	
-	""")])
-	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_joined')
-	b.register(emitter)
-
-	b = Builtin()
-	b.doc = """(input)"x" is_split(y)."""
-	b.example = """
-	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
-	("x" "y") string_builtins:is_split "xy"."""
-	def build_in(builtin):
-		if not is_pred_used(builtin.pred):
-			return Lines()
-		return Lines([Line("""
-			{
-			#ifdef TRACE_PROOF
-				if (top_level_tracing_coro && tracing_enabled)
-				{
-					state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
-					state.num_substates = 0;
-					state.set_active(true);
-				}
-			#endif
-			Thing *input = state.incoming[0];
-			ThingType input_type = input->type();
-			if (input_type != CONST)
-				goto end_is_split0;
-			Thing *output = state.incoming[1];
-			ThingType output_type = output->type();
-			if ((output_type != BNODE) && (output_type != UNBOUND))
-				goto end_is_split0;
-			string input_string;
-			Constant c = nodeids2consts[input->node_id()];
-			if (c.type == STRING)
-				input_string = c.value;
-			else
-				goto end_is_split0;
-			state.states = grab_states(1);
-			#ifdef TRACE_PROOF
-				state.num_substates = 1;
-			#endif
-			size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
-			state.locals = grab_things(locals_size_int);
-			#define locals_size (*((size_t*)(&state.locals[0])))
-			#ifdef TRACE
-				state.locals[0].destruct();
-			#endif
-			locals_size = locals_size_int;
-			state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
-			for (size_t i = 0; i < input_string.size(); i++)
-			{
-				const BnodeOrigin bn = r1bnbuiltins_aware_list;
-				state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
-				string s = input_string.substr(i,1);
-				state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
-			} 
-		}
-		state.states[0].entry = 0;
-		state.states[0].incoming[0] = state.incoming[1];
-		state.states[0].incoming[1] = &state.locals[1];
-		while (unify(state.states[0]))
-		{
-			"""), emitter.do_yield(), Line("""
-		}
-		for (size_t i = 0; i < (locals_size-2)/2; i++)
-			pop_const();
-		release_things(locals_size-1);
-		release_things_clobbered(1);
-		#undef locals_size_thing 
-		release_states(1);
-		end_is_split0:;
-		#ifdef TRACE_PROOF
-			state.set_active(false);
-		#endif
-	""")])
-	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/string_builtins#is_split')
-	b.register(emitter)
-
-
-
 	b = Builtin()
 	b.doc = """ generalizes is_joined and is_split"""
 	b.example = """
@@ -1029,17 +883,14 @@ size_t query_list(cpppred_state & __restrict__ state)
 						size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
 						state.locals = grab_things(locals_size_int);
 						#define locals_size (*((size_t*)(&state.locals[0])))
-						#ifdef TRACE
-							state.locals[0].destruct();
-						#endif
 						locals_size = locals_size_int;
 						state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 						for (size_t i = 0; i < input_string.size(); i++)
 						{
 							const BnodeOrigin bn = r1bnbuiltins_aware_list;
-							state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn"+to_string(i))};
+							state.locals[1+i*2] = Thing{BNODE,bn IF_TRACE("bn")};//+to_string(i)
 							string s = input_string.substr(i,1);
-							state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE(s)};
+							state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE("some substring")};//IF_TRACE(s)};
 						}
 					} 
 					state.states[0].entry = 0;
@@ -1051,18 +902,14 @@ size_t query_list(cpppred_state & __restrict__ state)
 					}
 					for (size_t i = 0; i < (locals_size-2)/2; i++)
 						pop_const();
-					release_things(locals_size-1);
-					release_things_clobbered(locals_size);
+					release_things(locals_size);
 					#undef locals_size_thing 
 					release_states(1);
-				}
+ 				}
 				else if (lst->type() == BNODE)
 				{
 					state.states = grab_states(2);
 					state.locals = grab_things(2);
-					#ifdef TRACE
-						state.locals[0].destruct();
-					#endif
 					*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 					state.states[0].entry = 0;
 					state.states[0].incoming[0] = lst;
@@ -1089,7 +936,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 								//cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;
 								nodeid ndid = push_const(Constant{STRING, result});
 								//cerr << "ndid:" << ndid << endl;
-								state.locals[1] = Thing{CONST,ndid IF_TRACE(result)};
+								state.locals[1] = Thing{CONST,ndid IF_TRACE("strXlst result")};//IF_TRACE(result)
 								//cerr << "ndid." << state.locals[1].node_id() << endl;
 								//cerr << "thats " << nodeids2consts[state.locals[1].node_id()].value << endl;
 							}
@@ -1115,9 +962,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 						state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
 					}
 					is_joined_end:
-					release_things(1);
 					delete *((vector<Thing*>**)(&state.locals[0]));
-					release_things_clobbered(1);
+					release_things(2);
 					release_states(2);
 				}
 				end_str2list:;
@@ -1313,9 +1159,6 @@ size_t query_list(cpppred_state & __restrict__ state)
 				{
 					state.states = grab_states(1);
 					state.locals = grab_things(2);
-					#ifdef TRACE
-						state.locals[0].destruct();
-					#endif
 					#define ch (*((char*)(&state.locals[0])))
 					#define ch_thing state.locals[1]
 					state.states[0].incoming[0] = character;
@@ -1328,7 +1171,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 								if (exceptions_string[exceptions_pos] == ch)
 									goto any_char_except__next_char;
 							string ch_string(1, ch);
-					 		ch_thing = Thing{CONST,push_const(Constant{STRING, ch_string}) IF_TRACE(ch_string)};
+					 		ch_thing = Thing{CONST,push_const(Constant{STRING, ch_string}) IF_TRACE("ch_string")};//IF_TRACE(ch_string)};
 					 	}
 						state.states[0].entry = 0;
 						while (unify(state.states[0]))
@@ -1338,8 +1181,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 						pop_const();
 						any_char_except__next_char:;
 					}
-					release_things(1);
-					release_things_clobbered(1);
+					release_things(2);
 					release_states(1);
 				}
 

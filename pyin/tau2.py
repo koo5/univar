@@ -125,10 +125,10 @@ def tau(command, files, only_id):
 							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
 						])
 						print(cccc)
-						print('popen..')
+						#print('popen..')
 						popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
 						popen_output = ''
-						print('poll..')
+						#print('poll..')
 						while popen.poll() == None:
 							process_output(popen.stdout.readline())
 						if not popen.stdout.closed:

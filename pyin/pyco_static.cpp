@@ -140,10 +140,9 @@ void maybe_print_euler_steps()
 
 
 
-
-
 #ifdef TRACE_PROOF
     bool tracing_enabled = true;
+    bool tracing_active = true;
     string trace_string;
     ofstream trace;
     size_t current_trace_file_id = 0;
@@ -376,7 +375,12 @@ struct cpppred_state
         size_t num_substates;
         coro_status status;
         string *comment;
-        void set_comment(string x) {*comment = x;}
+        void set_comment(string x) {
+            if (comment)
+                *comment = x;
+            else
+                comment = new string(x);
+        }
         void set_active(bool a)
         {
             status = a ? ACTIVE : INACTIVE;
@@ -389,7 +393,7 @@ struct cpppred_state
         }
         void construct()
         {
-            comment = new string;
+            comment = (string*)NULL;
             status = INACTIVE;
             #ifdef CACHE
                 cumulative_euler_steps = 0;
@@ -397,7 +401,8 @@ struct cpppred_state
         }
         void destruct()
         {
-            delete comment;
+            if (comment)
+                delete comment;
         }
     #endif
 };
@@ -658,30 +663,15 @@ bool is_bnode_productively_different(const cpppred_state &old, Thing *now)
 {
     /*old.locals was allocated at the moment when the old frame was entered*/
     bool r = (void*)&old.locals[0] > (void*)now;
-    if (r)
-    {
-       #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now) << " was created before " <<
-            #ifdef TRACE_PROOF
-                *old.comment
-            #else
-                &old
-            #endif
-            << ", ok." << endl;
-       #endif
-    }
-    else
-    {
-        #ifdef TRACE_EP_CHECKS
-            cerr << thing_to_string_nogetval(now) << " was created after " <<
-            #ifdef TRACE_PROOF
-                *old.comment
-            #else
-                &old
-            #endif
-             << endl;
+    #ifdef TRACE_EP_CHECKS
+        cerr << thing_to_string_nogetval(now) << " was created " << (r ? "before" : "after") <<
+        #ifdef TRACE_PROOF
+            (old.comment ? (*old.comment) : "???")
+        #else
+            &old
         #endif
-    }
+            << (r ? ", ok." : ", continuing ep check") << "" << endl;
+    #endif
     return r;
 }
 

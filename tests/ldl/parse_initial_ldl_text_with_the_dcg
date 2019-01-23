@@ -53,6 +53,7 @@
 }.
 
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
+    :dummy tau_builtins:toggle_tracing_active :dummy.
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar. 
 		:dummy tau_builtins:output "testing rule lhs...".
@@ -63,6 +64,7 @@
 		:dummy :escape_newlines_in_list (?x0_shortened ?x0_shortened_escaped).
 		?x0_shortened_escaped_string string_builtins:strXlst ?x0_shortened_escaped.
 		:dummy tau_builtins:output  ("""invoking rule on """" ?x0_shortened_escaped_string """"...""")^string_builtins:strXlst.
+    :dummy tau_builtins:toggle_tracing_active :dummy.
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
 }.
 

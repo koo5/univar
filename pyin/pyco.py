@@ -72,6 +72,7 @@ class Emitter(object):
 	bnode_origin_counter = 0
 	bnodes = {}
 	prologue = Lines()
+	epilogue = Lines()
 
 	@memoized.memoized
 	def add_bnode(s, rule, name):
@@ -131,6 +132,8 @@ class Emitter(object):
 			r.append(Statement('nodeids2consts.push_back    ('+c+')'))
 			r.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
+			if atom == rdflib.RDF.nil:
+				s.prologue.append(Statement('static const unsigned nodeid_rdf_nil = '+code))
 		r.append(Line('}'))
 		return r
 
@@ -232,7 +235,8 @@ class Emitter(object):
 
 		return (str(s.get_prologue()) + '\n' +
 			str(r) + '\n' +
-			str(s.ep_tables_printer()))
+			str(s.ep_tables_printer()) +
+			str(s.epilogue))
 
 	def unification(s):
 		result = Lines([Line(
@@ -247,7 +251,10 @@ int unify(cpppred_state & __restrict__ state)
 	goto *(((char*)&&case0) + state.entry);
 	case0:""")])
 		if trace_proof_:
-			result.append(Line(""" if (top_level_tracing_coro && tracing_enabled){state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);}"""))
+			result.append(If("top_level_tracing_coro && tracing_enabled && tracing_active",
+				 Block([
+					 Statement("""state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y))"""),
+					 Statement("""state.set_active(true)""")])))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
 	if (x == y)
@@ -462,7 +469,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		if len(r.existentials):
 			pass
 		if trace_proof_:
-			b.append(Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')'))
+			b.append(
+				If("top_level_tracing_coro && tracing_enabled && tracing_active",
+					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
 			b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))
@@ -779,7 +788,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 		"""))
 			return Lines()
 		else:
-			emitter.prologue.append(Line("""
+			emitter.epilogue.append(Line("""
 size_t query_list(cpppred_state & __restrict__ state)
 {
 	Thing *&rdf_list = state.incoming[0];
@@ -820,7 +829,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 		while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
 		{
 			if (get_value(&state.locals[rest])->type() == CONST and 
-				get_value(&state.locals[rest])->node_id() == consts2nodeids_and_refcounts[Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"}].first)
+				get_value(&state.locals[rest])->node_id() == nodeid_rdf_nil)
 			{
 				yield(case1);
 				case1:;
@@ -854,7 +863,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					cerr << comment << endl;
 					*/				
 					#ifdef TRACE_PROOF
-						if (top_level_tracing_coro && tracing_enabled)
+						if (top_level_tracing_coro && tracing_enabled && tracing_active)
 						{
 							string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
 							state.set_comment(comment); 
@@ -1011,7 +1020,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			}
 			cerr << output.str() << endl;
 			#ifdef TRACE_PROOF
-				if (top_level_tracing_coro && tracing_enabled)
+				if (top_level_tracing_coro && tracing_enabled && tracing_active)
 				{
 					state.set_comment(output.str()); 
 					state.num_substates = 0;
@@ -1032,7 +1041,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 
 	b = Builtin()
-	b.doc = """dummy toggle_tracing dummy."""
+	b.doc = """dummy toggle_tracing dummy.
+	stops tracing, or re-starts tracing from next rule. The emitted prooof tree will have that rule as root.
+	"""
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>."""
 	def build_in(builtin):
@@ -1054,6 +1065,28 @@ size_t query_list(cpppred_state & __restrict__ state)
 	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#toggle_tracing')
 	b.register(emitter)
 
+
+	b = Builtin()
+	b.doc = """dummy toggle_tracing_active dummy.
+	does not change the root of the proof tree, just deactivates tracing beyond this rule, until the next invocation or backtrace
+	"""
+	b.example = """
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>."""
+	def build_in(builtin):
+		return Lines([Line("""
+			{
+			#ifdef TRACE_PROOF
+				tracing_active = !tracing_active;		
+			#endif
+			"""), emitter.do_yield(), Line("""
+			#ifdef TRACE_PROOF
+				tracing_active = !tracing_active;				
+			#endif
+			}
+			""")])
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#toggle_tracing_active')
+	b.register(emitter)
 
 
 	b = Builtin()
@@ -1118,7 +1151,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 				#ifdef TRACE_PROOF
 				{
-					if (top_level_tracing_coro && tracing_enabled)
+					if (top_level_tracing_coro && tracing_enabled && tracing_active)
 					{
 						string comment = thing_to_string(state.incoming[0]) + " any_char_except " + thing_to_string(state.incoming[1]);
 						//cerr << comment;				

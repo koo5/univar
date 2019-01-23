@@ -2,8 +2,7 @@
 
 kb
 #— Existence of lists
-?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
-
+@include ../../lib/list
 
 ?W :t ?differentF.
 :T :not :F.

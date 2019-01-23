@@ -4,3 +4,6 @@
 [submodule "tclap"]
 	path = tclap
 	url = git://git.code.sf.net/p/tclap/code
+[submodule "tests/n3-dev-testcases"]
+	path = tests/n3-dev-testcases
+	url = git@github.com:koo5/n3-dev-testcases.git

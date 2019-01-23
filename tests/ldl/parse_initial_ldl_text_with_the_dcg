@@ -118,7 +118,6 @@
 
 {?a0 :parse_rhs_item ?a1} <= {
     (?x0 ?grammar [a :identifier; :name ?name]) :eq ?a0. ?a1 :eq (?rest ?ast ?depth).
-        :dummy tau_builtins:toggle_tracing :dummy.
         :dummy tau_builtins:output "parse_rhs_item(nont):".
 		:dummy tau_builtins:output ?name.
 	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
@@ -126,9 +125,11 @@
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {
 	?rhs_item a :builtin_postprocessed. ?rhs_item :value ?raw_identifier.
-        :dummy tau_builtins:output "parse_rhs_item(builtin_postprocessed)".
-	(?x0 ?grammar ?raw_identifier) :parse_nonterminal (?rest ?raw_ast ?depth).
+        :dummy tau_builtins:output "parse_rhs_item(builtin_postprocessed)...".
+	(?x0 ?grammar ?raw_identifier!:name) :parse_nonterminal (?rest ?raw_ast ?depth).
+        :dummy tau_builtins:output "parse_rhs_item(builtin_postprocessed) parsed the raw input.".
 	?raw_ast :postprocess ?ast.
+	    :dummy tau_builtins:output "parse_rhs_item(builtin_postprocessed) postprocessed.".
 }.
 
 {?x_ :all_chars_until_one_of (?rest ?except ?char_list_).} <= {

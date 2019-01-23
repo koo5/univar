@@ -178,7 +178,7 @@
 }.
 
 {:dummy :literally_string (?x0 ?rest ?value)} <= {
-	?value string_builtins:is_split ?l.
+	?value string_builtins:strXlst ?l.
 	:dummy :literally_list (?x0 ?rest ?l).
 }.
 

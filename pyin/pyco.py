@@ -247,7 +247,7 @@ int unify(cpppred_state & __restrict__ state)
 	goto *(((char*)&&case0) + state.entry);
 	case0:""")])
 		if trace_proof_:
-			result.append(Line("""state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);"""))
+			result.append(Line(""" if (top_level_tracing_coro && tracing_enabled){state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y)); state.set_active(true);}"""))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
 	if (x == y)
@@ -773,6 +773,9 @@ def create_builtins(emitter):
 		return Lines([Line("""
 	state.states = grab_states(2);
 	state.locals = grab_things(2);
+	#ifdef TRACE
+		state.locals[0].destruct();
+	#endif
 	*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 	{
 		Thing *t = state.incoming[0];
@@ -821,7 +824,8 @@ def create_builtins(emitter):
 	}
 	is_joined_end:
 	delete *((vector<Thing*>**)(&state.locals[0]));
-	release_things(2);
+	release_things(1);
+	release_things_clobbered(1);
 	release_states(2);
 	
 	""")])
@@ -840,9 +844,12 @@ def create_builtins(emitter):
 		return Lines([Line("""
 			{
 			#ifdef TRACE_PROOF
-				state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
-				state.num_substates = 0;
-				state.set_active(true);
+				if (top_level_tracing_coro && tracing_enabled)
+				{
+					state.set_comment(thing_to_string(state.incoming[0]) + " is_split " + thing_to_string(state.incoming[1])); 
+					state.num_substates = 0;
+					state.set_active(true);
+				}
 			#endif
 			Thing *input = state.incoming[0];
 			ThingType input_type = input->type();
@@ -865,6 +872,9 @@ def create_builtins(emitter):
 			size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
 			state.locals = grab_things(locals_size_int);
 			#define locals_size (*((size_t*)(&state.locals[0])))
+			#ifdef TRACE
+				state.locals[0].destruct();
+			#endif
 			locals_size = locals_size_int;
 			state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 			for (size_t i = 0; i < input_string.size(); i++)
@@ -884,7 +894,8 @@ def create_builtins(emitter):
 		}
 		for (size_t i = 0; i < (locals_size-2)/2; i++)
 			pop_const();
-		release_things(locals_size);
+		release_things(locals_size-1);
+		release_things_clobbered(1);
 		#undef locals_size_thing 
 		release_states(1);
 		end_is_split0:;
@@ -989,10 +1000,13 @@ size_t query_list(cpppred_state & __restrict__ state)
 					cerr << comment << endl;
 					*/				
 					#ifdef TRACE_PROOF
-						string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
-						state.set_comment(comment); 
-						state.num_substates = 0;
-						state.set_active(true);
+						if (top_level_tracing_coro && tracing_enabled)
+						{
+							string comment = thing_to_string(state.incoming[0]) + " strXlst " + thing_to_string(state.incoming[1]);
+							state.set_comment(comment); 
+							state.num_substates = 0;
+							state.set_active(true);
+						}
 					#endif
 				}
 				#endif
@@ -1015,6 +1029,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 						size_t locals_size_int = /*locals len itself*/1+input_string.size()*2/*first,rest*/+1/*nil*/;
 						state.locals = grab_things(locals_size_int);
 						#define locals_size (*((size_t*)(&state.locals[0])))
+						#ifdef TRACE
+							state.locals[0].destruct();
+						#endif
 						locals_size = locals_size_int;
 						state.locals[locals_size - 1] = Thing{CONST,push_const(rdf_nil) IF_TRACE("nil")};	
 						for (size_t i = 0; i < input_string.size(); i++)
@@ -1034,6 +1051,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					}
 					for (size_t i = 0; i < (locals_size-2)/2; i++)
 						pop_const();
+					release_things(locals_size-1);
 					release_things_clobbered(locals_size);
 					#undef locals_size_thing 
 					release_states(1);
@@ -1042,6 +1060,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 				{
 					state.states = grab_states(2);
 					state.locals = grab_things(2);
+					#ifdef TRACE
+						state.locals[0].destruct();
+					#endif
 					*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 					state.states[0].entry = 0;
 					state.states[0].incoming[0] = lst;
@@ -1144,9 +1165,12 @@ size_t query_list(cpppred_state & __restrict__ state)
 			}
 			cerr << output.str() << endl;
 			#ifdef TRACE_PROOF
-				state.set_comment(output.str()); 
-				state.num_substates = 0;
-				state.set_active(true);
+				if (top_level_tracing_coro && tracing_enabled)
+				{
+					state.set_comment(output.str()); 
+					state.num_substates = 0;
+					state.set_active(true);
+				}
 			#endif
 			}
 			"""), emitter.do_yield(), Line("""
@@ -1248,11 +1272,14 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 				#ifdef TRACE_PROOF
 				{
-					string comment = thing_to_string(state.incoming[0]) + " any_char_except " + thing_to_string(state.incoming[1]);
-					//cerr << comment;				
-					state.set_comment(comment); 
-					state.num_substates = 0;
-					state.set_active(true);
+					if (top_level_tracing_coro && tracing_enabled)
+					{
+						string comment = thing_to_string(state.incoming[0]) + " any_char_except " + thing_to_string(state.incoming[1]);
+						//cerr << comment;				
+						state.set_comment(comment); 
+						state.num_substates = 0;
+						state.set_active(true);
+					}
 				}
 				#endif
 
@@ -1286,6 +1313,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 				{
 					state.states = grab_states(1);
 					state.locals = grab_things(2);
+					#ifdef TRACE
+						state.locals[0].destruct();
+					#endif
 					#define ch (*((char*)(&state.locals[0])))
 					#define ch_thing state.locals[1]
 					state.states[0].incoming[0] = character;
@@ -1308,7 +1338,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 						pop_const();
 						any_char_except__next_char:;
 					}
-					release_things(2);
+					release_things(1);
+					release_things_clobbered(1);
 					release_states(1);
 				}
 

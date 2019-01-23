@@ -1,11 +1,13 @@
 #trash
 
+
 @keywords a .
 @prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
+
 kb
-:zero a :Nat.
-{?x :has_succ ?y. ?x a :Nat} => { ?y a :Nat}.
+@include ../../lib/list
+@include ../../lib/nat0
 #R0
 {?ddd :has_sum ?y.} <= {?y a :Nat}.
 #R1
@@ -15,7 +17,7 @@ kb
 fin.
 
 
-#currently this takes a whole day and first two test cases fail and then i killed it
+#in pyin this takes a whole day and first two test cases fail and then i killed it
 
 query
 (:three :four) :has_sum :seven.

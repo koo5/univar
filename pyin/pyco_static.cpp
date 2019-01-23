@@ -522,7 +522,7 @@ string bnode_to_string(Thing* thing);
 
     void dump()
     {
-        if (!top_level_tracing_coro || !tracing_enabled)
+        if (!top_level_tracing_coro || !tracing_enabled || !tracing_active)
             return;
         trace_write_raw("window.pyco.frames.push(\"" + to_string(euler_steps) + ":<br><ul>");
         dump_state(0, *top_level_tracing_coro);
@@ -713,7 +713,7 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return true;
 }
 
-bool detect_ep(cpppred_state &old, cpppred_state &now)
+bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lists)[2])
 /* here we try to detect an ep by comparing a parent state to current one */
 {
     #ifdef TRACE_EP_CHECKS
@@ -752,7 +752,9 @@ bool detect_ep(cpppred_state &old, cpppred_state &now)
                 continue;
             vector<Thing*> *lists[2];
             lists[0] = old.ep_lists[term_arg_i];
-            lists[1] = query_list_wrapper(now.incoming[term_arg_i]);
+            if (now_lists[term_arg_i] == NULL)
+                now_lists[term_arg_i] = query_list_wrapper(now.incoming[term_arg_i]);
+            lists[1] = now_lists[term_arg_i];
             //cerr << "lists[0]" << lists[0] << endl;
             //cerr << "lists[1]" << lists[1] << endl;
             //cerr << "lists[0]s" << lists[0]->size() << endl;
@@ -814,9 +816,10 @@ bool detect_ep(cpppred_state &old, cpppred_state &now)
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
+    vector<Thing*> *now_lists[2] = {NULL, NULL};
     for (cpppred_state *f: *table)
     {
-        if (detect_ep(*f, now))
+        if (detect_ep(*f, now, now_lists))
             return true;
     }
     return false;

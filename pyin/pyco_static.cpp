@@ -797,12 +797,10 @@ bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lis
                          "(" << &((*lists[1])[list_item_i]) << ")"
                          << endl;*/
                     #endif
-                    delete lists[1];
                     return false;
                     not_different:;
                 }
             }
-            delete lists[1];
         }
     }
     #endif
@@ -816,13 +814,22 @@ bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lis
 
 bool find_ep(ep_table *table, cpppred_state &now)
 {
+    bool r = false;
     vector<Thing*> *now_lists[2] = {NULL, NULL};
     for (cpppred_state *f: *table)
     {
         if (detect_ep(*f, now, now_lists))
-            return true;
+        {
+            r = true;
+            goto end;
+        }
     }
-    return false;
+    end:
+    if (now_lists[0])
+        delete now_lists[0];
+    if (now_lists[1])
+        delete now_lists[1];
+    return r;
 }
 
 

@@ -125,18 +125,36 @@ def tau(command, files, only_id):
 							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
 						])
 						print(cccc)
-						#print('popen..')
-						popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
-						popen_output = ''
-						#print('poll..')
-						while popen.poll() == None:
-							process_output(popen.stdout.readline())
-						if not popen.stdout.closed:
-							process_output(popen.stdout.readline())
-						if popen.returncode:
-							fail()
-							print_kwrite_link()
-						continue
+						popen = None
+						def exit_gracefully(signum, frame):
+							print('exit_gracefully..')
+							print('exit_gracefully..')
+							print('exit_gracefully..')
+							popen.terminate()
+
+						import signal
+
+						signal.signal(signal.SIGTERM, exit_gracefully)
+						signal.signal(signal.SIGILL, exit_gracefully)
+						signal.signal(signal.SIGQUIT, exit_gracefully)
+						signal.signal(signal.SIGINT, exit_gracefully)
+						signal.signal(signal.SIGABRT, exit_gracefully)
+						signal.signal(signal.SIGPIPE, exit_gracefully)
+						try:
+							#print('popen..')
+							popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
+							popen_output = ''
+							#print('poll..')
+							while popen.poll() == None:
+								process_output(popen.stdout.readline())
+							if not popen.stdout.closed:
+								process_output(popen.stdout.readline())
+							if popen.returncode:
+								fail()
+								print_kwrite_link()
+							continue
+						except e:
+							print(e)
 					elif mode == Mode.shouldbe:
 						if only_id != None and only_id != query_number:
 							buffer = []

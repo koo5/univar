@@ -675,12 +675,13 @@ def comment(s):
 @click.option('--nodebug', default=False, type=bool)
 @click.option('--novalgrind', default=False, type=bool)
 @click.option('--profile', default=False, type=bool)
+@click.option('--profile2', default=False, type=bool)
 @click.option('--oneword', default='auto', type=click.Choice(['true','false','auto']))
 @click.option('--trace_ep_checks', default=False, type=bool)
 @click.option('--trace_ep_tables', default=False, type=bool)
 @click.option('--trace_proof', default=True, type=bool)
 @click.option('--second_chance', default=True, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, oneword, trace_ep_checks, trace_ep_tables, trace_proof, second_chance):
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, second_chance):
 	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, second_chance_
 	second_chance_ = second_chance
 	if notrace:
@@ -731,16 +732,24 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	print("#ok lets run this")
 	sys.stdout.flush()
 	pyco_executable = outpath+'/pyco'
+
+	import os
+	def exit_gracefully(signum, frame):
+		print('exit_gracefully..')
+		os.system('killall pyco')
+
+	import signal
+	signal.signal(signal.SIGINT, exit_gracefully)
+	signal.signal(signal.SIGTERM, exit_gracefully)
+
 	if profile:
 		subprocess.check_call(('time valgrind --tool=callgrind --dump-instr=yes --dump-line=yes --simulate-cache=yes --collect-jumps=yes --collect-systime=yes  --collect-bus=yes  --branch-sim=yes --cache-sim=yes'.split())+ [pyco_executable])
+	elif profile2:
+		subprocess.check_call(['time'] + 'sudo perf record -g --call-graph dwarf -o perf.data'.split() + [pyco_executable])
 	elif novalgrind:
 		subprocess.check_call(['time', pyco_executable], bufsize=1)#still not getting output until the end
 	else:
 		subprocess.check_call(['time', 'valgrind', '--main-stacksize=128000000', '--vgdb-error=1', pyco_executable])
-		#
-
-
-
 
 
 

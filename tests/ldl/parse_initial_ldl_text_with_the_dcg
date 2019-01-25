@@ -170,7 +170,7 @@
 {?raw :postprocess ?cooked} <= {
 	    :dummy tau_builtins:output "postprocess:".
 	    :dummy tau_builtins:output ?raw.
-    ?raw :eq [a :node; :type ?type; :children ?ch].
+    ?raw :type ?type.
     "postprocessing a " :say ?type.
     ?type :eq "string_literal_raw_body".
     "postprocessing... " :say "".
@@ -188,9 +188,9 @@
 }.
 
 {?v_ :is_collected_string_literal_raw_body ?raw} <= {
-    ?raw :children ([:value :literal] ?tail).
-    ?vf :eq :literal.
-    ?vr :is_collected_string_literal_raw_body ?tail!rdf:first.
+    ?raw :children ([:value ?value] ?tail).
+    ?vf :eq ?value.
+    ?vr :is_collected_string_literal_raw_body ?tail.
 }.
 
 

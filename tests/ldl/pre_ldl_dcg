@@ -40,8 +40,8 @@ node_name --> string_literal_body, [].
 string_literal --> [\\[], string_literal_body, [\\]].
 
 string_literal_body --> builtin-postprocessed string_literal_raw_body.
-string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
 string_literal_raw_body --> .
+string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.
 
 string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].
 string_literal_raw_body_item --> [\\\\n].

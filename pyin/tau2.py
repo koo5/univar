@@ -136,10 +136,12 @@ def tau(command, files, only_id):
 
 						signal.signal(signal.SIGTERM, exit_gracefully)
 						signal.signal(signal.SIGILL, exit_gracefully)
+						#signal.signal(signal.SIGKILL, exit_gracefully)
 						signal.signal(signal.SIGQUIT, exit_gracefully)
 						signal.signal(signal.SIGINT, exit_gracefully)
 						signal.signal(signal.SIGABRT, exit_gracefully)
 						signal.signal(signal.SIGPIPE, exit_gracefully)
+						#signal.signal(signal.SIGCHLD, exit_gracefully)
 						try:
 							#print('popen..')
 							popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)

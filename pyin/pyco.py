@@ -334,6 +334,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 	processing.insert(thing);
 	stringstream result;
 	result << endl;
+	result << "(" << processing.size() << ")";
 	for (size_t i = 0; i < processing.size(); i++)
 		result << "  ";
 	result << "[";

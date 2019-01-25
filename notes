@@ -40,3 +40,6 @@ def reorder_lists(g):
 
 
 env DBG="-Doneword " ./run.sh --limit 0 --silence addrules --silence readcurly --silence N3 --level 0  --cppout 1 --lambdas 0 kb runs/tests_clean_zzslow_clone_list_n3_but_no_existentials_0/kb_for_external_raw.n3  query runs/tests_clean_zzslow_clone_list_n3_but_no_existentials_0/query_for_external_raw.n3
+reset;env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --oneword false  --nolog true  --novalgrind true --nodebug true --notrace false --trace_proof true  --profile2  true   " tests/clean/zzslow/adder       2>&1  > >( tee runs/`date "+%
+
+

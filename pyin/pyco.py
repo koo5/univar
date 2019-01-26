@@ -801,64 +801,74 @@ size_t query_list(cpppred_state & __restrict__ state)
 			emitter.epilogue.append(Line("""
 size_t query_list(cpppred_state & __restrict__ state)
 {
-	Thing *&rdf_list = state.incoming[0];
-	ASSERT(rdf_list->type() != BOUND);
-	if (!(*rdf_list == Thing{BNODE, r1bnbuiltins_aware_list IF_TRACE("whatever")}))
-		return 0;
-	Thing *&result_thing = state.incoming[1];
-	vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
 	const size_t first = 0;
 	const size_t rest = 1; 
+	Thing *&rdf_list = state.incoming[0];
+	ASSERT(rdf_list->type() != BOUND);
+	Thing *&result_thing = state.incoming[1];
+	vector<Thing*> *&result_vec = *((vector<Thing*>**)&result_thing);  
+
 	goto *(((char*)&&case0) + state.entry);
 	case0:
-	#ifdef TRACE_PROOF
-		state.num_substates = 0;
-		state.status = ACTIVE;
-	#endif
-	//cerr << "i" << state.incoming[1] << endl;
-	ASSERT(result_vec);
-	//cerr << (result_vec) << ", " << result_vec->size() << endl;
-	//ASSERT(result_vec->empty());
-	state.states = grab_states(3);
-	state.locals = grab_things(2);
-	state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
-	state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
-	state.states[0].entry = 0;
-	ASSERT(rdf_list->type() != BOUND);
-	state.states[0].incoming[0] = rdf_list;
-	state.states[0].incoming[1] = &state.locals[first];
-	while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
+	
+	if (rdf_list->type() == CONST && rdf_list->node_id() == nodeid_rdf_nil)
 	{
-		//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
-		ASSERT(state.locals[first].type() == BOUND);
-		result_vec->push_back(state.locals[first].binding());
-		state.states[1].entry = 0;
+		yield(case_nil);
+		case_nil:;
+	}
+	else
+	{	
+		if (!(*rdf_list == Thing{BNODE, r1bnbuiltins_aware_list IF_TRACE("whatever")}))
+			return 0;
+		#ifdef TRACE_PROOF
+			state.num_substates = 0;
+			state.status = ACTIVE;
+		#endif
+		//cerr << "i" << state.incoming[1] << endl;
+		ASSERT(result_vec);
+		//cerr << (result_vec) << ", " << result_vec->size() << endl;
+		//ASSERT(result_vec->empty());
+		state.states = grab_states(3);
+		state.locals = grab_things(2);
+		state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
+		state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
+		state.states[0].entry = 0;
 		ASSERT(rdf_list->type() != BOUND);
-		state.states[1].incoming[0] = rdf_list;
-		state.states[1].incoming[1] = &state.locals[rest];
-		while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
+		state.states[0].incoming[0] = rdf_list;
+		state.states[0].incoming[1] = &state.locals[first];
+		while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 		{
-			if (get_value(&state.locals[rest])->type() == CONST and 
-				get_value(&state.locals[rest])->node_id() == nodeid_rdf_nil)
+			//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
+			ASSERT(state.locals[first].type() == BOUND);
+			result_vec->push_back(state.locals[first].binding());
+			state.states[1].entry = 0;
+			ASSERT(rdf_list->type() != BOUND);
+			state.states[1].incoming[0] = rdf_list;
+			state.states[1].incoming[1] = &state.locals[rest];
+			while ("""+'pred_'+cppize_identifier(rdflib.RDF.rest)+"""(state.states[1]))
 			{
-				yield(case1);
-				case1:;
-			}
-			else
-			{
-				state.states[2].entry = 0;
-				state.states[2].incoming[0] = get_value(&state.locals[rest]);
-				state.states[2].incoming[1] = result_thing;
-				while(query_list(state.states[2]))
+				if (get_value(&state.locals[rest])->type() == CONST and 
+					get_value(&state.locals[rest])->node_id() == nodeid_rdf_nil)
 				{
-					yield(case2);
-					case2:;
+					yield(case1);
+					case1:;
+				}
+				else
+				{
+					state.states[2].entry = 0;
+					state.states[2].incoming[0] = get_value(&state.locals[rest]);
+					state.states[2].incoming[1] = result_thing;
+					while(query_list(state.states[2]))
+					{
+						yield(case2);
+						case2:;
+					}
 				}
 			}
 		}
+		release_things(2);
+		release_states(3);
 	}
-	release_things(2);
-	release_states(3);
 	END;
 }
 			"""))
@@ -925,7 +935,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					#undef locals_size_thing 
 					release_states(1);
  				}
-				else if (lst->type() == BNODE)
+				else if ((lst->type() == BNODE) || (lst->type() == CONST && lst->node_id() == nodeid_rdf_nil))
 				{
 					state.states = grab_states(2);
 					state.locals = grab_things(2);

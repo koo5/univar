@@ -2,9 +2,6 @@
 :initial_ldl_text :has_value
 """
 string_literal is builtin-postprocessed string_literal_raw.
-""".
-:x :x
-"""
 string_literal_raw ++> [\\[], string_literal_body, [\\]].
 string_literal_body is builtin-postprocessed string_literal_raw_body.
 string_literal_raw_body is a series of string_literal_body_item separated with [].

@@ -736,9 +736,12 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 
 	import os
 	def exit_gracefully(signum, frame):
+		exit_gracefully2()
+	def exit_gracefully2():
 		print('exit_gracefully..')
-		os.system('killall pyco')
-
+		os.system('killall pyco;sleep 1;')
+	import atexit
+	atexit.register(exit_gracefully2)
 	import signal
 	signal.signal(signal.SIGINT, exit_gracefully)
 	signal.signal(signal.SIGTERM, exit_gracefully)

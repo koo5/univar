@@ -127,16 +127,17 @@ def tau(command, files, only_id):
 						print(cccc)
 						popen = None
 						def exit_gracefully(signum, frame):
+							exit_gracefully2()
+						def exit_gracefully2():
 							print('exit_gracefully..')
 							print('exit_gracefully..')
 							print('exit_gracefully..')
 							popen.terminate()
-
+						import atexit
+						atexit.register(exit_gracefully2)
 						import signal
-
 						signal.signal(signal.SIGTERM, exit_gracefully)
 						signal.signal(signal.SIGILL, exit_gracefully)
-						#signal.signal(signal.SIGKILL, exit_gracefully)
 						signal.signal(signal.SIGQUIT, exit_gracefully)
 						signal.signal(signal.SIGINT, exit_gracefully)
 						signal.signal(signal.SIGABRT, exit_gracefully)

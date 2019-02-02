@@ -697,11 +697,12 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 						Statement(local_expr(arg, r) + '->make_bnode_ungrounded()')
 				]))
 				done.append(arg)
-			if trace_proof_:
-				bbb.append(Line('{state.status = EP;}'))
-			bbb.append(s.do_yield())
-			if trace_proof_:
-				bbb.append(Statement('state.set_status(ACTIVE)'))
+			if len(r.existentials):
+				if trace_proof_:
+					bbb.append(Line('{state.status = EP;}'))
+				bbb.append(s.do_yield())
+				if trace_proof_:
+					bbb.append(Statement('state.set_status(ACTIVE)'))
 		outer_block.append(s.euler_step())
 		return outer_block
 

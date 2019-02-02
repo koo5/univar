@@ -229,8 +229,11 @@ vector<nodeid> consts_stack; /*this is so coroutines can just call pop_const, wi
 
 
 
+struct Thing;
 
-
+#ifdef TRACE
+string thing_to_string_nogetval(Thing* v);
+#endif
 
 
 
@@ -244,7 +247,7 @@ reference? http://www.delorie.com/gnu/docs/glibc/libc_31.html
 typedef unsigned long BnodeOrigin; /*uniquely specifies rule and thing name*/
 
 
-struct Thing;
+
 
 typedef vector<Thing> Locals;
 
@@ -272,6 +275,8 @@ struct Thing
         nodeid _node_id;
         BnodeOrigin _origin;
     };
+    bool _is_bnode_ungrounded;
+    Thing* _bnode_bound_to;
     #ifdef TRACE
         char *_debug_name;
     #endif
@@ -291,6 +296,13 @@ struct Thing
             _debug_name = debug_name;
         #endif
         set_value((Thing*)value);
+        #ifdef DEBUG
+        if (type == BNODE)
+        #endif
+        {
+            _is_bnode_ungrounded = false;
+            _bnode_bound_to = NULL;
+        }
     }
     bool operator==(const Thing& b) const
     {    //just bitwise comparison, not recursive check of equality of bindings
@@ -328,6 +340,28 @@ struct Thing
             set_value((Thing*)666);
         #endif
     }
+    void make_bnode_ungrounded()
+    {
+        ASSERT(_type == BNODE);
+        _is_bnode_ungrounded = true;
+    }
+    void set_bnode_bound_to(Thing *value)
+    {
+        ASSERT(_type == BNODE);
+        #ifdef TRACE
+        cerr << ((void*)this) << thing_to_string_nogetval(this) << " set_bnode_bound_to " << (void*)value << (value ? thing_to_string_nogetval(value) : "") << endl;
+        #endif
+        if (_bnode_bound_to)
+        {
+            ASSERT(value == NULL);
+        }
+        else
+        {
+            ASSERT(value != NULL);
+            ASSERT(value->type() == BNODE);
+        }
+        _bnode_bound_to = value;
+    }
 #endif
 };
 
@@ -345,6 +379,8 @@ Thing *get_value(Thing *x)
         #endif
         x = x->binding();
     }
+    if (x->type() == BNODE && x->_bnode_bound_to)
+        return get_value(x->_bnode_bound_to);
     return x;
 }
 
@@ -424,7 +460,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 #ifdef TRACE
-string bnode_to_string(Thing* thing);
+    string bnode_to_string(Thing* thing);
     string thing_to_string(Thing* thing);
     string thing_to_string_nogetval(Thing* v)
     {
@@ -443,9 +479,20 @@ string bnode_to_string(Thing* thing);
         if (v->type() == UNBOUND)
             return string("?")+*v->_debug_name;
         else if (v->type() == BNODE)
-            return bnode_to_string(v);
+        {
+            string r;
+            if (v->_is_bnode_ungrounded)
+                r = "(ungrounded)";
+            r += bnode_to_string(v);
+            if (v->_bnode_bound_to)
+                r += "->" + thing_to_string_nogetval(v->_bnode_bound_to);
+            return r;
+        }
         else
+        {
+            ASSERT(v->type() == BOUND);
             return string("?")+*v->_debug_name+"->"+thing_to_string(v);
+        }
       }
     }
 
@@ -454,9 +501,6 @@ string bnode_to_string(Thing* thing);
       return thing_to_string_nogetval(get_value(thing));
     }
 #endif
-
-
-
 
 
 
@@ -844,6 +888,10 @@ bool find_ep(ep_table *table, cpppred_state &now)
 static size_t query(cpppred_state & __restrict__ state);
 void print_result(cpppred_state &state);
 void initialize_consts();
+bool result_is_grounded(cpppred_state &state);
+bool find_ungrounded_bnode(Thing* v);
+
+
 
 int main (int argc, char *argv[])
 {

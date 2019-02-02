@@ -134,6 +134,7 @@ class Emitter(object):
 			s.prologue.append(Statement('static const unsigned '+cpp_name+' = '+code))
 			if atom == rdflib.RDF.nil:
 				s.prologue.append(Statement('static const unsigned nodeid_rdf_nil = '+code))
+				r.append(Statement('(void)nodeid_rdf_nil'))#avoid "unused variable" warning
 		r.append(Line('}'))
 		return r
 
@@ -227,6 +228,8 @@ class Emitter(object):
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
 			s.print_result(goal, goal_graph),
 			s.unification(),
+			s.thing_groundedness_check(),
+			s.result_groundedness_check(goal),
 			(s.bnode_printer() if trace else Lines([]))
 
 		])
@@ -257,6 +260,8 @@ int unify(cpppred_state & __restrict__ state)
 					 Statement("""state.set_active(true)""")])))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
+	ASSERT(x->type() != BNODE || !x->_bnode_bound_to);
+	ASSERT(y->type() != BNODE || !y->_bnode_bound_to);
 	if (x == y)
 		yield(single_success)
 	if (x->type() == UNBOUND)
@@ -271,8 +276,10 @@ int unify(cpppred_state & __restrict__ state)
 	}
 	if ((x->type() == CONST) && (*x == *y))
 		yield(single_success)
-	if ((x->type() == BNODE) && (*x == *y))
+	if ((x->type() == BNODE) && (*x == *y)) //same origin
 	{
+		ASSERT(!x->_bnode_bound_to);
+		ASSERT(!y->_bnode_bound_to);
 		switch (y->origin())
 		{
 			"""))
@@ -280,6 +287,13 @@ int unify(cpppred_state & __restrict__ state)
 		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
 			result.append(Line('case ' + bnode_cpp_name + ':'))
+			result.append(Line("""if (y->_is_bnode_ungrounded)
+			{
+				Thing *swap_temp = x;
+				x = y;
+				y = swap_temp;
+			}
+			"""))
 			states_len = '('+str(len(rule.head_vars)-1)+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
 			if trace_proof_:
@@ -292,13 +306,23 @@ int unify(cpppred_state & __restrict__ state)
 				bnode_idx = rule.locals_map[bnode_name];
 				offset = local_idx - bnode_idx
 				block.append(Statement(s.substate()+'->entry = 0'))
-				for i in range(2):
-					ee = 'get_value(get_value(state.incoming['+str(i)+']) + '+str(offset)+')'
-					block.append(Statement(s.substate()+'->incoming['+str(i)+'] = '+ee))
+				block.append(Statement(
+					s.substate()+'->incoming[0] = get_value(get_value(x) + '+str(offset)+')'))
+				block.append(Statement(
+					s.substate()+'->incoming[1] = get_value(get_value(y) + '+str(offset)+')'))
 				block.append(Line('while (unify(*'+s.substate()+'))'))
 				block = nest(block)
 				s.state_index += 1
+			block.append(Statement('x->set_bnode_bound_to(y)'))
 			block.append(s.do_yield())
+			block.append(Line("""if (y->_is_bnode_ungrounded)
+			{
+				Thing *swap_temp = x;
+				x = y;
+				y = swap_temp;
+			}
+			"""))
+			block.append(Statement('x->set_bnode_bound_to(NULL)'))
 			outer_block.append(Statement('release_states('+states_len+')'))
 			if trace_proof_:
 				outer_block.append(Statement('state.num_substates = 0'))
@@ -325,6 +349,73 @@ int unify(cpppred_state & __restrict__ state)
 	END;
 }"""))
 		return result
+
+	def thing_groundedness_check(s):
+		result = Lines([Line(
+			"""
+bool find_ungrounded_bnode(Thing* v)
+{
+    v = get_value(v);
+    if (v->type() != BNODE)
+        return false;
+    if(v->_is_bnode_ungrounded)
+        return true;
+    else switch(v->origin())
+	{
+""")])
+		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
+			result.append(Line('case ' + bnode_cpp_name + ':'))
+			for local_name in rule.head_vars:
+				if local_name == bnode_name:
+					continue
+				local_idx = rule.locals_map[local_name]
+				bnode_idx = rule.locals_map[bnode_name];
+				offset = local_idx - bnode_idx
+				result.append(If('find_ungrounded_bnode(v + '+str(offset)+')',
+								 Statement('return true')))
+			result.append(Statement('break;'))
+		result.append(Line(
+"""
+		default:
+		ASSERT(false);
+	}
+	return false;
+}
+"""))
+		return result
+
+	def result_groundedness_check(s, query):
+		result = Lines([Line("""
+bool result_is_grounded(cpppred_state &state)
+{
+	""")])
+		if len(query.locals_map) == 0:
+			result.append(Statement('(void)state'))
+		done = []
+		assert len(query.body)
+		for triple in query.body:
+			assert len(triple.args)
+			for arg_idx in range(len(triple.args)):
+				arg = triple.args[arg_idx]
+				if arg not in query.locals_map: continue
+				if arg in done:	continue
+				done.append(arg)
+				it = local_expr(arg, query)
+				result.append(If('find_ungrounded_bnode('+it+')',
+					Block([
+						Line("""
+						#ifdef TRACE
+						cerr << "#ungrounded """ + str(arg) + """:" << thing_to_string("""+it +""") << endl;
+						#endif
+						"""),
+						Statement('return false')])))
+		result.append(Line(
+	"""
+	return true;	
+}	
+	"""))
+		return result
+
 
 	def bnode_printer(s):
 		result = Lines([Line(
@@ -511,6 +602,14 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			other_arg_idx, other_arg = todo[0 if (pos_i == 1) else 1]
 			arg_expr = 'state.incoming['+str(arg_i)+']'
 			other_arg_expr = 'state.incoming['+str(other_arg_idx)+']'
+
+
+			"""here we check if one of the incoming arguments is bnode already produced by this rule.
+			in that case, we simply bind the other argument to the appropriate local of the producing 
+			rule and yield. This should be just a (big) optimization, only the number of yields might 
+			differ. 
+			We could as well rely on bnode unification and let the body run its course. 
+			Todo add a command line switch to test this on and off"""
 			if arg in r.existentials:
 				b.append(Line("if (*"+arg_expr+" == "+s.thing_literal(r, r.locals_template[r.locals_map[arg]	])+")"))
 				b = nest(b)
@@ -524,6 +623,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b.append(s.do_yield())
 				outer_block.append(Line('else'))
 				b = outer_block
+
+
+
 		b = nest(outer_block)
 		s.state_index = 0
 		is_first_arg = True
@@ -574,21 +676,38 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b.append(Lines([
 					Statement("ASSERT(ep" +str(r.debug_id)+ ".size())"),
 					Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
-			if trace_proof_:
-				b.append(Statement('state.set_status(YIELD)'))
-			b.append(s.do_yield())
-			if trace_proof_:
-				b.append(Statement('state.set_status(ACTIVE)'))
+			if r.head == None:
+				b.append(Line('if (!result_is_grounded(state))cerr << "#ungrounded result." << endl; else'))
+			b.append(s.yield_block())
 			if do_ep:
 				b.append(push_ep(r))
 		if do_ep:
 			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
 			inner_block.append(Statement('delete state.ep_lists[0]'))
 			inner_block.append(Statement('delete state.ep_lists[1]'))
-
+		if do_ep:
+			outer_block.append(Statement('else'))
+			bbb = nest(outer_block)
+			done = []
+			for arg_i, arg in enumerate(r.head.args):
+				if arg in r.existentials and arg not in done:
+					ua1 = 'get_value(state.incoming['+str(arg_i)+'])'
+					bbb.append(Block([
+						Statement(ua1 + '->make_bnode_ungrounded()')
+				]))
+				done.append(arg)
+			bbb.append(s.yield_block())
 		outer_block.append(s.euler_step())
-
 		return outer_block
+
+	def yield_block(s):
+		b = Block()
+		if trace_proof_:
+			b.append(Statement('state.set_status(YIELD)'))
+		b.append(s.do_yield())
+		if trace_proof_:
+			b.append(Statement('state.set_status(ACTIVE)'))
+		return b
 
 	def euler_step(s):
 		if trace:

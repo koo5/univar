@@ -477,7 +477,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
         //cerr << "("<< ((void*)v) << "/" << ((void*)(first_free_byte - 1)) <<")" << endl;
         //cerr << v->_debug_name << endl;
         if (v->type() == UNBOUND)
-            return string("?")+*v->_debug_name;
+            return string("?")+v->_debug_name;
         else if (v->type() == BNODE)
         {
             string r;
@@ -491,7 +491,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
         else
         {
             ASSERT(v->type() == BOUND);
-            return string("?")+*v->_debug_name+"->"+thing_to_string(v);
+            return string("?")+v->_debug_name+"->"+thing_to_string(v);
         }
       }
     }

@@ -256,7 +256,9 @@ int unify(cpppred_state & __restrict__ state)
 		if trace_proof_:
 			result.append(If("top_level_tracing_coro && tracing_enabled && tracing_active",
 				 Block([
-					 Statement("""state.set_comment("unify " + thing_to_string(x) + " with " + thing_to_string(y))"""),
+					 Statement("""stringstream ss"""),
+					 Statement("""ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y)"""),
+					 Statement("""state.set_comment(ss.str())"""),
 					 Statement("""state.set_active(true)""")])))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
@@ -504,7 +506,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		b.append(Line('void print_result(cpppred_state &state)'))
 		b = nest(b)
 		b.append(Statement('(void)state;'))
+		b.append(Statement('print_euler_steps()'))
 		b.append(Statement('cout << " RESULT : "'))
+		b.append(Statement('cerr << " (RESULT) "'))
 		b.append(Statement('Thing *v;(void)v'))
 		gg = goal_graph[:]
 		#gg.reverse()
@@ -662,8 +666,6 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
 			b.append(Statement('state.ep_lists[1] = query_list_wrapper(get_value(state.incoming[1]))'))
 			b.append(push_ep(r))
-			if trace_proof_:
-				outer_block.append(Line('else {state.status = EP;dump();state.status=ACTIVE;}'))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
@@ -689,14 +691,17 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			outer_block.append(Statement('else'))
 			bbb = nest(outer_block)
 			done = []
-			for arg_i, arg in enumerate(r.head.args):
+			for arg in r.head.args:
 				if arg in r.existentials and arg not in done:
-					ua1 = 'get_value(state.incoming['+str(arg_i)+'])'
 					bbb.append(Block([
-						Statement(ua1 + '->make_bnode_ungrounded()')
+						Statement(local_expr(arg, r) + '->make_bnode_ungrounded()')
 				]))
 				done.append(arg)
-			bbb.append(s.yield_block())
+			if trace_proof_:
+				bbb.append(Line('{state.status = EP;}'))
+			bbb.append(s.do_yield())
+			if trace_proof_:
+				bbb.append(Statement('state.set_status(ACTIVE)'))
 		outer_block.append(s.euler_step())
 		return outer_block
 

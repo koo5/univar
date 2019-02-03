@@ -36,12 +36,12 @@ kb
 
 
 
-{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
-{?x a :number} <= { "0123456789" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:strXlst ?l. ?x :memberof ?l.}.
+{?x a :number} <= { "0123456789" string_builtins:strXlst ?l. ?x :memberof ?l.}.
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 {?x a :member_of_chars_allowed_in_literals} <= {?x a :alphanum}.
-{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-={}'\\\"|,./" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :member_of_chars_allowed_in_literals} <= {" ~!@#$%^&*()-={}'\\\"|,./" string_builtins:strXlst ?l. ?x :memberof ?l.}.
 
 
 {?x0 :parses_to_rhs (?rest ?rhs)} <= {
@@ -79,7 +79,7 @@ kb
 }.
 
 {?x0 :literally_string (?rest ?value)} <= {
-	?value string_builtins:is_split ?l.
+	?value string_builtins:strXlst ?l.
 	?x0 :literally_list (?rest ?l).
 }.
 

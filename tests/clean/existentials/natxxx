@@ -11,5 +11,7 @@ fin.
 query
 :zero :has_succ :zero.
 fin.
-???????
+shouldbe
+fin.
+
 

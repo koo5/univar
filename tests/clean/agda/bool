@@ -17,16 +17,7 @@ query
 fin.
 
 shouldbe
-
-?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
+#?l0 :first :true. ?l0 :rest :nil. :bool :listform ?list_type. ?l0 :a ?list_type.
+#too many existentials in the head
 fin.
-
 thatsall
-
-#
-#
-#
-#
-#
-#
-#

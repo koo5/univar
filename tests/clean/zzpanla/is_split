@@ -8,9 +8,9 @@ kb
 fin.
 #0
 query
-"Tim" string_builtins:is_split (?a ?b ?c).
+"Tim" string_builtins:strXlst (?a ?b ?c).
 fin.
 shouldbe
-"Tim" string_builtins:is_split ("T" "i" "m").
+"Tim" string_builtins:strXlst ("T" "i" "m").
 fin.
 

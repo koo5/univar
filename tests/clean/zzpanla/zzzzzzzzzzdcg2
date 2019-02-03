@@ -32,8 +32,8 @@ kb
 
 
 
-{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
-{?x a :number} <= { "0123456789" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:strXlst ?l. ?x :memberof ?l.}.
+{?x a :number} <= { "0123456789" string_builtins:strXlst ?l. ?x :memberof ?l.}.
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 
@@ -70,7 +70,7 @@ kb
 }.
 
 {?x0 :literally_string (?rest ?value)} <= {
-	?value string_builtins:is_split ?l.
+	?value string_builtins:strXlst ?l.
 	?x0 :literally_list (?rest ?l).
 }.
 
@@ -149,7 +149,7 @@ fin.
 
 #0
 query
-""", [ase]""" string_builtins:is_split ?l. 
+""", [ase]""" string_builtins:strXlst ?l. 
 ?l :maybe_more_rhs_items (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -157,7 +157,7 @@ shouldbetrue
 
 #1
 query
-"""[ase]""" string_builtins:is_split ?l. 
+"""[ase]""" string_builtins:strXlst ?l. 
 ?l :rhs_item (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -166,7 +166,7 @@ shouldbetrue
 
 #2
 query
-"""[ase]""" string_builtins:is_split ?l. 
+"""[ase]""" string_builtins:strXlst ?l. 
 ?l :rhs_item (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -174,7 +174,7 @@ shouldbetrue
 
 #3
 query
-"""[ase]""" string_builtins:is_split ?l. 
+"""[ase]""" string_builtins:strXlst ?l. 
 ?l :literal (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -190,7 +190,7 @@ shouldbetrue
 
 #5
 query
-"""ase.""" string_builtins:is_split ?l. 
+"""ase.""" string_builtins:strXlst ?l. 
 ?l :parses_to_rhs (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -198,14 +198,14 @@ shouldbetrue
 
 #6
 query
-""" --> """ string_builtins:is_split ?l. 
+""" --> """ string_builtins:strXlst ?l. 
 ?l :arrow rdf:nil.
 fin.
 shouldbetrue
 
 #7
 query
-"""aa --> ase.""" string_builtins:is_split ?l. 
+"""aa --> ase.""" string_builtins:strXlst ?l. 
 ?l :statement (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -218,7 +218,7 @@ sentence --> noun_phrase, verb_phrase.
 noun_phrase --> determiner, noun.
 verb_phrase --> verb, noun_phrase.
 verb_phrase --> verb, sentence.
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -239,7 +239,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -259,7 +259,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil (?i0 ?i1 ?i2 ?i3 ?i4 ?i5 ?i6 ?i7 ?i8 ?i9 ?i10 ?i11)). 
 ?i8 a :statement. ?i8 :rhs (("c" "a" "t")). 
 fin.
@@ -280,7 +280,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil (?i0 ?i1 ?i2 ?i3 ?i4 ?i5 ?i6 ?i7 ?i8 ?i9 ?i10 ?i11)). 
 ?i8 a :statement. ?i8 :rhs (("d" "o" "g")). 
 fin.
@@ -303,7 +303,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree).
 fin.
 shouldbetrue
@@ -327,7 +327,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?tree). ?what :statement_lines (rdf:nil ?tree). ?what string_builtins:is_joined ?output .
 fin.
 shouldbetrue
@@ -349,7 +349,7 @@ noun --> [cat].
 noun --> [mouse].
 verb --> [scares].
 verb --> [hates].
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :parses_to_dcg_with_rest (rdf:nil ?tree). ?tree :dcg_ast2tau_ast ?tau. ?tau :tau_ast2list_of_chars ?l2. ?l2 string_builtins:is_joined ?output .
 fin.
 shouldbetrue

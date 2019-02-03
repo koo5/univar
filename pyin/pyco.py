@@ -663,8 +663,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			#we know incoming's have been get_valued before the pred func was called
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
-			b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
-			b.append(Statement('state.ep_lists[1] = query_list_wrapper(get_value(state.incoming[1]))'))
+			if second_chance_:
+				b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
+				b.append(Statement('state.ep_lists[1] = query_list_wrapper(get_value(state.incoming[1]))'))
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
@@ -685,8 +686,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b.append(push_ep(r))
 		if do_ep:
 			inner_block.append(Statement("ep" +str(r.debug_id)+ ".pop_back()"))
-			inner_block.append(Statement('delete state.ep_lists[0]'))
-			inner_block.append(Statement('delete state.ep_lists[1]'))
+			if second_chance_:
+				inner_block.append(Statement('delete state.ep_lists[0]'))
+				inner_block.append(Statement('delete state.ep_lists[1]'))
 		if do_ep:
 			outer_block.append(Statement('else'))
 			bbb = nest(outer_block)

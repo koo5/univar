@@ -8,7 +8,7 @@ kb
 fin.
 #0
 query
-"Tim" string_builtins:is_split ?x. ?x string_builtins:is_joined "Tim".
+"Tim" string_builtins:strXlst ?x. ?x string_builtins:is_joined "Tim".
 fin.
 shouldbetrue
 

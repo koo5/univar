@@ -6,8 +6,8 @@
 
 
 kb
-@include ../../lib/list
-@include ../../lib/nat0
+@include ../../n3-dev-testcases/lib/list
+@include ../../n3-dev-testcases/lib/nat0
 #R0
 {?ddd :has_sum ?y.} <= {?y a :Nat}.
 #R1

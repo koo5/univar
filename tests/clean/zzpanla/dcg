@@ -32,8 +32,8 @@ kb
 
 
 
-{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:is_split ?l. ?x :memberof ?l.}.
-{?x a :number} <= { "0123456789" string_builtins:is_split ?l. ?x :memberof ?l.}.
+{?x a :letter} <= { "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" string_builtins:strXlst ?l. ?x :memberof ?l.}.
+{?x a :number} <= { "0123456789" string_builtins:strXlst ?l. ?x :memberof ?l.}.
 {?x a :alphanum} <= {?x a :letter}.
 {?x a :alphanum} <= {?x a :number}.
 
@@ -114,7 +114,7 @@ shouldbetrue
 #2
 query
 """ce
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil (?s0)). ?s0 :lhs ("c" "e").
 fin.
 shouldbetrue
@@ -122,7 +122,7 @@ shouldbetrue
 #3
 query
 """ce
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil (?s0)). 
 :dummy tau_builtins:output "?s0".
 :dummy tau_builtins:output ?s0.
@@ -142,7 +142,7 @@ dthtd
 hdhtdhtd222
 
 
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?ast). 
 :dummy tau_builtins:output ?ast.
 fin.
@@ -158,7 +158,7 @@ verb_phrase
 
 determiner
 determiner
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil ?ast). 
 :dummy tau_builtins:output ?ast.
 fin.
@@ -174,7 +174,7 @@ verb_phrase
 
 determiner
 determiner
-""" string_builtins:is_split ?l. 
+""" string_builtins:strXlst ?l. 
 ?l :statement_lines (rdf:nil (?nl0 ?s1 ?s2 ?s3 ?s4 ?nl5 ?s6 ?s7)). 
 ?s1 :lhs ?s1lhs. ?s1lhs string_builtins:is_joined "sentence".
 fin.

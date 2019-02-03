@@ -26,6 +26,13 @@ using namespace std;
 #define IF_TRACE(x)
 #endif
 
+#ifdef SECOND_CHANCE
+#define IF_SECOND_CHANCE(x) ,x
+#else
+#define IF_SECOND_CHANCE(x)
+#endif
+
+
 
 #define ASSERT assert
 
@@ -757,7 +764,7 @@ int is_arg_productively_different(Thing *old, Thing *now)
     return true;
 }
 
-bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lists)[2])
+bool detect_ep(cpppred_state &old, cpppred_state &now IF_SECOND_CHANCE(vector<Thing*> *(&now_lists)[2]))
 /* here we try to detect an ep by comparing a parent state to current one */
 {
     #ifdef TRACE_EP_CHECKS
@@ -786,7 +793,6 @@ bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lis
                 return false;
         }
     }
-    #define SECOND_CHANCE
     #ifdef SECOND_CHANCE
     for (size_t term_arg_i = 0; term_arg_i < 2; term_arg_i++) //for subject and object
     {
@@ -859,20 +865,24 @@ bool detect_ep(cpppred_state &old, cpppred_state &now, vector<Thing*> *(&now_lis
 bool find_ep(ep_table *table, cpppred_state &now)
 {
     bool r = false;
-    vector<Thing*> *now_lists[2] = {NULL, NULL};
+    #ifdef SECOND_CHANCE
+        vector<Thing*> *now_lists[2] = {NULL, NULL};
+    #endif
     for (cpppred_state *f: *table)
     {
-        if (detect_ep(*f, now, now_lists))
+        if (detect_ep(*f, now IF_SECOND_CHANCE(now_lists)))
         {
             r = true;
             goto end;
         }
     }
     end:
-    if (now_lists[0])
-        delete now_lists[0];
-    if (now_lists[1])
-        delete now_lists[1];
+    #ifdef SECOND_CHANCE
+        if (now_lists[0])
+            delete now_lists[0];
+        if (now_lists[1])
+            delete now_lists[1];
+    #endif
     return r;
 }
 

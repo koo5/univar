@@ -39,8 +39,5 @@ query
 ?eight :has_succ ?nine.
 ?nine :has_succ ?ten.
 fin.
-shouldbe
-#we cant build up a nat starting from three down(in the has_sum rule body, by calling has_succ), ep check has to cut that
-#newsflash:ok apparently this should be supported
-fin.
+shouldbetrue
 

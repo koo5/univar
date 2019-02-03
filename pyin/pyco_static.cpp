@@ -632,13 +632,22 @@ cpppred_state *grab_states(size_t count)
     return r;
 }
 
+void release_bytes(size_t count)
+{
+    #ifdef DEBUG
+        for (size_t i = 1; i <= count; i++)
+            *(first_free_byte - i) = 0;
+    #endif
+    first_free_byte -= count;
+}
+
 void release_states (size_t count)
 {
-    first_free_byte -= count * sizeof(cpppred_state);
     #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
             ((cpppred_state*)first_free_byte)[i].destruct();
     #endif
+    release_bytes(count * sizeof(cpppred_state));
 }
 
 Thing *grab_things(size_t count)
@@ -649,7 +658,7 @@ Thing *grab_things(size_t count)
 
 void release_things(size_t count)
 {
-    first_free_byte -= count * sizeof(Thing);
+    release_bytes(count * sizeof(Thing));
 }
 
 
@@ -657,10 +666,9 @@ size_t query_list(cpppred_state & __restrict__ state);
 
 
 vector<Thing*>* query_list_wrapper(Thing *x)
-/*
-returns pointers to things, which could be invalid by the time this finishes...
-*/
 {
+/*returns pointers to things, which could be invalid by the time this finishes...*/
+
     #ifdef TRACE_PROOF
         bool was_tracing_enabled = tracing_enabled;
         tracing_enabled = false;

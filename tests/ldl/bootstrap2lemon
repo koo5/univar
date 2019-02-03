@@ -76,7 +76,7 @@
 #node_name --> string_literal_body, [].
 {?parsed :parsed2builtins ?ldl} <= {
     ?parsed :type "node_name"; :children (?x ?y).
-    ?ldl a :literal; :type "builtins/identifier"; :value ?x_ldl!:value.
+    ?ldl a :literal; :type "builtins/identifier"; :value ?x!:value.
 }.
 
 #node_name_with_child_name --> node_name, [:], node_name.

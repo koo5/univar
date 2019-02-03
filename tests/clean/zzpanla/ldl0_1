@@ -39,10 +39,10 @@ query
 :dummy tau_builtins:output "initial_ldl:".
 :dummy tau_builtins:output ?initial_ldl.
 :dummy tau_builtins:output "parsed2builtins...".
-#?initial_ldl :parsed2builtins ?builtins_statements.
-#:dummy tau_builtins:output "builtins_statements:".
-#:dummy tau_builtins:output ?builtins_statements.
-#:dummy tau_builtins:output "is_serialized...".
+?initial_ldl :parsed2builtins ?builtins_statements.
+:dummy tau_builtins:output "builtins_statements:".
+:dummy tau_builtins:output ?builtins_statements.
+:dummy tau_builtins:output "is_serialized...".
 #:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
 #:dummy tau_builtins:output "output...".
 #:dummy tau_builtins:output ?n3.

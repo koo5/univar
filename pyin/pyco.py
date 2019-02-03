@@ -950,6 +950,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 	{	
 		if (!(*rdf_list == Thing{BNODE, r1bnbuiltins_aware_list IF_TRACE("whatever")}))
 			return 0;
+		if (find_ungrounded_bnode(rdf_list))
+			return 0;
 		#ifdef TRACE_PROOF
 			state.num_substates = 0;
 			state.status = ACTIVE;
@@ -968,6 +970,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 		state.states[0].incoming[1] = &state.locals[first];
 		while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 		{
+			if (find_ungrounded_bnode(&state.locals[first]))
+				continue;
 			//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
 			ASSERT(state.locals[first].type() == BOUND);
 			result_vec->push_back(state.locals[first].binding());
@@ -985,6 +989,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 				}
 				else
 				{
+					if (find_ungrounded_bnode(&state.locals[rest]))
+						continue;
 					state.states[2].entry = 0;
 					state.states[2].incoming[0] = get_value(&state.locals[rest]);
 					state.states[2].incoming[1] = result_thing;
@@ -1267,7 +1273,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 	b = Builtin()
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
-	"x" const_is_not_equal_to_const "y"."""
+	"x" things_are_different "y"."""
 	def build_in(builtin):
 		return Lines([Line("""
 			{

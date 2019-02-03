@@ -35,7 +35,7 @@ all_chars_until_one_of --> [all chars until one of ], string_literal.
 
 node_name_with_child_name --> node_name, [:], node_name.
 
-node_name --> string_literal_body, [].
+node_name --> all chars until one of [\\n ,.], [].
 
 string_literal --> [\\[], string_literal_body, [\\]].
 
@@ -49,7 +49,7 @@ string_literal_raw_body_item --> [\\\\\\[].
 string_literal_raw_body_item --> [\\\\\\]].
 string_literal_raw_body_item --> [\\\\\\\\].
 
-statement --> error.
-error --> all chars until one of [\\n], [].
 """.
+#statement --> error.
+#error --> all chars until one of [\\n], [].
 

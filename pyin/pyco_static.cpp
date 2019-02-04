@@ -164,7 +164,8 @@ void maybe_print_euler_steps()
     {
         written_bytes = 0;
         trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
-        trace_write_raw("window.pyco = Object();window.pyco.frames = [];");
+        trace_write_raw("window.pyco = Object();window.pyco.frames = [];");//??
+        //dump();
     }
 
     void trace_flush()

@@ -248,12 +248,14 @@ int unify(cpppred_state & __restrict__ state)
 {
 	#ifdef TRACE_PROOF
 		state.num_substates = 0;
-		state.status = ACTIVE;
+		#ifdef TRACE_UNIFICATION
+			state.status = ACTIVE;
+		#endif
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
 	case0:""")])
-		if trace_proof_:
+		if trace_unification_:
 			result.append(If("top_level_tracing_coro && tracing_enabled && tracing_active",
 				 Block([
 					 Statement("""stringstream ss"""),
@@ -298,7 +300,7 @@ int unify(cpppred_state & __restrict__ state)
 			"""))
 			states_len = '('+str(len(rule.head_vars)-1)+')'
 			outer_block.append(Statement('state.states = grab_states'+states_len))
-			if trace_proof_:
+			if trace_unification_:
 				outer_block.append(Statement('state.num_substates = '+states_len))
 			block = outer_block
 			for local_name in rule.head_vars:
@@ -326,7 +328,7 @@ int unify(cpppred_state & __restrict__ state)
 			"""))
 			block.append(Statement('x->set_bnode_bound_to(NULL)'))
 			outer_block.append(Statement('release_states('+states_len+')'))
-			if trace_proof_:
+			if trace_unification_:
 				outer_block.append(Statement('state.num_substates = 0'))
 			outer_block.append(Statement('break'))
 			s.state_index = 0
@@ -557,11 +559,11 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b.append(Statement('state.locals['+str(v)+'] = ' +
 					s.thing_literal(r, r.locals_template[v])))
 		if r.max_states_len:
-			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + ')'))
+			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + '/*, state*/)'))
 		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
-			for i in range(r.max_states_len):
-				b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
+			#for i in range(r.max_states_len):
+			#	b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 		if len(r.existentials):
 			pass
 		if trace_proof_:
@@ -569,6 +571,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				If("top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
 			b.append(Statement('state.set_active(true)'))
+			#b.append(Statement('proof_trace_add_state(state)'))
 		if r.head:
 			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))
 			b.append(Statement('ASSERT(state.incoming[1]->type() != BOUND)'))
@@ -581,6 +584,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			b.append(Statement("release_states(" + str(r.max_states_len) + ')'))
 			if trace_proof_:
 				b.append(Statement('state.num_substates = 0'))
+				#b.append(Statement('proof_trace_remove_state(state)'))
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
 		return outer_block
@@ -808,13 +812,16 @@ def comment(s):
 @click.option('--trace_ep_checks', default=False, type=bool)
 @click.option('--trace_ep_tables', default=False, type=bool)
 @click.option('--trace_proof', default=True, type=bool)
+@click.option('--trace_unification', default=False, type=bool)
 @click.option('--second_chance', default=True, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, second_chance):
-	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, second_chance_
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance):
+	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_
+	trace_unification_ = trace_unification
 	second_chance_ = second_chance
 	if notrace:
 		trace_proof = False
 		trace_ep_tables = False
+		trace_unification_ = False
 	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
@@ -851,6 +858,8 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		e.prologue.append(Line('#define TRACE_EP_TABLES'))
 	if trace_proof:
 		e.prologue.append(Line('#define TRACE_PROOF'))
+	if trace_unification:
+		e.prologue.append(Line('#define TRACE_UNIFICATION'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 	try:
 		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)
@@ -955,12 +964,13 @@ size_t query_list(cpppred_state & __restrict__ state)
 		#ifdef TRACE_PROOF
 			state.num_substates = 0;
 			state.status = ACTIVE;
+			//proof_trace_add_state(state);/*finish me*/
 		#endif
 		//cerr << "i" << state.incoming[1] << endl;
 		ASSERT(result_vec);
 		//cerr << (result_vec) << ", " << result_vec->size() << endl;
 		//ASSERT(result_vec->empty());
-		state.states = grab_states(3);
+		state.states = grab_states(3/*, state*/);
 		state.locals = grab_things(2);
 		state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
 		state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";

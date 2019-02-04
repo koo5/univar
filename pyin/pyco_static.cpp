@@ -357,7 +357,7 @@ struct Thing
     {
         ASSERT(_type == BNODE);
         #ifdef TRACE
-        cerr << ((void*)this) << thing_to_string_nogetval(this) << " set_bnode_bound_to " << (void*)value << (value ? thing_to_string_nogetval(value) : "") << endl;
+        //cerr << ((void*)this) << thing_to_string_nogetval(this) << " set_bnode_bound_to " << (void*)value << (value ? thing_to_string_nogetval(value) : "") << endl;
         #endif
         if (_bnode_bound_to)
         {
@@ -642,10 +642,10 @@ void release_bytes(size_t count)
     first_free_byte -= count;
 }
 
-void release_states (size_t count)
+void release_states(size_t count)
 {
     #ifdef TRACE_PROOF
-        for (size_t i = 0; i < count; i++)
+        for (size_t i = -1; i >= -count; i--)
             ((cpppred_state*)first_free_byte)[i].destruct();
     #endif
     release_bytes(count * sizeof(cpppred_state));

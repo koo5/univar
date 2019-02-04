@@ -24,6 +24,7 @@ class Mode(Enum):
 	query = 2
 	shouldbe = 3
 
+additional_identification_ = ''
 result_marker = ' RESULT :'
 query_number = 6666666
 identification = '?'
@@ -39,8 +40,10 @@ fn = '?'
 @click.argument('command', type=click.Path(), required=True)
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
-def tau(command, files, only_id):
-	global mode, buffer, prefixes, output, fn, identification, query_number, base, already_failed_because_no_more_results, results
+@click.option('--additional_identification', default="")
+def tau(command, files, only_id, additional_identification):
+	global mode, buffer, prefixes, output, fn, identification, additional_identification_, query_number, base, already_failed_because_no_more_results, results
+	additional_identification_ = additional_identification
 	for fn in files:
 		echo(fn+':test:')
 		query_number = None
@@ -239,7 +242,7 @@ def parse(data, identifier, publicID):
 
 def set_new_identification():
 	global identification
-	identification = common.fix_up_identification(fn + '_' + str(query_number if query_number != None else 0))
+	identification = common.fix_up_identification(fn + '_' + str(query_number if query_number != None else 0) + additional_identification_)
 
 def print_graph(g):
 	for i in g.triples((None, None, None)):

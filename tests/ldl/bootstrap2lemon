@@ -11,15 +11,15 @@
 
 #?parsed is a dcg-parser node, ?ldl is a lemon node
 
-{?P :parsed2builtins ?y} <= {
-    :dummy tau_builtins:output ":parsed2builtins:".
-    :dummy tau_builtins:output ?y.
-    :dummy tau_builtins:output ":type:".
-    :dummy tau_builtins:output ?y!:type.
-    :dummy tau_builtins:output ":children:".
-    :dummy tau_builtins:output ?y!:children.
-    x :cut x.
-}.
+#{?P :parsed2builtins ?Y} <= {
+#    :dummy tau_builtins:output ":parsed2builtins:".
+#    :dummy tau_builtins:output ?P.
+#    :dummy tau_builtins:output ":type:".
+#    :dummy tau_builtins:output ?P!:type.
+#    :dummy tau_builtins:output ":children:".
+#    :dummy tau_builtins:output ?P!:children.
+#    x :cut x.
+#}.
 
 #statements --> .
 {?parsed :parsed2builtins rdf:nil} <= {

@@ -34,8 +34,8 @@ query
 (?initial_ldl_text_list ?grammar "statements") :eq ?a1.
 (rdf:nil ?initial_ldl :minus_one) :eq ?a2.
 :dummy tau_builtins:output "parse_nonterminal...".
-:dummy tau_builtins:toggle_tracing :dummy.
 ?a1 :parse_nonterminal ?a2.
+:dummy tau_builtins:toggle_tracing :dummy.
 :dummy tau_builtins:output "initial_ldl:".
 :dummy tau_builtins:output ?initial_ldl.
 :dummy tau_builtins:output "parsed2builtins...".

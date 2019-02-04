@@ -176,7 +176,7 @@
     "postprocessing a " :say ?type.
     ?type :eq "string_literal_raw_body".
     "postprocessing... " :say "".
-    ?cooked :eq [a ldl:literal; :type :string_literal_body; :value ?v].
+    ?cooked :eq [a :literal; :value ?v].
     "postprocessing.... " :say "".
     ?v_list :is_collected_string_literal_raw_body ?raw.
     "postprocessing..... " :say "".

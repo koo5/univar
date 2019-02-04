@@ -15,6 +15,15 @@ kb
 @include ../../ldl/bootstrap2lemon
 @include ../../ldl/ldl_serializer
 
+{?initial_ldl :phase2 ?builtins_statements} <= {
+    :dummy tau_builtins:output "initial_ldl:".
+    :dummy tau_builtins:output ?initial_ldl.
+    :dummy tau_builtins:output "parsed2builtins...".
+    ?initial_ldl :parsed2builtins ?builtins_statements.
+    :dummy tau_builtins:output "builtins_statements:".
+    :dummy tau_builtins:output ?builtins_statements.
+}.
+
 fin.
 
 query
@@ -36,12 +45,7 @@ query
 :dummy tau_builtins:output "parse_nonterminal...".
 ?a1 :parse_nonterminal ?a2.
 :dummy tau_builtins:toggle_tracing :dummy.
-:dummy tau_builtins:output "initial_ldl:".
-:dummy tau_builtins:output ?initial_ldl.
-:dummy tau_builtins:output "parsed2builtins...".
-?initial_ldl :parsed2builtins ?builtins_statements.
-:dummy tau_builtins:output "builtins_statements:".
-:dummy tau_builtins:output ?builtins_statements.
+?initial_ldl :phase2 ?builtins_statements.
 :dummy tau_builtins:output "is_serialized...".
 #:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
 #:dummy tau_builtins:output "output...".

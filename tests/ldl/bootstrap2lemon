@@ -31,7 +31,7 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
-    ?parsed :children ([:value "\n"] ?tail).
+    ?parsed :children ([a :literal; :value "\n"] ?tail).
     ?ldl a ldl:compound; :type "builtins/newline"; :children ().
     ?tail :parsed2builtins ?ldlr.
 }.
@@ -40,7 +40,7 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
-    ?parsed :children (?head [:value ".\n"] ?tail).
+    ?parsed :children (?head [a :literal; :value ".\n"] ?tail).
     ?head :parsed2builtins ?ldlf.
     ?tail :parsed2builtins ?ldlr.
 }.
@@ -49,7 +49,7 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
-    ?parsed :children (?head [:value "\n"] ?tail).
+    ?parsed :children (?head [a :literal; :value "\n"] ?tail).
     ?head :parsed2builtins ?ldlf.
     ?tail :parsed2builtins ?ldlr.
 }.

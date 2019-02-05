@@ -395,7 +395,7 @@ Thing *get_value(Thing *x)
 
 void dump();
 typedef pair<Thing*,Thing*> thingthingpair;
-enum coro_status {INACTIVE, ACTIVE, EP, YIELD};
+enum coro_status {INACTIVE, ACTIVE, EP, YIELD, BNODE_YIELD};
 struct cpppred_state;
 
 
@@ -566,9 +566,11 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
             dump_state(indent,*(state.states+i));
         }
         if (state.status == EP)
-            trace_write_raw("<li class=\\\"ep\\\">EP</li>" + jsonize_string(current_ep_comment));
+            trace_write_raw("<li class=\\\"ep\\\">EP </li>" + jsonize_string(current_ep_comment));
         else if (state.status == YIELD)
             trace_write_raw("<li class=\\\"yield\\\">yield.</li>");
+        else if (state.status == BNODE_YIELD)
+            trace_write_raw("<li class=\\\"yield\\\">bnode yield.</li>");
         trace_write_raw("</ul>");
     }
 

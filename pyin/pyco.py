@@ -628,7 +628,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)
+				b.append(Statement('state.set_status(BNODE_YIELD)'))
 				b.append(s.do_yield())
+				b.append(Statement('state.set_status(ACTIVE)'))
 				outer_block.append(Line('else'))
 				b = outer_block
 
@@ -705,7 +707,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				done.append(arg)
 			if len(r.existentials):
 				if trace_proof_:
-					bbb.append(Line('{state.status = EP;}'))
+					bbb.append(Statement('state.set_status(EP)'))
 				bbb.append(s.do_yield())
 				if trace_proof_:
 					bbb.append(Statement('state.set_status(ACTIVE)'))
@@ -720,6 +722,18 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		if trace_proof_:
 			b.append(Statement('state.set_status(ACTIVE)'))
 		return b
+
+	def do_yield(s):
+		return Lines([
+			s.set_entry(),
+			Statement('return state.entry'),
+			s.label()
+		])
+
+	def set_entry(s):
+		s._label += 1
+		r = Statement('state.entry = ((char*)&&case' + str(s._label) + ') - ((char*)&&case0)')
+		return r
 
 	def euler_step(s):
 		if trace:
@@ -740,21 +754,6 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		b = nest(b)
 		s.state_index += 1
 		return b
-
-	def do_yield(s):
-			return Lines(
-				[
-					s.set_entry(),
-					Statement('return state.entry'),
-					s.label()
-				]
-			)
-
-	def set_entry(s):
-		s._label += 1
-		r = Statement('state.entry = ((char*)&&case' + str(s._label) + ') - ((char*)&&case0)')
-		return r
-
 
 
 def local_expr(name, rule, not_getval = False):

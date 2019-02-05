@@ -421,10 +421,10 @@ bool result_is_grounded(cpppred_state &state)
 		return result
 
 
-	def bnode_printer(s, proper = True):
+	def bnode_printer(s):
 		result = Lines([Line(
 			"""
-string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free_name_id)
+string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 {
 	processing.insert(thing);
 	stringstream result;
@@ -432,7 +432,6 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free
 	//result << "(" << processing.size() << ")";
 	for (size_t i = 0; i < processing.size(); i++)
 		result << "  ";
-	""")])
 	result << "[";
 	//cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;
 	switch (thing->origin())
@@ -447,10 +446,8 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free
 				locals = 'thing - '+str(bnode_idx)
 				do_arg(triple.args[0])
 
-				if proper:
-					shorten = cpp_string_literal_noquote()
-				else:
-					shorten = common.shorten
+				#shorten = cpp_string_literal_noquote()
+				shorten = common.shorten
 
 				result.append(Statement('result << " <' + shorten(triple.pred) + '> "'))
 				do_arg(triple.args[1])
@@ -464,7 +461,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free
 		string bnode_to_string(Thing* thing)
 		{
 			set<Thing*> processing;
-			return bnode_to_string2(processing, thing, 0);
+			return bnode_to_string2(processing, thing);
 		}
 		"""))
 		return result
@@ -485,7 +482,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free
 				   (If ('v->type() == BNODE',
 						If ('processing.find(v) != processing.end()',
 							Statement(outstream+' << "LOOPSIE"'),
-							Statement(outstream+' << bnode_to_string2(processing, v, first_free_name_id)')),
+							Statement(outstream+' << bnode_to_string2(processing, v)')),
 						Statement(outstream+' << "?' + str(arg) +'"'))
 				   if do_bnodes else
 				   		Statement(outstream+' << "?' + str(arg) +'"'))

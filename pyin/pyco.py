@@ -421,6 +421,95 @@ bool result_is_grounded(cpppred_state &state)
 		return result
 
 
+
+
+
+
+# 	def bnode_serializer(s, proper = True):
+# 		result = Lines([Line(
+# 			"""
+# string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free_name_id)
+# {
+# 	processing.insert(thing);
+# 	stringstream result;
+# 	result << endl;
+# 	//result << "(" << processing.size() << ")";
+# 	for (size_t i = 0; i < processing.size(); i++)
+# 		result << "  ";
+# 	""")])
+# 		if not proper:
+# 			result.append(Line("""result << "[";"""))
+# 		result.append(Line("""
+# 	//cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;
+# 	switch (thing->origin())
+# 	{
+# """))
+# 		def do_arg(arg):
+# 			result.append(s.substituted_arg2('result', locals, rule, arg, arg!=bnode_name, proper))
+# 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
+# 			result.append(Line('case ' + bnode_cpp_name + ':'))
+# 			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
+# 				bnode_idx = rule.locals_map[bnode_name]
+# 				locals = 'thing - '+str(bnode_idx)
+# 				do_arg(triple.args[0])
+#
+# 				if proper:
+# 					shorten = cpp_string_literal_noquote()
+# 				else:
+# 					shorten = common.shorten
+#
+# 				result.append(Statement('result << " <' + shorten(triple.pred) + '> "'))
+# 				do_arg(triple.args[1])
+# 				if not proper and not is_last: result.append(Statement('result << ". "'))
+# 			result.append(Statement('break'))
+# 			#from IPython import embed; embed();exit()
+# 		result.append(Line('};'))
+# 		if not proper:
+# 			result.append(Line("""result << "]";"""))
+# 		result.append(Line('processing.erase(thing);'))
+# 	#result.append(Line('cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;'))
+# 		result.append(Line('return result.str();}'))
+# 		result.append(Line("""
+# 		string bnode_to_string(Thing* thing)
+# 		{
+# 			set<Thing*> processing;
+# 			return bnode_to_string2(processing, thing, 0);
+# 		}
+# 		"""))
+# 		return result
+#
+# 	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes, proper):
+# 		if type(arg) == rdflib.Literal:
+# 			return Statement(outstream+' << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
+# 		if type(arg) == rdflib.URIRef:
+# 			return Statement(outstream+' << "<' + cpp_string_literal_noquote(arg) +'> "')
+# 		if type(arg) == rdflib.Variable:
+# 			return Block([
+# 				Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'),
+# 				If('v->type() == CONST',
+# 					If ('nodeids2consts[v->node_id()].type == URI',
+# 						Statement(outstream+' <<  "<" << nodeids2consts[v->node_id()].value << "> "'),
+# 						Statement(outstream+' << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "')
+# 					),
+# 				   (If ('v->type() == BNODE',
+# 						If ('processing.find(v) != processing.end()',
+# 							Statement(outstream+' << "LOOPSIE"'),
+# 							Lines([
+# 								Statement(outstream+' << bnode_to_string2(processing, v, ++first_free_name_id)')),
+#
+# 							])
+# 				   		(Statement(outstream+' << "?' + str(arg) +'"') if not proper else Statement(outstream+' << "?u" << (void*)0'))#' + str(arg) +'"
+# 				   if do_bnodes else
+# 				   		Statement(outstream+' << "?" << ' + ('"'+str(arg)+'"' if not proper else '"x" << first_free_name_id')))
+# 				)
+# 				])
+# 		assert(False)
+#
+
+
+
+
+
 	def bnode_printer(s):
 		result = Lines([Line(
 			"""

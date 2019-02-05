@@ -409,6 +409,9 @@ struct cpppred_state
     Thing *incoming[2];
     cpppred_state *states;
     Thing *locals;
+    #ifdef DEBUG
+    	(void*)dbg_data;
+	#endif
     #ifdef SECOND_CHANCE
         vector<Thing*> *ep_lists[2];
     #endif
@@ -647,8 +650,8 @@ void release_bytes(size_t count)
 void release_states(size_t count)
 {
     #ifdef TRACE_PROOF
-        for (size_t i = -1; i >= -count; i--)
-            ((cpppred_state*)first_free_byte)[i].destruct();
+        for (size_t i = 0; i < count; i++)
+            (((cpppred_state*)first_free_byte)-i-1).destruct();
     #endif
     release_bytes(count * sizeof(cpppred_state));
 }

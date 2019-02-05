@@ -31,8 +31,9 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
+    :dummy tau_builtins:output ?parsed.
     ?parsed :children ([a :literal; :value "\n"] ?tail).
-    ?ldl a ldl:compound; :type "builtins/newline"; :children ().
+    ?ldlf a ldl:compound; :type "builtins/newline"; :children ().
     ?tail :parsed2builtins ?ldlr.
 }.
 
@@ -40,6 +41,7 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
+    :dummy tau_builtins:output ?parsed.
     ?parsed :children (?head [a :literal; :value ".\n"] ?tail).
     ?head :parsed2builtins ?ldlf.
     ?tail :parsed2builtins ?ldlr.
@@ -49,6 +51,7 @@
 {?parsed :parsed2builtins ?ldl_} <=
 {
     ?parsed :type "statements".
+    :dummy tau_builtins:output ?parsed.
     ?parsed :children (?head [a :literal; :value "\n"] ?tail).
     ?head :parsed2builtins ?ldlf.
     ?tail :parsed2builtins ?ldlr.
@@ -57,14 +60,16 @@
 #comment --> [#], all chars until one of [\\n].
 {?parsed :parsed2builtins ?ldl} <= {
     ?parsed :type "comment".
+    :dummy tau_builtins:output ?parsed.
     ?parsed :children (?hash ?body).
     ?ldl a ldl:literal; :type "builtins/comment"; :value ?body.
 }.
 
 #x_is_a_series_of_y_separated_with_z --> node_name, [ is a series of ], grammar_item, [ separated with ], grammar_item.
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "x_is_a_series_of_y_separated_with_z";
-    :children (?x ?l0 ?y ?l1 ?z).
+    ?parsed :type "x_is_a_series_of_y_separated_with_z".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y ?l1 ?z).
     ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl. ?z :parsed2builtins ?z_ldl.
     ?ldl a ldl:compound; :type "builtins/x_is_a_series_of_y_separated_with_z"; :children (
         [:key "x"; :value ?x_ldl]
@@ -75,14 +80,17 @@
 
 #node_name --> all chars until one of [\\n ,.], [].
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "node_name"; :children (?x ?y).
+    ?parsed :type "node_name".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?y).
     ?ldl a ldl:literal; :type "builtins/identifier"; :value ?x!:value.
 }.
 
 #node_name_with_child_name --> node_name, [:], node_name.
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "node_name_with_child_name";
-    :children (?x ?l0 ?y).
+    ?parsed :type "node_name_with_child_name".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y).
     ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
     ?ldl a ldl:compound; :type "builtins/x_is_a_series_of_y_separated_with_z"; :children (
         [:key "name"; :value ?x_ldl]
@@ -92,8 +100,9 @@
 
 #any_char_except --> [any char except ], string_literal.
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "any_char_except";
-    :children (?l0 ?x).
+    ?parsed :type "any_char_except".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?l0 ?x).
     ?x :parsed2builtins ?x_ldl.
     ?ldl a ldl:compound; :type "builtins/any_char_except"; :children (
         [:key "except"; :value ?x_ldl]
@@ -102,8 +111,9 @@
 
 #all_chars_until_one_of --> [all chars until one of ], string_literal.
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "all_chars_until_one_of";
-    :children (?l0 ?x).
+    ?parsed :type "all_chars_until_one_of".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?l0 ?x).
     ?x :parsed2builtins ?x_ldl.
     ?ldl a ldl:compound; :type "builtins/all_chars_until_one_of"; :children (
         [:key "until"; :value ?x_ldl]
@@ -112,8 +122,9 @@
 
 #subtype --> node_name, [ works as ], node_name.
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "subtype";
-    :children (?x ?l0 ?y).
+    ?parsed :type "subtype".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y).
     ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
     ?ldl a ldl:compound; :type "builtins/subtype"; :children (
         [:key "x"; :value ?x_ldl]
@@ -121,10 +132,23 @@
     ).
 }.
 
+#is_builtin_postprocessed --> node_name, [ is builtin-postprocessed ], node_name.
+{?parsed :parsed2builtins ?ldl} <= {
+    ?parsed :type "is_builtin_postprocessed".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y).
+    ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
+    ?ldl a ldl:compound; :type "builtins/is_builtin_postprocessed"; :children (
+        [:key "x"; :value ?x_ldl]
+        [:key "y"; :value ?y_ldl]
+    ).
+}.
+
 #grammar --> node_name, [ ++> ], grammar_items, [.].
 {?parsed :parsed2builtins ?ldl} <= {
-    ?parsed :type "grammar";
-    :children (?x ?l0 ?y ?l1).
+    ?parsed :type "grammar".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y ?l1).
     ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
     ?ldl a ldl:compound; :type "builtins/grammar"; :children (
         [:key "node_name"; :value ?x_ldl]
@@ -134,22 +158,25 @@
 
 #grammar_items --> grammar_item, [, ], grammar_items.
 {?parsed :parsed2builtins ?ldl_} <= {
-    ?parsed :type "grammar_items";
-    :children (?x ?l0 ?y).
+    ?parsed :type "grammar_items".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?l0 ?y).
     ?x :parsed2builtins ?ldlf. ?y :parsed2builtins ?ldlr.
 }.
 
 #grammar_items --> grammar_item, [].
 {?parsed :parsed2builtins ?ldl_} <= {
-    ?parsed :type "grammar_items";
-    :children (?x).
-    ?x :parsed2builtins ?ldlf. ?y :parsed2builtins rdf:nil.
+    ?parsed :type "grammar_items".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children (?x ?y).
+    ?x :parsed2builtins ?ldlf. ?ldlr :eq rdf:nil.
 }.
 
 #grammar_items --> .
 {?parsed :parsed2builtins rdf:nil} <= {
-    ?parsed :type "grammar_items";
-    :children ().
+    ?parsed :type "grammar_items".
+    :dummy tau_builtins:output ?parsed.
+    ?parsed :children ().
 }.
 
 

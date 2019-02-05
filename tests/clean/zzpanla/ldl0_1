@@ -47,9 +47,9 @@ query
 :dummy tau_builtins:toggle_tracing :dummy.
 ?initial_ldl :phase2 ?builtins_statements.
 :dummy tau_builtins:output "is_serialized...".
-#:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
-#:dummy tau_builtins:output "output...".
-#:dummy tau_builtins:output ?n3.
+:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
+:dummy tau_builtins:output "output...".
+:dummy tau_builtins:output ?n3.
 fin.
 shouldbetrue
 

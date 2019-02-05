@@ -421,17 +421,18 @@ bool result_is_grounded(cpppred_state &state)
 		return result
 
 
-	def bnode_printer(s):
+	def bnode_printer(s, proper = True):
 		result = Lines([Line(
 			"""
-string bnode_to_string2(set<Thing*> &processing, Thing* thing)
+string bnode_to_string2(set<Thing*> &processing, Thing* thing, size_t first_free_name_id)
 {
 	processing.insert(thing);
 	stringstream result;
 	result << endl;
-	result << "(" << processing.size() << ")";
+	//result << "(" << processing.size() << ")";
 	for (size_t i = 0; i < processing.size(); i++)
 		result << "  ";
+	""")])
 	result << "[";
 	//cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;
 	switch (thing->origin())
@@ -445,7 +446,13 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				bnode_idx = rule.locals_map[bnode_name]
 				locals = 'thing - '+str(bnode_idx)
 				do_arg(triple.args[0])
-				result.append(Statement('result << " <' + common.shorten(triple.pred) + '> "'))
+
+				if proper:
+					shorten = cpp_string_literal_noquote()
+				else:
+					shorten = common.shorten
+
+				result.append(Statement('result << " <' + shorten(triple.pred) + '> "'))
 				do_arg(triple.args[1])
 				if not is_last: result.append(Statement('result << ". "'))
 			result.append(Statement('break'))
@@ -457,7 +464,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		string bnode_to_string(Thing* thing)
 		{
 			set<Thing*> processing;
-			return bnode_to_string2(processing, thing);
+			return bnode_to_string2(processing, thing, 0);
 		}
 		"""))
 		return result
@@ -478,7 +485,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				   (If ('v->type() == BNODE',
 						If ('processing.find(v) != processing.end()',
 							Statement(outstream+' << "LOOPSIE"'),
-							Statement(outstream+' << bnode_to_string2(processing, v)')),
+							Statement(outstream+' << bnode_to_string2(processing, v, first_free_name_id)')),
 						Statement(outstream+' << "?' + str(arg) +'"'))
 				   if do_bnodes else
 				   		Statement(outstream+' << "?' + str(arg) +'"'))
@@ -1083,6 +1090,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 				else if ((lst->type() == BNODE) || (lst->type() == CONST && lst->node_id() == nodeid_rdf_nil))
 				{
 					state.states = grab_states(2);
+					#ifdef DEBUG
+						state.dbg_data = first_free_byte;
+					#endif
 					state.locals = grab_things(2);
 					*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 					state.states[0].entry = 0;
@@ -1138,6 +1148,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 					is_joined_end:
 					delete *((vector<Thing*>**)(&state.locals[0]));
 					release_things(2);
+					#ifdef DEBUG
+						ASSERT(state.dbg_data == first_free_byte);
+					#endif
 					release_states(2);
 				}
 				end_str2list:;

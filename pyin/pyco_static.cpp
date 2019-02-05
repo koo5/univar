@@ -511,6 +511,43 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
     {
       return thing_to_string_nogetval(get_value(thing));
     }
+
+
+
+    string serialize_thing2(Thing* v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+    {
+      v = get_value(v);
+      if (v->type() == CONST)
+      {
+        const Constant &c = nodeids2consts[v->node_id()];
+        if (c.type == URI)
+          return "<" + c.value + ">";
+        else
+          return "\"\"\"" + c.value + "\"\"\"";
+      }
+      else
+      {
+        if (v->type() == UNBOUND)
+            return string("?")+v->_debug_name;
+        else if (v->type() == BNODE)
+        {
+            if (done.find(v) != done.end())
+
+            return serialize_bnode(v);
+      }
+    }
+
+    string serialize_thing(Thing* thing)
+    {
+        result r;
+        size_t first_free_id = 0;
+        map<Thing*, size_t> todo, done;
+        todo[thing] = first_free_id++;
+        while(!todo.empty())
+            r += serialize_bnode2(todo, done, t, first_free_id);
+    }
+
+
 #endif
 
 

@@ -37,7 +37,13 @@ using namespace std;
 
 #ifdef DEBUG
     #define INIT_DBG_DATA state.dbg_data = first_free_byte;
-    #define CHECK_DBG_DATA ASSERT(state.dbg_data == first_free_byte);
+    #define CHECK_DBG_DATA  { \
+        if (state.dbg_data != first_free_byte) \
+        { \
+            cerr << "state.dbg_data: " << state.dbg_data << endl<< "first_free_byte: " << (void*)first_free_byte << endl << "off by: " << first_free_byte  - ((char*)state.dbg_data) << endl; \
+            ASSERT(state.dbg_data == first_free_byte); \
+        } \
+        }
 #else
     #define INIT_DBG_DATA
     #define CHECK_DBG_DATA

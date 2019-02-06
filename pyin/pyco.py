@@ -1182,7 +1182,10 @@ size_t query_list(cpppred_state & __restrict__ state)
 									result += c.value;
 								}
 								else
+								{
+									while (query_list(state.states[0])){};
 									goto is_joined_end;
+								}
 							}
 							{
 								//cerr << "consts2nodeids_and_refcounts.size():" << consts2nodeids_and_refcounts.size() << endl;

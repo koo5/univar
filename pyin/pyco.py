@@ -254,14 +254,17 @@ int unify(cpppred_state & __restrict__ state)
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
-	case0:""")])
+	case0:
+		INIT_DBG_DATA;
+	""")])
 		if trace_unification_:
 			result.append(If("top_level_tracing_coro && tracing_enabled && tracing_active",
-				 Block([
-					 Statement("""stringstream ss"""),
-					 Statement("""ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y)"""),
-					 Statement("""state.set_comment(ss.str())"""),
-					 Statement("""state.set_active(true)""")])))
+				Block([
+					 #Statement("""stringstream ss"""),
+					 #Statement("""ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y)"""),
+					 #Statement("""state.set_comment(ss.str())"""),
+					 #Statement("""state.set_active(true)""")
+				])))
 		result.append(Line("""
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
 	ASSERT(x->type() != BNODE || !x->_bnode_bound_to);
@@ -424,59 +427,59 @@ bool result_is_grounded(cpppred_state &state)
 
 
 
- 	def bnode_serializer(s):
- 		result = Lines([Line(
- 			"""
-string serialize_bnode(map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
-{
-	auto b = todo.begin();
-	Thing *t = *b.first;
-	size_t id = *b.second;
-	done[t] = id;
-	result << endl;
-	switch (thing->origin())
-	{
-"""))
-		def do_arg(arg):
-			result.append(Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'))
-			result.append(Line("""
-			if (v->type() == CONST) 
-			{
-				if (nodeids2consts[v->node_id()].type == URI)
-					result << "<" << nodeids2consts[v->node_id()].value << "> ";
-				else
-					result << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "');
-			}
-			else if (v->type() == UNBOUND) 
-			
-
-							Statement(outstream+' << "LOOPSIE"'),
-							Lines([
-								Statement(outstream+' << bnode_to_string2(processing, v, ++first_free_name_id)')),
-#							])
-				   		(Statement(outstream+' << "?' + str(arg) +'"') if not proper else Statement(outstream+' << "?u" << (void*)0'))#' + str(arg) +'"
-				   if do_bnodes else
-				   		Statement(outstream+' << "?" << ' + ('"'+str(arg)+'"' if not proper else '"x" << first_free_name_id')))
-				)
-				])
-		assert(False)
-
-"""
-			
-		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
-			result.append(Line('case ' + bnode_cpp_name + ':'))
-			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
-				bnode_idx = rule.locals_map[bnode_name]
-				locals = 'thing - '+str(bnode_idx)
-				do_arg(triple.args[0])
-				result.append(Statement('result << " <' + cpp_string_literal_noquote(triple.pred) + '> "'))
-				do_arg(triple.args[1])
-				result.append(Statement('result << ". "'))
-			result.append(Statement('break'))
-		result.append(Line("""return result.str();
-}
-		"""))
-		return result
+# 	def bnode_serializer(s):
+# 		result = Lines([Line(
+# 			"""
+#string serialize_bnode(map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+#{
+#	auto b = todo.begin();
+#	Thing *t = *b.first;
+#	size_t id = *b.second;
+#	done[t] = id;
+#	result << endl;
+#	switch (thing->origin())
+#	{
+#"""))
+#		def do_arg(arg):
+#			result.append(Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'))
+#			result.append(Line("""
+#			if (v->type() == CONST)
+#			{
+#				if (nodeids2consts[v->node_id()].type == URI)
+#					result << "<" << nodeids2consts[v->node_id()].value << "> ";
+#				else
+#					result << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "');
+#			}
+#			else if (v->type() == UNBOUND)
+#
+#
+#							Statement(outstream+' << "LOOPSIE"'),
+#							Lines([
+#								Statement(outstream+' << bnode_to_string2(processing, v, ++first_free_name_id)')),
+##							])
+#				   		(Statement(outstream+' << "?' + str(arg) +'"') if not proper else Statement(outstream+' << "?u" << (void*)0'))#' + str(arg) +'"
+#				   if do_bnodes else
+#				   		Statement(outstream+' << "?" << ' + ('"'+str(arg)+'"' if not proper else '"x" << first_free_name_id')))
+#				)
+#				])
+#		assert(False)
+#
+#"""
+#
+#		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
+#			result.append(Line('case ' + bnode_cpp_name + ':'))
+#			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
+#				bnode_idx = rule.locals_map[bnode_name]
+#				locals = 'thing - '+str(bnode_idx)
+#				do_arg(triple.args[0])
+#				result.append(Statement('result << " <' + cpp_string_literal_noquote(triple.pred) + '> "'))
+#				do_arg(triple.args[1])
+#				result.append(Statement('result << ". "'))
+#			result.append(Statement('break'))
+#		result.append(Line("""return result.str();
+#}
+#		"""))
+#		return result
 
 
 
@@ -613,8 +616,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 	def rule(s, r):
 		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.existentials[0] == r.head.args[0] and r.existentials[0] == r.head.args[1]):
 			raise Exception("too many existentials in " + str(r) +"\nexistentials: " + str(r.existentials))
-		outer_block = b = Lines()
+		b = Lines()
 		b.append(comment(r.__str__(shortener = common.shorten)))
+		b.append(Statement('INIT_DBG_DATA'))
 		b.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 		if len(r.locals_template):
 			b.append(Statement("state.locals = grab_things(" + str(len(r.locals_template))  + ')'))
@@ -650,7 +654,8 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				#b.append(Statement('proof_trace_remove_state(state)'))
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
-		return outer_block
+		b.append(Statement('CHECK_DBG_DATA'))
+		return b
 
 	def head(s, r):
 		outer_block = b = Lines()
@@ -691,9 +696,11 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)
-				b.append(Statement('state.set_status(BNODE_YIELD)'))
+				if trace_proof_:
+					b.append(Statement('state.set_status(BNODE_YIELD)'))
 				b.append(s.do_yield())
-				b.append(Statement('state.set_status(ACTIVE)'))
+				if trace_proof_:
+					b.append(Statement('state.set_status(ACTIVE)'))
 				outer_block.append(Line('else'))
 				b = outer_block
 
@@ -1011,7 +1018,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 	goto *(((char*)&&case0) + state.entry);
 	case0:
-	
+	INIT_DBG_DATA
+
 	if (rdf_list->type() == CONST && rdf_list->node_id() == nodeid_rdf_nil)
 	{
 		yield(case_nil);
@@ -1020,9 +1028,15 @@ size_t query_list(cpppred_state & __restrict__ state)
 	else
 	{	
 		if (!(*rdf_list == Thing{BNODE, r1bnbuiltins_aware_list IF_TRACE("whatever")}))
+		{
+			CHECK_DBG_DATA
 			return 0;
+		}
 		if (find_ungrounded_bnode(rdf_list))
+		{
+			CHECK_DBG_DATA
 			return 0;
+		}
 		#ifdef TRACE_PROOF
 			state.num_substates = 0;
 			state.status = ACTIVE;
@@ -1084,6 +1098,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 				return Lines()
 			return Lines([Line("""
 			{
+				INIT_DBG_DATA
 				#ifdef TRACE
 				{
 					/*
@@ -1146,9 +1161,6 @@ size_t query_list(cpppred_state & __restrict__ state)
 				else if ((lst->type() == BNODE) || (lst->type() == CONST && lst->node_id() == nodeid_rdf_nil))
 				{
 					state.states = grab_states(2);
-					#ifdef DEBUG
-						state.dbg_data = first_free_byte;
-					#endif
 					state.locals = grab_things(2);
 					*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 					state.states[0].entry = 0;
@@ -1204,9 +1216,6 @@ size_t query_list(cpppred_state & __restrict__ state)
 					is_joined_end:
 					delete *((vector<Thing*>**)(&state.locals[0]));
 					release_things(2);
-					#ifdef DEBUG
-						ASSERT(state.dbg_data == first_free_byte);
-					#endif
 					release_states(2);
 				}
 				end_str2list:;
@@ -1215,6 +1224,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 				#endif
 				#undef str
 				#undef lst
+				CHECK_DBG_DATA
 			}
 			""")])
 	b.build_in = build_in
@@ -1230,6 +1240,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 	def build_in(builtin):
 		return Lines([Line("""
 			{
+			INIT_DBG_DATA
 			{
 			Thing *input = state.incoming[1];
 			ThingType input_type = input->type();
@@ -1256,7 +1267,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			#ifdef TRACE_PROOF
 				if (top_level_tracing_coro && tracing_enabled && tracing_active)
 				{
-					state.set_comment(output.str()); 
+					//state.set_comment(output.str()); 
 					state.num_substates = 0;
 					state.set_active(true);
 				}
@@ -1266,6 +1277,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			#ifdef TRACE_PROOF
 				state.set_active(false);
 			#endif
+			CHECK_DBG_DATA
 			}
 	""")])
 	b.build_in = build_in
@@ -1283,12 +1295,13 @@ size_t query_list(cpppred_state & __restrict__ state)
 		return Lines([Line("""
 			{
 			{
-			Thing *input = state.incoming[1];
-			ThingType input_type = input->type();
+			stringstream output;
+			//Thing *input = state.incoming[1];
+			//ThingType input_type = input->type();
 			{
 				output << "BNODE : " << endl;
 				#ifdef TRACE
-					output << serialize_bnode(input);
+					//output << serialize_bnode(input);
 				#endif
 			}
 			cerr << output.str() << endl;
@@ -1422,6 +1435,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 		else:
 			return Lines([Line("""
 			{
+				INIT_DBG_DATA
 				#ifdef TRACE_PROOF
 				{
 					if (top_level_tracing_coro && tracing_enabled && tracing_active)
@@ -1499,7 +1513,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 				#undef ch
 				#undef ch_thing
 				#undef exceptions
-				#undef character  	
+				#undef character
+				CHECK_DBG_DATA	
 			}
 			""")])
 	b.build_in = build_in

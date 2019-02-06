@@ -15,6 +15,7 @@
 #include <ctime>
 #include <chrono>
 #include <unordered_map>
+#include <map>
 
 
 using namespace std;
@@ -30,6 +31,16 @@ using namespace std;
 #define IF_SECOND_CHANCE(x) ,x
 #else
 #define IF_SECOND_CHANCE(x)
+#endif
+
+
+
+#ifdef DEBUG
+    #define INIT_DBG_DATA state.dbg_data = first_free_byte;
+    #define CHECK_DBG_DATA ASSERT(state.dbg_data == first_free_byte);
+#else
+    #define INIT_DBG_DATA
+    #define CHECK_DBG_DATA
 #endif
 
 
@@ -410,7 +421,7 @@ struct cpppred_state
     cpppred_state *states;
     Thing *locals;
     #ifdef DEBUG
-    	(void*)dbg_data;
+    	void* dbg_data;
 	#endif
     #ifdef SECOND_CHANCE
         vector<Thing*> *ep_lists[2];
@@ -513,8 +524,8 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
     }
 
 
-
-    void serialize_thing2(Thing* v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+/*
+    void serialize_thing2(map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
     {
       v = get_value(v);
       if (v->type() == CONST)
@@ -534,13 +545,13 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
             size_t id;
             auto it = done.find(v);
             if (it != done.end())
-                id = *it.second
+                id = it->second;
             else
             {
                 if (todo.find(v) == todo.end())
                 {
                     id = first_free_id++;
-                    todo[v] = id
+                    todo[v] = id;
                 }
                 else
                     id = todo[v];
@@ -552,18 +563,17 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
       }
     }
 
-    string serialize_bnode(Thing* thing)
+    string serialize_thing(Thing* thing)
     {
-        result r;
-        if (thing->type() != BNODE)
-            return r;
         size_t first_free_id = 0;
         map<Thing*, size_t> todo, done;
         todo[thing] = first_free_id++;
+        stringstream result;
         while(!todo.empty())
-            r += serialize_bnode2(todo, done, first_free_id);
+            serialize_thing2(todo, done, first_free_id, result);
+        return result.str();
     }
-
+*/
 
 #endif
 
@@ -705,7 +715,7 @@ void release_states(size_t count)
 {
     #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
-            (((cpppred_state*)first_free_byte)-i-1).destruct();
+            (((cpppred_state*)first_free_byte)-i-1)->destruct();
     #endif
     release_bytes(count * sizeof(cpppred_state));
 }
@@ -728,7 +738,9 @@ size_t query_list(cpppred_state & __restrict__ state);
 vector<Thing*>* query_list_wrapper(Thing *x)
 {
 /*returns pointers to things, which could be invalid by the time this finishes...*/
-
+    #ifdef DEBUG
+        char* dbg_first_free_byte = first_free_byte;
+    #endif
     #ifdef TRACE_PROOF
         bool was_tracing_enabled = tracing_enabled;
         tracing_enabled = false;
@@ -758,6 +770,9 @@ vector<Thing*>* query_list_wrapper(Thing *x)
 	#ifdef TRACE_PROOF
 	    tracing_enabled = was_tracing_enabled;
 	#endif
+    #ifdef DEBUG
+        ASSERT(dbg_first_free_byte == first_free_byte);
+    #endif
 	return result;
 }
 
@@ -1008,10 +1023,18 @@ int main (int argc, char *argv[])
 int unify(cpppred_state & __restrict__ state);
 
 
-#ifdef TRACE_PROOF
-    #define END {state.set_active(false); return 0;}
+#define END3 return 0;
+
+#ifdef DEBUG
+    #define END2 CHECK_DBG_DATA END3
 #else
-    #define END {return 0;}
+    #define END2 END3
+#endif
+
+#ifdef TRACE_PROOF
+    #define END {state.set_active(false); END2}
+#else
+    #define END {END2}
 #endif
 
 

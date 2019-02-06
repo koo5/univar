@@ -514,37 +514,54 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 
-    string serialize_thing2(Thing* v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+    void serialize_thing2(Thing* v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
     {
       v = get_value(v);
       if (v->type() == CONST)
       {
         const Constant &c = nodeids2consts[v->node_id()];
         if (c.type == URI)
-          return "<" + c.value + ">";
+          result << "<" << c.value << ">";
         else
-          return "\"\"\"" + c.value + "\"\"\"";
+          result << "\"\"\"" << c.value << "\"\"\"";
       }
       else
       {
         if (v->type() == UNBOUND)
-            return string("?")+v->_debug_name;
+            result << "?" << v->_debug_name;
         else if (v->type() == BNODE)
         {
-            if (done.find(v) != done.end())
-
-            return serialize_bnode(v);
+            size_t id;
+            auto it = done.find(v);
+            if (it != done.end())
+                id = *it.second
+            else
+            {
+                if (todo.find(v) == todo.end())
+                {
+                    id = first_free_id++;
+                    todo[v] = id
+                }
+                else
+                    id = todo[v];
+            }
+            result << "?x" << id;
+        }
+        else
+            ASSERT(false);
       }
     }
 
-    string serialize_thing(Thing* thing)
+    string serialize_bnode(Thing* thing)
     {
         result r;
+        if (thing->type() != BNODE)
+            return r;
         size_t first_free_id = 0;
         map<Thing*, size_t> todo, done;
         todo[thing] = first_free_id++;
         while(!todo.empty())
-            r += serialize_bnode2(todo, done, t, first_free_id);
+            r += serialize_bnode2(todo, done, first_free_id);
     }
 
 

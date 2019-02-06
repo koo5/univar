@@ -1275,6 +1275,45 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 
 	b = Builtin()
+	b.doc = """dummy output "y"."""
+	b.example = """
+	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+	:dummy tau_builtins:serialize_bnode [ :x "y"; :xy "xy"]."""
+	def build_in(builtin):
+		return Lines([Line("""
+			{
+			{
+			Thing *input = state.incoming[1];
+			ThingType input_type = input->type();
+			{
+				output << "BNODE : " << endl;
+				#ifdef TRACE
+					output << serialize_bnode(input);
+				#endif
+			}
+			cerr << output.str() << endl;
+			#ifdef TRACE_PROOF
+				if (top_level_tracing_coro && tracing_enabled && tracing_active)
+				{
+					//state.set_comment(output.str());//nope, gotta push_const 
+					state.num_substates = 0;
+					state.set_active(true);
+				}
+			#endif
+			}
+			"""), emitter.do_yield(), Line("""
+			#ifdef TRACE_PROOF
+				state.set_active(false);
+			#endif
+			}
+	""")])
+	b.build_in = build_in
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#serialize_bnode')
+	b.register(emitter)
+
+
+
+	b = Builtin()
 	b.doc = """dummy toggle_tracing dummy.
 	stops tracing, or re-starts tracing from next rule. The emitted prooof tree will have that rule as root.
 	"""

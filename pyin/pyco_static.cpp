@@ -483,7 +483,7 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 
-
+void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result);
 
 
 
@@ -530,8 +530,8 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
     }
 
 
-/*
-    void serialize_thing2(map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+
+    void serialize_thing2(Thing *v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
     {
       v = get_value(v);
       if (v->type() == CONST)
@@ -571,15 +571,21 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
     string serialize_thing(Thing* thing)
     {
+        stringstream result;
+        thing = get_value(thing);
         size_t first_free_id = 0;
         map<Thing*, size_t> todo, done;
-        todo[thing] = first_free_id++;
-        stringstream result;
-        while(!todo.empty())
-            serialize_thing2(todo, done, first_free_id, result);
+        if (thing->type() != BNODE)
+            serialize_thing2(thing, todo, done, first_free_id, result);
+        else
+        {
+            todo[thing] = first_free_id++;
+            while(!todo.empty())
+                serialize_bnode(todo.begin()->first, todo, done, first_free_id, result);
+        }
         return result.str();
     }
-*/
+
 
 #endif
 

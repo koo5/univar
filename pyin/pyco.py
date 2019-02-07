@@ -230,8 +230,8 @@ class Emitter(object):
 			s.unification(),
 			s.thing_groundedness_check(),
 			s.result_groundedness_check(goal),
-			(s.bnode_printer() if trace else Lines([]))
-
+			(s.bnode_printer() if trace else Lines([])),
+			(s.bnode_serializer() if trace else Lines([]))
 		])
 		import sys
 		sys.setrecursionlimit(15000)
@@ -427,59 +427,40 @@ bool result_is_grounded(cpppred_state &state)
 
 
 
-# 	def bnode_serializer(s):
-# 		result = Lines([Line(
-# 			"""
-#string serialize_bnode(map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
-#{
-#	auto b = todo.begin();
-#	Thing *t = *b.first;
-#	size_t id = *b.second;
-#	done[t] = id;
-#	result << endl;
-#	switch (thing->origin())
-#	{
-#"""))
-#		def do_arg(arg):
-#			result.append(Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'))
-#			result.append(Line("""
-#			if (v->type() == CONST)
-#			{
-#				if (nodeids2consts[v->node_id()].type == URI)
-#					result << "<" << nodeids2consts[v->node_id()].value << "> ";
-#				else
-#					result << "\\"\\"\\""<< replaceAll(nodeids2consts[v->node_id()].value,"\\n", "\\\\n") << "\\"\\"\\" "');
-#			}
-#			else if (v->type() == UNBOUND)
-#
-#
-#							Statement(outstream+' << "LOOPSIE"'),
-#							Lines([
-#								Statement(outstream+' << bnode_to_string2(processing, v, ++first_free_name_id)')),
-##							])
-#				   		(Statement(outstream+' << "?' + str(arg) +'"') if not proper else Statement(outstream+' << "?u" << (void*)0'))#' + str(arg) +'"
-#				   if do_bnodes else
-#				   		Statement(outstream+' << "?" << ' + ('"'+str(arg)+'"' if not proper else '"x" << first_free_name_id')))
-#				)
-#				])
-#		assert(False)
-#
-#"""
-#
-#		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
-#			result.append(Line('case ' + bnode_cpp_name + ':'))
-#			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
-#				bnode_idx = rule.locals_map[bnode_name]
-#				locals = 'thing - '+str(bnode_idx)
-#				do_arg(triple.args[0])
-#				result.append(Statement('result << " <' + cpp_string_literal_noquote(triple.pred) + '> "'))
-#				do_arg(triple.args[1])
-#				result.append(Statement('result << ". "'))
-#			result.append(Statement('break'))
-#		result.append(Line("""return result.str();
-#}
-#		"""))
-#		return result
+	def bnode_serializer(s):
+		result = Lines([Line(
+			"""
+void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+{
+	size_t id = todo[t];
+	done[t] = id;
+	todo.erase(t);
+	
+	switch (t->origin())
+	{
+""")])
+		def do_arg(arg):
+			if arg in rule.locals_map:
+				t = locals+'+'+str(rule.locals_map[arg])
+			else:
+				t = local_expr(arg, rule)
+			result.append(Statement(
+				'serialize_thing2('+t+', todo, done, first_free_id, result)'))
+		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
+			result.append(Line('case ' + bnode_cpp_name + ':'))
+			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
+				bnode_idx = rule.locals_map[bnode_name]
+				locals = 't - '+str(bnode_idx)
+				do_arg(triple.args[0])
+				result.append(Statement('result << " <' + cpp_string_literal_noquote(triple.pred) + '> "'))
+				do_arg(triple.args[1])
+				result.append(Statement('result << ". " << endl'))
+			result.append(Statement('break'))
+		result.append(Line("""
+	}
+}
+"""))
+		return result
 
 
 
@@ -1290,21 +1271,20 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 
 	b = Builtin()
-	b.doc = """dummy output "y"."""
+	b.doc = """dummy serialize_thing "y"."""
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
-	:dummy tau_builtins:serialize_bnode [ :x "y"; :xy "xy"]."""
+	:dummy tau_builtins:serialize_thing [ :x "y"; :xy "xy"]."""
 	def build_in(builtin):
 		return Lines([Line("""
 			{
 			{
 			stringstream output;
-			//Thing *input = state.incoming[1];
-			//ThingType input_type = input->type();
+			Thing *input = state.incoming[1];
 			{
-				output << "BNODE : " << endl;
+				output << "SERIALIZE : " << endl;
 				#ifdef TRACE
-					//output << serialize_bnode(input);
+					output << serialize_thing(input);
 				#endif
 			}
 			cerr << output.str() << endl;
@@ -1324,7 +1304,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			}
 	""")])
 	b.build_in = build_in
-	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#serialize_bnode')
+	b.pred = rdflib.URIRef('http://loworbit.now.im/rdf/tau_builtins#serialize_thing')
 	b.register(emitter)
 
 

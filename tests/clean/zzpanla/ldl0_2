@@ -20,6 +20,7 @@ kb
 fin.
 
 query
+:dummy tau_builtins:toggle_tracing :dummy.
 :dcg0 :is ?grammar.
 :initial_ldl_text :has_value ?initial_ldl_text_value.
 ?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
@@ -28,8 +29,9 @@ query
 :dummy tau_builtins:output "parse_nonterminal...".
 ?a1 :parse_nonterminal ?a2.
 :dummy tau_builtins:output "parsed2builtins...".
+:dummy tau_builtins:toggle_tracing :dummy.
 ?initial_ldl :parsed2builtins ?builtins_statements.
-:dummy tau_builtins:output "tadaaa...".
+:dummy tau_builtins:output "parsed2builtins tadaaa...".
 :dummy tau_builtins:serialize_thing ?builtins_statements.
 fin.
 shouldbetrue

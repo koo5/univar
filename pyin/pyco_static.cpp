@@ -498,7 +498,7 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
         if (c.type == URI)
           return "<" + c.value + ">";
         else
-          return "\"\"\"" + c.value + "\"\"\"";
+          return "\"\"\"" + replaceAll(replaceAll(c.value,"\\", "\\\\"),"\\n", "\\\\n") + "\"\"\"";
       }
       else
       {
@@ -540,7 +540,7 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
         if (c.type == URI)
           result << "<" << c.value << ">";
         else
-          result << "\"\"\"" << c.value << "\"\"\"";
+          result << "\"\"\"" << replaceAll(replaceAll(c.value,"\\", "\\\\"),"\\n", "\\\\n") << "\"\"\"";
       }
       else
       {

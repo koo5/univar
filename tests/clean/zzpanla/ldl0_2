@@ -1,0 +1,35 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldl:      <http://ldl.ldl#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+@prefix : <file://>.
+
+kb
+
+@include ../../ldl/utils
+@include ../../ldl/dcg_datatypes
+@include ../../ldl/initial_ldl_text
+@include ../../ldl/parse_initial_ldl_text_with_the_dcg
+@include ../../ldl/bootstrap2lemon
+
+{:dcg0 :is ?x0} <= {
+@include ../../ldl/dcg0
+}.
+
+fin.
+
+query
+:dcg0 :is ?grammar.
+:initial_ldl_text :has_value ?initial_ldl_text_value.
+?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
+(?initial_ldl_text_list ?grammar "statements") :eq ?a1.
+(rdf:nil ?initial_ldl :minus_one) :eq ?a2.
+:dummy tau_builtins:output "parse_nonterminal...".
+?a1 :parse_nonterminal ?a2.
+:dummy tau_builtins:serialize_thing ?initial_ldl.
+fin.
+shouldbetrue
+
+
+

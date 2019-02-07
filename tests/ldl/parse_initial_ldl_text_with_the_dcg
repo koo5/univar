@@ -56,16 +56,15 @@
     #:dummy tau_builtins:toggle_tracing_active :dummy.
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar.
-		:dummy tau_builtins:output "testing rule lhs...".
+		#:dummy tau_builtins:output "testing rule lhs...".
 	?rule :lhs ?nont. ?rule :rhs ?rhs.
-		"found rule: " :say ?rule!:description.
-	    :dummy tau_builtins:output ?depth.
+		#"found rule: " :say ?rule!:description.
+	    #:dummy tau_builtins:output ?depth.
 		#:dummy tau_builtins:output "invoking rule on ...".
 		:dummy :shorten_location_printout (?x0 ?x0_shortened).
 		:dummy :escape_newlines_in_list (?x0_shortened ?x0_shortened_escaped).
 		?x0_shortened_escaped_string string_builtins:strXlst ?x0_shortened_escaped.
-		:dummy tau_builtins:output  ("""invoking rule on """" ?x0_shortened_escaped_string """"...""")^string_builtins:strXlst.
-    #:dummy tau_builtins:toggle_tracing_active :dummy.
+		#:dummy tau_builtins:output  ("""invoking rule on """" ?x0_shortened_escaped_string """"...""")^string_builtins:strXlst.
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth_predecessor).
 }.
 

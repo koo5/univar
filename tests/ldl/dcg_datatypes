@@ -1,0 +1,16 @@
+{?x a :statement.  ?x :lhs ?Y. ?x :rhs ?Z; :description ?D} <= {}.
+{?x a :identifier.  ?x :name ?NAME} <= {}.
+# - name is a string
+{?x a :literal.  ?x :value ?vALUE} <= {}.
+# - value is a string or a list of chars
+{?x a :any_char_except.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :all_chars_until_one_of.  ?x :value ?vALUE} <= {}.
+# - value is a string
+{?x a :builtin_postprocessed.  ?x :value ?vALUE} <= {}.
+# - value is an identifier
+{?x a :newline} <= {}.
+{?x a :node. ?x :type ?NONT. ?x :children ?CH.} <= {}.
+
+
+

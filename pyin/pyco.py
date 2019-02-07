@@ -747,7 +747,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				inner_block.append(Statement('delete state.ep_lists[0]'))
 				inner_block.append(Statement('delete state.ep_lists[1]'))
 		if do_ep:
-			outer_block.append(Statement('else'))
+			outer_block.append(Line('else'))
 			bbb = nest(outer_block)
 			done = []
 			for arg in r.head.args:
@@ -1280,10 +1280,10 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 			{
 			stringstream output;
-			Thing *input = state.incoming[1];
 			{
 				output << "SERIALIZE : " << endl;
 				#ifdef TRACE
+					Thing *input = state.incoming[1];
 					output << serialize_thing(input);
 				#endif
 			}

@@ -934,7 +934,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		exit_gracefully2()
 	def exit_gracefully2():
 		print('exit_gracefully..')
-		os.system('killall pyco;sleep 1;')
+		#os.system('killall pyco;sleep 1;')
 	import atexit
 	atexit.register(exit_gracefully2)
 	import signal
@@ -1235,28 +1235,33 @@ size_t query_list(cpppred_state & __restrict__ state)
 			{
 			INIT_DBG_DATA
 			{
-			Thing *input = state.incoming[1];
-			ThingType input_type = input->type();
-			stringstream output;
-			if (input_type == CONST)
+			Thing *tag = get_value(state.incoming[0]);
+			//cerr << "xxx" << nodeids2consts[tag->node_id()].value << endl;
+			if (tag->type() == CONST && nodeids2consts[tag->node_id()].value == "file://dummy")
 			{
-				string input_string;
-				Constant c = nodeids2consts[input->node_id()];
-				input_string = c.value;
-				output << "(" << (size_t*)first_free_byte << ") OUTPUT : " << input_string;
-				/*output << " [";
-				for (char x: input_string)
-					output << (int)x << ",";
-				output << "]";*/
+				Thing *input = state.incoming[1];
+				ThingType input_type = input->type();
+				stringstream output;
+				if (input_type == CONST)
+				{
+					string input_string;
+					Constant c = nodeids2consts[input->node_id()];
+					input_string = c.value;
+					output << "(" << (size_t*)first_free_byte << ") OUTPUT : " << input_string;
+					/*output << " [";
+					for (char x: input_string)
+						output << (int)x << ",";
+					output << "]";*/
+				}
+				else
+				{
+					output << "OUTPUT : ?";
+					#ifdef TRACE
+						output <<  " - " << thing_to_string_nogetval(input);
+					#endif
+				}
+				cerr << output.str() << endl;
 			}
-			else
-			{
-				output << "OUTPUT : ?";
-				#ifdef TRACE
-					output <<  " - " << thing_to_string_nogetval(input);
-				#endif
-			}
-			cerr << output.str() << endl;
 			#ifdef TRACE_PROOF
 				if (top_level_tracing_coro && tracing_enabled && tracing_active)
 				{

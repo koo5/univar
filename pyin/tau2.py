@@ -40,7 +40,7 @@ fn = '?'
 @click.argument('command', type=click.Path(), required=True)
 @click.argument('files', nargs=-1, type=click.Path(allow_dash=True, readable=True, exists=True, dir_okay=False), required=True)
 @click.option('--only-id', type=click.INT)
-@click.option('--additional_identification', default="")
+@click.option('--additional-identification', default="")
 def tau(command, files, only_id, additional_identification):
 	global mode, buffer, prefixes, output, fn, identification, additional_identification_, query_number, base, already_failed_because_no_more_results, results
 	additional_identification_ = additional_identification

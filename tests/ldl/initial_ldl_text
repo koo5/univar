@@ -3,8 +3,6 @@
 """
 string_literal is builtin-postprocessed string_literal_raw.
 string_literal_raw ++> [\\[], string_literal_body, [\\]].
-""".
-"""
 string_literal_body is builtin-postprocessed string_literal_raw_body.
 string_literal_raw_body is a series of string_literal_body_item separated with [].
 string_literal_raw_body_item ++> any char except [\\n\\[\\]\\\\].
@@ -36,7 +34,7 @@ grammar_items is a series of grammar_item separated with [, ].
 
 string_literal works as grammar_item.
 node_name works as grammar_item.
-node_name_with_child_name works as grammar item.
+node_name_with_child_name works as grammar_item.
 node_name_with_child_name ++> child_name:node_name, [:], type_name:node_name.
 
 comment works as statement.

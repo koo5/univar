@@ -18,7 +18,7 @@ statement --> subtype.
 subtype --> node_name, [ works as ], node_name.
 
 statement --> grammar.
-grammar --> node_name, [ ++> ], grammar_items, [.].
+grammar --> node_name, [ ++> ], grammar_items.
 
 grammar_items --> grammar_item, [, ], grammar_items.
 grammar_items --> grammar_item, [].

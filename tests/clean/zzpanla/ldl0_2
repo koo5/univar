@@ -27,6 +27,7 @@ query
 (rdf:nil ?initial_ldl :minus_one) :eq ?a2.
 :dummy tau_builtins:output "parse_nonterminal...".
 ?a1 :parse_nonterminal ?a2.
+:dummy tau_builtins:output "tadaaa...".
 :dummy tau_builtins:serialize_thing ?initial_ldl.
 fin.
 shouldbetrue

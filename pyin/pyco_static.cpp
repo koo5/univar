@@ -487,6 +487,13 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
 
 
 
+string serialize_literal_to_n3(string c)
+{
+    return "\"\"\"" +
+        replaceAll(replaceAll(replaceAll(c,"\\", "\\\\"),"\n", "\\n"),"\"\"\"", "\\\"\\\"\\\"")
+    + "\"\"\"";
+}
+
 #ifdef TRACE
     string bnode_to_string(Thing* thing);
     string thing_to_string(Thing* thing);
@@ -498,7 +505,7 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
         if (c.type == URI)
           return "<" + c.value + ">";
         else
-          return "\"\"\"" + replaceAll(replaceAll(c.value,"\\", "\\\\"),"\\n", "\\\\n") + "\"\"\"";
+          return serialize_literal_to_n3(c.value);
       }
       else
       {
@@ -540,7 +547,7 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
         if (c.type == URI)
           result << "<" << c.value << ">";
         else
-          result << "\"\"\"" << replaceAll(replaceAll(c.value,"\\", "\\\\"),"\\n", "\\\\n") << "\"\"\"";
+          result << serialize_literal_to_n3(c.value);
       }
       else
       {

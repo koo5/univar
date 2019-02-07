@@ -509,11 +509,20 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		"""))
 		return result
 
-	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes):
-		if type(arg) == rdflib.Literal:
-			return Statement(outstream+' << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
+	def substituted_literal(s, outstream, arg):
+		q = cpp_string_literal('"""')
+		return Statement(outstream+' << '+q+
+			 '<<serialize_literal_to_n3('+cpp_string_literal(str(arg))+')<<'+q)
+
+	def substituted_uriref(s, outstream, arg):
 		if type(arg) == rdflib.URIRef:
 			return Statement(outstream+' << "<' + cpp_string_literal_noquote(arg) +'> "')
+
+	def substituted_arg2(s, outstream, locals, r, arg, do_bnodes):
+		if type(arg) == rdflib.Literal:
+			return s.substituted_literal(outstream, arg)
+		if type(arg) == rdflib.URIRef:
+			return s.substituted_uriref(outstream, arg)
 		if type(arg) == rdflib.Variable:
 			return Block([
 				Statement('Thing *v = get_value('+locals+'+'+str(r.locals_map[arg])+')'),
@@ -535,9 +544,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 
 	def substituted_arg(s, r, arg):
 		if type(arg) == rdflib.Literal:
-			return Statement('cout << replaceAll(string('+cpp_string_literal('"""'+str(arg)+'"""') + '),"\\n", "\\\\n")')
+			return s.substituted_literal('cout', arg)
 		if type(arg) == rdflib.URIRef:
-			return Statement('cout << "<' + cpp_string_literal_noquote(arg) +'> "')
+			return s.substituted_uriref('cout', arg)
 		if type(arg) == rdflib.Variable:
 			return Lines([
 				Statement('v = get_value(state.locals+'+str(r.locals_map[arg])+')'),

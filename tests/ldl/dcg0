@@ -3,7 +3,7 @@
 ?x1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
 ?x1 <file://lhs> """statements""". 
 ?x1 <file://rhs> ?x3. 
-?x1 <file://description> """statements --> statement, [.\\\n], statements.""". 
+?x1 <file://description> """statements --> statement, [.\\n], statements.""". 
 ?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x4. 
 ?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x5. 
 ?x4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
@@ -14,8 +14,7 @@
 ?x6 <file://value> ?x8. 
 ?x8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """.""". 
 ?x8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x9. 
-?x9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """
-""". 
+?x9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\n""". 
 ?x9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x10. 
 ?x7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
@@ -26,7 +25,7 @@
 ?x11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
 ?x11 <file://lhs> """statements""". 
 ?x11 <file://rhs> ?x13. 
-?x11 <file://description> """statements --> comment, [\\\n], statements.""". 
+?x11 <file://description> """statements --> comment, [\\n], statements.""". 
 ?x13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x14. 
 ?x13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x15. 
 ?x14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
@@ -35,8 +34,7 @@
 ?x15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x17. 
 ?x16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
 ?x16 <file://value> ?x18. 
-?x18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """
-""". 
+?x18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\n""". 
 ?x18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x19. 
 ?x17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
@@ -47,13 +45,12 @@
 ?x20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
 ?x20 <file://lhs> """statements""". 
 ?x20 <file://rhs> ?x22. 
-?x20 <file://description> """statements --> [\\\n], statements.""". 
+?x20 <file://description> """statements --> [\\n], statements.""". 
 ?x22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x23. 
 ?x22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x24. 
 ?x23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
 ?x23 <file://value> ?x25. 
-?x25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """
-""". 
+?x25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\n""". 
 ?x25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x26. 
 ?x24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
@@ -70,7 +67,7 @@
 ?x29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
 ?x29 <file://lhs> """comment""". 
 ?x29 <file://rhs> ?x31. 
-?x29 <file://description> """comment --> [#], all chars until one of [\\\n].""". 
+?x29 <file://description> """comment --> [#], all chars until one of [\\n].""". 
 ?x31 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x32. 
 ?x31 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x33. 
 ?x32 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
@@ -80,8 +77,7 @@
 ?x33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x35. 
 ?x33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x35 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://all_chars_until_one_of>. 
-?x35 <file://value> """
-""". 
+?x35 <file://value> """\n""". 
 ?x30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x36. 
 ?x30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x37. 
 ?x36 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
@@ -325,7 +321,7 @@
 ?x148 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
 ?x148 <file://lhs> """grammar""". 
 ?x148 <file://rhs> ?x150. 
-?x148 <file://description> """grammar --> node_name, [ ++> ], grammar_items, [.].""". 
+?x148 <file://description> """grammar --> node_name, [ ++> ], grammar_items.""". 
 ?x150 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x151. 
 ?x150 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x152. 
 ?x151 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
@@ -345,366 +341,358 @@
 ?x159 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x159 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x154 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x160. 
-?x154 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x161. 
+?x154 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
 ?x160 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
 ?x160 <file://name> """grammar_items""". 
-?x161 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x162. 
-?x161 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x162 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x162 <file://value> ?x163. 
-?x163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """.""". 
-?x163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x164. 
-?x149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x165. 
-?x164 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x164 <file://lhs> """grammar_items""". 
-?x164 <file://rhs> ?x166. 
-?x164 <file://description> """grammar_items --> grammar_item, [, ], grammar_items.""". 
-?x166 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x167. 
-?x166 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x168. 
-?x167 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x167 <file://name> """grammar_item""". 
-?x168 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x169. 
-?x168 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x170. 
-?x169 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x169 <file://value> ?x171. 
-?x171 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """,""". 
-?x171 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x172. 
-?x172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
-?x172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x170 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x173. 
-?x170 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x173 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x173 <file://name> """grammar_items""". 
-?x165 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x174. 
-?x165 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x175. 
-?x174 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x174 <file://lhs> """grammar_items""". 
-?x174 <file://rhs> ?x176. 
-?x174 <file://description> """grammar_items --> grammar_item, [].""". 
-?x176 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x177. 
-?x176 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x178. 
-?x177 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x177 <file://name> """grammar_item""". 
+?x149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x161. 
+?x149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x162. 
+?x161 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x161 <file://lhs> """grammar_items""". 
+?x161 <file://rhs> ?x163. 
+?x161 <file://description> """grammar_items --> grammar_item, [, ], grammar_items.""". 
+?x163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x164. 
+?x163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x165. 
+?x164 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x164 <file://name> """grammar_item""". 
+?x165 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x166. 
+?x165 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x167. 
+?x166 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x166 <file://value> ?x168. 
+?x168 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """,""". 
+?x168 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x169. 
+?x169 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x169 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x167 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x170. 
+?x167 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x170 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x170 <file://name> """grammar_items""". 
+?x162 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x171. 
+?x162 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x172. 
+?x171 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x171 <file://lhs> """grammar_items""". 
+?x171 <file://rhs> ?x173. 
+?x171 <file://description> """grammar_items --> grammar_item, [].""". 
+?x173 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x174. 
+?x173 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x175. 
+?x174 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x174 <file://name> """grammar_item""". 
+?x175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x176. 
+?x175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x176 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x176 <file://value> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x177. 
+?x172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x178. 
+?x177 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x177 <file://lhs> """grammar_items""". 
+?x177 <file://rhs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x177 <file://description> """grammar_items --> .""". 
 ?x178 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x179. 
-?x178 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x179 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x179 <file://value> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x180. 
-?x175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x181. 
-?x180 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x180 <file://lhs> """grammar_items""". 
-?x180 <file://rhs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x180 <file://description> """grammar_items --> .""". 
+?x178 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x180. 
+?x179 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x179 <file://lhs> """grammar_item""". 
+?x179 <file://rhs> ?x181. 
+?x179 <file://description> """grammar_item --> string_literal.""". 
 ?x181 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x182. 
-?x181 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x183. 
-?x182 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x182 <file://lhs> """grammar_item""". 
-?x182 <file://rhs> ?x184. 
-?x182 <file://description> """grammar_item --> string_literal.""". 
-?x184 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x185. 
-?x184 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x185 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x185 <file://name> """string_literal""". 
-?x183 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x186. 
-?x183 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x187. 
-?x186 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x186 <file://lhs> """grammar_item""". 
-?x186 <file://rhs> ?x188. 
-?x186 <file://description> """grammar_item --> node_name.""". 
-?x188 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x189. 
-?x188 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x189 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x189 <file://name> """node_name""". 
-?x187 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x190. 
-?x187 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x191. 
-?x190 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x190 <file://lhs> """grammar_item""". 
-?x190 <file://rhs> ?x192. 
-?x190 <file://description> """grammar_item --> node_name_with_child_name.""". 
-?x192 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x193. 
-?x192 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x193 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x193 <file://name> """node_name_with_child_name""". 
-?x191 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x194. 
-?x191 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x195. 
-?x194 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x194 <file://lhs> """grammar_item""". 
-?x194 <file://rhs> ?x196. 
-?x194 <file://description> """grammar_item --> any_char_except.""". 
-?x196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x197. 
-?x196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x197 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x197 <file://name> """any_char_except""". 
-?x195 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x198. 
-?x195 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x199. 
-?x198 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x198 <file://lhs> """grammar_item""". 
-?x198 <file://rhs> ?x200. 
-?x198 <file://description> """grammar_item --> all_chars_until_one_of.""". 
-?x200 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x201. 
-?x200 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x201 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x201 <file://name> """all_chars_until_one_of""". 
-?x199 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x202. 
-?x199 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x203. 
-?x202 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x202 <file://lhs> """any_char_except""". 
-?x202 <file://rhs> ?x204. 
-?x202 <file://description> """any_char_except --> [any char except ], string_literal.""". 
-?x204 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x205. 
-?x204 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x206. 
-?x205 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x205 <file://value> ?x207. 
-?x207 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x181 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x182 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x182 <file://name> """string_literal""". 
+?x180 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x183. 
+?x180 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x184. 
+?x183 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x183 <file://lhs> """grammar_item""". 
+?x183 <file://rhs> ?x185. 
+?x183 <file://description> """grammar_item --> node_name.""". 
+?x185 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x186. 
+?x185 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x186 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x186 <file://name> """node_name""". 
+?x184 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x187. 
+?x184 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x188. 
+?x187 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x187 <file://lhs> """grammar_item""". 
+?x187 <file://rhs> ?x189. 
+?x187 <file://description> """grammar_item --> node_name_with_child_name.""". 
+?x189 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x190. 
+?x189 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x190 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x190 <file://name> """node_name_with_child_name""". 
+?x188 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x191. 
+?x188 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x192. 
+?x191 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x191 <file://lhs> """grammar_item""". 
+?x191 <file://rhs> ?x193. 
+?x191 <file://description> """grammar_item --> any_char_except.""". 
+?x193 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x194. 
+?x193 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x194 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x194 <file://name> """any_char_except""". 
+?x192 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x195. 
+?x192 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x196. 
+?x195 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x195 <file://lhs> """grammar_item""". 
+?x195 <file://rhs> ?x197. 
+?x195 <file://description> """grammar_item --> all_chars_until_one_of.""". 
+?x197 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x198. 
+?x197 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x198 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x198 <file://name> """all_chars_until_one_of""". 
+?x196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x199. 
+?x196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x200. 
+?x199 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x199 <file://lhs> """any_char_except""". 
+?x199 <file://rhs> ?x201. 
+?x199 <file://description> """any_char_except --> [any char except ], string_literal.""". 
+?x201 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x202. 
+?x201 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x203. 
+?x202 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x202 <file://value> ?x204. 
+?x204 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x204 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x205. 
+?x205 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
+?x205 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x206. 
+?x206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """y""". 
+?x206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x207. 
+?x207 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x207 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x208. 
-?x208 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
+?x208 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
 ?x208 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x209. 
-?x209 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """y""". 
+?x209 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """h""". 
 ?x209 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x210. 
-?x210 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x210 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
 ?x210 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x211. 
-?x211 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
+?x211 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """r""". 
 ?x211 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x212. 
-?x212 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """h""". 
+?x212 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x212 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x213. 
-?x213 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x213 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """e""". 
 ?x213 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x214. 
-?x214 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """r""". 
+?x214 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """x""". 
 ?x214 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x215. 
-?x215 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x215 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
 ?x215 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x216. 
 ?x216 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """e""". 
 ?x216 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x217. 
-?x217 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """x""". 
+?x217 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """p""". 
 ?x217 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x218. 
-?x218 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
+?x218 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """t""". 
 ?x218 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x219. 
-?x219 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """e""". 
-?x219 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x220. 
-?x220 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """p""". 
-?x220 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x221. 
-?x221 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """t""". 
-?x221 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x222. 
-?x222 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
-?x222 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x223. 
-?x206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x223 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x223 <file://name> """string_literal""". 
-?x203 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x224. 
-?x203 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x225. 
-?x224 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x224 <file://lhs> """all_chars_until_one_of""". 
-?x224 <file://rhs> ?x226. 
-?x224 <file://description> """all_chars_until_one_of --> [all chars until one of ], string_literal.""". 
-?x226 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x227. 
-?x226 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x228. 
-?x227 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x227 <file://value> ?x229. 
-?x229 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x219 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x219 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x203 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x220. 
+?x203 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x220 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x220 <file://name> """string_literal""". 
+?x200 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x221. 
+?x200 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x222. 
+?x221 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x221 <file://lhs> """all_chars_until_one_of""". 
+?x221 <file://rhs> ?x223. 
+?x221 <file://description> """all_chars_until_one_of --> [all chars until one of ], string_literal.""". 
+?x223 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x224. 
+?x223 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x225. 
+?x224 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x224 <file://value> ?x226. 
+?x226 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x226 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x227. 
+?x227 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
+?x227 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x228. 
+?x228 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
+?x228 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x229. 
+?x229 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x229 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x230. 
-?x230 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
+?x230 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
 ?x230 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x231. 
-?x231 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
+?x231 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """h""". 
 ?x231 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x232. 
-?x232 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x232 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
 ?x232 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x233. 
-?x233 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """c""". 
+?x233 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """r""". 
 ?x233 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x234. 
-?x234 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """h""". 
+?x234 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """s""". 
 ?x234 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x235. 
-?x235 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """a""". 
+?x235 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x235 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x236. 
-?x236 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """r""". 
+?x236 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """u""". 
 ?x236 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x237. 
-?x237 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """s""". 
+?x237 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
 ?x237 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x238. 
-?x238 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x238 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """t""". 
 ?x238 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x239. 
-?x239 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """u""". 
+?x239 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """i""". 
 ?x239 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x240. 
-?x240 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
+?x240 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
 ?x240 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x241. 
-?x241 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """t""". 
+?x241 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x241 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x242. 
-?x242 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """i""". 
+?x242 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """o""". 
 ?x242 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x243. 
-?x243 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """l""". 
+?x243 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
 ?x243 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x244. 
-?x244 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
+?x244 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """e""". 
 ?x244 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x245. 
-?x245 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """o""". 
+?x245 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
 ?x245 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x246. 
-?x246 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
+?x246 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """o""". 
 ?x246 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x247. 
-?x247 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """e""". 
+?x247 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """f""". 
 ?x247 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x248. 
 ?x248 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
-?x248 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x249. 
-?x249 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """o""". 
-?x249 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x250. 
-?x250 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """f""". 
-?x250 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x251. 
-?x251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """ """. 
-?x251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x228 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x252. 
-?x228 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x252 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x252 <file://name> """string_literal""". 
-?x225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x253. 
-?x225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x254. 
-?x253 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x253 <file://lhs> """node_name_with_child_name""". 
-?x253 <file://rhs> ?x255. 
-?x253 <file://description> """node_name_with_child_name --> node_name, [:], node_name.""". 
-?x255 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x256. 
-?x255 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x257. 
-?x256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x256 <file://name> """node_name""". 
-?x257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x258. 
-?x257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x259. 
-?x258 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x258 <file://value> ?x260. 
-?x260 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """:""". 
-?x260 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x259 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x261. 
-?x259 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x261 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x261 <file://name> """node_name""". 
-?x254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x262. 
-?x254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x263. 
-?x262 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x262 <file://lhs> """node_name""". 
-?x262 <file://rhs> ?x264. 
-?x262 <file://description> """node_name --> all chars until one of [\\\n ,.], [].""". 
-?x264 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x265. 
-?x264 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x266. 
-?x265 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://all_chars_until_one_of>. 
-?x265 <file://value> """
- ,.""". 
-?x266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x267. 
-?x266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x267 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x267 <file://value> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x263 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x268. 
-?x263 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x269. 
-?x268 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x268 <file://lhs> """string_literal""". 
-?x268 <file://rhs> ?x270. 
-?x268 <file://description> """string_literal --> [\\[], string_literal_body, [\\]].""". 
-?x270 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x271. 
-?x270 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x272. 
-?x271 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x271 <file://value> ?x273. 
-?x273 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """[""". 
-?x273 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x272 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x274. 
-?x272 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x275. 
-?x274 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x274 <file://name> """string_literal_body""". 
-?x275 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x276. 
-?x275 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x276 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x276 <file://value> ?x277. 
-?x277 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """]""". 
+?x248 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x249. 
+?x225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x249 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x249 <file://name> """string_literal""". 
+?x222 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x250. 
+?x222 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x251. 
+?x250 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x250 <file://lhs> """node_name_with_child_name""". 
+?x250 <file://rhs> ?x252. 
+?x250 <file://description> """node_name_with_child_name --> node_name, [:], node_name.""". 
+?x252 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x253. 
+?x252 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x254. 
+?x253 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x253 <file://name> """node_name""". 
+?x254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x255. 
+?x254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x256. 
+?x255 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x255 <file://value> ?x257. 
+?x257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """:""". 
+?x257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x258. 
+?x256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x258 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x258 <file://name> """node_name""". 
+?x251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x259. 
+?x251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x260. 
+?x259 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x259 <file://lhs> """node_name""". 
+?x259 <file://rhs> ?x261. 
+?x259 <file://description> """node_name --> all chars until one of [\\n ,.], [].""". 
+?x261 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x262. 
+?x261 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x263. 
+?x262 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://all_chars_until_one_of>. 
+?x262 <file://value> """\n ,.""". 
+?x263 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x264. 
+?x263 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x264 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x264 <file://value> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x260 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x265. 
+?x260 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x266. 
+?x265 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x265 <file://lhs> """string_literal""". 
+?x265 <file://rhs> ?x267. 
+?x265 <file://description> """string_literal --> [\\[], string_literal_body, [\\]].""". 
+?x267 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x268. 
+?x267 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x269. 
+?x268 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x268 <file://value> ?x270. 
+?x270 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """[""". 
+?x270 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x269 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x271. 
+?x269 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x272. 
+?x271 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x271 <file://name> """string_literal_body""". 
+?x272 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x273. 
+?x272 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x273 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x273 <file://value> ?x274. 
+?x274 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """]""". 
+?x274 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x275. 
+?x266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x276. 
+?x275 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x275 <file://lhs> """string_literal_body""". 
+?x275 <file://rhs> ?x277. 
+?x275 <file://description> """string_literal_body --> builtin-postprocessed string_literal_raw_body.""". 
+?x277 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x278. 
 ?x277 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x269 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x278. 
-?x269 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x279. 
-?x278 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x278 <file://lhs> """string_literal_body""". 
-?x278 <file://rhs> ?x280. 
-?x278 <file://description> """string_literal_body --> builtin-postprocessed string_literal_raw_body.""". 
-?x280 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x281. 
-?x280 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x281 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://builtin_postprocessed>. 
-?x281 <file://value> ?x282. 
-?x282 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x282 <file://name> """string_literal_raw_body""". 
-?x279 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x283. 
-?x279 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x284. 
-?x283 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x283 <file://lhs> """string_literal_raw_body""". 
-?x283 <file://rhs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x283 <file://description> """string_literal_raw_body --> .""". 
+?x278 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://builtin_postprocessed>. 
+?x278 <file://value> ?x279. 
+?x279 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x279 <file://name> """string_literal_raw_body""". 
+?x276 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x280. 
+?x276 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x281. 
+?x280 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x280 <file://lhs> """string_literal_raw_body""". 
+?x280 <file://rhs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x280 <file://description> """string_literal_raw_body --> .""". 
+?x281 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x282. 
+?x281 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x283. 
+?x282 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x282 <file://lhs> """string_literal_raw_body""". 
+?x282 <file://rhs> ?x284. 
+?x282 <file://description> """string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.""". 
 ?x284 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x285. 
 ?x284 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x286. 
-?x285 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x285 <file://lhs> """string_literal_raw_body""". 
-?x285 <file://rhs> ?x287. 
-?x285 <file://description> """string_literal_raw_body --> string_literal_raw_body_item, string_literal_raw_body.""". 
-?x287 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x288. 
-?x287 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x289. 
-?x288 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x288 <file://name> """string_literal_raw_body_item""". 
-?x289 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x290. 
-?x289 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x290 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
-?x290 <file://name> """string_literal_raw_body""". 
-?x286 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x291. 
-?x286 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x292. 
-?x291 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x291 <file://lhs> """string_literal_raw_body_item""". 
-?x291 <file://rhs> ?x293. 
-?x291 <file://description> """string_literal_raw_body_item --> any char except [\\\n\\[\\]\\\\].""". 
-?x293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x294. 
-?x293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x294 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://any_char_except>. 
-?x294 <file://value> """
-[]\\""". 
-?x292 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x295. 
-?x292 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x296. 
-?x295 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x295 <file://lhs> """string_literal_raw_body_item""". 
-?x295 <file://rhs> ?x297. 
-?x295 <file://description> """string_literal_raw_body_item --> [\\\\\n].""". 
-?x297 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x298. 
+?x285 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x285 <file://name> """string_literal_raw_body_item""". 
+?x286 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x287. 
+?x286 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x287 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://identifier>. 
+?x287 <file://name> """string_literal_raw_body""". 
+?x283 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x288. 
+?x283 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x289. 
+?x288 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x288 <file://lhs> """string_literal_raw_body_item""". 
+?x288 <file://rhs> ?x290. 
+?x288 <file://description> """string_literal_raw_body_item --> any char except [\\n\\[\\]\\\\].""". 
+?x290 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x291. 
+?x290 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x291 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://any_char_except>. 
+?x291 <file://value> """\n[]\\""". 
+?x289 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x292. 
+?x289 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x293. 
+?x292 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x292 <file://lhs> """string_literal_raw_body_item""". 
+?x292 <file://rhs> ?x294. 
+?x292 <file://description> """string_literal_raw_body_item --> [\\\\n].""". 
+?x294 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x295. 
+?x294 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x295 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x295 <file://value> ?x296. 
+?x296 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
+?x296 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x297. 
+?x297 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
 ?x297 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x298 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x298 <file://value> ?x299. 
-?x299 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
-?x299 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x300. 
-?x300 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """n""". 
+?x293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x298. 
+?x293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x299. 
+?x298 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x298 <file://lhs> """string_literal_raw_body_item""". 
+?x298 <file://rhs> ?x300. 
+?x298 <file://description> """string_literal_raw_body_item --> [\\\\\\[].""". 
+?x300 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x301. 
 ?x300 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x296 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x301. 
-?x296 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x302. 
-?x301 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x301 <file://lhs> """string_literal_raw_body_item""". 
-?x301 <file://rhs> ?x303. 
-?x301 <file://description> """string_literal_raw_body_item --> [\\\\\\[].""". 
-?x303 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x304. 
+?x301 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x301 <file://value> ?x302. 
+?x302 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
+?x302 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x303. 
+?x303 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """[""". 
 ?x303 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x304 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x304 <file://value> ?x305. 
-?x305 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
-?x305 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x306. 
-?x306 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """[""". 
+?x299 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x304. 
+?x299 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x305. 
+?x304 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x304 <file://lhs> """string_literal_raw_body_item""". 
+?x304 <file://rhs> ?x306. 
+?x304 <file://description> """string_literal_raw_body_item --> [\\\\\\]].""". 
+?x306 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x307. 
 ?x306 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x302 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x307. 
-?x302 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x308. 
-?x307 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x307 <file://lhs> """string_literal_raw_body_item""". 
-?x307 <file://rhs> ?x309. 
-?x307 <file://description> """string_literal_raw_body_item --> [\\\\\\]].""". 
-?x309 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x310. 
+?x307 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x307 <file://value> ?x308. 
+?x308 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
+?x308 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x309. 
+?x309 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """]""". 
 ?x309 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x310 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x310 <file://value> ?x311. 
-?x311 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
-?x311 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x312. 
-?x312 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """]""". 
-?x312 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x308 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x313. 
-?x308 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x313 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
-?x313 <file://lhs> """string_literal_raw_body_item""". 
-?x313 <file://rhs> ?x314. 
-?x313 <file://description> """string_literal_raw_body_item --> [\\\\\\\\].""". 
-?x314 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x315. 
+?x305 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x310. 
+?x305 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x310 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://statement>. 
+?x310 <file://lhs> """string_literal_raw_body_item""". 
+?x310 <file://rhs> ?x311. 
+?x310 <file://description> """string_literal_raw_body_item --> [\\\\\\\\].""". 
+?x311 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?x312. 
+?x311 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?x312 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
+?x312 <file://value> ?x313. 
+?x313 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
+?x313 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x314. 
+?x314 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
 ?x314 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
-?x315 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://literal>. 
-?x315 <file://value> ?x316. 
-?x316 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
-?x316 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?x317. 
-?x317 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> """\\""". 
-?x317 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 

@@ -587,21 +587,21 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		s.state_index = 0
 		#max_body_len = max(len(r.body) for r in rules)
 		#max_states_len = max(r.max_states_len for r in rules)
-		return Collection([
+		result = Collection([
 			comment(common.shorten(pred_name) if pred_name else 'query'),
 			Line(
 				pred_func_declaration(('pred_'+cppize_identifier(pred_name)) if pred_name else 'query')
-			),
-			Block(
-				[
-					Statement('goto *(((char*)&&case0) + state.entry)'),
-					s.label(),
-					If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')) if trace_proof_ else Line(),
-					Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]),
-					Statement('return 0')
-				]
-			)
-		])
+			)])
+		b = result.nest()
+		b.append(Statement('goto *(((char*)&&case0) + state.entry)'))
+		b.append(s.label())
+		if trace_proof_:
+			b.append(If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')))
+		b.append(Statement('state.results = new results_vector'))
+		b.append(Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]))
+		b.append(Statement('delete state.results'))
+		b.append(Statement('return 0'))
+		return result
 
 	def rule(s, r):
 		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.existentials[0] == r.head.args[0] and r.existentials[0] == r.head.args[1]):

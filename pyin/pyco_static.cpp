@@ -1126,3 +1126,45 @@ quickly adds up..*/
 #endif
 
 
+
+
+
+bool is_arg_duplicate(Thing *a, *b)
+{
+    if (a == b)  //same memory location
+        return true;
+    if (a->type() != b->type())
+        return false;
+    ThingType type = a->type();
+    if (type == BNODE)
+    {
+        if (*a != *b)
+            return false;
+        if (a->_is_bnode_ungrounded != b->_is_bnode_ungrounded) //not checked by == operator currently
+            return false;
+        for thing in other things in a:
+            if (!is_arg_duplicate(a_thing, b_thing)
+                return false;
+    }
+    else if (type == BOUND)
+    {
+
+    }
+
+}
+
+bool is_duplicate_yield(cpppred_state &state, size_t old_idx)
+{
+    now0 = state.incoming[0];
+    now1 = state.incoming[1];
+
+    old0 = state.yields_vector[old_idx].incoming[0];
+    old1 = state.yields_vector[old_idx].incoming[1];
+
+    if (!is_arg_duplicate(now0, old0) || !is_arg_duplicate(now1, old1))
+        //yay, found a difference
+        return false;
+
+    state.yields_vector[old_idx].count += 1;
+    return true;
+}

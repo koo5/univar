@@ -1129,28 +1129,36 @@ quickly adds up..*/
 
 
 
-bool is_arg_duplicate(Thing *a, *b)
+bool is_arg_duplicate(Thing *now, *old)
 {
-    if (a == b)  //same memory location
-        return true;
-    if (a->type() != b->type())
+    if (now->type() != old->type())
         return false;
-    ThingType type = a->type();
-    if (type == BNODE)
+    ThingType type = now->type();
+    if (type == CONST)
+        return (*now == *old);
+    else if (type == BNODE)
     {
-        if (*a != *b)
+        if (*now != *old)
             return false;
-        if (a->_is_bnode_ungrounded != b->_is_bnode_ungrounded) //not checked by == operator currently
+        if (now->_is_bnode_ungrounded != old->_is_bnode_ungrounded)
             return false;
-        for thing in other things in a:
-            if (!is_arg_duplicate(a_thing, b_thing)
+        for thing in other things in now:
+            if (!is_arg_duplicate(get_value(now_thing), old_thing)
                 return false;
     }
-    else if (type == BOUND)
+    else if (type == UNBOUND)
     {
-
+        auto maybe_old = correspondences.find(now);
+        if (maybe_old == correspondences.end())
+             correspondences[now] = old;
+        else
+        {
+            if (maybe_old->second != old)
+                return false;
+        }
     }
-
+    else ASSERT(false);
+    return true;
 }
 
 bool is_duplicate_yield(cpppred_state &state, size_t old_idx)
@@ -1168,3 +1176,51 @@ bool is_duplicate_yield(cpppred_state &state, size_t old_idx)
     state.yields_vector[old_idx].count += 1;
     return true;
 }
+
+clone_thing(Thing *x)
+{
+    x = get_value(x);
+    if (x->type() == BNODE)
+    {
+        switch(x->origin())
+        {
+            case xxx:
+                bnode = new Thing * size of bnode;
+                y = bnode + bnode_thing_pos;
+                for each var in bnode:
+                    orig = get_value(x + var_offset);
+                    &clone = *(y + var_offset);
+                    if (orig in done):
+                        clone = done[orig];
+                    else
+                        clone = clone_thing(orig);
+        }
+    }
+    else if (x->type() == UNBOUND)
+    {
+        if (orig in done):
+            clone = done[orig];
+        else
+            clone = clone_thing(orig);
+
+    }
+
+
+    (x->type() == CONST)
+
+
+    Thing *y = new Thing{x->type(), x->value};
+    if (x->type() == BNODE && x->_is_bnode_ungrounded)
+        y->_is_bnode_ungrounded = true;
+
+}
+
+
+
+
+
+{
+    Thing *t = new Thing{UNBOUND};
+    c = clone_thing(t);
+    ASSERT(c->type() == UNBOUND);
+

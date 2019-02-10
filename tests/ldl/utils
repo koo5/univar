@@ -66,6 +66,11 @@
 {:dummy :from_x_put_until_y_into_z (?xy ?xy rdf:nil)} <= {
 }.
 
+{:dummy :literally_string (?x0 ?rest ?value)} <= {
+        ?value string_builtins:strXlst ?l.
+        :dummy :literally_list (?x0 ?rest ?l).
+}.
+
 {:dummy :literally_list (?x_ ?rest ?value)} <= {
 	?value rdf:first ?xf.
 	?value rdf:rest ?vr.

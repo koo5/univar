@@ -7,9 +7,10 @@
 
 kb
 
-@include ../../ldl/utils
 @include ../../ldl/initial_ldl_text
+@include ../../ldl/ldl_datatypes
 @include ../../ldl/ldl_parser
+@include ../../ldl/utils
 
 {:ldl0 :is ?x0} <= {
 @include ../../ldl/ldl0

@@ -162,11 +162,6 @@
 	:dummy :literally_list (?x0 ?rest (" "  "-"  "-"  ">"  " ")).
 }.
 
-{:dummy :literally_string (?x0 ?rest ?value)} <= {
-	?value string_builtins:strXlst ?l.
-	:dummy :literally_list (?x0 ?rest ?l).
-}.
-
 {:dummy :literal (?x0 ?rest ?val)} <= {
 	?x0 rdf:first "[". ?x0 rdf:rest ?after_opening.
 	:dummy :rest_of_literal (?after_opening ?after_value ?val).

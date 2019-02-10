@@ -1,36 +1,36 @@
 
 :initial_ldl_text :has_value
 """
-string_literal is builtin-postprocessed string_literal_raw.
-string_literal_raw ++> [\\[], string_literal_body, [\\]].
-string_literal_body is builtin-postprocessed string_literal_raw_body.
-string_literal_raw_body is a series of string_literal_body_item separated with [].
-string_literal_raw_body_item ++> any char except [\\n\\[\\]\\\\].
-string_literal_raw_body_item ++> [\\\\n].
-string_literal_raw_body_item ++> [\\\\\\[].
-string_literal_raw_body_item ++> [\\\\\\]].
-string_literal_raw_body_item ++> [\\\\\\\\].
+string_literal ++> builtin-postprocessed string_literal_raw.
+string_literal_raw ++> [\\[], string_literal_body_raw, [\\]].
+string_literal_body_raw ++> a series of string_literal_body_raw_item separated with [].
+string_literal_body_raw_item ++> any char except [\\n\\[\\]\\\\].
+string_literal_body_raw_item ++> [\\\\n].
+string_literal_body_raw_item ++> [\\\\\\[].
+string_literal_body_raw_item ++> [\\\\\\]].
+string_literal_body_raw_item ++> [\\\\\\\\].
 
-identifier is builtin-postprocessed identifier_raw.
-identifier_raw is a series of any char except [\\n\\[\\]\\\\ ] separated with [].
+identifier ++> builtin-postprocessed identifier_raw.
+identifier_raw ++> a series of any char except [\\n\\[\\]\\\\ ] separated with [].
 
 identifier works as node_name.
 
 newline ++> [\\n].
 statement works as top_level_item.
 newline works as top_level_item.
-statements is a series of top_level_item separated with newline.
+statements ++> a series of top_level_item separated with newline.
 
 x_is_a_series_of_y_separated_with_z works as statement.
-x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:grammar_item, [ separated with ], separator:grammar_item, [.].
+x_is_a_series_of_y_separated_with_z ++> node_name, [ is a series of ], item_type:grammar_item, [ separated with ], separator:grammar_item.
 
 subtype works as statement.
-subtype ++> sub:node_name, [ works as ], sup:node_name, [.].
+subtype ++> sub:node_name, [ works as ], sup:node_name.
 
 grammar works as statement.
-grammar ++> node_name, [ ++> ], grammar_items, [.].
+grammar ++> node_name, [ ++> ], grammar_items.
+#alternative syntax for grammar is node_name, [ is ], grammar_items.
 
-grammar_items is a series of grammar_item separated with [, ].
+grammar_items ++> a series of grammar_item separated with [, ].
 
 string_literal works as grammar_item.
 node_name works as grammar_item.

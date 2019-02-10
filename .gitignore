@@ -66,3 +66,4 @@ pyco_out.cpp
 pyin/.ipynb_checkpoints/
 pyin/.idea/workspace.xml
 callgrind.out*
+perf.data*

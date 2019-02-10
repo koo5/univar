@@ -1,10 +1,4 @@
 
-#lemon ast
-
-{?x a ldl:literal; :type ?T; :value ?V} <= {}.
-{?x a ldl:compound; :type ?T; :children ?CH} <= {}.
-
-
 
 #woohoo, now we can transform the output of the bootstrap parser into a true lemon ast
 #-----------

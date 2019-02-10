@@ -1,0 +1,6 @@
+
+#lemon ast
+
+{?x a ldl:literal; :type ?T; :value ?V} <= {}.
+{?x a ldl:compound; :type ?T; :children ?CH} <= {}.
+

@@ -9,6 +9,7 @@ kb
 
 @include ../../ldl/utils
 @include ../../ldl/dcg_datatypes
+@include ../../ldl/ldl_datatypes
 @include ../../ldl/initial_ldl_text
 @include ../../ldl/parse_initial_ldl_text_with_the_dcg
 @include ../../ldl/bootstrap2lemon

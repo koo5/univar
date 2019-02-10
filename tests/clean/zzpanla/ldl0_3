@@ -1,0 +1,35 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldl:      <http://ldl.ldl#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+@prefix : <file://>.
+
+kb
+
+@include ../../ldl/utils
+@include ../../ldl/initial_ldl_text
+@include ../../ldl/ldl_parser
+
+{:ldl0 :is ?x0} <= {
+@include ../../ldl/ldl0
+}.
+
+
+{?a0 :parse ?a1} <= {
+    :dummy tau_builtins:output "ldl_parse...".
+    #:dummy tau_builtins:toggle_tracing :dummy.
+    ?a0 ldl:parse_nonterminal ?a1.
+}
+
+fin.
+
+query
+#:dummy tau_builtins:toggle_tracing :dummy.
+:ldl0 :is ?grammar.
+:initial_ldl_text :has_value ?initial_ldl_text_value.
+?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
+(?initial_ldl_text_list ?grammar "statements") :parse (rdf:nil ?ldl2 :minus_one).
+:dummy tau_builtins:serialize_thing ?ldl2.
+fin.
+shouldbetrue

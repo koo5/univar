@@ -75,3 +75,46 @@
 {:dummy :literally_list (?x0 ?x0 rdf:nil)} <= {
 }.
 
+
+:zero :has_succ :one.
+:one :has_succ :two.
+:two :has_succ :three.
+:three :has_succ :four.
+:four :has_succ :five.
+:five :has_succ :six.
+:six :has_succ :seven.
+:seven :has_succ :eight.
+:eight :has_succ :nine.
+:nine :has_succ :ten.
+:ten :has_succ :n11.
+:n11 :has_succ :n12.
+:n12 :has_succ :n13.
+:n13 :has_succ :n14.
+:n14 :has_succ :n15.
+:n15 :has_succ :n16.
+:n16 :has_succ :n17.
+:n17 :has_succ :n18.
+:n18 :has_succ :n19.
+:n19 :has_succ :n20.
+:n20 :has_succ :n21.
+:n21 :has_succ :n22.
+:n22 :has_succ :n23.
+:n23 :has_succ :n24.
+:n24 :has_succ :n25.
+:n25 :has_succ :n26.
+:n26 :has_succ :n27.
+:n27 :has_succ :n28.
+:n28 :has_succ :n29.
+:n29 :has_succ :n30.
+:n30 :has_succ :n31.
+:n31 :has_succ :n32.
+:n32 :has_succ :n33.
+:n33 :has_succ :n34.
+:n34 :has_succ :n35.
+:n35 :has_succ :n36.
+:n36 :has_succ :n37.
+:n37 :has_succ :n38.
+:n38 :has_succ :n39.
+:n39 :has_succ :n40.
+:n40 :has_succ :n41.
+:n41 :has_succ :n42.

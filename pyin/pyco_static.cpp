@@ -1224,3 +1224,8 @@ clone_thing(Thing *x)
     c = clone_thing(t);
     ASSERT(c->type() == UNBOUND);
 
+
+
+
+
+{?x x x. ?x y y} <= {}.

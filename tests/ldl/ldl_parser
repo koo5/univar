@@ -8,25 +8,26 @@
 		#:dummy :shorten_location_printout (?x0 ?x0_shortened).
 		#?x0_shortened_string string_builtins:strXlst ?x0_shortened.
 		#:dummy tau_builtins:serialize_thing ("""invoking rule on """" ?x0_shortened_string """"...""")^string_builtins:strXlst.
+	(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth).
 }.
 
-{(?x0 ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth)} <= {
-    ?rule a ldl:compound; :type "builtins/grammar".
-	?rule :lhs ?nont. ?rule :rhs ?rhs.
+{(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth)} <= {
+    ?rule :type "builtins/works_as"; :children ([:value [:value ?rhs]] [:value [:value ?nont]]).
+	(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth).
+}.
+
+{(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth)} <= {
+    ?rule :type "builtins/grammar"; :children ([:value [:value ?nont]] [:value [:value ?rhs]]).
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth).
 }.
 
 {(?x0 ?grammar ?type rdf:nil) :parse_rhs (?x0 ?ast ?depth)} <= {
-	?ast a ldl:compound. ?ast :type ?type. ?ast :children rdf:nil.
-}.
-
-{(?x0 ?grammar ?type (?one_rhs_item)) :parse_rhs (?rest ?ast ?depth)} <= {
-	(?x0 ?grammar ?one_rhs_item) :parse_rhs_item (?rest ?ast ?depth).
+	?ast a ldl:compound; :type ?type; :children rdf:nil.
 }.
 
 {(?x0 ?grammar ?type ?rhs) :parse_rhs (?rest ?ast ?depth)} <= {
     ?rhs rdf:rest ?rhs2_not_nil. ?rhs2_not_nil rdf:rest ?rhs3.
-	?ast a ldl:compounde. ?ast :type ?type. ?ast :children ?ch.
+	?ast a ldl:compound; :type ?type; :children ?ch.
 	(?x0 ?grammar ?rhs) :parse_rhs_items (?rest ?ch ?depth).
 }.
 

@@ -1,22 +1,23 @@
 
+#ldl:parse_nonterminal (picks a rule)
+#->ldl:try_rule works_as ---> ldl:parse_nonterminal
+#->ldl:try_rule grammar
+#  ->:parse_rhs
+#    ->:parse_grammar_items
+#      ->:parse_grammar_item
+
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar.
-		#:dummy tau_builtins:output "testing rule lhs...".
-		#:dummy tau_builtins:serialize_thing ("found rule: " ?rule!:description)^string_builtins:strXlst.
-	    #:dummy tau_builtins:output ?depth.
-		#:dummy :shorten_location_printout (?x0 ?x0_shortened).
-		#?x0_shortened_string string_builtins:strXlst ?x0_shortened.
-		#:dummy tau_builtins:serialize_thing ("""invoking rule on """" ?x0_shortened_string """"...""")^string_builtins:strXlst.
 	(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth).
 }.
 
-{(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth)} <= {
+{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
     ?rule :type "builtins/works_as"; :children ([:value [:value ?rhs]] [:value [:value ?nont]]).
 	(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth).
 }.
 
-{(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth)} <= {
+{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
     ?rule :type "builtins/grammar"; :children ([:value [:value ?nont]] [:value [:value ?rhs]]).
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth).
 }.
@@ -36,11 +37,11 @@
 	(?after_item ?grammar ?rhsr) :parse_grammar_items (?rest ?chr ?depth).
 }.
 
-{(?x0 ?grammar rdf:nil) :parse_rhs_items (?x0 rdf:nil ?depth)} <= {}.
+{(?x0 ?grammar rdf:nil) :parse_grammar_items (?x0 rdf:nil ?depth)} <= {}.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
-	?rhs_item a ldl:literal. ?rhs_item :value ?v.
-	?ast a ldl:literal. ?ast :value ?v.
+	?rhs_item a ldl:literal; :value ?v.
+	?ast a ldl:literal; :value ?v.
 	:dummy :literally_string (?x0 ?rest ?v).
 }.
 
@@ -60,12 +61,10 @@
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
-	?rhs_item :type "builtins/a_series_of_y_separated_with_z"; :children ?children.
-	[:key "item_type"; :value ?item_type] :memberof ?children.
-	[:key "separator"; :value ?separator] :memberof ?children.
- 	?ast a ldl:literal. ?ast :value ?string.
-	?x0 :all_chars_until_one_of (?rest ?except ?char_list).
-    ?string string_builtins:strXlst ?char_list.
+	?rhs_item :type "builtins/a_series_of_y_separated_with_z"; :children ?grammar_children.
+	[:key "item_type"; :value ?item_type] :memberof ?grammar_children.
+	[:key "separator"; :value ?separator] :memberof ?grammar_children.
+ 	:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast ?depth).
 }.
 
 {?a0 :parse_rhs_item ?a1} <= {
@@ -146,4 +145,35 @@
 {:dummy :shorten_location_printout (?x0 ?shortened)} <= {
     :dummy :from_x_put_first_y_items_into_z (?x0 :n42 ?shortened).
 }.
+
+
+
+
+
+{:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
+    (?x0  ?grammar ?item_type) ldl:parse_nonterminal (?mid ?astf ?depth).
+    (?mid ?grammar ?separator) ldl:parse_nonterminal (?end ?separator_ast ?depth).
+    :dummy :is_series (?end ?rest ?grammar ?item_type ?separator ?astr ?depth).
+}.
+
+{:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
+    (?x0  ?grammar ?item_type) ldl:parse_nonterminal (?rest ?astf ?depth).
+    astr :eq rdf:nil.
+}.
+
+{:dummy :is_series (?x0 ?x0 ?grammar ?item_type ?separator rdf:nil ?depth)} <= {
+}.
+
+
+
+
+
+		#:dummy tau_builtins:output "testing rule lhs...".
+		#:dummy tau_builtins:serialize_thing ("found rule: " ?rule!:description)^string_builtins:strXlst.
+	    #:dummy tau_builtins:output ?depth.
+		#:dummy :shorten_location_printout (?x0 ?x0_shortened).
+		#?x0_shortened_string string_builtins:strXlst ?x0_shortened.
+		#:dummy tau_builtins:serialize_thing ("""invoking rule on """" ?x0_shortened_string """"...""")^string_builtins:strXlst.
+
+
 

@@ -4,12 +4,18 @@
 #->ldl:try_rule grammar
 #  ->:parse_rhs
 #    ->:parse_grammar_items
+#      ->:parse_grammar_item ldl:literal
+#      ->:parse_grammar_item
+#      ->:parse_grammar_item builtins/any_char_except
+#      ->:parse_grammar_item builtins/all_chars_until_one_of
+#      ->:parse_grammar_item builtins/a_series_of_y_separated_with_z
+#        ->:is_series ---> ldl:parse_nonterminal
 #      ->:parse_grammar_item
 
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar.
-	(?x0 ?grammar ?rule ?nont) ldl:parse_nonterminal2 (?rest ?ast ?depth).
+	(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth).
 }.
 
 {(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
@@ -45,6 +51,10 @@
 	:dummy :literally_string (?x0 ?rest ?v).
 }.
 
+	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
+#        :dummy tau_builtins:output "parse_rhs_item(nont) yield".
+}.
+
 {(?x_ ?grammar ?rhs_item) :parse_grammar_item (?xr ?ast ?depth)} <= {
 	?rhs_item :type "builtins/any_char_except".
 	[:key "except"; :value [:value ?except]] :memberof ?rhs_item!:children.
@@ -65,15 +75,6 @@
 	[:key "item_type"; :value ?item_type] :memberof ?grammar_children.
 	[:key "separator"; :value ?separator] :memberof ?grammar_children.
  	:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast ?depth).
-}.
-
-{?a0 :parse_rhs_item ?a1} <= {
-    (?x0 ?grammar [a :identifier; :name ?name]) :eq ?a0. ?a1 :eq (?rest ?ast ?depth).
- #       :dummy tau_builtins:output "parse_rhs_item(nont):".
-#		:dummy tau_builtins:output ?name.
-#	    :dummy tau_builtins:output ?depth.
-	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
-#        :dummy tau_builtins:output "parse_rhs_item(nont) yield".
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?ast ?depth)} <= {

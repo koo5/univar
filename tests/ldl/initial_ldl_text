@@ -2,16 +2,17 @@
 :initial_ldl_text :has_value
 """
 newline ++> [\\n].
-statement works as top_level_item.
-newline works as top_level_item.
 statements ++> a series of top_level_item separated with newline.
 
-comment works as statement.
+top_level_item accepts newline.
+top_level_item accepts statement.
+top_level_item accepts comment.
+
 comment ++> [#], comment_body.
 comment_body ++> all chars until one of [\\n].
 
-identifier ++> builtin-postprocessed identifier_raw.
-identifier_raw ++> a series of any char except [\\n\\[\\]\\\\ ] separated with [].
+identifier accepts builtin-postprocessed identifier_raw.
+identifier_raw accepts a series of any char except [\\n\\[\\]\\\\ ] separated with [].
 
 identifier works as node_name.
 
@@ -35,7 +36,7 @@ node_name works as grammar_item.
 node_name_with_child_name works as grammar_item.
 node_name_with_child_name ++> child_name:node_name, [:], type_name:node_name.
 
-string_literal ++> builtin-postprocessed string_literal_raw.
+string_literal accepts builtin-postprocessed string_literal_raw.
 string_literal_raw ++> [\\[], string_literal_body_raw, [\\]].
 string_literal_body_raw ++> a series of string_literal_body_raw_item separated with [].
 string_literal_body_raw_item ++> any char except [\\n\\[\\]\\\\].

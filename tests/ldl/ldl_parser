@@ -46,13 +46,25 @@
 {(?x0 ?grammar rdf:nil) :parse_grammar_items (?x0 rdf:nil ?depth)} <= {}.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
-	?rhs_item a ldl:literal; :value ?v.
-	?ast a ldl:literal; :value ?v.
+	?rhs_item a ldl:literal;  :type "builtins/string"; :value ?v.
+	?ast a ldl:literal; :type "builtins/string"; :value ?v.
 	:dummy :literally_string (?x0 ?rest ?v).
 }.
 
-	(?x0 ?grammar ?name) :parse_nonterminal (?rest ?ast ?depth).
-#        :dummy tau_builtins:output "parse_rhs_item(nont) yield".
+{(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
+	?rhs_item a ldl:literal; :type "builtins/identifier"; :value ?value.
+    (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth)
+}.
+
+{(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
+	?rhs_item :type "builtins/node_name_with_child_name".
+	?rhs_item :children ?gch.
+	[:key "child_name"; :value ?child_name] :memberof ?gch.
+    [:key "type_name"; :value ?type_name] :memberof ?gch.
+
+
+	?rhs_item a ldl:literal; :type "builtins/identifier"; :value ?value.
+    (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth)
 }.
 
 {(?x_ ?grammar ?rhs_item) :parse_grammar_item (?xr ?ast ?depth)} <= {

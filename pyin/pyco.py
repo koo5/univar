@@ -592,14 +592,16 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			Line(
 				pred_func_declaration(('pred_'+cppize_identifier(pred_name)) if pred_name else 'query')
 			)])
-		b = result.nest()
+		b = nest(result)
 		b.append(Statement('goto *(((char*)&&case0) + state.entry)'))
 		b.append(s.label())
 		if trace_proof_:
 			b.append(If('(top_level_tracing_coro == NULL) && tracing_enabled', Statement('top_level_tracing_coro = &state')))
-		b.append(Statement('state.results = new results_vector'))
+		if prune_duplicate_results_:
+			b.append(Statement('state.results = new results_vector'))
 		b.append(Lines([s.rule(rule) if type(rule) != Builtin else rule.build_in(rule) for rule in rules]))
-		b.append(Statement('delete state.results'))
+		if prune_duplicate_results_:
+			b.append(Statement('delete state.results'))
 		b.append(Statement('return 0'))
 		return result
 
@@ -738,7 +740,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b = s.nest_body_triple_block(r, b, body_triple_index, triple)
 			else:
 				dont_yield = True
-				print("warning: "+str(triple.pred)+" unknown")
+				print("warning: "+str(triple.pred)+" unknown in " + str(r))
 				break
 		if not dont_yield:
 			if do_ep:
@@ -873,8 +875,10 @@ def comment(s):
 @click.option('--trace_proof', default=True, type=bool)
 @click.option('--trace_unification', default=False, type=bool)
 @click.option('--second_chance', default=True, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance):
-	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_
+@click.option('--prune_duplicate_results', default=False, type=bool)
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results):
+	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_
+	prune_duplicate_results_ = prune_duplicate_results
 	trace_unification_ = trace_unification
 	second_chance_ = second_chance
 	if notrace:

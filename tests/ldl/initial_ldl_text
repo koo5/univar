@@ -33,9 +33,13 @@ node_name ++> identifier.
 identifier ++> builtin-postprocessed identifier_raw.
 identifier_raw ++> a series of any char except [\\n\\[\\]\\\\ ] separated with [].
 
+string_literal ++> [\\[], builtin-postprocessed string_literal_body_raw, [\\]].
+string_literal_body_raw ++> [], a series of string_literal_body_raw_item separated with [].
+
 string ++> builtin-postprocessed string_literal_raw.
 string_literal_raw ++> [\\[], string_literal_body_raw, [\\]].
 string_literal_body_raw ++> a series of string_literal_body_raw_item separated with [].
+
 string_literal_body_raw_item ++> any char except [\\n\\[\\]\\\\].
 string_literal_body_raw_item ++> [\\\\n].
 string_literal_body_raw_item ++> [\\\\\\[].

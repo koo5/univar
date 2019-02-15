@@ -36,6 +36,10 @@
     :dummy :is_with_replacement (?xr ?yr ?replacement).
 }.
 
+#{:dummy :escape_newlines_in_list (?x ?y)} <= {
+#    :dummy :is_with_replacement (?x ?y ("\n" "\\n")).
+#}.
+
 {:dummy :replace (?x ?x ?replacement)} <= {
     ?x string_builtins:const_is_not_equal_to_const ?replacement!rdf:first.
 }.

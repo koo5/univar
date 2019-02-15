@@ -37,7 +37,7 @@ query
 ?grammar_concrete :concrete_to_abstract ?grammar.
 :dummy tau_builtins:output "concrete_to_abstract.".
 :dummy tau_builtins:serialize_thing ?grammar.
-:o :o :o.
+#:o :o :o.
 #:dummy tau_builtins:output ?grammar!rdf:
 :initial_ldl_text :has_value ?initial_ldl_text_value.
 ?initial_ldl_text_value string_builtins:strXlst ?initial_ldl_text_list.
@@ -46,7 +46,7 @@ query
 :dummy tau_builtins:output "parse_nonterminal...".
 ?a1 :parse_nonterminal ?a2.
 #:dummy tau_builtins:toggle_tracing :dummy.
-#?initial_ldl :phase2 ?builtins_statements.
+?initial_ldl :phase2 ?builtins_statements.
 #:dummy tau_builtins:output "is_serialized...".
 #:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
 #:dummy tau_builtins:output "output...".

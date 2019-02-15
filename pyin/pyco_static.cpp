@@ -1128,7 +1128,7 @@ quickly adds up..*/
 
 
 
-
+/*
 bool is_arg_duplicate(Thing *now, *old)
 {
     if (now->type() != old->type())
@@ -1229,3 +1229,4 @@ clone_thing(Thing *x)
 
 
 {?x x x. ?x y y} <= {}.
+*/

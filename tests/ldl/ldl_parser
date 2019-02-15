@@ -1,16 +1,15 @@
 
 #ldl:parse_nonterminal (picks a rule)
-#->ldl:try_rule works_as ---> ldl:parse_nonterminal
 #->ldl:try_rule grammar
 #  ->:parse_rhs
 #    ->:parse_grammar_items
-#      ->:parse_grammar_item ldl:literal
-#      ->:parse_grammar_item
+#      ->:parse_grammar_item builtins/string
+#      ->:parse_grammar_item builtins/identifier --> ldl:parse_nonterminal
 #      ->:parse_grammar_item builtins/any_char_except
 #      ->:parse_grammar_item builtins/all_chars_until_one_of
 #      ->:parse_grammar_item builtins/a_series_of_y_separated_with_z
 #        ->:is_series ---> ldl:parse_nonterminal
-#      ->:parse_grammar_item
+#      ->:parse_grammar_item builtins/postprocessed ..--> ldl:parse_nonterminal
 
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.

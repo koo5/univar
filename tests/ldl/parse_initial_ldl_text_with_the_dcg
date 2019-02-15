@@ -5,10 +5,6 @@
     :dummy :from_x_put_first_y_items_into_z (?x0 :n42 ?shortened).
 }.
 
-#{:dummy :escape_newlines_in_list (?x ?y)} <= {
-#    :dummy :is_with_replacement (?x ?y ("\n" "\\n")).
-#}.
-
 {(?x0 ?grammar ?nont) :parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar.
@@ -16,7 +12,6 @@
 	?rule :lhs ?nont. ?rule :rhs ?rhs.
 		#:dummy tau_builtins:serialize_thing ("found rule: " ?rule!:description)^string_builtins:strXlst.
 	    #:dummy tau_builtins:output ?depth.
-
 		#:dummy :shorten_location_printout (?x0 ?x0_shortened).
 		####:dummy :escape_newlines_in_list (?x0_shortened ?x0_shortened_escaped).
 		##?x0_shortened_string string_builtins:strXlst ?x0_shortened.

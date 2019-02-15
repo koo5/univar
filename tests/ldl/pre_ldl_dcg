@@ -33,7 +33,6 @@ a_series_of_y_separated_with_z --> [a series of ], grammar_item, [ separated wit
 
 node_name_with_child_name --> node_name, [:], node_name.
 
-#this was to create an explicit node_name node, to distinguish the resulting literal from a [literal]
 node_name --> all chars until one of [\\n ,.], [].
 
 string_literal --> [\\[], string_literal_body, [\\]].

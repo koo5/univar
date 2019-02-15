@@ -44,7 +44,7 @@
     ?parsed :type "statements".
     dummy tau_builtins:output ?parsed.
     ?parsed :children ([a :literal; :value "\n"] ?tail).
-    ?ldlf a ldl:compound; :type "builtins/newline"; :children ().
+    ?ldlf a ldl:compound; ldl:type "builtins/newline"; ldl:children ().
     ?tail :parsed2builtins ?ldlr.
 }.
 
@@ -61,7 +61,7 @@
     ?parsed :type "comment".
     dummy tau_builtins:output ?parsed.
     ?parsed :children (?hash ?body).
-    ?ldl a ldl:literal; :type "builtins/comment"; :value ?body.
+    ?ldl a ldl:compound; ldl:type "builtins/comment"; ldl:children ([a ldl:value; ldl:type "?body.
 }.
 
 
@@ -200,7 +200,7 @@
 }.
 
 {?parsed :parsed2builtins ?ldl} <= {
-    :dummy tau_builtins:output """failed parsed2builtins on:""".
+    :dummy tau_builtins:output """parsed2builtins exhausted on:""".
 	:dummy tau_builtins:serialize_thing ?parsed.
     cut cut cut.
 }.

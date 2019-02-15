@@ -8,9 +8,6 @@ statements --> .
 
 comment --> [#], all chars until one of [\\n].
 
-statement --> works_as.
-works_as --> node_name, [ works as ], node_name.
-
 statement --> grammar.
 grammar --> node_name, [ ++> ], grammar_items.
 
@@ -35,6 +32,8 @@ grammar_item --> a_series_of_y_separated_with_z.
 a_series_of_y_separated_with_z --> [a series of ], grammar_item, [ separated with ], grammar_item.
 
 node_name_with_child_name --> node_name, [:], node_name.
+
+#this was to create an explicit node_name node, to distinguish the resulting literal from a [literal]
 node_name --> all chars until one of [\\n ,.], [].
 
 string_literal --> [\\[], string_literal_body, [\\]].

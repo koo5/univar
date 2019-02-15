@@ -19,22 +19,17 @@
 }.
 
 {(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
-    ?rule :type "builtins/works_as"; :children ([:value [:value ?rhs]] [:value [:value ?nont]]).
-	(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth).
-}.
-
-{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
-    ?rule :type "builtins/grammar"; :children ([:value [:value ?nont]] [:value [:value ?rhs]]).
+    ?rule :type "builtins/grammar"; ldl:children ([:value [ldl:contents ?nont]] [:value [ldl:contents ?rhs]]).
 	(?x0 ?grammar ?nont ?rhs) :parse_rhs (?rest ?ast ?depth).
 }.
 
 {(?x0 ?grammar ?type rdf:nil) :parse_rhs (?x0 ?ast ?depth)} <= {
-	?ast a ldl:compound; :type ?type; :children rdf:nil.
+	?ast a ldl:compound; :type ?type; ldl:children rdf:nil.
 }.
 
 {(?x0 ?grammar ?type ?rhs) :parse_rhs (?rest ?ast ?depth)} <= {
     ?rhs rdf:rest ?rhs2_not_nil. ?rhs2_not_nil rdf:rest ?rhs3.
-	?ast a ldl:compound; :type ?type; :children ?ch.
+	?ast a ldl:compound; :type ?type; ldl:children ?ch.
 	(?x0 ?grammar ?rhs) :parse_grammar_items (?rest ?ch ?depth).
 }.
 
@@ -46,43 +41,43 @@
 {(?x0 ?grammar rdf:nil) :parse_grammar_items (?x0 rdf:nil ?depth)} <= {}.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
-	?rhs_item a ldl:literal; :type "builtins/string"; :value ?v.
-	?child a ldl:literal; :type "builtins/string"; :value ?v.
+	?rhs_item a ldl:value; ldl:type "builtins/string"; ldl:contents ?v.
+	?child eq ?rhs_item.
 	:dummy :literally_string (?x0 ?rest ?v).
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
-	?rhs_item a ldl:literal; :type "builtins/identifier"; :value ?value.
+	?rhs_item a ldl:value; ldl:type "builtins/identifier"; ldl:contents ?value.
 	?child :eq [:key ?value; :value ?ast].
     (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth).
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
 	?rhs_item :type "builtins/node_name_with_child_name".
-	?rhs_item :children ?gch.
-	[:key "child_name"; :value [:value ?child_name]] :memberof ?gch.
-    [:key "type_name"; :value [:value ?type_name]] :memberof ?gch.
+	?rhs_item ldl:children ?gch.
+	[:key "child_name"; :value [ldl:contents ?child_name]] :memberof ?gch.
+    [:key "type_name"; :value [ldl:contents ?type_name]] :memberof ?gch.
     ?child :eq [:key ?child_name; :value ?ast].
     (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth).
 }.
 
 {(?x_ ?grammar ?rhs_item) :parse_grammar_item (?xr ?ast ?depth)} <= {
 	?rhs_item :type "builtins/any_char_except".
-	[:key "except"; :value [:value ?except]] :memberof ?rhs_item!:children.
+	[:key "except"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
 	?xf string_builtins:any_char_except ?except.
- 	?ast a ldl:literal. ?ast :value ?xf.
+ 	?ast a ldl:value; ldl:type "builtins/string"; ldl:contents ?xf.
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?ast ?depth)} <= {
 	?rhs_item :type "builtins/all_chars_until_one_of".
-	[:key "until"; :value [:value ?except]] :memberof ?rhs_item!:children.
- 	?ast a ldl:literal. ?ast :value ?string.
+	[:key "until"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
+ 	?ast a ldl:value; ldl:type "builtins/string"; ldl:contents ?string.
 	?x0 :all_chars_until_one_of (?rest ?except ?char_list).
     ?string string_builtins:strXlst ?char_list.
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
-	?rhs_item :type "builtins/a_series_of_y_separated_with_z"; :children ?grammar_children.
+	?rhs_item :type "builtins/a_series_of_y_separated_with_z"; ldl:children ?grammar_children.
 	[:key "item_type"; :value ?item_type] :memberof ?grammar_children.
 	[:key "separator"; :value ?separator] :memberof ?grammar_children.
 	:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?child ?depth).
@@ -90,44 +85,23 @@
 
 {(?x0 ?grammar ?rhs_item) :parse_rhs_item (?rest ?child ?depth)} <= {
 	?rhs_item :type "builtins/builtin_postprocessed".
-	?rhs_item :children ([:value [:value ?raw_identifier]]).
+	?rhs_item ldl:children ([:value [ldl:contents ?raw_identifier]]).
 	(?x0 ?grammar ?raw_identifier) :parse_nonterminal (?rest ?raw_ast ?depth).
 	?raw_ast :postprocess ?ast.
 }.
 
 {?raw :postprocess ?cooked} <= {
-#	    :dummy tau_builtins:output "postprocess:".
-	    #:dummy tau_builtins:output ?raw.
-    ?raw :type ?type.
-#    "postprocessing a " :say ?type.
-    ?type :eq "string_literal_raw_body".
-#    "postprocessing... " :say "".
-    ?cooked :eq [a :literal; :value ?v].
-#    "postprocessing.... " :say "".
+    ?raw ldl:type "builtins/string_literal_raw"; ldl:children ?ch.
+    ?cooked :eq [a ldl:value; ldl:type "builtins/string"; ldl:contents ?v].
     ?v_list :is_collected_string_literal_raw_body ?raw.
-#    "postprocessing..... " :say "".
-    #:dummy tau_builtins:output ?v_list.
-    ?v string_builtins:strXlst ?v_list.
-#    "postprocessing yields " :say ?v.
+    ?v string_builtins:strXlst ?ch.
 }.
 
-{rdf:nil :is_collected_string_literal_raw_body ?raw} <= {
- #   :dummy tau_builtins:output ":is_collected_string_literal_raw_body nil?".
-    ?raw :children rdf:nil.
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body nil!".
-}.
+{rdf:nil :is_collected_string_literal_raw_body rdf:nil} <= {}.
 
-{?v_ :is_collected_string_literal_raw_body ?raw} <= {
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body?".
-    #:dummy tau_builtins:output ?v.
-    #:dummy tau_builtins:output ?raw.
-    ?raw :children ([:value ?value] ?tail).
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body...".
-    ?vf :eq ?value.
-#        :dummy tau_builtins:output ":is_collected_string_literal_raw_body....".
-    ?vr :is_collected_string_literal_raw_body ?tail.
-#        :dummy tau_builtins:output ":is_collected_string_literal_raw_body!".
-
+{?v_ :is_collected_string_literal_raw_body ?r_} <= {
+    ?rf :eq [:contents ?vf].
+    ?vr :is_collected_string_literal_raw_body ?rr.
 }.
 
 

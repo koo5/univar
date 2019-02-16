@@ -15,6 +15,7 @@ kb
 @include ../../ldl/initial_ldl_text
 @include ../../ldl/parse_initial_ldl_text_with_the_dcg
 @include ../../ldl/bootstrap2lemon
+@include ../../ldl/ldl_parser
 
 {?initial_ldl :phase2 ?builtins_statements} <= {
     :dummy tau_builtins:output "initial_ldl:".
@@ -49,10 +50,11 @@ query
 ?a1 :parse_nonterminal ?a2.
 #:dummy tau_builtins:toggle_tracing :dummy.
 ?initial_ldl :phase2 ?builtins_statements.
-#:dummy tau_builtins:output "is_serialized...".
-#:dummy :is_serialized (?builtins_statements ?n3 ("0") ?uri_counter_after ?uris).
-#:dummy tau_builtins:output "output...".
-#:dummy tau_builtins:output ?n3.
+
+(?initial_ldl_text_list ?builtins_statements "builtins/statements") ldl:parse_nonterminal (rdf:nil ?ast :minus_one).
+
+
+
 fin.
 shouldbetrue
 

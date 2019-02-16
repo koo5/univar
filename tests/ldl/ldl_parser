@@ -154,13 +154,13 @@
 
 
 {:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
-    (?x0  ?grammar ?item_type) ldl:parse_nonterminal (?mid ?astf ?depth).
-    (?mid ?grammar ?separator) ldl:parse_nonterminal (?end ?separator_ast ?depth).
+    (?x0 ?grammar ?item_type) ldl:parse_grammar_item (?mid [:value ?astf] ?depth).
+    (?mid ?grammar ?separator) ldl:parse_grammar_item (?end ?sep ?depth).
     :dummy :is_series (?end ?rest ?grammar ?item_type ?separator ?astr ?depth).
 }.
 
 {:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
-    (?x0  ?grammar ?item_type) ldl:parse_nonterminal (?rest ?astf ?depth).
+    (?x0 ?grammar ?item_type) ldl:parse_grammar_item (?rest [:value ?astf] ?depth).
     astr :eq rdf:nil.
 }.
 

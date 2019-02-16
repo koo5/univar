@@ -127,3 +127,6 @@
 :n39 :has_succ :n40.
 :n40 :has_succ :n41.
 :n41 :has_succ :n42.
+
+
+{but cut put} <= {}.

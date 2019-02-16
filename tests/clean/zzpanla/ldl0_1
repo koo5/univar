@@ -19,12 +19,12 @@ kb
 
 {?initial_ldl :phase2 ?builtins_statements} <= {
     :dummy tau_builtins:output "initial_ldl:".
-    :dummy tau_builtins:output ?initial_ldl.
+    #:dummy tau_builtins:output ?initial_ldl.
     :dummy tau_builtins:output "parsed2builtins...".
     :dummy tau_builtins:toggle_tracing :dummy.
     ?initial_ldl :parsed2builtins ?builtins_statements.
     :dummy tau_builtins:output "builtins_statements:".
-    :dummy tau_builtins:serialize_thing ?builtins_statements.
+    #:dummy tau_builtins:serialize_thing ?builtins_statements.
 }.
 
 fin.
@@ -39,7 +39,7 @@ query
 #:dummy tau_builtins:output ?grammar_concrete.
 ?grammar_concrete :concrete_to_abstract ?grammar.
 :dummy tau_builtins:output "concrete_to_abstract.".
-:dummy tau_builtins:serialize_thing ?grammar.
+#:dummy tau_builtins:serialize_thing ?grammar.
 #:o :o :o.
 #:dummy tau_builtins:output ?grammar!rdf:
 :initial_ldl_text :has_value ?initial_ldl_text_value.
@@ -50,8 +50,8 @@ query
 ?a1 :parse_nonterminal ?a2.
 #:dummy tau_builtins:toggle_tracing :dummy.
 ?initial_ldl :phase2 ?builtins_statements.
-
-(?initial_ldl_text_list ?builtins_statements "builtins/statements") ldl:parse_nonterminal (rdf:nil ?ast :minus_one).
+:dummy tau_builtins:output "ldl:parse_nonterminal:".
+(?initial_ldl_text_list ?builtins_statements "statements") ldl:parse_nonterminal (rdf:nil ?ast :minus_one).
 
 
 

@@ -88,7 +88,7 @@
     #dummy tau_builtins:output ?parsed.
     ?parsed :children (?l0 ?y ?l1 ?z).
     ?y :parsed2builtins ?y_ldl. ?z :parsed2builtins ?z_ldl.
-    ?ldl a ldl:compound; ldl:type "builtins/x_is_a_series_of_y_separated_with_z"; ldl:children (
+    ?ldl a ldl:compound; ldl:type "builtins/a_series_of_y_separated_with_z"; ldl:children (
         [:key "item_type"; :value ?y_ldl]
         [:key "separator"; :value ?z_ldl]
     ).

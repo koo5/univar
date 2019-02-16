@@ -47,8 +47,14 @@
 
 {(?x0 ?grammar ?rhs_) ldl:parse_grammar_items (?rest ?children ?depth)} <= {
 	?rhsf a ldl:value; ldl:type "builtins/string"; ldl:contents ?v.
+	#:dummy tau_builtins:serialize_thing (?x0 ?mid ?v).
 	:dummy :literally_string (?x0 ?mid ?v).
 	(?mid ?grammar ?rhsr) ldl:parse_grammar_items (?rest ?children ?depth).
+}.
+{(?x0 ?grammar ?rhs_) ldl:parse_grammar_items (?rest ?children_ ?depth)} <= {
+    ?rhsf a ldl:value; ldl:type "builtins/identifier".
+	(?x0 ?grammar ?rhsf) ldl:parse_grammar_item (?after_item ?childrenf ?depth).
+	(?after_item ?grammar ?rhsr) ldl:parse_grammar_items (?rest ?childrenr ?depth).
 }.
 {(?x0 ?grammar ?rhs_) ldl:parse_grammar_items (?rest ?children_ ?depth)} <= {
     ?rhsf a ldl:compound.

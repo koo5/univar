@@ -136,22 +136,21 @@
 }.
 
 {rdf:nil :is_collected_string_literal_raw_body ?raw} <= {
- #   :dummy tau_builtins:output ":is_collected_string_literal_raw_body nil?".
     ?raw :children rdf:nil.
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body nil!".
 }.
-
 {?v_ :is_collected_string_literal_raw_body ?raw} <= {
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body?".
-    #:dummy tau_builtins:output ?v.
-    #:dummy tau_builtins:output ?raw.
     ?raw :children ([:value ?value] ?tail).
-#    :dummy tau_builtins:output ":is_collected_string_literal_raw_body...".
+    ?value string_builtins:const_is_not_equal_to_const "\\n".
+    ?value string_builtins:const_is_not_equal_to_const "\\\\".
+    ?value string_builtins:const_is_not_equal_to_const "\\]".
+    ?value string_builtins:const_is_not_equal_to_const "\\[".
     ?vf :eq ?value.
-#        :dummy tau_builtins:output ":is_collected_string_literal_raw_body....".
     ?vr :is_collected_string_literal_raw_body ?tail.
-#        :dummy tau_builtins:output ":is_collected_string_literal_raw_body!".
-
 }.
-
-
+{?v_ :is_collected_string_literal_raw_body ?raw} <= {
+    ?raw :children ([:value ?value] ?tail).
+    ?real :has_escape_code ?e.
+    ?value :eq ("\\" ?e)^string_builtins:strXlst.
+    ?vf :eq ?real.
+    ?vr :is_collected_string_literal_raw_body ?tail.
+}.

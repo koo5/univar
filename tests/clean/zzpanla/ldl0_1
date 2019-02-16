@@ -24,7 +24,7 @@ kb
     :dummy tau_builtins:toggle_tracing :dummy.
     ?initial_ldl :parsed2builtins ?builtins_statements.
     :dummy tau_builtins:output "builtins_statements:".
-    #:dummy tau_builtins:serialize_thing ?builtins_statements.
+    :dummy tau_builtins:serialize_thing ?builtins_statements.
 }.
 
 fin.

@@ -10,6 +10,7 @@ kb
 @include ../../ldl/utils
 @include ../../ldl/pre_ldl_dcg
 @include ../../ldl/dcg_datatypes
+@include ../../ldl/ldl_datatypes
 @include ../../ldl/parser_of_pre_ldl_dcg
 @include ../../ldl/initial_ldl_text
 @include ../../ldl/parse_initial_ldl_text_with_the_dcg
@@ -19,6 +20,7 @@ kb
     :dummy tau_builtins:output "initial_ldl:".
     :dummy tau_builtins:output ?initial_ldl.
     :dummy tau_builtins:output "parsed2builtins...".
+    :dummy tau_builtins:toggle_tracing :dummy.
     ?initial_ldl :parsed2builtins ?builtins_statements.
     :dummy tau_builtins:output "builtins_statements:".
     :dummy tau_builtins:serialize_thing ?builtins_statements.

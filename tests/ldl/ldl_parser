@@ -32,17 +32,17 @@
 	(?x0 ?grammar ?rhs) :parse_grammar_items (?rest ?ch ?depth).
 }.
 
-{(?x0 ?grammar ?rhs_) :parse_grammar_items (?rest ?children_ ?depth)} <= {
-	(?x0 ?grammar ?rhsf) :parse_grammar_item (?after_item ?childrenf ?depth).
-	(?after_item ?grammar ?rhsr) :parse_grammar_items (?rest ?childrenr ?depth).
-}.
-
 {(?x0 ?grammar rdf:nil) :parse_grammar_items (?x0 rdf:nil ?depth)} <= {}.
 
-{(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
-	?rhs_item a ldl:value; ldl:type "builtins/string"; ldl:contents ?v.
-	?child eq ?rhs_item.
-	:dummy :literally_string (?x0 ?rest ?v).
+{(?x0 ?grammar ?rhs_) :parse_grammar_items (?rest ?children ?depth)} <= {
+	?rhsf a ldl:value; ldl:type "builtins/string"; ldl:contents ?v.
+	:dummy :literally_string (?x0 ?mid ?v).
+	(?mid ?grammar ?rhsr) :parse_grammar_items (?rest ?children ?depth).
+}.
+{(?x0 ?grammar ?rhs_) :parse_grammar_items (?rest ?children_ ?depth)} <= {
+    ?rhsf a ldl:compound.
+	(?x0 ?grammar ?rhsf) :parse_grammar_item (?after_item ?childrenf ?depth).
+	(?after_item ?grammar ?rhsr) :parse_grammar_items (?rest ?childrenr ?depth).
 }.
 
 {(?x0 ?grammar ?rhs_item) :parse_grammar_item (?rest ?child ?depth)} <= {
@@ -71,6 +71,7 @@
 	?rhs_item :type "builtins/all_chars_until_one_of".
 	[:key "until"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
  	?ast a ldl:value; ldl:type "builtins/string"; ldl:contents ?string.
+	#this is gonna be fun when linearizing
 	?x0 :all_chars_until_one_of (?rest ?except ?char_list).
     ?string string_builtins:strXlst ?char_list.
 }.
@@ -89,18 +90,30 @@
 	?raw_ast :postprocess ?ast.
 }.
 
+
+
+
 {?raw :postprocess ?cooked} <= {
-    ?raw ldl:type "builtins/string_literal_raw"; ldl:children ?ch.
+    ?raw ldl:type "builtins/raw_string_literal"; ldl:children (?body).
     ?cooked :eq [a ldl:value; ldl:type "builtins/string"; ldl:contents ?v].
-    ?v_list :is_collected_string_literal_raw_body ?raw.
-    ?v string_builtins:strXlst ?ch.
+    :dummy :series_of_literals_X_string (?body ?v).
+}.
+{?raw :postprocess ?cooked} <= {
+    ?raw ldl:type "builtins/raw_identifier"; ldl:children (?chars).
+    ?cooked :eq [a ldl:value; ldl:type "builtins/identifier"; ldl:contents ?v].
+    :dummy :series_of_literals_X_string (?chars ?v).
 }.
 
-{rdf:nil :is_collected_string_literal_raw_body rdf:nil} <= {}.
+{:dummy :series_of_literals_X_string (?series ?string)} <= {
+    :dummy :is_collected_literals (?series ?strings).
+    ?string string_builtins:strXlst ?strings.
+}.
 
-{?v_ :is_collected_string_literal_raw_body ?r_} <= {
+{:dummy :is_collected_literals (rdf:nil rdf:nil)} <= {}.
+
+{:dummy :is_collected_literals (?r_ ?v_)} <= {
     ?rf :eq [:contents ?vf].
-    ?vr :is_collected_string_literal_raw_body ?rr.
+    ?vr :is_collected_literals ?rr.
 }.
 
 

@@ -609,7 +609,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		if len(r.existentials) > 1 or (len(r.existentials) == 1 and r.existentials[0] == r.head.args[0] and r.existentials[0] == r.head.args[1]):
 			raise Exception("too many existentials in " + str(r) +"\nexistentials: " + str(r.existentials))
 		b = Lines()
-		b.append(comment(r.__str__(shortener = common.shorten)))
+		b.append(comment(r.__str__()))#shortener = common.shorten)))
 		b.append(Statement('INIT_DBG_DATA'))
 		b.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 		if len(r.locals_template):
@@ -825,7 +825,7 @@ def local_expr(name, rule, not_getval = False):
 		return '&'+consts_of_rule(rule.original_head) + '[' + str(rule.consts_map[name])+']'
 
 def cppize_identifier(i: str) -> str:
-	return common.fix_up_identification(common.shorten(i))
+	return common.fix_up_identification((i))
 
 #String -> String
 def pred_func_declaration(pred_name):

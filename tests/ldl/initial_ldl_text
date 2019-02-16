@@ -30,21 +30,18 @@ grammar_item ++> builtin_postprocessed.
 builtin_postprocessed ++> [builtin-postprocessed ], node_name.
 
 node_name ++> identifier.
-identifier ++> builtin-postprocessed identifier_raw.
-identifier_raw ++> a series of any char except [\\n\\[\\]\\\\ ] separated with [].
+identifier ++> builtin-postprocessed raw_identifier.
+raw_identifier ++> [], a series of any char except [\\n\\[\\]\\\\ ] separated with [].
 
-string_literal ++> [\\[], builtin-postprocessed string_literal_body_raw, [\\]].
-string_literal_body_raw ++> [], a series of string_literal_body_raw_item separated with [].
+string_literal ++> builtin-postprocessed raw_string_literal.
+raw_string_literal ++> [\\[], raw_string_literal_body, [\\]].
+raw_string_literal_body ++> a series of raw_string_literal_body_item separated with [].
 
-string ++> builtin-postprocessed string_literal_raw.
-string_literal_raw ++> [\\[], string_literal_body_raw, [\\]].
-string_literal_body_raw ++> a series of string_literal_body_raw_item separated with [].
-
-string_literal_body_raw_item ++> any char except [\\n\\[\\]\\\\].
-string_literal_body_raw_item ++> [\\\\n].
-string_literal_body_raw_item ++> [\\\\\\[].
-string_literal_body_raw_item ++> [\\\\\\]].
-string_literal_body_raw_item ++> [\\\\\\\\].
+raw_string_literal_body_item ++> any char except [\\n\\[\\]\\\\].
+raw_string_literal_body_item ++> [\\\\n].
+raw_string_literal_body_item ++> [\\\\\\[].
+raw_string_literal_body_item ++> [\\\\\\]].
+raw_string_literal_body_item ++> [\\\\\\\\].
 """;
 :has_comment """
 this is a declarative definition of the basic building blocks of the ldl and their grammar.

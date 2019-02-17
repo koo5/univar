@@ -128,7 +128,7 @@
     :dummy :series_of_literals_X_string (?body ?v).
 }.
 {?raw ldl:postprocess ?cooked} <= {
-    ?raw ldl:type "builtins/raw_identifier"; ldl:children (?char ?chars).
+    ?raw ldl:type "builtins/raw_identifier"; ldl:children ([:value ?char] ?chars).
     ?cooked :eq [a ldl:value; ldl:type "builtins/identifier"; ldl:contents ?v].
     ?char :eq [ldl:contents ?v_head].
     :dummy :series_of_literals_X_string (?chars ?v_tail).

@@ -419,6 +419,8 @@ struct cpppred_state;
 
 struct cpppred_state;
 typedef vector<cpppred_state*> ep_table;
+typedef size_t state_id;
+state_id next_state_id = 0;
 
 struct cpppred_state
 {
@@ -436,6 +438,7 @@ struct cpppred_state
        size_t cumulative_euler_steps;
     #endif
     #ifdef TRACE_PROOF
+        state_id id;
         size_t num_substates;
         coro_status status;
         string *comment;
@@ -455,13 +458,16 @@ struct cpppred_state
             status = s;
             dump();
         }
-        void construct()
+        void construct(state_id parent_)
         {
+            id = next_state_id++;
+            parent = parent_;
             comment = (string*)NULL;
             status = INACTIVE;
             #ifdef CACHE
                 cumulative_euler_steps = 0;
             #endif
+
         }
         void destruct()
         {
@@ -671,6 +677,14 @@ string serialize_literal_to_n3(string c)
         maybe_reopen_trace_file();
         //print_euler_steps();
     }
+
+    proof_trace_add_state(state_id id, state_id parent_id)
+    {
+        stringstream msg;
+        msg << ",{\"a\":\"add\",\"id\":"<<id<<",\"parent\":"<<parent_id<<"},";
+        trace_write_raw(msg.str());
+    }
+
 #endif
 
 
@@ -711,12 +725,12 @@ size_t *grab_words(size_t count)
     return result;
 }
 
-cpppred_state *grab_states(size_t count)
+cpppred_state *grab_states(size_t count IF_TRACE_PROOF(state_id parent))
 {
     auto r = (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
     #ifdef TRACE_PROOF
         for (size_t i = 0; i < count; i++)
-            r[i].construct();
+            r[i].construct(parent);
     #endif
     return r;
 }

@@ -5,8 +5,8 @@ newline ++> [\\n].
 
 statements ++> a series of top_level_item separated with newline.
 
-top_level_item ++> newline.
-top_level_item ++> statement.
+top_level_item ++> [].
+top_level_item ++> statement, [.].
 top_level_item ++> comment.
 
 comment ++> [#], all chars until one of [\\n].
@@ -31,7 +31,8 @@ builtin_postprocessed ++> [builtin-postprocessed ], node_name.
 
 node_name ++> identifier.
 identifier ++> builtin-postprocessed raw_identifier.
-raw_identifier ++> [], a series of any char except [\\n\\[\\]\\\\ ] separated with [].
+raw_identifier ++> valid_identifier_char, a series of valid_identifier_char separated with [].
+valid_identifier_char ++> any char except [\\n\\[\\]\\\\ ].
 
 string_literal ++> builtin-postprocessed raw_string_literal.
 raw_string_literal ++> [\\[], raw_string_literal_body, [\\]].

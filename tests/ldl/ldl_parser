@@ -14,16 +14,16 @@
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
 	?rule :memberof ?grammar.
-
-	:dummy :shorten_location_printout (?x0 ?x0_shortened).
-	:dummy tau_builtins:output ("""invoking rule on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
-
 	(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth).
 }.
 
 {(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
     ?rule ldl:type "builtins/grammar"; ldl:children
     ([:value [ldl:contents ?nont]] [:value ?rhs]).
+	:dummy tau_builtins:output "found rule: ".
+    :dummy tau_builtins:serialize_thing ?rule.
+	:dummy :shorten_location_printout (?x0 ?x0_shortened).
+	:dummy tau_builtins:output ("""invoking rule on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 	(?x0 ?grammar ?nont ?rhs) ldl:parse_rhs (?rest ?ast ?depth).
 }.
 #{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
@@ -36,7 +36,6 @@
 	?ast a ldl:compound; ldl:type ?type; ldl:children ?ch.
 	(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?ch ?depth).
 }.
-
 {(?x0 ?grammar ?type ?rhs) ldl:parse_rhs (?rest ?ast ?depth)} <= {
     :dummy tau_builtins:output "ldl:parse_rhs exhausted on:".
 	:dummy tau_builtins:serialize_thing ?rhs.
@@ -84,8 +83,11 @@
 
 {(?x_ ?grammar ?rhs_item) ldl:parse_grammar_item (?xr ?ast ?depth)} <= {
 	?rhs_item ldl:type "builtins/any_char_except".
+	:dummy tau_builtins:output "builtins/any_char_except..".
 	[:key "except"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
+	:dummy tau_builtins:output "builtins/any_char_except.....".
 	?xf string_builtins:any_char_except ?except.
+	:dummy tau_builtins:output "builtins/any_char_except........".
  	?ast a ldl:value; ldl:type "builtins/string"; ldl:contents ?xf.
 }.
 
@@ -126,9 +128,11 @@
     :dummy :series_of_literals_X_string (?body ?v).
 }.
 {?raw ldl:postprocess ?cooked} <= {
-    ?raw ldl:type "builtins/raw_identifier"; ldl:children (?chars).
+    ?raw ldl:type "builtins/raw_identifier"; ldl:children (?char ?chars).
     ?cooked :eq [a ldl:value; ldl:type "builtins/identifier"; ldl:contents ?v].
-    :dummy :series_of_literals_X_string (?chars ?v).
+    ?char :eq [ldl:contents ?v_head].
+    :dummy :series_of_literals_X_string (?chars ?v_tail).
+    ?v string_builtins:strXlst (?v_head ?v_tail).
 }.
 
 {?raw ldl:postprocess ?cooked} <= {
@@ -142,7 +146,7 @@
     ?string string_builtins:strXlst ?strings.
 }.
 
-{:dummy :is_collected_literals (rdf:nil rdf:nil)} <= {}.
+{:dummy :is_collected_literals (rdf:nil "")} <= {}.
 
 {:dummy :is_collected_literals (?r_ ?v_)} <= {
     ?rf :eq [ldl:contents ?vf].
@@ -164,14 +168,11 @@
     (?mid ?grammar ?separator) ldl:parse_grammar_item (?end ?sep ?depth).
     :dummy :is_series (?end ?rest ?grammar ?item_type ?separator ?astr ?depth).
 }.
-
 {:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
     (?x0 ?grammar ?item_type) ldl:parse_grammar_item (?rest [:value ?astf] ?depth).
     astr :eq rdf:nil.
 }.
-
-{:dummy :is_series (?x0 ?x0 ?grammar ?item_type ?separator rdf:nil ?depth)} <= {
-}.
+{:dummy :is_series (?x0 ?x0 ?grammar ?item_type ?separator rdf:nil ?depth)} <= {}.
 
 
 

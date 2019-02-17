@@ -1,3 +1,28 @@
+with global trace:
+
+do_op(op)
+{
+	action = op.a;
+	if (action == "add")
+	{
+		state = {};
+		state.id = op["id"];
+		state.parent_id = op["parent_id"];
+		if (trace == null)
+			trace = state;
+		else
+			add_state(trace, state);
+	}
+}
+
+add_state(state, trace):
+	if trace.id == state.parent_id:
+		trace.children.add(state)
+	else:
+		for child in trace.children:
+			add_state(child, state);
+
+
 <!DOCTYPE html>
 <html>
 <head>

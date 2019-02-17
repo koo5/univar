@@ -62,7 +62,8 @@ char *first_free_byte;
 
 
 string current_ep_comment;
-unsigned long euler_steps = 0;
+typedef unsigned long euler_steps_t;
+euler_steps_t euler_steps = 0;
 chrono::steady_clock::time_point last_ep_tables_printout = chrono::steady_clock::time_point::min();
 
 
@@ -637,6 +638,12 @@ string serialize_literal_to_n3(string c)
 
 #ifdef TRACE_PROOF
 
+    #define JSONCONS_NO_DEPRECATED
+    #include <jsoncons/json.hpp>
+using jsoncons::json;
+
+
+
     void trace_write(string s)
     {
         escape_trace(s);
@@ -678,11 +685,53 @@ string serialize_literal_to_n3(string c)
         //print_euler_steps();
     }
 
-    proof_trace_add_state(state_id id, state_id parent_id)
+    void proof_trace_add_op(json &js)
     {
         stringstream msg;
-        msg << ",{\"a\":\"add\",\"id\":"<<id<<",\"parent\":"<<parent_id<<"},";
+        msg << op << ",";
         trace_write_raw(msg.str());
+    }
+
+    void proof_trace_add_state(state_id id, state_id parent_id)
+    {
+        json op;
+        op["a"] = "add";
+        op["id"] = id;
+        op["parent_id"] = parent_id;
+        proof_trace_add_op(op);
+    }
+
+    void proof_trace_add_state(state_id id)
+    {
+        json op;
+        op["a"] = "remove";
+        op["id"] = id;
+        proof_trace_add_op(op);
+    }
+
+    void proof_trace_set_comment(state_id id, string comment)
+    {
+        json op;
+        op["a"] = "set_comment";
+        op["id"] = id;
+        op["comment"] = comment;
+        proof_trace_add_op(op);
+    }
+
+    void proof_trace_set_status(state_id id, coro_status status)
+    {
+        json op;
+        op["a"] = "set_status";
+        op["id"] = id;
+        op["status"] = status;
+        proof_trace_add_op(op);
+    }
+    void proof_trace_emit_euler_steps()
+    {
+        json op;
+        op["a"] = "set_steps";
+        op["value"] = euler_steps;
+        proof_trace_add_op(op);
     }
 
 #endif

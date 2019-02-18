@@ -448,16 +448,17 @@ struct cpppred_state
                 *comment = x;
             else
                 comment = new string(x);
+            proof_trace_set_comment(id, comment);
         }
         void set_active(bool a)
         {
-            status = a ? ACTIVE : INACTIVE;
-            dump();
+            set_status(a ? ACTIVE : INACTIVE);
         }
         void set_status(coro_status s)
         {
             status = s;
-            dump();
+            proof_trace_set_status(s);
+            dump_tracing_step();
         }
         void construct(state_id parent_)
         {
@@ -468,12 +469,13 @@ struct cpppred_state
             #ifdef CACHE
                 cumulative_euler_steps = 0;
             #endif
-
+            proof_trace_add_state(id, parent);
         }
         void destruct()
         {
             if (comment)
                 delete comment;
+            proof_trace_remove_state(id);
         }
     #endif
 };
@@ -685,6 +687,18 @@ using jsoncons::json;
         //print_euler_steps();
     }
 
+    void dump_tracing_step()
+    {
+
+    }
+    void begin_tracing_step()
+    {
+        trace_write_raw("step(["
+    }
+    void end_tracing_step()
+    {
+        trace_write_raw("]);\n"
+    }
     void proof_trace_add_op(json &js)
     {
         stringstream msg;
@@ -701,7 +715,7 @@ using jsoncons::json;
         proof_trace_add_op(op);
     }
 
-    void proof_trace_add_state(state_id id)
+    void proof_trace_remove_state(state_id id)
     {
         json op;
         op["a"] = "remove";

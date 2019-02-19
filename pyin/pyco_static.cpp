@@ -27,11 +27,56 @@ using namespace std;
 #define IF_TRACE(x)
 #endif
 
+#ifdef TRACE_PROOF
+#define IF_TRACE_PROOF(x) ,x
+#else
+#define IF_TRACE_PROOF(x)
+#endif
+
 #ifdef SECOND_CHANCE
 #define IF_SECOND_CHANCE(x) ,x
 #else
 #define IF_SECOND_CHANCE(x)
 #endif
+
+
+
+
+
+
+#define ASSERT assert
+
+
+
+typedef unsigned long nodeid;
+enum ConstantType {URI, STRING, INTEGER};
+typedef pair<nodeid,size_t> nodeid_and_refcount;
+
+
+
+
+
+
+
+struct Thing;
+
+#ifdef TRACE
+string thing_to_string_nogetval(Thing* v);
+#endif
+
+enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
+/*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
+reference? http://www.delorie.com/gnu/docs/glibc/libc_31.html
+*/
+typedef unsigned long BnodeOrigin; /*uniquely specifies rule and thing name*/
+typedef vector<Thing> Locals;
+
+static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
+static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
+static_assert(sizeof(Thing*) == sizeof(unsigned long), "damn");
+static_assert(sizeof(Thing*) == sizeof(size_t), "damn");
+
+
 
 
 
@@ -51,14 +96,6 @@ using namespace std;
 
 
 
-#define ASSERT assert
-
-
-/*im just allocating one block of hardcoded size for now*/
-const size_t malloc_size = 1024ul*1024ul*480ul;
-size_t block_size = malloc_size;
-char *block; /*this is the start of the block inside which first_free_byte is*/
-char *first_free_byte;
 
 
 string current_ep_comment;
@@ -158,14 +195,50 @@ void maybe_print_euler_steps()
 
 
 
+enum coro_status {INACTIVE, ACTIVE, EP, YIELD, BNODE_YIELD};
+struct cpppred_state;
+typedef vector<cpppred_state*> ep_table;
+typedef size_t state_id;
+state_id next_state_id = 10;
 
 
 
+
+/*im just allocating one block of hardcoded size for now*/
+const size_t malloc_size = 1024ul*1024ul*480ul;
+size_t block_size = malloc_size;
+char *block; /*this is the start of the block inside which first_free_byte is*/
+char *first_free_byte;
+
+void realloc();
+size_t *grab_words(size_t count);
+cpppred_state *grab_states(size_t count IF_TRACE_PROOF(state_id parent));
+void release_bytes(size_t count);
+void release_states(size_t count);
+Thing *grab_things(size_t count);
+void release_things(size_t count);
 
 
 
 
 #ifdef TRACE_PROOF
+
+    #define JSONCONS_NO_DEPRECATED
+    #include <jsoncons/json.hpp>
+    using jsoncons::json;
+
+    void dump_tracing_step();
+    void begin_tracing_step();
+    void end_tracing_step();
+    void proof_trace_add_op(json &js);
+    void proof_trace_add_state(state_id id, state_id parent_id);
+    void proof_trace_remove_state(state_id id);
+    void proof_trace_set_comment(state_id id, const string &comment);
+    void proof_trace_set_status(state_id id, coro_status status);
+    void proof_trace_emit_euler_steps();
+
+    void dump();
+
     bool tracing_enabled = true;
     bool tracing_active = true;
     string trace_string;
@@ -173,43 +246,11 @@ void maybe_print_euler_steps()
     size_t current_trace_file_id = 0;
     size_t written_bytes;
 
-    void trace_write_raw(string s)
-    {
-        trace_string += s;
-    }
-
-    void open_trace_file()
-    {
-        written_bytes = 0;
-        trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
-        trace_write_raw("window.pyco = Object();window.pyco.frames = [];");//??
-        //dump();
-    }
-
-    void trace_flush()
-    {
-        written_bytes += trace_string.size();
-        trace << trace_string << endl;
-        trace_string.clear();
-        /*trace.close();
-        trace.open(trace_output_path"/trace.js", ios_base::app);*/
-    }
-
-    void close_trace_file()
-    {
-        trace_flush();
-        trace.close();
-    }
-
-    void maybe_reopen_trace_file()
-    {
-        if (written_bytes / (1024*1024*100))
-        {
-            close_trace_file();
-            current_trace_file_id++;
-            open_trace_file();
-        }
-    }
+    void trace_write_raw(string s);
+    void open_trace_file();
+    void trace_flush();
+    void close_trace_file();
+    void maybe_reopen_trace_file();
 #endif
 
 
@@ -225,9 +266,6 @@ void maybe_print_euler_steps()
 
 
 
-typedef unsigned long nodeid;
-enum ConstantType {URI, STRING, INTEGER};
-typedef pair<nodeid,size_t> nodeid_and_refcount;
 
 struct Constant
 {
@@ -253,34 +291,6 @@ vector<nodeid> consts_stack; /*this is so coroutines can just call pop_const, wi
 
 
 
-
-
-struct Thing;
-
-#ifdef TRACE
-string thing_to_string_nogetval(Thing* v);
-#endif
-
-
-
-
-
-enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
-/*on a 64 bit system, we have 3 bits to store these, on a 32 bit system, two bits
-reference? http://www.delorie.com/gnu/docs/glibc/libc_31.html
-*/
-
-typedef unsigned long BnodeOrigin; /*uniquely specifies rule and thing name*/
-
-
-
-
-typedef vector<Thing> Locals;
-
-static_assert(sizeof(Thing*) == sizeof(nodeid), "damn");
-static_assert(sizeof(Thing*) == sizeof(BnodeOrigin), "damn");
-static_assert(sizeof(Thing*) == sizeof(unsigned long), "damn");
-static_assert(sizeof(Thing*) == sizeof(size_t), "damn");
 
 struct Thing
 {
@@ -411,17 +421,9 @@ Thing *get_value(Thing *x)
 }
 
 
-void dump();
+
 typedef pair<Thing*,Thing*> thingthingpair;
-enum coro_status {INACTIVE, ACTIVE, EP, YIELD, BNODE_YIELD};
-struct cpppred_state;
 
-
-
-struct cpppred_state;
-typedef vector<cpppred_state*> ep_table;
-typedef size_t state_id;
-state_id next_state_id = 0;
 
 struct cpppred_state
 {
@@ -439,7 +441,7 @@ struct cpppred_state
        size_t cumulative_euler_steps;
     #endif
     #ifdef TRACE_PROOF
-        state_id id;
+        state_id id, parent;
         size_t num_substates;
         coro_status status;
         string *comment;
@@ -448,7 +450,8 @@ struct cpppred_state
                 *comment = x;
             else
                 comment = new string(x);
-            proof_trace_set_comment(id, comment);
+            if (tracing_enabled && tracing_active)
+                proof_trace_set_comment(id, *comment);
         }
         void set_active(bool a)
         {
@@ -457,8 +460,11 @@ struct cpppred_state
         void set_status(coro_status s)
         {
             status = s;
-            proof_trace_set_status(s);
-            dump_tracing_step();
+            if (tracing_enabled && tracing_active)
+            {
+                proof_trace_set_status(id, s);
+                dump_tracing_step();
+            }
         }
         void construct(state_id parent_)
         {
@@ -469,15 +475,25 @@ struct cpppred_state
             #ifdef CACHE
                 cumulative_euler_steps = 0;
             #endif
-            proof_trace_add_state(id, parent);
+            if (tracing_enabled && tracing_active)
+            {
+                proof_trace_add_state(id, parent);
+            }
         }
         void destruct()
         {
             if (comment)
                 delete comment;
-            proof_trace_remove_state(id);
+            if (tracing_enabled && tracing_active)
+            {
+                proof_trace_remove_state(id);
+            }
         }
     #endif
+    void grab_substates(size_t count)
+    {
+        states = grab_states(count IF_TRACE_PROOF(id));
+    }
 };
 
 cpppred_state *top_level_coro, *top_level_tracing_coro;
@@ -640,10 +656,7 @@ string serialize_literal_to_n3(string c)
 
 #ifdef TRACE_PROOF
 
-    #define JSONCONS_NO_DEPRECATED
-    #include <jsoncons/json.hpp>
-using jsoncons::json;
-
+    #include "pyco_json_tracing.cpp"
 
 
     void trace_write(string s)
@@ -687,66 +700,6 @@ using jsoncons::json;
         //print_euler_steps();
     }
 
-    void dump_tracing_step()
-    {
-
-    }
-    void begin_tracing_step()
-    {
-        trace_write_raw("step(["
-    }
-    void end_tracing_step()
-    {
-        trace_write_raw("]);\n"
-    }
-    void proof_trace_add_op(json &js)
-    {
-        stringstream msg;
-        msg << op << ",";
-        trace_write_raw(msg.str());
-    }
-
-    void proof_trace_add_state(state_id id, state_id parent_id)
-    {
-        json op;
-        op["a"] = "add";
-        op["id"] = id;
-        op["parent_id"] = parent_id;
-        proof_trace_add_op(op);
-    }
-
-    void proof_trace_remove_state(state_id id)
-    {
-        json op;
-        op["a"] = "remove";
-        op["id"] = id;
-        proof_trace_add_op(op);
-    }
-
-    void proof_trace_set_comment(state_id id, string comment)
-    {
-        json op;
-        op["a"] = "set_comment";
-        op["id"] = id;
-        op["comment"] = comment;
-        proof_trace_add_op(op);
-    }
-
-    void proof_trace_set_status(state_id id, coro_status status)
-    {
-        json op;
-        op["a"] = "set_status";
-        op["id"] = id;
-        op["status"] = status;
-        proof_trace_add_op(op);
-    }
-    void proof_trace_emit_euler_steps()
-    {
-        json op;
-        op["a"] = "set_steps";
-        op["value"] = euler_steps;
-        proof_trace_add_op(op);
-    }
 
 #endif
 
@@ -758,74 +711,6 @@ using jsoncons::json;
 
 
 
-
-
-
-
-
-
-
-
-
-void realloc()
-{
-        block_size += malloc_size;
-        if (realloc(block, block_size) != block)
-        {
-            cerr << "cant expand memory" << endl;
-            exit(1);
-        }
-}
-
-size_t *grab_words(size_t count)
-{
-    size_t *result = (size_t *)first_free_byte;
-    size_t increase = count * sizeof(size_t);
-    //cerr << "block="<<block<<", requested " << count << "words="<<count * sizeof(size_t)<<"bytes, increase="<<increase<<",first_free_byte before = " << first_free_byte<<", after="<<first_free_byte + increase << ", must realloc:"<< (first_free_byte+increase >= block + block_size)<<endl;
-    first_free_byte += increase;
-    while (first_free_byte >= block + block_size)
-        realloc();
-    return result;
-}
-
-cpppred_state *grab_states(size_t count IF_TRACE_PROOF(state_id parent))
-{
-    auto r = (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
-    #ifdef TRACE_PROOF
-        for (size_t i = 0; i < count; i++)
-            r[i].construct(parent);
-    #endif
-    return r;
-}
-
-void release_bytes(size_t count)
-{
-    #ifdef DEBUG
-        for (size_t i = 1; i <= count; i++)
-            *(first_free_byte - i) = 0;
-    #endif
-    first_free_byte -= count;
-}
-
-void release_states(size_t count)
-{
-    #ifdef TRACE_PROOF
-        for (size_t i = 0; i < count; i++)
-            (((cpppred_state*)first_free_byte)-i-1)->destruct();
-    #endif
-    release_bytes(count * sizeof(cpppred_state));
-}
-
-Thing *grab_things(size_t count)
-{
-    auto r = (Thing*) grab_words(count * sizeof(Thing) / sizeof(size_t));
-    return r;
-}
-
-void release_things(size_t count)
-{
-    release_bytes(count * sizeof(Thing));
-}
 
 
 size_t query_list(cpppred_state & __restrict__ state);
@@ -841,7 +726,7 @@ vector<Thing*>* query_list_wrapper(Thing *x)
         bool was_tracing_enabled = tracing_enabled;
         tracing_enabled = false;
     #endif
-    cpppred_state *state = grab_states(1);
+    cpppred_state *state = grab_states(1 IF_TRACE_PROOF(0));
     state->entry = 0;
     state->incoming[0] = x;
     ASSERT(x->type() != BOUND);
@@ -1100,7 +985,7 @@ int main (int argc, char *argv[])
         open_trace_file();
 	#endif
     query_start_time = std::chrono::steady_clock::now();
-    top_level_tracing_coro = top_level_coro = grab_states(1);
+    top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(0));
     top_level_coro->entry = 0;
     while(query(*top_level_coro)!=0)
     {
@@ -1184,6 +1069,9 @@ Constant rdf_nil = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
 Constant rdf_first = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"};
 Constant rdf_rest = Constant{URI,"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"};
 
+
+
+#include "pyco_memory.cpp"
 
 
 /*

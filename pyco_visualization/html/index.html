@@ -1,68 +1,96 @@
-with global trace:
-
-do_op(op)
-{
-	action = op.a;
-	if (action == "add")
-	{
-		state = {};
-		state.id = op["id"];
-		state.parent_id = op["parent_id"];
-		if (trace == null)
-			trace = state;
-		else
-			add_state(trace, state);
-	}
-}
-
-add_state(state, trace):
-	if trace.id == state.parent_id:
-		trace.children.add(state)
-	else:
-		for child in trace.children:
-			add_state(child, state);
-
-
 <!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8"/>
 	<script type="text/javascript" src="vue.js"></script>
-	<script type="text/javascript" src="../trace0.js"></script>
+	<script type="text/javascript" src="jquery-3.3.1.js"></script>
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="trace">
-	<span v-html="message"></span>
+<div id="top">
+	<div id="step_id">
+		step: <span v-html="step_id"></span>
+	</div>
+	<div id="trace">
+		<span> {{ root.trace }} </span>
+	</div>
 </div>
 <script type="text/javascript">
-	var vue_det = new Vue({
-		el: '#trace',
+	
+	$( document ).ready(function() {
+		console.log( "ready!" );
+		next_step();
+
+/*		$.ajax({
+			url: "../trace0.js"
+		}).done(function() {
+			( "done" );
+		});
+*/
+
+	});
+
+	function S(x)
+	{
+		vm.steps.push(x);
+	}
+
+	var vm = new Vue({
+		el: '#top',
 		data: {
-			message: 'My first VueJS Task',
+			root : {"trace": {"banana":"pie"}},
+			step_id: -1,
+			file_offset: 0,
+			steps: [],
+			states: [],
 		},
 		mounted: function ()
 		{
-			var update = function(vue_det)
-			{
-				vue_det.message = window.pyco.frames[window.pyco.pos];
-			}
+			this.$nextTick(function () {
 			window.addEventListener('keydown', function (event) {
 				c = event.keyCode;
-				if (c==188 && window.pyco.pos > 0)
+				if (c==188 && vm.step_id > 0)
 				{
-					window.pyco.pos--;
+					vm.step_id--;
 				}
 				if (c==190)
-				{
-					window.pyco.pos++;
-				}
-				update(vue_det);
+					next_step();
 			});
-			window.pyco.pos  = 0;
-			update(this);
+			});
 		}
 	});
+
+	function next_step()
+	{
+		vm.step_id++;
+		let step_idx = vm.step_id - vm.file_offset;
+		let step = vm.steps[vm.step_id - vm.file_offset];
+		//console.log(vm.steps);
+		//console.log(step);
+		step.forEach(op => {do_op(op);});
+	}
+
+	function do_op(op)
+	{
+		let action = op.a;
+		console.log(op);
+
+		if (action == "add")
+		{
+			state = {"children":[]};
+			state.id = op["id"];
+			state.parent_id = op["parent_id"];
+			let parent = state.parent_id.toString();
+			let adding = state.id.toString();
+			vm.states[adding] = state;
+			if (vm.states.hasOwnProperty(parent))
+				vm.states[parent].children.push(state)
+			else
+				vm.root.trace = state;
+		}
+	}
+
 </script>
+<script type="text/javascript" src="../trace0.js"></script>
 </body>
 </html>

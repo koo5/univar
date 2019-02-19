@@ -302,7 +302,7 @@ int unify(cpppred_state & __restrict__ state)
 			}
 			"""))
 			states_len = '('+str(len(rule.head_vars)-1)+')'
-			outer_block.append(Statement('state.states = grab_states'+states_len))
+			outer_block.append(Statement('state.grab_substates('+states_len+')'))
 			if trace_unification_:
 				outer_block.append(Statement('state.num_substates = '+states_len))
 			block = outer_block
@@ -432,6 +432,9 @@ bool result_is_grounded(cpppred_state &state)
 			"""
 void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
 {
+	(void)first_free_id;
+	(void)result;
+
 	size_t id = todo[t];
 	done[t] = id;
 	todo.erase(t);
@@ -618,7 +621,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				b.append(Statement('state.locals['+str(v)+'] = ' +
 					s.thing_literal(r, r.locals_template[v])))
 		if r.max_states_len:
-			b.append(Statement("state.states = grab_states(" + str(r.max_states_len) + '/*, state*/)'))
+			b.append(Statement("state.grab_substates(" + str(r.max_states_len) + ')'))
 		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
 			#for i in range(r.max_states_len):
@@ -1040,7 +1043,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 		ASSERT(result_vec);
 		//cerr << (result_vec) << ", " << result_vec->size() << endl;
 		//ASSERT(result_vec->empty());
-		state.states = grab_states(3/*, state*/);
+		state.grab_substates(3);
 		state.locals = grab_things(2);
 		state.locals[first] = """+emitter.thing_literal(666,pyin.Var('first'))+""";
 		state.locals[rest] = """+emitter.thing_literal(666,pyin.Var('rest'))+""";
@@ -1122,7 +1125,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 						Constant input_const = nodeids2consts[str->node_id()];
 						string input_string = input_const.value;
 	
-						state.states = grab_states(1);
+						state.grab_substates(1);
 						#ifdef TRACE_PROOF
 							state.num_substates = 1;
 						#endif
@@ -1154,7 +1157,7 @@ size_t query_list(cpppred_state & __restrict__ state)
  				}
 				else if ((lst->type() == BNODE) || (lst->type() == CONST && lst->node_id() == nodeid_rdf_nil))
 				{
-					state.states = grab_states(2);
+					state.grab_substates(2);
 					state.locals = grab_things(2);
 					*((vector<Thing*>**)(&state.locals[0])) = new vector<Thing*>;
 					state.states[0].entry = 0;
@@ -1355,7 +1358,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 
 	b = Builtin()
 	b.doc = """dummy toggle_tracing_active dummy.
-	does not change the root of the proof tree, just deactivates tracing beyond this rule, until the next invocation or backtrace
+	does not change the root of the proof tree, just deactivates tracing beyond this rule, until the next invocation or backtrack
 	"""
 	b.example = """
 	@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>."""
@@ -1478,7 +1481,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 				}
 				else if(character->type() == UNBOUND)
 				{
-					state.states = grab_states(1);
+					state.grab_substates(1);
 					state.locals = grab_things(2);
 					#define ch (*((char*)(&state.locals[0])))
 					#define ch_thing state.locals[1]

@@ -459,6 +459,7 @@ struct cpppred_state
         }
         void set_status(coro_status s)
         {
+            if (status == s) return;
             status = s;
             if (tracing_enabled && tracing_active)
             {

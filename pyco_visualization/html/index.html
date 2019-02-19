@@ -19,16 +19,14 @@
 	
 	$( document ).ready(function() {
 		console.log( "ready!" );
-		next_step();
-
-/*		$.ajax({
-			url: "../trace0.js"
-		}).done(function() {
-			( "done" );
-		});
-*/
-
-	});
+$.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
+  console.log( data ); // Data returned
+  console.log( textStatus ); // Success
+  console.log( jqxhr.status ); // 200
+  console.log( "Load was performed." );
+  next_step();
+});    
+});
 
 	function S(x)
 	{
@@ -53,7 +51,7 @@
 				{
 					vm.step_id--;
 				}
-				if (c==190)
+				if (c==190 && vm.steps.length > 0)
 					next_step();
 			});
 			});
@@ -62,11 +60,12 @@
 
 	function next_step()
 	{
+		console.log("next_step");
+
 		vm.step_id++;
 		let step_idx = vm.step_id - vm.file_offset;
 		let step = vm.steps[vm.step_id - vm.file_offset];
 		//console.log(vm.steps);
-		//console.log(step);
 		step.forEach(op => {do_op(op);});
 	}
 
@@ -91,6 +90,6 @@
 	}
 
 </script>
-<script type="text/javascript" src="../trace0.js"></script>
+<!-- <script type="text/javascript" src="../trace0.js"></script> -->
 </body>
 </html>

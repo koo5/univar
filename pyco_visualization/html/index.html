@@ -2,66 +2,118 @@
 <html>
 <head>
 	<meta charset="utf-8"/>
+
 	<script type="text/javascript" src="vue.js"></script>
 	<script type="text/javascript" src="jquery-3.3.1.js"></script>
+	<script src="lodash.js"></script>
+
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="top">
-		step: <span v-html="step_id"></span>
-		<state :state="root.trace"></state>
+		<div>step: {{ view.root.step_id }}</div>
+		<coro_state :coro_state="view.root"></coro_state>
 </div>
 <script type="text/javascript">
-	Vue.component('state', {
-		props: ["state"],
+	Vue.component('coro_state', {
+		props: ["coro_state"],
 		template: `
-			<div class="state">
-			{{ state.status }} - {{ state.comment }}
+			<div class="coro_state">
+			{{ coro_state.status }} - {{ coro_state.comment }}
 			<ul>
-			<div v-for="child in state.children" :key="child.id">
+			<div v-for="child in coro_state.children" :key="child.id">
 				<li>
-				<state :state="child"></state>
+				<coro_state :coro_state="child"></coro_state>
 				</li>
 			</div>
 			</ul>
 			</div>
-			`});
-
+		`
+	});
 	var vm = new Vue({
 		el: '#top',
 		data: {
-			root : {"trace": {"banana":"pie"}},
-			step_id: -1,
-			file_offset: 0,
+			view: 
+			{
+				root:
+				{
+					status:"hello! loading trace file failed?"
+				},
+				step_id: -1,
+				index: [],
+			},
+			snapshots: [],
 			steps: [],
-			states: [],
 		},
 		mounted: function ()
 		{
-			this.$nextTick(function () {
 			window.addEventListener('keydown', function (event) {
 				c = event.keyCode;
-				if (c==188 && vm.step_id > 0)
+				if (c==188 && vm.view.step_id > 0)
 				{
-					vm.step_id--;
+					prev_step();
 				}
 				if (c==190 && vm.steps.length > 0)
-					next_step();
-			});
+					go_to_next_step();
 			});
 		}
 	});
 
-	function next_step()
+	const snapshot_interval = 80;
+	function maybe_take_snapshot()
 	{
-		console.log("next_step");
-		vm.step_id++;
-		let step_idx = vm.step_id - vm.file_offset;
-		let step = vm.steps[vm.step_id - vm.file_offset];
-		step.forEach(op => {do_op(op);});
+		const step_id = vm.view.step_id;
+		if (step_id % snapshot_interval == 0)
+			if (vm.snapshots[step_id] === undefined)
+				vm.snapshots[step_id] = _.cloneDeep(vm.view);
 	}
-
-	function do_op(op)
+	function go_to_next_step()
+	{
+		console.log("go_to_next_step");
+		maybe_take_snapshot();
+		move_view_to_next_step(vm.view)
+	}
+	function move_view_to_next_step(view)
+	{
+		const step = vm.steps[view.step_id+1];
+		if (step != undefined)
+		{
+			view.step_id++
+			step.forEach(op => {do_op(op, view)})
+			return true;
+		}
+		else
+			alert("undefined step:" + view.step_id)
+		return false;
+	}
+	function prev_step()
+	{
+		console.log('prev_step')
+		const wanted = vm.view.step_id - 1;
+		let best = 0; // we never delete the 0 snapshot
+		for (let idx = 0; idx < vm.snapshots.length; idx++)
+		{
+			if (idx > wanted)
+				break;
+			let snapshot = vm.snapshots[idx]
+			if (snapshot != undefined)
+				best = idx
+		}
+		//now best is the index of the closest snapshot
+		let snapshot = _.cloneDeep(vm.snapshots[best])
+		while (wanted > snapshot.step_id)
+		{
+			if (!move_view_to_next_step(snapshot))
+			{
+				alert("fail");
+				return;
+			}
+		}
+		vm.view.index = snapshot.index;
+		vm.view.root = snapshot.root
+		vm.view.step_id = wanted
+	}
+	function do_op(op, view)
 	{
 		let action = op.a;
 		//console.log(op);
@@ -72,32 +124,31 @@
 			state.id = op["id"];
 			const parent_id = op["parent_id"];
 			state.parent_id = parent_id;
-			if (vm.states.hasOwnProperty(parent_id))
+			if (view.index.hasOwnProperty(parent_id))
 			{
-				state.parent = vm.states[parent_id]
-				vm.states[parent_id].children.push(state)
+				state.parent = view.index[parent_id]
+				view.index[parent_id].children.push(state)
 			}
 			else
 			{
-				vm.root.trace = state;
+				view.root = state;
 			}
-			vm.states[state.id] = state;
+			view.index[state.id] = state;
 
 		}
 		if (action == "set_comment")
 		{
-			vm.states[op.id].comment = op.comment;
+			view.index[op.id].comment = op.comment;
 		}
 		if (action == "set_status")
 		{
-			console.log(op.id + " status "  +  coro_status[op.status]);	
-			vm.states[op.id].status = coro_status[op.status];
+			//console.log(op.id + " status "  +  coro_status[op.status]);
+			view.index[op.id].status = coro_status[op.status];
 		}
 		if (action == "remove")
 		{
-			let ch = vm.states[op.id].parent.children;
-			ch.splice(ch.indexOf(vm.states[op.id]), 1);
-			vm.states.splice(vm.states.indexOf(op.id), 1);
+			_.pull(view.index[op.id].parent.children, view.index[op.id])
+			view.index.splice(op.id, 1);
 		}
 	}
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
@@ -109,7 +160,7 @@ $.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
   console.log( textStatus ); // Success
   console.log( jqxhr.status ); // 200
   console.log( "Load was performed." );
-  next_step();
+  go_to_next_step();
 });    
 });
 

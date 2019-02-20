@@ -249,7 +249,7 @@ int unify(cpppred_state & __restrict__ state)
 	#ifdef TRACE_PROOF
 		state.num_substates = 0;
 		#ifdef TRACE_UNIFICATION
-			state.status = ACTIVE;
+			state.set_status(ACTIVE);
 		#endif
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
@@ -1036,7 +1036,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 		}
 		#ifdef TRACE_PROOF
 			state.num_substates = 0;
-			state.status = ACTIVE;
+			state.set_status(ACTIVE);
 			//proof_trace_add_state(state);/*finish me*/
 		#endif
 		//cerr << "i" << state.incoming[1] << endl;

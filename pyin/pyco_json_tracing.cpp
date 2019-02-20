@@ -34,6 +34,7 @@ void proof_trace_set_comment(state_id id, const string &comment)
     json op;
     op["a"] = "set_comment";
     op["id"] = id;
+    ASSERT(comment);
     op["comment"] = comment;
     proof_trace_add_op(op);
 }
@@ -46,7 +47,8 @@ void proof_trace_set_status(state_id id, coro_status status, bool with_introduct
     if (with_introduction)
     {
         op["parent_id"] = parent_id;
-        op["comment"] = *comment;
+        if (comment)
+            op["comment"] = *comment;
     }
     proof_trace_add_op(op);
 }

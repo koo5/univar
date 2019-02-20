@@ -8,13 +8,8 @@
 </head>
 <body>
 <div id="top">
-	<div id="step_id">
 		step: <span v-html="step_id"></span>
-	</div>
-	<div id="trace_root">
 		<state :state="root.trace"></state>
-	</div>
-	<br><br><br><br><br><br><br><br><br><br><br><br><br>
 </div>
 <script type="text/javascript">
 	Vue.component('state', {

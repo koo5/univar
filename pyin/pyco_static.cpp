@@ -466,6 +466,7 @@ struct cpppred_state
             if (tracing_enabled && tracing_active)
             {
                 proof_trace_set_status(id, s, !was_introduced, parent, comment);
+                was_introduced = true;
                 dump_tracing_step();
             }
         }

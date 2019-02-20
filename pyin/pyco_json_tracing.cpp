@@ -34,7 +34,6 @@ void proof_trace_set_comment(state_id id, const string &comment)
     json op;
     op["a"] = "set_comment";
     op["id"] = id;
-    ASSERT(comment);
     op["comment"] = comment;
     proof_trace_add_op(op);
 }

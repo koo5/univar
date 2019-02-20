@@ -248,24 +248,20 @@ int unify(cpppred_state & __restrict__ state)
 {
 	#ifdef TRACE_PROOF
 		state.num_substates = 0;
-		#ifdef TRACE_UNIFICATION
-			state.set_status(ACTIVE);
-		#endif
 	#endif
 	Thing *x = state.incoming[0]; Thing *y = state.incoming[1];
 	goto *(((char*)&&case0) + state.entry);
 	case0:
-		INIT_DBG_DATA;
-	""")])
-		if trace_unification_:
-			result.append(If("top_level_tracing_coro && tracing_enabled && tracing_active",
-				Block([
-					 #Statement("""stringstream ss"""),
-					 #Statement("""ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y)"""),
-					 #Statement("""state.set_comment(ss.str())"""),
-					 #Statement("""state.set_active(true)""")
-				])))
-		result.append(Line("""
+	INIT_DBG_DATA;
+	#ifdef TRACE_UNIFICATION
+		if(top_level_tracing_coro && tracing_enabled && tracing_active)
+		{
+			stringstream ss;
+			ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y);
+			state.set_comment(ss.str());
+			state.set_active(true);
+		}
+	#endif
 	ASSERT(x->type() != BOUND);ASSERT(y->type() != BOUND);
 	ASSERT(x->type() != BNODE || !x->_bnode_bound_to);
 	ASSERT(y->type() != BNODE || !y->_bnode_bound_to);
@@ -289,7 +285,7 @@ int unify(cpppred_state & __restrict__ state)
 		ASSERT(!y->_bnode_bound_to);
 		switch (y->origin())
 		{
-			"""))
+			""")])
 		s.state_index = 0
 		outer_block = result
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
@@ -893,7 +889,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	trace = not notrace
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
-	subprocess.call(['cp', '-r', 'pyco_visualization/html', outpath])
+	subprocess.call(['ln', '-s', '../../pyco_visualization/html', outpath])
 	subprocess.call(['cp', '-r', 'pyco_makefile', outpath+'Makefile'])
 	pyin.nolog = nolog
 	pyin.init_logging()

@@ -11,7 +11,7 @@
 </head>
 <body>
 <div id="top">
-		<div>step: {{ view.root.step_id }}</div>
+		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
 </div>
 <script type="text/javascript">
@@ -35,10 +35,7 @@
 		data: {
 			view: 
 			{
-				root:
-				{
-					status:"hello! loading trace file failed?"
-				},
+				root:{status:"hello! loading trace file failed?"},
 				step_id: -1,
 				index: [],
 			},

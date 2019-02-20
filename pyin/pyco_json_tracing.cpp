@@ -29,13 +29,6 @@ void proof_trace_add_state(state_id id, state_id parent_id)
     op["parent_id"] = parent_id;
     proof_trace_add_op(op);
 }
-void proof_trace_remove_state(state_id id)
-{
-    json op;
-    op["a"] = "remove";
-    op["id"] = id;
-    proof_trace_add_op(op);
-}
 void proof_trace_set_comment(state_id id, const string &comment)
 {
     json op;
@@ -44,12 +37,17 @@ void proof_trace_set_comment(state_id id, const string &comment)
     op["comment"] = comment;
     proof_trace_add_op(op);
 }
-void proof_trace_set_status(state_id id, coro_status status)
+void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, string *comment)
 {
     json op;
     op["a"] = "set_status";
     op["id"] = id;
     op["status"] = (int)status;
+    if (with_introduction)
+    {
+        op["parent_id"] = parent_id;
+        op["comment"] = *comment;
+    }
     proof_trace_add_op(op);
 }
 void proof_trace_emit_euler_steps()

@@ -234,7 +234,7 @@ void release_things(size_t count);
     void proof_trace_add_state(state_id id, state_id parent_id);
     void proof_trace_remove_state(state_id id);
     void proof_trace_set_comment(state_id id, const string &comment);
-    void proof_trace_set_status(state_id id, coro_status status);
+    void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, string *comment);
     void proof_trace_emit_euler_steps();
 
     void dump();
@@ -441,6 +441,7 @@ struct cpppred_state
        size_t cumulative_euler_steps;
     #endif
     #ifdef TRACE_PROOF
+        bool was_introduced;
         state_id id, parent;
         size_t num_substates;
         coro_status status;
@@ -451,7 +452,8 @@ struct cpppred_state
             else
                 comment = new string(x);
             if (tracing_enabled && tracing_active)
-                proof_trace_set_comment(id, *comment);
+                if (was_introduced)
+                    proof_trace_set_comment(id, *comment);
         }
         void set_active(bool a)
         {
@@ -463,12 +465,13 @@ struct cpppred_state
             status = s;
             if (tracing_enabled && tracing_active)
             {
-                proof_trace_set_status(id, s);
+                proof_trace_set_status(id, s, !was_introduced, parent, comment);
                 dump_tracing_step();
             }
         }
         void construct(state_id parent_)
         {
+            was_introduced = false;
             id = next_state_id++;
             parent = parent_;
             comment = (string*)NULL;
@@ -476,19 +479,11 @@ struct cpppred_state
             #ifdef CACHE
                 cumulative_euler_steps = 0;
             #endif
-            if (tracing_enabled && tracing_active)
-            {
-                proof_trace_add_state(id, parent);
-            }
         }
         void destruct()
         {
             if (comment)
                 delete comment;
-            if (tracing_enabled && tracing_active)
-            {
-                proof_trace_remove_state(id);
-            }
         }
     #endif
     void grab_substates(size_t count)

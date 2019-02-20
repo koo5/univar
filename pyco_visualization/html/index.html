@@ -118,39 +118,67 @@
 		let action = op.a;
 		//console.log(op);
 
-		if (action == "add")
+		/*if (action == "add")
 		{
-			state = {"children":[],"status":"idk"};
-			state.id = op["id"];
-			const parent_id = op["parent_id"];
-			state.parent_id = parent_id;
-			if (view.index.hasOwnProperty(parent_id))
-			{
-				state.parent = view.index[parent_id]
-				view.index[parent_id].children.push(state)
-			}
-			else
-			{
-				view.root = state;
-			}
-			view.index[state.id] = state;
-
-		}
+		}*/
 		if (action == "set_comment")
 		{
+			if (view.index[op.id] == undefined)
+				alert("comment before status for id "+op.id);
 			view.index[op.id].comment = op.comment;
 		}
-		if (action == "set_status")
+		else if (action == "set_status")
 		{
 			//console.log(op.id + " status "  +  coro_status[op.status]);
+			if (view.index[op.id] == undefined)
+			{
+				if (op.parent_id == undefined)
+					alert("first status but no parent id?");
+				add_state(op, view);
+			}
+			if (op.comment != undefined)
+				view.index[op.id].comment = op.comment;
 			view.index[op.id].status = coro_status[op.status];
+			if (op.status === 0)
+			{
+				/*when a state is inactivated, its children
+				will never be used again*/
+				view.index[op.id].children.forEach(child => 
+					remove_state(child.id, view));
+				view.index[op.id].children = []
+			}
 		}
-		if (action == "remove")
+		/*else if (action == "remove")
 		{
 			_.pull(view.index[op.id].parent.children, view.index[op.id])
 			view.index.splice(op.id, 1);
-		}
+		}*/
+		else 
+			alert("unknown action:"+action)
 	}
+	function add_state(op, view)
+	{
+		state = {"children":[],"status":"idk"};
+		state.id = op["id"];
+		const parent_id = op["parent_id"];
+		state.parent_id = parent_id;
+		if (view.index.hasOwnProperty(parent_id))
+		{
+			state.parent = view.index[parent_id]
+			view.index[parent_id].children.push(state)
+		}
+		else
+		{
+			view.root = state;
+		}
+		view.index[state.id] = state;
+	}
+	function remove_state(id, view)
+	{
+		//_.pull(view.index[id].parent.children, view.index[id])
+		view.index.splice(id, 1);
+	}
+
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
 	
 $( document ).ready(function() {

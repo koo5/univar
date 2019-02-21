@@ -13,7 +13,11 @@
 
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?depth_predecessor :has_succ ?depth.
+	:dummy tau_builtins:toggle_tracing_active :dummy.
+	:dummy ldl:shorten_location_printout (?x0 ?x0_shortened).
+	:dummy tau_builtins:output ("""invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 	?rule :memberof ?grammar.
+	:dummy tau_builtins:toggle_tracing_active :dummy.
 	(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth).
 }.
 
@@ -22,8 +26,6 @@
     ([:value [ldl:contents ?nont]] [:value ?rhs]).
 	:dummy tau_builtins:output "found rule: ".
     :dummy tau_builtins:serialize_thing ?rule.
-	:dummy :shorten_location_printout (?x0 ?x0_shortened).
-	:dummy tau_builtins:output ("""invoking rule on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 	(?x0 ?grammar ?nont ?rhs) ldl:parse_rhs (?rest ?ast ?depth).
 }.
 #{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
@@ -158,7 +160,7 @@
 
 
 {:dummy ldl:shorten_location_printout (?x0 ?shortened)} <= {
-    :dummy :from_x_put_first_y_items_into_z (?x0 :n42 ?shortened).
+    :dummy :from_x_put_first_y_items_into_z (?x0 :n12 ?shortened).
 }.
 
 

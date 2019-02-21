@@ -2,8 +2,8 @@
 void dump_tracing_step()
 {
     end_tracing_step();
-    begin_tracing_step();
     trace_flush();
+    begin_tracing_step();
     maybe_reopen_trace_file();
 }
 void begin_tracing_step()
@@ -74,7 +74,7 @@ void open_trace_file()
 void trace_flush()
 {
     written_bytes += trace_string.size();
-    trace << trace_string << endl;
+    //trace << trace_string << endl;
     trace_string.clear();
     /*trace.close();trace.open(trace_output_path"/trace.js", ios_base::app);*/
 }

@@ -731,8 +731,8 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 			b.append(Line("if (!find_ep(&ep"+str(r.debug_id)+", state))"))
 			inner_block = b = nest(b)
 			if second_chance_:
-				b.append(Statement('state.ep_lists[0] = query_list_wrapper(get_value(state.incoming[0]))'))
-				b.append(Statement('state.ep_lists[1] = query_list_wrapper(get_value(state.incoming[1]))'))
+				for arg_i in (0,1):
+					b.append(Statement('state.ep_lists[{0}] = query_list_wrapper(get_value(state.incoming[{0}]))'.format(arg_i)))
 			b.append(push_ep(r))
 		for body_triple_index, triple in enumerate(r.body):
 			if triple.pred in preds:
@@ -1025,11 +1025,11 @@ size_t query_list(cpppred_state & __restrict__ state)
 			CHECK_DBG_DATA
 			return 0;
 		}
-		if (find_ungrounded_bnode(rdf_list))
+		/*if (find_ungrounded_bnode(rdf_list))
 		{
 			CHECK_DBG_DATA
 			return 0;
-		}
+		}*/
 		#ifdef TRACE_PROOF
 			state.num_substates = 0;
 			state.set_status(ACTIVE);
@@ -1049,8 +1049,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 		state.states[0].incoming[1] = &state.locals[first];
 		while ("""+'pred_'+cppize_identifier(rdflib.RDF.first)+"""(state.states[0]))
 		{
-			if (find_ungrounded_bnode(&state.locals[first]))
-				continue;
+			/*if (find_ungrounded_bnode(&state.locals[first]))
+				continue;*/
 			//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
 			ASSERT(state.locals[first].type() == BOUND);
 			result_vec->push_back(state.locals[first].binding());
@@ -1068,8 +1068,8 @@ size_t query_list(cpppred_state & __restrict__ state)
 				}
 				else
 				{
-					if (find_ungrounded_bnode(&state.locals[rest]))
-						continue;
+					/*if (find_ungrounded_bnode(&state.locals[rest]))
+						continue;*/
 					state.states[2].entry = 0;
 					state.states[2].incoming[0] = get_value(&state.locals[rest]);
 					state.states[2].incoming[1] = result_thing;
@@ -1176,7 +1176,9 @@ size_t query_list(cpppred_state & __restrict__ state)
 								}
 								else
 								{
-									while (query_list(state.states[0])){};
+									while (query_list(state.states[0]))
+									{
+									};
 									goto is_joined_end;
 								}
 							}

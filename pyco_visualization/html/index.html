@@ -33,14 +33,10 @@
 	var vm = new Vue({
 		el: '#top',
 		data: {
-			view: 
-			{
-				root:{status:"hello! loading trace file failed?"},
+			view:{
+				root:{status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?..."},
 				step_id: -1,
-				index: [],
 			},
-			snapshots: [],
-			steps: [],
 		},
 		mounted: function ()
 		{
@@ -96,7 +92,7 @@
 			if (snapshot != undefined)
 				best = idx
 		}
-		//now best is the index of the closest snapshot
+		//now best is the position of the closest snapshot
 		let snapshot = _.cloneDeep(vm.snapshots[best])
 		while (wanted > snapshot.step_id)
 		{
@@ -106,18 +102,26 @@
 				return;
 			}
 		}
+		assert (snapshot.step_id == wanted);
+		assign_cloned_snapshot_to_view(snapshot);
+	}
+	function assign_cloned_snapshot_to_view(snapshot)
+	{
+		assign_cloned_snapshot_to_view1(snapshot)
+		assign_cloned_snapshot_to_view2(snapshot)
+		vm.view.step_id = snapshot.step_id;
+	}
+	function assign_cloned_snapshot_to_view1(snapshot)
+	{
 		vm.view.index = snapshot.index;
+	}
+	function assign_cloned_snapshot_to_view2(snapshot)
+	{
 		vm.view.root = snapshot.root
-		vm.view.step_id = wanted
 	}
 	function do_op(op, view)
 	{
 		let action = op.a;
-		//console.log(op);
-
-		/*if (action == "add")
-		{
-		}*/
 		if (action == "set_comment")
 		{
 			if (view.index[op.id] == undefined)
@@ -145,11 +149,6 @@
 				view.index[op.id].children = []
 			}
 		}
-		/*else if (action == "remove")
-		{
-			_.pull(view.index[op.id].parent.children, view.index[op.id])
-			view.index.splice(op.id, 1);
-		}*/
 		else 
 			alert("unknown action:"+action)
 	}
@@ -172,19 +171,29 @@
 	}
 	function remove_state(id, view)
 	{
-		//_.pull(view.index[id].parent.children, view.index[id])
-		view.index.splice(id, 1);
+		delete view.index[id]
 	}
-
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
 	
 $( document ).ready(function() {
+
+
+vm.view.index = {}
+vm.snapshots= []
+vm.steps= []
+
+
 console.log( "ready!" );
 $.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
  // console.log( data ); // Data returned
   console.log( textStatus ); // Success
   console.log( jqxhr.status ); // 200
-  console.log( "Load was performed." );
+  console.log( "Load was performed." )
+
+
+//Object.defineProperty(vm.view, 'index', {configurable:false});
+//assign_cloned_snapshot_to_view(vm.view);
+
   go_to_next_step();
 });    
 });
@@ -195,6 +204,15 @@ $.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
 		vm.steps.push(x);
 	}
 
+function assert(condition, message) {
+    if (!condition) {
+        message = message || "Assertion failed";
+        if (typeof Error !== "undefined") {
+            throw new Error(message);
+        }
+        throw message; // Fallback
+    }
+}
 
 </script>
 </body>

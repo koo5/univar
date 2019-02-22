@@ -61,7 +61,7 @@ typedef pair<nodeid,size_t> nodeid_and_refcount;
 struct Thing;
 
 #ifdef TRACE
-string thing_to_string_nogetval(Thing* v);
+string thing_to_string_nogetval(Thing* v, int depth);
 #endif
 
 enum ThingType {BOUND=0, UNBOUND=1, CONST=2, BNODE=3};
@@ -517,9 +517,9 @@ string serialize_literal_to_n3(string c)
 }
 
 #ifdef TRACE
-    string bnode_to_string(Thing* thing);
+    string bnode_to_string(Thing* thing, int depth);
     string thing_to_string(Thing* thing);
-    string thing_to_string_nogetval(Thing* v)
+    string thing_to_string_nogetval(Thing* v, int depth = -1)
     {
       if (v->type() == CONST)
       {
@@ -540,9 +540,9 @@ string serialize_literal_to_n3(string c)
             string r;
             if (v->_is_bnode_ungrounded)
                 r = "(ungrounded)";
-            r += bnode_to_string(v);
+            r += bnode_to_string(v, depth);
             if (v->_bnode_bound_to)
-                r += "->" + thing_to_string_nogetval(v->_bnode_bound_to);
+                r += "->" + thing_to_string_nogetval(v->_bnode_bound_to, depth);
             return r;
         }
         else

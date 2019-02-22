@@ -257,7 +257,7 @@ int unify(cpppred_state & __restrict__ state)
 		if(top_level_tracing_coro && tracing_enabled && tracing_active)
 		{
 			stringstream ss;
-			ss << "unify " << (void*)x << thing_to_string_nogetval(x) << " with " << (void*)y << thing_to_string_nogetval(y);
+			ss << "unify " << (void*)x << thing_to_string_nogetval(x, 5) << " with " << (void*)y << thing_to_string_nogetval(y, 5);
 			state.set_comment(ss.str());
 			state.set_active(true);
 		}
@@ -466,7 +466,7 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
 	def bnode_printer(s):
 		result = Lines([Line(
 			"""
-string bnode_to_string2(set<Thing*> &processing, Thing* thing)
+string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 {
 	processing.insert(thing);
 	stringstream result;
@@ -500,10 +500,10 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 		#result.append(Line('cerr << "bnode_to_string2: "<< thing << " " << &processing << " "  << processing.size()<< endl;'))
 		result.append(Line('return result.str();}'))
 		result.append(Line("""
-		string bnode_to_string(Thing* thing)
+		string bnode_to_string(Thing* thing, int depth = -1)
 		{
 			set<Thing*> processing;
-			return bnode_to_string2(processing, thing);
+			return bnode_to_string2(processing, thing, depth);
 		}
 		"""))
 		return result
@@ -533,7 +533,11 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing)
 				   (If ('v->type() == BNODE',
 						If ('processing.find(v) != processing.end()',
 							Statement(outstream+' << "LOOPSIE"'),
-							Statement(outstream+' << bnode_to_string2(processing, v)')),
+							If ('depth != 0',
+								Statement(outstream+' << bnode_to_string2(processing, v, depth - 1)'),
+								Statement(outstream+' << "..."'),
+							)
+							),
 						Statement(outstream+' << "?' + str(arg) +'"'))
 				   if do_bnodes else
 				   		Statement(outstream+' << "?' + str(arg) +'"'))

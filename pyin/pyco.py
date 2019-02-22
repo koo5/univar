@@ -628,7 +628,8 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			#	b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
 		if len(r.existentials):
 			pass
-		if trace_proof_:
+		r.trace_proof = trace_proof_ and r.head and (r.head.pred not in preds_excluded_from_proof_tracing)
+		if r.trace_proof:
 			b.append(
 				If("top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
@@ -640,11 +641,11 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
-		if trace_proof_:
+		if r.trace_proof:
 			b.append(Statement('state.set_active(false)'))
 		if r.max_states_len:
 			b.append(Statement("release_states(" + str(r.max_states_len) + ')'))
-			if trace_proof_:
+			if r.trace_proof:
 				b.append(Statement('state.num_substates = 0'))
 				#b.append(Statement('proof_trace_remove_state(state)'))
 		if len(r.locals_template):
@@ -691,16 +692,13 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 				else:
 					b.append(s.unify('state.incoming['+str(other_arg_idx)+']', '('+local_expr(other_arg, r)+')'))
 				b = nest(b)
-				if trace_proof_:
+				if r.trace_proof:
 					b.append(Statement('state.set_status(BNODE_YIELD)'))
 				b.append(s.do_yield())
-				if trace_proof_:
+				if r.trace_proof:
 					b.append(Statement('state.set_status(ACTIVE)'))
 				outer_block.append(Line('else'))
 				b = outer_block
-
-
-
 		b = nest(outer_block)
 		s.state_index = 0
 		is_first_arg = True
@@ -752,7 +750,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 					Statement("ep" +str(r.debug_id)+ ".pop_back()")]))
 			if r.head == None:
 				b.append(Line('if (!result_is_grounded(state))cerr << "#ungrounded result." << endl; else'))
-			b.append(s.yield_block())
+			b.append(s.yield_block(r))
 			if do_ep:
 				b.append(push_ep(r))
 		if do_ep:
@@ -771,20 +769,20 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 				]))
 				done.append(arg)
 			if len(r.existentials):
-				if trace_proof_:
+				if r.trace_proof:
 					bbb.append(Statement('state.set_status(EP)'))
 				bbb.append(s.do_yield())
-				if trace_proof_:
+				if r.trace_proof:
 					bbb.append(Statement('state.set_status(ACTIVE)'))
 		outer_block.append(s.euler_step())
 		return outer_block
 
-	def yield_block(s):
+	def yield_block(s, r):
 		b = Block()
-		if trace_proof_:
+		if r.trace_proof:
 			b.append(Statement('state.set_status(YIELD)'))
 		b.append(s.do_yield())
-		if trace_proof_:
+		if r.trace_proof:
 			b.append(Statement('state.set_status(ACTIVE)'))
 		return b
 
@@ -880,7 +878,7 @@ def comment(s):
 @click.option('--second_chance', default=True, type=bool)
 @click.option('--prune_duplicate_results', default=False, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results):
-	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_
+	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing
 	prune_duplicate_results_ = prune_duplicate_results
 	trace_unification_ = trace_unification
 	second_chance_ = second_chance
@@ -891,6 +889,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
+	preds_excluded_from_proof_tracing = [rdflib.RDF.first, rdflib.RDF.rest]
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['ln', '-s', '../../pyco_visualization/html', outpath])

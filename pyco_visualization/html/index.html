@@ -34,7 +34,11 @@
 		el: '#top',
 		data: {
 			view:{
-				root:{status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?..."},
+				root:
+				{
+					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
+					children:[],
+				},
 				step_id: -1,
 			},
 		},
@@ -135,7 +139,8 @@
 			{
 				if (op.parent_id == undefined)
 					alert("first status but no parent id?");
-				add_state(op, view);
+				if (!add_state(op, view))
+					return
 			}
 			if (op.comment != undefined)
 				view.index[op.id].comment = op.comment;
@@ -147,6 +152,8 @@
 				view.index[op.id].children.forEach(child => 
 					remove_state(child.id, view));
 				view.index[op.id].children = []
+				if (view.index[op.id].parent == view.root)
+					remove_state(op.id, view);			
 			}
 		}
 		else 
@@ -159,15 +166,13 @@
 		const parent_id = op["parent_id"];
 		state.parent_id = parent_id;
 		if (view.index.hasOwnProperty(parent_id))
-		{
-			state.parent = view.index[parent_id]
-			view.index[parent_id].children.push(state)
-		}
+			parent = view.index[parent_id]
 		else
-		{
-			view.root = state;
-		}
+			parent = view.root
+		state.parent = parent
+		parent.children.push(state)
 		view.index[state.id] = state;
+		return true;
 	}
 	function remove_state(id, view)
 	{

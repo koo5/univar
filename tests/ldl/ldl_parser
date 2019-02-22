@@ -69,6 +69,12 @@
 }.
 
 {(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?child ?depth)} <= {
+	?rhs_item a ldl:value; ldl:type "string"; ldl:contents ?value.
+	?child :eq ?rhs_item.
+    :dummy :literally_string (?x0 ?rest ?value).
+}.
+
+{(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?child ?depth)} <= {
 	?rhs_item a ldl:value; ldl:type "identifier"; ldl:contents ?value.
 	?child :eq [:key ?value; :value ?ast].
     (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth).
@@ -117,7 +123,7 @@
 }.
 
 {(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?child ?depth)} <= {
-    :dummy tau_builtins:output "ldl:parse_rhs_item exhausted on:".
+    :dummy tau_builtins:output "ldl:parse_grammar_item exhausted on:".
 	:dummy tau_builtins:serialize_thing ?rhs_item.
 	cut cut cut.
 }.

@@ -880,14 +880,14 @@ def comment(s):
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results):
 	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing
 	prune_duplicate_results_ = prune_duplicate_results
-	trace_unification_ = trace_unification
 	second_chance_ = second_chance
 	if notrace:
 		trace_proof = False
 		trace_ep_tables = False
 		trace_unification_ = False
 	if not trace_proof:
-		trace_unification_ = False
+		trace_unification = False
+	trace_unification_ = trace_unification
 	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace

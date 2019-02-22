@@ -1,3 +1,8 @@
+check all query_list* calls
+
+stop using query_list_wrapper
+
+
 add option to render full original heads of rules in kbdbg images
 #subclass n3 parser(?) and tweak list syntax parsing to produce better names and order
 try to make RDR work, if this fails, at least try to change kbdbg to query with standard sparql

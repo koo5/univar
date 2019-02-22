@@ -995,7 +995,7 @@ def create_builtins(emitter):
 	def build_in(builtin):
 		if not 'r1bnbuiltins_aware_list' in emitter.bnodes:
 			emitter.prologue.append(Line("""
-size_t query_list(cpppred_state & __restrict__ state)
+size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int depth)
 {
 	(void)state;
 	return 0;
@@ -1004,7 +1004,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			return Lines()
 		else:
 			emitter.epilogue.append(Line("""
-size_t query_list(cpppred_state & __restrict__ state)
+size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int depth)
 {
 	const size_t first = 0;
 	const size_t rest = 1; 
@@ -1058,6 +1058,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 			//cerr << thing_to_string_nogetval(get_value(&state.locals[first])) << endl;
 			ASSERT(state.locals[first].type() == BOUND);
 			result_vec->push_back(state.locals[first].binding());
+						
 			state.states[1].entry = 0;
 			ASSERT(rdf_list->type() != BOUND);
 			state.states[1].incoming[0] = rdf_list;
@@ -1077,10 +1078,19 @@ size_t query_list(cpppred_state & __restrict__ state)
 					state.states[2].entry = 0;
 					state.states[2].incoming[0] = get_value(&state.locals[rest]);
 					state.states[2].incoming[1] = result_thing;
-					while(query_list(state.states[2]))
+					if (depth == 0)
 					{
+						*was_cut_off = true;
 						yield(case2);
 						case2:;
+					}
+					else
+					{
+						while(query_list(state.states[2], was_cut_off, depth - 1))
+						{
+							yield(case3);
+							case3:;
+						}
 					}
 				}
 			}
@@ -1163,7 +1173,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 					state.states[0].entry = 0;
 					state.states[0].incoming[0] = lst;
 					state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
-					while (query_list(state.states[0]))
+					while (query_list(state.states[0], 0))
 					{
 						{
 							string result;
@@ -1180,7 +1190,7 @@ size_t query_list(cpppred_state & __restrict__ state)
 								}
 								else
 								{
-									while (query_list(state.states[0]))
+									while (query_list(state.states[0], 0))
 									{
 									};
 									goto is_joined_end;

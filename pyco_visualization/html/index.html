@@ -178,9 +178,16 @@
 $( document ).ready(function() {
 
 
+
+/*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them
+and things would get silly slow. I first looked for solutions like this one:
+//Object.defineProperty(vm.view, 'index', {configurable:false});
+but none worked*/
+
 vm.view.index = {}
 vm.snapshots= []
 vm.steps= []
+
 
 
 console.log( "ready!" );
@@ -189,20 +196,16 @@ $.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
   console.log( textStatus ); // Success
   console.log( jqxhr.status ); // 200
   console.log( "Load was performed." )
-
-
-//Object.defineProperty(vm.view, 'index', {configurable:false});
-//assign_cloned_snapshot_to_view(vm.view);
-
   go_to_next_step();
 });    
 });
 
-
+	/*this is the function called from withing the trace files*/
 	function S(x)
 	{
 		vm.steps.push(x);
 	}
+
 
 function assert(condition, message) {
     if (!condition) {

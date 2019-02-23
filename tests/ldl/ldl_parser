@@ -67,8 +67,8 @@
 	(?after_item ?grammar ?rhsr) ldl:parse_grammar_items (?rest ?childrenr ?depth).
 }.
 {(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?children ?depth)} <= {
-    #:dummy tau_builtins:output "ldl:parse_grammar_items exhausted on:".
-	:dummy tau_builtins:serialize_thing ?rhs_.
+    :dummy tau_builtins:output "ldl:parse_grammar_items exhausted on:".
+	:dummy tau_builtins:serialize_thing ?rhs.
 	cut cut cut.
 }.
 
@@ -93,20 +93,20 @@
     (?x0 ?grammar ?value) ldl:parse_nonterminal (?rest ?ast ?depth).
 }.
 
-{(?x_ ?grammar ?rhs_item) ldl:parse_grammar_item (?xr ?ast ?depth)} <= {
+{(?x_ ?grammar ?rhs_item) ldl:parse_grammar_item (?xr ?child ?depth)} <= {
 	?rhs_item ldl:type "any_char_except".
 	:dummy tau_builtins:output "any_char_except..".
 	[:key "except"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
 	:dummy tau_builtins:output "any_char_except.....".
 	?xf string_builtins:any_char_except ?except.
 	:dummy tau_builtins:output "any_char_except........".
- 	?ast a ldl:value; ldl:type "string"; ldl:contents ?xf.
+ 	?child a ldl:value; ldl:type "string"; ldl:contents ?xf.
 }.
 
-{(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?ast ?depth)} <= {
+{(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?child ?depth)} <= {
 	?rhs_item ldl:type "all_chars_until_one_of".
 	[:key "until"; :value [ldl:contents ?except]] :memberof ?rhs_item!ldl:children.
- 	?ast a ldl:value; ldl:type "string"; ldl:contents ?string.
+ 	?child a ldl:value; ldl:type "string"; ldl:contents ?string.
 	#this is gonna be fun when linearizing
 	?x0 ldl:all_chars_until_one_of (?rest ?except ?char_list).
     ?string string_builtins:strXlst ?char_list.
@@ -123,7 +123,7 @@
 	?rhs_item ldl:type "builtin_postprocessed".
 	?rhs_item ldl:children ([:value [ldl:contents ?raw_identifier]]).
 	(?x0 ?grammar ?raw_identifier) ldl:parse_nonterminal (?rest ?raw_ast ?depth).
-	?raw_ast ldl:postprocess ?ast.
+	?raw_ast ldl:postprocess ?child.
 }.
 
 {(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?child ?depth)} <= {
@@ -182,7 +182,7 @@
 }.
 {:dummy :is_series (?x0 ?rest ?grammar ?item_type ?separator ?ast_ ?depth)} <= {
     (?x0 ?grammar ?item_type) ldl:parse_grammar_item (?rest [:value ?astf] ?depth).
-    astr :eq rdf:nil.
+    ?astr :eq rdf:nil.
 }.
 {:dummy :is_series (?x0 ?x0 ?grammar ?item_type ?separator rdf:nil ?depth)} <= {}.
 

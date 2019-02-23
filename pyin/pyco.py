@@ -4,7 +4,7 @@
 we use pyin for the Rule class to hold data, and for various bits of shared code
 
 """
-
+do_ungrounded_bnode_ep = True
 
 from cgen import *
 Lines = Collection #both Module and Collection are just a bunch of lines
@@ -759,15 +759,13 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			if second_chance_:
 				inner_block.append(Statement('delete state.ep_lists[0]'))
 				inner_block.append(Statement('delete state.ep_lists[1]'))
-		if do_ep:
+		if do_ep and do_ungrounded_bnode_ep:#yield with ungrounded bnodes when ep'd
 			outer_block.append(Line('else'))
 			bbb = nest(outer_block)
 			done = []
 			for arg in r.head.args:
 				if arg in r.existentials and arg not in done:
-					bbb.append(Block([
-						Statement(local_expr(arg, r) + '->make_bnode_ungrounded()')
-				]))
+					bbb.append(Statement(local_expr(arg, r) + '->make_bnode_ungrounded()'))
 				done.append(arg)
 			if len(r.existentials):
 				if r.trace_proof:

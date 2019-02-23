@@ -768,57 +768,57 @@ we can also deepcopy them, for ep check purposes...*/
 
 
 
-
-bool list_to_string(Thing *v, string &list_string)
-{
-    bool result = false;
-    #ifdef DEBUG
-        char* dbg_first_free_byte = first_free_byte;
-    #endif
-    #ifdef TRACE_PROOF
-        bool was_tracing_enabled = tracing_enabled;
-        tracing_enabled = false;
-    #endif
-    cpppred_state *state = grab_states(1 IF_TRACE_PROOF(0));
-    state->entry = 0;
-    ASSERT(v->type() != BOUND);
-    state->incoming[0] = v;
-    #define output (*((vector<Thing*>**)(&state->incoming[1])))
-    output = new vector<Thing*>;
-    bool was_cut_off = false;
-    list_string += "(";
-    size_t num_variants = 0;
-    while (query_list(*state, &was_cut_off, 5))
+#ifdef TRACE
+    bool list_to_string(Thing *v, string &list_string)
     {
-        if (++num_variants > 1)
-            list_string += " /// ";
-        if (output->size())
+        bool result = false;
+        #ifdef DEBUG
+            char* dbg_first_free_byte = first_free_byte;
+        #endif
+        #ifdef TRACE_PROOF
+            bool was_tracing_enabled = tracing_enabled;
+            tracing_enabled = false;
+        #endif
+        cpppred_state *state = grab_states(1 IF_TRACE_PROOF(0));
+        state->entry = 0;
+        ASSERT(v->type() != BOUND);
+        state->incoming[0] = v;
+        #define output (*((vector<Thing*>**)(&state->incoming[1])))
+        output = new vector<Thing*>;
+        bool was_cut_off = false;
+        list_string += "(";
+        size_t num_variants = 0;
+        while (query_list(*state, &was_cut_off, 5))
         {
-            result = true;
-            for(Thing *t:*output)
+            if (++num_variants > 1)
+                list_string += " /// ";
+            if (output->size())
             {
-                list_string += thing_to_string(t) + " ";
+                result = true;
+                for(Thing *t:*output)
+                {
+                    list_string += thing_to_string(t) + " ";
+                }
             }
+            if (was_cut_off)
+                list_string += "...";
+            delete output;
+            output = new vector<Thing*>;
         }
-        if (was_cut_off)
-            list_string += "...";
-	    delete output;
-		output = new vector<Thing*>;
-	}
-	list_string += ")";
-    delete output;
-	#undef output
-	release_states(1);
-	//cerr << "returning result " << result << " with size " << result->size() << endl;
-	#ifdef TRACE_PROOF
-	    tracing_enabled = was_tracing_enabled;
-	#endif
-    #ifdef DEBUG
-        ASSERT(dbg_first_free_byte == first_free_byte);
-    #endif
-	return result;
-}
-
+        list_string += ")";
+        delete output;
+        #undef output
+        release_states(1);
+        //cerr << "returning result " << result << " with size " << result->size() << endl;
+        #ifdef TRACE_PROOF
+            tracing_enabled = was_tracing_enabled;
+        #endif
+        #ifdef DEBUG
+            ASSERT(dbg_first_free_byte == first_free_byte);
+        #endif
+        return result;
+    }
+#endif
 
 
 

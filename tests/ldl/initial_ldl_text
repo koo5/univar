@@ -32,7 +32,7 @@ builtin_postprocessed ++> [builtin-postprocessed ], node_name.
 node_name ++> identifier.
 identifier ++> builtin-postprocessed raw_identifier.
 raw_identifier ++> valid_identifier_char, a series of valid_identifier_char separated with [].
-valid_identifier_char ++> any char except [\\n\\[\\]\\\\ ].
+valid_identifier_char ++> any char except [\\n\\[\\]\\\\,.: ].
 
 string_literal ++> builtin-postprocessed raw_string_literal.
 raw_string_literal ++> [\\[], raw_string_literal_body, [\\]].

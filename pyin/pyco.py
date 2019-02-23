@@ -426,12 +426,12 @@ bool result_is_grounded(cpppred_state &state)
 	def bnode_serializer(s):
 		result = Lines([Line(
 			"""
-void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+void serialize_bnode(Thing* t, map<Thing*, SerializationTodoInfo> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result, size_t indent)
 {
 	(void)first_free_id;
 	(void)result;
 
-	size_t id = todo[t];
+	size_t id = todo[t].id;
 	done[t] = id;
 	todo.erase(t);
 	
@@ -444,12 +444,13 @@ void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &d
 			else:
 				t = local_expr(arg, rule)
 			result.append(Statement(
-				'serialize_thing2('+t+', todo, done, first_free_id, result)'))
+				'serialize_thing2('+t+', todo, done, first_free_id, result, indent'+("+1" if arg != rdflib.term.Variable("REST") else "")+')'))
 		for bnode_cpp_name, (rule, bnode_name) in s.bnodes.items():
 			result.append(Line('case ' + bnode_cpp_name + ':'))
 			for triple, is_last in common.tell_if_is_last_element(rule.original_head_triples):
 				bnode_idx = rule.locals_map[bnode_name]
 				locals = 't - '+str(bnode_idx)
+				result.append(Statement('for (size_t indent_here = indent; indent_here > 0; indent_here--)result << "  ";'))
 				do_arg(triple.args[0])
 				result.append(Statement('result << " <' + cpp_string_literal_noquote(triple.pred) + '> "'))
 				do_arg(triple.args[1])

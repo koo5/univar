@@ -40,12 +40,6 @@
 	?ast a ldl:compound; ldl:type ?type; ldl:children ?ch.
 	(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?ch ?depth).
 }.
-
-{(?x0 ?grammar ?type ?rhs) ldl:parse_rhs (?rest ?ast ?depth)} <= {
-	?ast a ldl:compound; ldl:type ?type; ldl:children ?ch.
-	(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?ch ?depth).
-}.
-
 {(?x0 ?grammar ?type ?rhs) ldl:parse_rhs (?rest ?ast ?depth)} <= {
     :dummy tau_builtins:output "ldl:parse_rhs exhausted on:".
 	:dummy tau_builtins:serialize_thing ?rhs.

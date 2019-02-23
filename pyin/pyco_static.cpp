@@ -500,12 +500,15 @@ cpppred_state *top_level_coro, *top_level_tracing_coro;
 
 
 
+struct SerializationTodoInfo{
+    size_t id, indent;
+};
 
 
 
 
 
-void serialize_bnode(Thing* t, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result);
+void serialize_bnode(Thing* t, map<Thing*, SerializationTodoInfo> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result, size_t indent);
 
 
 
@@ -565,8 +568,7 @@ string serialize_literal_to_n3(string c)
     }
 
 
-
-    void serialize_thing2(Thing *v, map<Thing*, size_t> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result)
+    void serialize_thing2(Thing *v, map<Thing*, SerializationTodoInfo> &todo, map<Thing*, size_t> &done, size_t &first_free_id, stringstream &result, size_t depth)
     {
       v = get_value(v);
       if (v->type() == CONST)
@@ -592,10 +594,10 @@ string serialize_literal_to_n3(string c)
                 if (todo.find(v) == todo.end())
                 {
                     id = first_free_id++;
-                    todo[v] = id;
+                    todo[v] = SerializationTodoInfo{id, depth};
                 }
                 else
-                    id = todo[v];
+                    id = todo[v].id;
             }
             result << "?x" << id;
         }
@@ -609,14 +611,15 @@ string serialize_literal_to_n3(string c)
         stringstream result;
         thing = get_value(thing);
         size_t first_free_id = 0;
-        map<Thing*, size_t> todo, done;
+        map<Thing*, SerializationTodoInfo> todo;
+        map<Thing*, size_t> done;
         if (thing->type() != BNODE)
-            serialize_thing2(thing, todo, done, first_free_id, result);
+            serialize_thing2(thing, todo, done, first_free_id, result, 0);
         else
         {
-            todo[thing] = first_free_id++;
+            todo[thing] = SerializationTodoInfo{first_free_id++, 0};
             while(!todo.empty())
-                serialize_bnode(todo.begin()->first, todo, done, first_free_id, result);
+                serialize_bnode(todo.begin()->first, todo, done, first_free_id, result, todo.begin()->second.indent);
         }
         return result.str();
     }

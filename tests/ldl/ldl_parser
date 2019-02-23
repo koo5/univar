@@ -28,16 +28,24 @@
     :dummy tau_builtins:serialize_thing ?rule.
 	(?x0 ?grammar ?nont ?rhs) ldl:parse_rhs (?rest ?ast ?depth).
 }.
-#{(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
-#    :dummy tau_builtins:output ("ldl:try_rule for \"" ?nont "\" exhausted on:")^string_builtins:strXlst.
-#	:dummy tau_builtins:serialize_thing ?rule.
-#	cut cut cut.
-#}.
+
+{(?x0 ?grammar rdf:nil) ldl:parse_rhs (?x0 ?ast ?depth)} <= {
+    ?ast a ldl:compound; ldl:type ?type; ldl:children rdf:nil.
+}.
+{(?x0 ?grammar ?type (?rhs_item)) ldl:parse_rhs (?rest ?ast ?depth)} <= {
+	(?x0 ?grammar ?rhs_item) ldl:parse_grammar_item (?rest ?ast ?depth).
+}.
+{(?x0 ?grammar ?type ?rhs_) ldl:parse_rhs (?rest ?ast ?depth)} <= {
+    ?rhsr rdf:rest ?r2.
+	?ast a ldl:compound; ldl:type ?type; ldl:children ?ch.
+	(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?ch ?depth).
+}.
 
 {(?x0 ?grammar ?type ?rhs) ldl:parse_rhs (?rest ?ast ?depth)} <= {
 	?ast a ldl:compound; ldl:type ?type; ldl:children ?ch.
 	(?x0 ?grammar ?rhs) ldl:parse_grammar_items (?rest ?ch ?depth).
 }.
+
 {(?x0 ?grammar ?type ?rhs) ldl:parse_rhs (?rest ?ast ?depth)} <= {
     :dummy tau_builtins:output "ldl:parse_rhs exhausted on:".
 	:dummy tau_builtins:serialize_thing ?rhs.
@@ -154,11 +162,11 @@
     ?string string_builtins:strXlst ?strings.
 }.
 
-{:dummy :is_collected_literals (rdf:nil "")} <= {}.
+{:dummy :is_collected_literals (rdf:nil (""))} <= {}.
 
 {:dummy :is_collected_literals (?r_ ?v_)} <= {
     ?rf :eq [ldl:contents ?vf].
-    ?vr :is_collected_literals ?rr.
+    :dummy :is_collected_literals (?rr ?vr).
 }.
 
 

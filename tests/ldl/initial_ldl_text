@@ -17,7 +17,7 @@ grammar ++> node_name, [ ++> ], grammar_items.
 
 grammar_items ++> a series of grammar_item separated with [, ].
 
-grammar_item ++> string.
+grammar_item ++> string_literal.
 grammar_item ++> node_name.
 
 grammar_item ++> node_name_with_child_name.

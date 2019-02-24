@@ -51,7 +51,7 @@ query
 ?initial_ldl :phase2 ?builtins_statements.
 :dummy tau_builtins:output "ldl:parse_nonterminal:".
 ?a3 :eq (?initial_ldl_text_list ?builtins_statements "statements").
-?a4 :eq (rdf:nil ?ast :minus_one).
+?a4 :eq (rdf:nil ?_ast :minus_one).
 :dummy tau_builtins:toggle_tracing :dummy.
 ?a3 ldl:parse_nonterminal ?a4.
 

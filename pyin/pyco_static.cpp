@@ -1010,6 +1010,38 @@ bool find_ep(ep_table *table, cpppred_state &now)
 
 
 
+void print_rules_warnings()
+{
+    #ifdef DEBUG_RULES
+        for (auto kv: rules_stats)
+        {
+            rule_id;
+            if (v.called_times == 0)
+            {
+                cerr << "rule " << rule_id << " was never called." << endl;
+            }
+            else
+            {
+                for (auto bi: v.bis)
+                {
+                    if (bi.second.called_times == 0)
+                    {
+                        cerr << "rule " << rule_id << " bi " << bi.first << "never called" << endl;
+                        break;
+                    }
+                }
+                for (auto bi: v.bis)
+                {
+                    if (bi.second.called_times != 0 && bi.second.yielded_times == 0)
+                    {
+                        cerr << "rule " << rule_id << " bi " << bi.first << "never yielded" << endl;
+                        break;
+                    }
+                }
+            }
+        }
+    #endif
+}
 
 
 
@@ -1049,6 +1081,7 @@ int main (int argc, char *argv[])
     }
     release_states(1);
     print_euler_steps();
+    print_rules_warnings();
     #ifdef TRACE_PROOF
         close_trace_file();
     #endif

@@ -814,6 +814,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 		b.append(s.euler_step())
 		b.append(Line('while(pred_'+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
+		ooooo
 		s.state_index += 1
 		return b
 

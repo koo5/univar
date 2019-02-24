@@ -26,6 +26,12 @@ node_name_with_child_name ++> child_name:node_name, [:], type_name:node_name.
 grammar_item ++> a_series_of_y_separated_with_z.
 a_series_of_y_separated_with_z ++> [a series of ], item_type:grammar_item, [ separated with ], separator:grammar_item.
 
+grammar_item ++> all_chars_until_one_of.
+all_chars_until_one_of ++> [all chars until one of ], string_literal.
+
+grammar_item ++> any_char_except.
+any_char_except ++> [any char except ], string_literal.
+
 grammar_item ++> builtin_postprocessed.
 builtin_postprocessed ++> [builtin-postprocessed ], node_name.
 
@@ -43,6 +49,11 @@ raw_string_literal_body_item ++> [\\\\n].
 raw_string_literal_body_item ++> [\\\\\\[].
 raw_string_literal_body_item ++> [\\\\\\]].
 raw_string_literal_body_item ++> [\\\\\\\\].
+
+
+banana ++> pie.
+
+
 """;
 :has_comment """
 this is a declarative definition of the basic building blocks of the ldl and their grammar.

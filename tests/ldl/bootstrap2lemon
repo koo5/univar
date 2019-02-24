@@ -161,8 +161,8 @@
     ?x :parsed2builtins ?x_ldl. ?y :parsed2builtins ?y_ldl.
     ?ldl a ldl:compound; ldl:type "node_name_with_child_name";
     ldl:children (
-        [:key "name"; :value ?x_ldl]
-        [:key "type"; :value ?y_ldl]
+        [:key "child_name"; :value ?x_ldl]
+        [:key "type_name"; :value ?y_ldl]
     ).
 }.
 

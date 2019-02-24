@@ -614,6 +614,9 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			raise Exception("too many existentials in " + str(r) +"\nexistentials: " + str(r.existentials))
 		b = Lines()
 		b.append(comment(r.__str__()))#shortener = common.shorten)))
+		if debug_rules_:
+			#from IPython import embed; embed();
+			b.append(Statement('rules_stats[{0}].called_times++'.format(r.debug_id)))
 		b.append(Statement('INIT_DBG_DATA'))
 		b.append(Statement('ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size())'))
 		if len(r.locals_template):
@@ -812,9 +815,16 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 				substate + ".incoming["+str(arg_idx)+"]="+local_expr(arg, r)))
 		b.append(Statement(substate + ".entry = 0"))
 		b.append(s.euler_step())
+		if debug_rules_:
+			#from IPython import embed; embed();
+			b.append(Statement('rules_stats[{0}].body_items_stats[{1}].called_times++'.
+							   format(r.debug_id, body_triple_index)))
 		b.append(Line('while(pred_'+cppize_identifier(triple.pred) +'('+ substate+')'+'!=0)'))
 		b = nest(b)
-		ooooo
+		if debug_rules_:
+			#from IPython import embed; embed();
+			b.append(Statement('rules_stats[{0}].body_items_stats[{1}].yielded_times++'.
+							   format(r.debug_id, body_triple_index)))
 		s.state_index += 1
 		return b
 
@@ -877,10 +887,12 @@ def comment(s):
 @click.option('--trace_unification', default=False, type=bool)
 @click.option('--second_chance', default=True, type=bool)
 @click.option('--prune_duplicate_results', default=False, type=bool)
-def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results):
-	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing
+@click.option('--debug_rules', default=True, type=bool)
+def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results, debug_rules):
+	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing, debug_rules_
 	prune_duplicate_results_ = prune_duplicate_results
 	second_chance_ = second_chance
+	debug_rules_ = debug_rules
 	if notrace:
 		trace_proof = False
 		trace_ep_tables = False
@@ -921,12 +933,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		e.prologue.append(Line('#define ONEWORD'))
 	if trace_ep_checks:
 		e.prologue.append(Line('#define TRACE_EP_CHECKS'))
-	if trace_ep_tables:
+	if trace_ep_tables_:
 		e.prologue.append(Line('#define TRACE_EP_TABLES'))
-	if trace_proof:
+	if trace_proof_:
 		e.prologue.append(Line('#define TRACE_PROOF'))
 	if trace_unification:
 		e.prologue.append(Line('#define TRACE_UNIFICATION'))
+	if debug_rules_:
+		e.prologue.append(Line('#define DEBUG_RULES'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 	try:
 		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)

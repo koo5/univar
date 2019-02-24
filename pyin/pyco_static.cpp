@@ -1046,7 +1046,7 @@ bool find_ep(ep_table *table, cpppred_state &now)
                     {
                         if (bi.second.called_times != 0 && bi.second.yielded_times == 0)
                         {
-                            cerr << "rule " << rule_id << " bi " << bi.first << "always failed" << endl;
+                            cerr << "rule " << rule_id << " bi " << bi.first << " called " << bi.second.called_times << " and always failed" << endl;
                             break;
                         }
                     }

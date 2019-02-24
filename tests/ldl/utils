@@ -28,7 +28,7 @@
 
 {?x a :key_value_pair; :key ?K; :value ?V} <= {}.
 
-{:dummy :is_with_replacement (rdf:nil rdf:nil ?replacement)} <= {
+{:dummy :is_with_replacement (rdf:nil rdf:nil ?_replacement)} <= {
 }.
 
 {:dummy :is_with_replacement (?x_ ?y_ ?replacement)} <= {
@@ -54,15 +54,15 @@
     :dummy :from_x_put_first_y_items_into_z (?xr ?p ?zr).
 }.
 
-{:dummy :from_x_put_first_y_items_into_z (?x :zero rdf:nil)} <= {
+{:dummy :from_x_put_first_y_items_into_z (?_x :zero rdf:nil)} <= {
 }.
 
-{:dummy :from_x_put_first_y_items_into_z (rdf:nil ?remaining rdf:nil)} <= {
+{:dummy :from_x_put_first_y_items_into_z (rdf:nil ?_remaining rdf:nil)} <= {
 }.
 
 
 {:dummy :from_x_put_until_y_into_z (?x_ ?y ?z_)} <= {
-    ?x tau_builtins:things_are_different ?y.
+    ?xf tau_builtins:things_are_different ?y.
     ?xf :eq ?zf.
     :dummy :from_x_put_until_y_into_z (?xr ?y ?zr).
 }.

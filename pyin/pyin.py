@@ -458,7 +458,27 @@ class Rule(Kbdbgable):
 		singleton.head_vars = get_head_vars( singleton.original_head_triples)
 
 		with open(_rules_file_name, 'a') as ru:
-			ru.write(singleton.kbdbg_name + ":"+ singleton.__str__(shorten) + '\n')
+			ru.write(singleton.kbdbg_name + ":{")
+			if singleton.head:
+				ru.write(singleton.head.str())
+			ru.write("}<={\n")
+			for idx, bi in enumerate(singleton.body):
+				ru.write('    ' + str(idx) + ': ' + bi.str() + '\n')
+			ru.write("}.\n\n")
+
+		all_args = defaultdict(int)
+		head_vars = set()
+		for i in singleton.original_head_triples:
+			for arg in i.args:
+				head_vars.add(arg)
+		for i in singleton.original_head_triples + singleton.body:
+			for arg in i.args:
+				if is_var(arg):
+					all_args[arg] += 1
+		for k,v in all_args.items():
+			if v == 1 and not str(k).startswith('_'):
+				if len(singleton.existentials) == 0 or k not in head_vars:
+					print("\nwarning: var " + str(k) + " in " + singleton.kbdbg_name + " only appears once")
 
 		nolog or kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
 		if not nolog:
@@ -936,9 +956,12 @@ def load(kb, goal, identification, base):
 				body.insert(0,Triple(rdflib.RDF.rest , [thing, rdflib.Variable(str(thing)[:-1]+'r')]))
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:
-					ru.write(head_triples_triples.str(shorten) + " <= " + body.str(shorten) + ":\n")
+					ru.write("expanded rules for " + head_triples_triples.str(shorten) + ":\n")
 			for head_triple_idx in range(len(head_triples_triples)):
 				rules.append(Rule(head_triples_triples, head_triple_idx, body))
+			if len(head_triples_triples) > 1:
+				with open(_rules_file_name, 'a') as ru:
+					ru.write("\n\n")
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)

@@ -16,11 +16,16 @@
 	:dummy tau_builtins:toggle_tracing_active :dummy.
 
 	:dummy ldl:shorten_location_printout (?x0 ?x0_shortened).
-	:dummy tau_builtins:output ("""invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
+	:dummy tau_builtins:output (?nont """invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 
 	?rule :memberof ?grammar.
 	:dummy tau_builtins:toggle_tracing_active :dummy.
 	(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth).
+}.
+
+{(?_x0 ?_grammar ?nont) ldl:parse_nonterminal (?_rest ?_ast ?_depth)} <= {
+	:dummy tau_builtins:output ("""ldl:parse_nonterminal exhausted on """" ?nont)^string_builtins:strXlst.
+    cut cut cut.
 }.
 
 {(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth)} <= {
@@ -130,7 +135,7 @@
 }.
 
 {(?_x0 ?_grammar ?rhs_item) ldl:parse_grammar_item (?_rest ?_child ?_depth)} <= {
-    #:dummy tau_builtins:output "ldl:parse_grammar_item exhausted on:".
+    :dummy tau_builtins:output "ldl:parse_grammar_item exhausted on:".
 	:dummy tau_builtins:serialize_thing ?rhs_item.
 	cut cut cut.
 }.
@@ -151,7 +156,7 @@
 }.
 
 {?raw ldl:postprocess ?cooked} <= {
-    #:dummy tau_builtins:output "ldl:postprocess exhausted on:".
+    :dummy tau_builtins:output "ldl:postprocess exhausted on:".
 	:dummy tau_builtins:serialize_thing ?raw.
 	cut cut cut.
 }.

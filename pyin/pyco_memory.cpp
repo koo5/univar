@@ -27,7 +27,7 @@ size_t *grab_words(size_t count)
     return result;
 }
 
-cpppred_state *grab_states(size_t count IF_TRACE_PROOF(state_id parent))
+cpppred_state *grab_states(size_t count IF_TRACE_PROOF(cpppred_state *parent))
 {
     auto r = (cpppred_state*) grab_words(count * sizeof(cpppred_state) / sizeof(size_t));
     #ifdef TRACE_PROOF

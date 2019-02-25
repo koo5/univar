@@ -13,8 +13,10 @@
 <div id="top">
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
+		<div> {{ view.yield_count }} </div>
 </div>
 <script type="text/javascript">
+
 	Vue.component('coro_state', {
 		props: ["coro_state"],
 		template: `
@@ -40,29 +42,56 @@
 					children:[],
 				},
 				step_id: -1,
+				yield_count: 0,
 			},
+			display_rules:[
+				{action:"hide",filter:{rule: 0}},
+				{action:"hide",filter:{rule: 1}},
+			],
 		},
 		mounted: function ()
 		{
 			window.addEventListener('keydown', function (event) {
 				c = event.keyCode;
+				console.log(c);
 				if (c==188 && vm.view.step_id > 0)
 				{
 					prev_step();
 				}
 				if (c==190 && vm.steps.length > 0)
 					go_to_next_step();
+				if (c==107 && vm.steps.length > 0)
+					go_to_next_deeper_step();
+				if (c==191 && vm.steps.length > 0)
+					go_to_next_yield();
 			});
 		}
 	});
 
 	const snapshot_interval = 80;
+
 	function maybe_take_snapshot()
 	{
 		const step_id = vm.view.step_id;
 		if (step_id % snapshot_interval == 0)
 			if (vm.snapshots[step_id] === undefined)
 				vm.snapshots[step_id] = _.cloneDeep(vm.view);
+	}
+/*	function go_to_next_deeper_step()
+	{
+		console.log("go_to_next_deeper_step");
+		move_view_to_next_step(vm.view)
+	}*/
+	function go_to_next_yield()
+	{
+		console.log("go_to_next_yield");
+		const old_yields = vm.view.yield_count;
+		for (i = 0; i < 100; i++)
+		{
+			go_to_next_step()
+			if (old_yields < vm.view.yield_count)
+				break;
+		}	
 	}
 	function go_to_next_step()
 	{
@@ -72,7 +101,8 @@
 	}
 	function move_view_to_next_step(view)
 	{
-		const step = vm.steps[view.step_id+1];
+		const wanted_id = view.step_id+1
+		const step = vm.steps[wanted_id];
 		if (step != undefined)
 		{
 			view.step_id++
@@ -80,7 +110,9 @@
 			return true;
 		}
 		else
-			alert("undefined step:" + view.step_id)
+		{
+		
+		}
 		return false;
 	}
 	function prev_step()
@@ -125,35 +157,48 @@
 	}
 	function do_op(op, view)
 	{
-		let action = op.a;
-		if (action == "set_comment")
+		const action = op[0]
+		const id = op[1]
+		if (action == OP_SET_COMMENT)
 		{
-			if (view.index[op.id] == undefined)
-				alert("comment before status for id "+op.id);
-			view.index[op.id].comment = op.comment;
+			if (view.index[id] == undefined)
+				alert("comment before status for id "+id);
+			view.index[id].comment = op[2];
 		}
-		else if (action == "set_status")
+		else if (action == OP_SET_STATUS)
 		{
 			//console.log(op.id + " status "  +  coro_status[op.status]);
-			if (view.index[op.id] == undefined)
+			if (view.index[id] == undefined)
 			{
 				if (op.parent_id == undefined)
 					alert("first status but no parent id?");
 				if (!add_state(op, view))
 					return
 			}
-			if (op.comment != undefined)
-				view.index[op.id].comment = op.comment;
-			view.index[op.id].status = coro_status[op.status];
-			if (op.status === 0)
+			comment = op[4]
+			if (comment != undefined)
+				view.index[id].comment = comment;
+
+			status = op[2]
+			const old_status_string = view.index[id].status;
+			const new_status_string = coro_status[status];
+			const yield_statuses = ["EP", "YIELD", "BNODE_YIELD"];
+			if (yield_statuses.includes(old_status_string) && !yield_statuses.includes(new_status_string))
+				assert(--view.yield_count > 0)
+			else if (yield_statuses.includes(new_status_string) && !yield_statuses.includes(old_status_string))
+				view.yield_count++
+
+			view.index[id].status = new_status_string
+
+			if (status === 0)
 			{
 				/*when a state is inactivated, its children
 				will never be used again*/
-				view.index[op.id].children.forEach(child => 
+				view.index[id].children.forEach(child => 
 					remove_state(child.id, view));
-				view.index[op.id].children = []
-				if (view.index[op.id].parent == view.root)
-					remove_state(op.id, view);			
+				view.index[id].children = []
+				if (view.index[id].parent == view.root)
+					remove_state(id, view);			
 			}
 		}
 		else 
@@ -162,8 +207,8 @@
 	function add_state(op, view)
 	{
 		state = {"children":[],"status":"idk"};
-		state.id = op["id"];
-		const parent_id = op["parent_id"];
+		state.id = op[1];
+		const parent_id = op[3];
 		state.parent_id = parent_id;
 		if (view.index.hasOwnProperty(parent_id))
 			parent = view.index[parent_id]
@@ -178,7 +223,10 @@
 	{
 		delete view.index[id]
 	}
+	
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
+	const OP_ADD_COMMENT = 0;
+	const OP_SET_STATE = 1;
 	
 $( document ).ready(function() {
 
@@ -192,7 +240,7 @@ but none worked*/
 vm.view.index = {}
 vm.snapshots= []
 vm.steps= []
-
+//vm.view.yield_count = 0
 
 
 console.log( "ready!" );

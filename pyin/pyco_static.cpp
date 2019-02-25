@@ -212,7 +212,7 @@ char *first_free_byte;
 
 void realloc();
 size_t *grab_words(size_t count);
-cpppred_state *grab_states(size_t count IF_TRACE_PROOF(state_id parent));
+cpppred_state *grab_states(size_t count IF_TRACE_PROOF(cpppred_state *parent));
 void release_bytes(size_t count);
 void release_states(size_t count);
 Thing *grab_things(size_t count);
@@ -446,12 +446,13 @@ struct cpppred_state
         size_t num_substates;
         coro_status status;
         string *comment;
+        bool dont_trace;
         void set_comment(string x) {
             if (comment)
                 *comment = x;
             else
                 comment = new string(x);
-            if (tracing_enabled && tracing_active)
+            if (!dont_trace && tracing_enabled && tracing_active)
                 if (was_introduced)
                     proof_trace_set_comment(id, *comment);
         }
@@ -463,18 +464,24 @@ struct cpppred_state
         {
             if (status == s) return;
             status = s;
-            if (tracing_enabled && tracing_active)
+            if (tracing_enabled && tracing_active && !dont_trace)
             {
                 proof_trace_set_status(id, s, !was_introduced, parent, comment);
                 was_introduced = true;
                 dump_tracing_step();
             }
         }
-        void construct(state_id parent_)
+        void construct(cpppred_state *parent_)
         {
             was_introduced = false;
             id = next_state_id++;
-            parent = parent_;
+            if (parent_)
+                parent = parent_->id;
+            else
+                parent = 0;
+            dont_trace = false;
+            if (parent && parent_->dont_trace)
+                dont_trace = true;
             comment = (string*)NULL;
             status = INACTIVE;
             #ifdef CACHE
@@ -489,7 +496,7 @@ struct cpppred_state
     #endif
     void grab_substates(size_t count)
     {
-        states = grab_states(count IF_TRACE_PROOF(id));
+        states = grab_states(count IF_TRACE_PROOF(this));
     }
 };
 
@@ -734,7 +741,7 @@ we can also deepcopy them, for ep check purposes...*/
         bool was_tracing_enabled = tracing_enabled;
         tracing_enabled = false;
     #endif
-    cpppred_state *state = grab_states(1 IF_TRACE_PROOF(0));
+    cpppred_state *state = grab_states(1 IF_TRACE_PROOF(NULL));
     state->entry = 0;
     state->incoming[0] = x;
     ASSERT(x->type() != BOUND);
@@ -779,7 +786,7 @@ we can also deepcopy them, for ep check purposes...*/
             bool was_tracing_enabled = tracing_enabled;
             tracing_enabled = false;
         #endif
-        cpppred_state *state = grab_states(1 IF_TRACE_PROOF(0));
+        cpppred_state *state = grab_states(1 IF_TRACE_PROOF(NULL));
         state->entry = 0;
         ASSERT(v->type() != BOUND);
         state->incoming[0] = v;
@@ -1086,7 +1093,7 @@ int main (int argc, char *argv[])
         open_trace_file();
 	#endif
     query_start_time = std::chrono::steady_clock::now();
-    top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(0));
+    top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(NULL));
     top_level_coro->entry = 0;
     while(query(*top_level_coro)!=0)
     {

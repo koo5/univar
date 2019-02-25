@@ -628,17 +628,14 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			b.append(Statement("state.grab_substates(" + str(r.max_states_len) + ')'))
 		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
-			#for i in range(r.max_states_len):
-			#	b.append(Statement('state.states['+str(i)+'].status = INACTIVE'))
-		if len(r.existentials):
-			pass
 		r.trace_proof = trace_proof_ and r.head and (r.head.pred not in preds_excluded_from_proof_tracing)
 		if r.trace_proof:
 			b.append(
-				If("top_level_tracing_coro && tracing_enabled && tracing_active",
+				If("!state.dont_trace && top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
 			b.append(Statement('state.set_active(true)'))
-			#b.append(Statement('proof_trace_add_state(state)'))
+		else:
+			b.append(Statement('state.dont_trace = true'))
 		if r.head:
 			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))
 			b.append(Statement('ASSERT(state.incoming[1]->type() != BOUND)'))
@@ -903,7 +900,8 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	trace_proof_ = trace_proof
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
-	preds_excluded_from_proof_tracing = []#[rdflib.RDF.first, rdflib.RDF.rest]
+	preds_excluded_from_proof_tracing = []
+	preds_excluded_from_proof_tracing = [rdflib.RDF.first, rdflib.RDF.rest]
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['ln', '-s', '../../pyco_visualization/html', outpath])

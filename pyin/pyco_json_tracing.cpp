@@ -1,3 +1,5 @@
+const int OP_ADD_COMMENT = 0;
+const int OP_SET_STATE = 1;
 
 void dump_tracing_step()
 {
@@ -21,33 +23,38 @@ void proof_trace_add_op(json &op)
     msg += ",";
     trace_write_raw(msg);
 }
-void proof_trace_add_state(state_id id, state_id parent_id)
-{
-    json op;
-    op["a"] = "add";
-    op["id"] = id;
-    op["parent_id"] = parent_id;
-    proof_trace_add_op(op);
-}
 void proof_trace_set_comment(state_id id, const string &comment)
 {
-    json op;
+    /*json op;
     op["a"] = "set_comment";
     op["id"] = id;
-    op["comment"] = comment;
+    op["comment"] = comment;*/
+    json op = json::array();
+    op.push_back(OP_ADD_COMMENT);
+    op.push_back(id);
+    op.push_back(comment);
     proof_trace_add_op(op);
 }
 void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, string *comment)
 {
-    json op;
+    /*json op;
     op["a"] = "set_status";
     op["id"] = id;
     op["status"] = (int)status;
+    */
+    json op = json::array();
+    op.push_back(OP_SET_STATE);
+    op.push_back(id);
+    op.push_back((int)status);
     if (with_introduction)
     {
-        op["parent_id"] = parent_id;
+        //op["parent_id"] = parent_id;
+        op.push_back(parent_id);
         if (comment)
-            op["comment"] = *comment;
+        {
+            //op["comment"] = *comment;
+            op.push_back(*comment);
+        }
     }
     proof_trace_add_op(op);
 }
@@ -86,7 +93,7 @@ void close_trace_file()
 }
 void maybe_reopen_trace_file()
 {
-    if (written_bytes / (1024*1024*100))
+    if (written_bytes / (1024*1024*50))
     {
         close_trace_file();
         current_trace_file_id++;

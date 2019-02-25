@@ -41,6 +41,7 @@
 					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
 					children:[],
 				},
+				run_uuid: undefined,
 				step_id: -1,
 				yield_count: 0,
 			},
@@ -111,7 +112,7 @@
 		}
 		else
 		{
-		
+			
 		}
 		return false;
 	}
@@ -157,6 +158,19 @@
 	}
 	function do_op(op, view)
 	{
+		if (!Array.isArray(op))
+		{
+			if (op["a"] == "run_uuid")
+			{
+				uuid = op["value"]
+				if (run_uuid === undefined)
+					run_uuid = uuid
+				else if (run_uuid != uuid)
+				{
+					files[file_id].status = 
+					
+				
+				
 		const action = op[0]
 		const id = op[1]
 		if (action == OP_SET_COMMENT)

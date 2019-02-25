@@ -16,7 +16,8 @@
 	:dummy tau_builtins:toggle_tracing_active :dummy.
 
 	:dummy ldl:shorten_location_printout (?x0 ?x0_shortened).
-	:dummy tau_builtins:output (?nont """ invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
+	:dummy tau_builtins:output ("ldl:parse_nonterminal " ?nont)^string_builtins:strXlst.
+	:dummy tau_builtins:output ("""invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 
 	?rule :memberof ?grammar.
 	:dummy tau_builtins:toggle_tracing_active :dummy.
@@ -154,7 +155,9 @@
     :dummy :series_of_literals_X_string (?chars ?v_tail).
     ?v string_builtins:strXlst (?v_head ?v_tail).
 }.
-
+{?raw ldl:postprocess ?cooked} <= {
+    ?raw ldl:type "statement_with_period"; ldl:children ([:value ?cooked] ?_period).
+}.
 {?raw ldl:postprocess ?cooked} <= {
     :dummy tau_builtins:output "ldl:postprocess exhausted on:".
 	:dummy tau_builtins:serialize_thing ?raw.

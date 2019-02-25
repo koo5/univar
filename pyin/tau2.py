@@ -201,13 +201,6 @@ def check_result(results, shouldbe_graph):
 	global already_failed_because_no_more_results
 	l1 = len(shouldbe_graph)
 	l2 = len(results)
-	print('expected:')
-	aa = []
-	for at in list(shouldbe_graph.triples((None, None, None))):
-		aa.append((at[0], common.un_move_me_ize_pred(at[1]), at[2]))
-	for a in aa:
-		print(a[0].n3(), a[1].n3(), a[2].n3())
-	print('.')
 	if not l1 and not l2:
 		success()
 		return
@@ -225,9 +218,20 @@ def check_result(results, shouldbe_graph):
 		success()
 		return
 	else:
+		print_expected_graph(shouldbe_graph)
 		fail()
 		echo(cmp)
 		print_kwrite_link()
+
+def print_expected_graph(shouldbe_graph):
+	print('expected:')
+	aa = []
+	for at in list(shouldbe_graph.triples((None, None, None))):
+		aa.append((at[0], common.un_move_me_ize_pred(at[1]), at[2]))
+	for a in aa:
+		print(a[0].n3(), a[1].n3(), a[2].n3())
+	print('.')
+
 
 def parse(data, identifier, publicID):
 	try:

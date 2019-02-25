@@ -54,6 +54,8 @@ query
 ?a4 :eq (rdf:nil ?_ast :minus_one).
 :dummy tau_builtins:toggle_tracing :dummy.
 ?a3 ldl:parse_nonterminal ?a4.
+(?initial_ldl_text_list ?_ast "statements") ldl:parse_nonterminal (rdf:nil ?_ast :minus_one).
+
 
 
 fin.

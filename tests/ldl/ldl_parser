@@ -16,7 +16,7 @@
 	:dummy tau_builtins:toggle_tracing_active :dummy.
 
 	:dummy ldl:shorten_location_printout (?x0 ?x0_shortened).
-	:dummy tau_builtins:output (?nont """invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
+	:dummy tau_builtins:output (?nont """ invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 
 	?rule :memberof ?grammar.
 	:dummy tau_builtins:toggle_tracing_active :dummy.

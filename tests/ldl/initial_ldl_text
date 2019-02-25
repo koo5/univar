@@ -49,11 +49,6 @@ raw_string_literal_body_item ++> [\\\\n].
 raw_string_literal_body_item ++> [\\\\\\[].
 raw_string_literal_body_item ++> [\\\\\\]].
 raw_string_literal_body_item ++> [\\\\\\\\].
-
-
-banana ++> pie.
-
-
 """;
 :has_comment """
 this is a declarative definition of the basic building blocks of the ldl and their grammar.

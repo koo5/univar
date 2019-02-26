@@ -473,14 +473,18 @@ struct cpppred_state
         }
         void construct(cpppred_state *parent_)
         {
+            dont_trace = false;
             was_introduced = false;
             id = next_state_id++;
             if (parent_)
                 parent = parent_->id;
             else
+            {
                 parent = 0;
-            dont_trace = false;
-            if (parent && parent_->dont_trace)
+                dont_trace = true;
+            }
+
+            if (parent_ && parent_->dont_trace)
                 dont_trace = true;
             comment = (string*)NULL;
             status = INACTIVE;
@@ -1094,6 +1098,7 @@ int main (int argc, char *argv[])
 	#endif
     query_start_time = std::chrono::steady_clock::now();
     top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(NULL));
+    top_level_coro->dont_trace = false;
     top_level_coro->entry = 0;
     while(query(*top_level_coro)!=0)
     {

@@ -254,7 +254,7 @@ int unify(cpppred_state & __restrict__ state)
 	case0:
 	INIT_DBG_DATA;
 	#ifdef TRACE_UNIFICATION
-		if(top_level_tracing_coro && tracing_enabled && tracing_active)
+		if(top_level_tracing_coro && tracing_enabled && tracing_active && !state.dont_trace)
 		{
 			stringstream ss;
 			ss << "unify " << (void*)x << thing_to_string_nogetval(x, 5) << " with " << (void*)y << thing_to_string_nogetval(y, 5);
@@ -624,18 +624,18 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			for k,v in r.locals_map.items():
 				b.append(Statement('state.locals['+str(v)+'] = ' +
 					s.thing_literal(r, r.locals_template[v])))
+		r.trace_proof = trace_proof_ and not r.head or (r.head.pred not in preds_excluded_from_proof_tracing)
+		if not r.trace_proof:
+			b.append(Statement('state.dont_trace = true'))
 		if r.max_states_len:
 			b.append(Statement("state.grab_substates(" + str(r.max_states_len) + ')'))
 		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
-		r.trace_proof = trace_proof_ and r.head and (r.head.pred not in preds_excluded_from_proof_tracing)
 		if r.trace_proof:
 			b.append(
 				If("!state.dont_trace && top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
 			b.append(Statement('state.set_active(true)'))
-		else:
-			b.append(Statement('state.dont_trace = true'))
 		if r.head:
 			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))
 			b.append(Statement('ASSERT(state.incoming[1]->type() != BOUND)'))

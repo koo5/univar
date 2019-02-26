@@ -11,6 +11,7 @@
 </head>
 <body>
 <div id="top">
+		<div>last_loaded_file_id: {{ last_loaded_file_id }}, status: {{ file_status }}</div>
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
 		<div> {{ view.yield_count }} </div>
@@ -41,7 +42,6 @@
 					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
 					children:[],
 				},
-				run_uuid: undefined,
 				step_id: -1,
 				yield_count: 0,
 			},
@@ -49,6 +49,10 @@
 				{action:"hide",filter:{rule: 0}},
 				{action:"hide",filter:{rule: 1}},
 			],
+			run_uuid: undefined,
+			files:[],
+			last_loaded_file_id: -1,
+			file_status: "?",
 		},
 		mounted: function ()
 		{
@@ -89,7 +93,8 @@
 		const old_yields = vm.view.yield_count;
 		for (i = 0; i < 100; i++)
 		{
-			go_to_next_step()
+			if (!go_to_next_step())
+				break;
 			if (old_yields < vm.view.yield_count)
 				break;
 		}	
@@ -98,23 +103,52 @@
 	{
 		console.log("go_to_next_step");
 		maybe_take_snapshot();
-		move_view_to_next_step(vm.view)
+		return move_view_to_next_step(vm.view)
 	}
 	function move_view_to_next_step(view)
 	{
-		const wanted_id = view.step_id+1
+		const wanted_id = view.step_id + 1
 		const step = vm.steps[wanted_id];
 		if (step != undefined)
 		{
 			view.step_id++
-			step.forEach(op => {do_op(op, view)})
+			for (i = 0; i < step.length; i++)
+				if (!do_op(step[i], view))
+					return false
 			return true;
 		}
 		else
 		{
-			
+			load_file_for_step(wanted_id);
+			return false;
 		}
-		return false;
+	}
+	function load_file_for_step(wanted)
+	{	/*
+		files.forEach(file => {
+			if (file.status == FileStatus.unloaded)
+			{
+				if (file.start <= wanted && file.end >= wanted)
+					
+		})
+		*/
+		load_file(vm.last_loaded_file_id + 1);
+	}
+	function load_file(id)
+	{	
+		if (vm.file_status == "loading")
+			return
+		vm.file_status = "loading"
+		$.getScript( "../trace"+id+".js", function( data, textStatus, jqxhr ) 
+		{
+			console.log( textStatus ); // Success
+			console.log( jqxhr.status ); // 200
+			console.log( "Load was performed." )
+			//if (view.step_id == -1) 
+			go_to_next_step();
+			vm.last_loaded_file_id++
+			vm.file_status = "loaded"
+		});    	
 	}
 	function prev_step()
 	{
@@ -163,14 +197,19 @@
 			if (op["a"] == "run_uuid")
 			{
 				uuid = op["value"]
-				if (run_uuid === undefined)
-					run_uuid = uuid
-				else if (run_uuid != uuid)
+				if (vm.run_uuid === undefined)
+					vm.run_uuid = uuid
+				else if (vm.run_uuid != uuid)
 				{
-					files[file_id].status = 
-					
-				
-				
+					files[file_id].status = FileStatus.error
+					alert("uuids dont match");
+					return false
+				}
+			}
+			else
+				alert("unknown action in " + op)
+			return true
+		}		
 		const action = op[0]
 		const id = op[1]
 		if (action == OP_SET_COMMENT)
@@ -182,9 +221,10 @@
 		else if (action == OP_SET_STATUS)
 		{
 			//console.log(op.id + " status "  +  coro_status[op.status]);
+			parent_id = op[3]
 			if (view.index[id] == undefined)
 			{
-				if (op.parent_id == undefined)
+				if (parent_id == undefined)
 					alert("first status but no parent id?");
 				if (!add_state(op, view))
 					return
@@ -216,7 +256,8 @@
 			}
 		}
 		else 
-			alert("unknown action:"+action)
+			alert("unknown action: "+action)
+		return true
 	}
 	function add_state(op, view)
 	{
@@ -238,13 +279,12 @@
 		delete view.index[id]
 	}
 	
+	const FileStatus = Object.freeze({error:1, loading:2, loaded:3, unloaded:4})
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
-	const OP_ADD_COMMENT = 0;
-	const OP_SET_STATE = 1;
+	const OP_SET_COMMENT = 0;
+	const OP_SET_STATUS = 1;
 	
 $( document ).ready(function() {
-
-
 
 /*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them
 and things would get silly slow. I first looked for solutions like this one:
@@ -254,17 +294,10 @@ but none worked*/
 vm.view.index = {}
 vm.snapshots= []
 vm.steps= []
-//vm.view.yield_count = 0
-
 
 console.log( "ready!" );
-$.getScript( "../trace0.js", function( data, textStatus, jqxhr ) {
- // console.log( data ); // Data returned
-  console.log( textStatus ); // Success
-  console.log( jqxhr.status ); // 200
-  console.log( "Load was performed." )
-  go_to_next_step();
-});    
+load_file(0)
+
 });
 
 	/*this is the function called from withing the trace files*/

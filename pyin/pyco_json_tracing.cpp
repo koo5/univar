@@ -76,13 +76,15 @@ void open_trace_file()
     trace.open(trace_output_path"/trace" + to_string(current_trace_file_id) + ".js");
     //trace_write_raw("window.pyco = Object();window.pyco.frames = [];");//??
     //dump();
-    static chrono::steady_clock::time_point uuid = std::chrono::steady_clock::now();
+
+    begin_tracing_step();
+
+    static chrono::steady_clock::time_point tp = std::chrono::steady_clock::now();
+    auto uuid = chrono::time_point_cast<std::chrono::milliseconds>(tp).time_since_epoch().count();
     json op;
     op["a"] = "run_uuid";
     op["value"] = uuid;
     proof_trace_add_op(op);
-
-    begin_tracing_step();
 }
 void trace_flush()
 {

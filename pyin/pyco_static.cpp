@@ -483,7 +483,6 @@ struct cpppred_state
                 parent = 0;
                 dont_trace = true;
             }
-
             if (parent_ && parent_->dont_trace)
                 dont_trace = true;
             comment = (string*)NULL;

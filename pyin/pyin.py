@@ -440,6 +440,7 @@ class Rule(Kbdbgable):
 			singleton.head = original_head[head_idx]
 		else:
 			singleton.head = None
+		if singleton.head and rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies") == singleton.head.pred: raise 111
 		singleton.body = body
 		if body == None:
 			singleton.body = []
@@ -907,7 +908,8 @@ def load(kb, goal, identification, base):
 		log('---')
 	def fixup3(o):
 		if isinstance(o, rdflib.Graph):
-			return URIRef(o.identifier)
+			#from IPython import embed; embed();
+			return URIRef(o.identifier.n3().strip('_:'))
 		return o
 	def fixup2(o):
 		if type(o) == rdflib.BNode:
@@ -923,7 +925,6 @@ def load(kb, goal, identification, base):
 	facts.id=head_triples_triples_id
 	head_triples_triples_id += 1
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
-		rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 		if p == implies:
 			body = Graph()
 			head_triples = [fixup(x) for x in kb_conjunctive.triples((None, None, None, o))]
@@ -962,6 +963,8 @@ def load(kb, goal, identification, base):
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:
 					ru.write("\n\n")
+		else:
+			rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)

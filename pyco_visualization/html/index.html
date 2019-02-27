@@ -12,6 +12,7 @@
 <body>
 <div id="top">
 		<div>last_loaded_file_id: {{ last_loaded_file_id }}, status: {{ file_status }}</div>
+		<div>navigation status: {{ navigation_status }}</div>
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
 		<div> {{ view.yield_count }} </div>
@@ -53,6 +54,7 @@
 			files:[],
 			last_loaded_file_id: -1,
 			file_status: "?",
+			navigation_status: "?",
 		},
 		mounted: function ()
 		{
@@ -64,11 +66,24 @@
 					prev_step();
 				}
 				if (c==190 && vm.steps.length > 0)
+				{
+					vm.navigation_status = "going to next step.."
 					go_to_next_step();
+					vm.navigation_status = "idle"
+				}
 				if (c==107 && vm.steps.length > 0)
 					go_to_next_deeper_step();
 				if (c==191 && vm.steps.length > 0)
+				{
+					vm.navigation_status = "going to next yield.."
 					go_to_next_yield();
+					vm.navigation_status = "idle"
+				}
+				if (c==221)
+				{
+					console.log("ffffff")
+					ff();
+				}
 			});
 		}
 	});
@@ -97,7 +112,16 @@
 				break;
 			if (old_yields < vm.view.yield_count)
 				break;
-		}	
+		}
+	}
+	function ff()
+	{
+		console.log("ff");
+		for (var i = 0; i < 50000; i++)
+		{
+			if (!move_view_to_next_step(vm.view))
+				break;
+		}
 	}
 	function go_to_next_step()
 	{
@@ -129,26 +153,26 @@
 			if (file.status == FileStatus.unloaded)
 			{
 				if (file.start <= wanted && file.end >= wanted)
-					
+
 		})
 		*/
 		load_file(vm.last_loaded_file_id + 1);
 	}
 	function load_file(id)
-	{	
+	{
 		if (vm.file_status == "loading")
 			return
 		vm.file_status = "loading"
-		$.getScript( "../trace"+id+".js", function( data, textStatus, jqxhr ) 
+		$.getScript( "../trace"+id+".js", function( data, textStatus, jqxhr )
 		{
 			console.log( textStatus ); // Success
 			console.log( jqxhr.status ); // 200
 			console.log( "Load was performed." )
-			//if (view.step_id == -1) 
+			//if (view.step_id == -1)
 			go_to_next_step();
 			vm.last_loaded_file_id++
 			vm.file_status = "loaded"
-		});    	
+		});
 	}
 	function prev_step()
 	{
@@ -209,7 +233,7 @@
 			else
 				alert("unknown action in " + op)
 			return true
-		}		
+		}
 		const action = op[0]
 		const id = op[1]
 		if (action == OP_SET_COMMENT)
@@ -244,18 +268,27 @@
 
 			view.index[id].status = new_status_string
 
-			if (status === 0)
+			//console.log(id+" status:"+status)
+			if (status == 0)
 			{
-				/*when a state is inactivated, its children
-				will never be used again*/
-				view.index[id].children.forEach(child => 
-					remove_state(child.id, view));
-				view.index[id].children = []
-				if (view.index[id].parent == view.root)
-					remove_state(id, view);			
+				if (view.index[id].children.length)
+				{
+					//console.log("deleting inactive parent's children")
+					/*when a state is inactivated, its children
+					will never be used again*/
+					view.index[id].children.forEach(child =>
+						remove_state(child.id, view));
+					view.index[id].children = []
+					//if (view.index[id].parent == view.root)
+					//remove_state(id, view);
+				}
+				//else console.log("chl")
+
 			}
+			//else console.log(id+" status != 0")
+
 		}
-		else 
+		else
 			alert("unknown action: "+action)
 		return true
 	}
@@ -278,12 +311,12 @@
 	{
 		delete view.index[id]
 	}
-	
+
 	const FileStatus = Object.freeze({error:1, loading:2, loaded:3, unloaded:4})
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
 	const OP_SET_COMMENT = 0;
 	const OP_SET_STATUS = 1;
-	
+
 $( document ).ready(function() {
 
 /*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them

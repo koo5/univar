@@ -101,7 +101,7 @@ void close_trace_file()
 }
 void maybe_reopen_trace_file()
 {
-    if (written_bytes / (1024*1024*50))
+    if (written_bytes / (1024*1024*5))
     {
         close_trace_file();
         current_trace_file_id++;

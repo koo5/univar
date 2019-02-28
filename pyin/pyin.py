@@ -908,8 +908,10 @@ def load(kb, goal, identification, base):
 		log('---')
 	def fixup3(o):
 		if isinstance(o, rdflib.Graph):
+			#
+			r= URIRef('file:///#' + o.identifier.n3().strip('_:'))
 			#from IPython import embed; embed();
-			return URIRef(o.identifier.n3().strip('_:'))
+			return r
 		return o
 	def fixup2(o):
 		if type(o) == rdflib.BNode:

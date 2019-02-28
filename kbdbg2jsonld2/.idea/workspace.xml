@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/convert.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/convert.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kbdbg2jsonld/DATA" beforeDir="false" afterPath="$PROJECT_DIR$/../kbdbg2jsonld/DATA" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -20,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/routes/convert.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="8" />
+            <state relative-caret-position="221">
+              <caret line="27" column="54" selection-start-line="27" selection-start-column="54" selection-end-line="27" selection-end-column="54" />
             </state>
           </provider>
         </entry>
@@ -119,15 +118,16 @@
       <option name="presentableId" value="Default" />
       <updated>1551273763148</updated>
       <workItem from="1551273764718" duration="6452000" />
-      <workItem from="1551353153867" duration="6383000" />
+      <workItem from="1551353153867" duration="7307000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="12835000" />
+    <option name="totallyTimeSpent" value="13759000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="850" height="481" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24969697" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -135,7 +135,7 @@
       <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.5890411" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.5890411" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.59178084" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -176,8 +176,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/convert.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="8" />
+        <state relative-caret-position="221">
+          <caret line="27" column="54" selection-start-line="27" selection-start-column="54" selection-end-line="27" selection-end-column="54" />
         </state>
       </provider>
     </entry>

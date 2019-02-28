@@ -770,6 +770,8 @@ def emit_list(l, uri=None):
 			v = rdflib.Literal('?' + str(i)).n3()
 		elif not isinstance(i, rdflib.Graph):
 			v = i.n3()
+			if i == rdflib.RDF.nil:
+				v = (i + "_").n3() # json.ld workaround
 		else:
 			v = rdflib.URIRef(i.identifier).n3()
 		kbdbg(uri + " rdf:first " + v)

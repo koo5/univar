@@ -763,6 +763,7 @@ def emit_list(l, uri=None):
 	if uri == None:
 		uri = bn()
 	r = uri
+	kbdbg(uri + " a " + rdflib.RDF.List.n3())
 	for idx, i in enumerate(l):
 		if type(i) in (unicode, str):
 			v = i

@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../kbdbg2jsonld/x.js" beforeDir="false" afterPath="$PROJECT_DIR$/../kbdbg2jsonld/x.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../kbdbg2jsonld/x.py" beforeDir="false" afterPath="$PROJECT_DIR$/../kbdbg2jsonld/x.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/convert.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/convert.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/pyin.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyin.py" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -22,8 +18,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/routes/convert.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="35" column="23" lean-forward="true" selection-start-line="35" selection-start-column="23" selection-end-line="35" selection-end-column="23" />
+            <state relative-caret-position="162">
+              <caret line="21" selection-start-line="21" selection-end-line="21" />
             </state>
           </provider>
         </entry>
@@ -121,16 +117,15 @@
       <option name="presentableId" value="Default" />
       <updated>1551273763148</updated>
       <workItem from="1551273764718" duration="6452000" />
-      <workItem from="1551353153867" duration="9986000" />
+      <workItem from="1551353153867" duration="13069000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16438000" />
+    <option name="totallyTimeSpent" value="19521000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24969697" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -138,7 +133,7 @@
       <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.5875" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.5875" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.59178084" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -179,8 +174,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/routes/convert.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="35" column="23" lean-forward="true" selection-start-line="35" selection-start-column="23" selection-end-line="35" selection-end-column="23" />
+        <state relative-caret-position="162">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
         </state>
       </provider>
     </entry>

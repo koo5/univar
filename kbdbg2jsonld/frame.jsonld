@@ -1,13 +1,14 @@
 {
   "@context": {
-    "dc": "http://purl.org/dc/elements/1.1/",
-    "ex": "http://example.org/vocab#"
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ,
+    "k": "http://kbd.bg/#",
+    "k:has_args":{"@container": "@list"}
   },
-  "@type": "ex:Library",
-  "ex:contains": {
-    "@type": "ex:Book",
-    "ex:contains": {
-      "@type": "ex:Chapter"
-    }
+  "rule":{
+  	"@type": "k:Rule",
+  	"k:has_head": {
+  		"@type" :"k:term"
+  		
+  	}
   }
 }

@@ -1,14 +1,9 @@
 {
   "@context": {
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ,
-    "k": "http://kbd.bg/#",
-    "k:has_args":{"@container": "@list"}
+    "k": "http://kbd.bg/#"
   },
-  "rule":{
-  	"@type": "k:Rule",
-  	"k:has_head": {
-  		"@type" :"k:term"
-  		
-  	}
-  }
+  "@graph":[{
+    "@type": "k:rule"
+  }]
 }

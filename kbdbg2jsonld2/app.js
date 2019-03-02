@@ -42,3 +42,18 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+
+
+
+
+/*
+function _setDefaults(options, {
+  documentLoader = "jsonld.documentLoader",
+  ...defaults
+}) {
+  return Object.assign({}, {documentLoader}, defaults, options);
+}
+
+console.log(_setDefaults({documentLoader : 2222, oanana:'oie'}, {oanana:'darks'}))
+*/

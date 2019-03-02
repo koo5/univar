@@ -25,7 +25,7 @@ router.post('/', function(req, res, next) {
           res.send(error)
         } else {
           //console.log("result?"+result)
-          jsonld.fromRDF(result, {format: 'application/n-quads'}, (err, doc) => {
+          jsonld.fromRDF(result, {}, (err, doc) => {
             if (err) {
               console.log("err" + err)
               console.log("doc" + doc)

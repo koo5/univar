@@ -491,12 +491,12 @@ class Rule(Kbdbgable):
 			try:
 				emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
 			except KeyError:
-				emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), ':'+singleton.kbdbg_name + "Body")
+				emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), singleton.kbdbg_name + "Body")
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
 			try:
 				emitted_original_head = Rule.emitted_formulas[singleton.original_head]
 			except KeyError:
-				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), ':'+singleton.kbdbg_name + "OriginalHead")
+				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), singleton.kbdbg_name + "OriginalHead")
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
@@ -761,7 +761,8 @@ def query(input_rules, query_rule, goal_graph):
 
 def emit_list(l, uri=None):
 	if uri == None:
-		uri = bn()
+		uri = bn().strip(':')
+	uri='_:'+uri
 	r = uri
 	kbdbg(uri + " a " + rdflib.RDF.List.n3())
 	for idx, i in enumerate(l):

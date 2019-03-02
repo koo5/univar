@@ -1,7 +1,13 @@
 {
   "@context": {
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ,
-    "k": "http://kbd.bg/#"
+     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    ,"k": "http://kbd.bg/#"
+    ,"rule": {"@id":"http://kbd.bg/#rule","@container":"@index"}
+    ,"args": {"@id":"k:has_args","@container":"@list"}
+    ,"body1": {"@id":"k:has_body","@container":"@list"}
+    ,"head": {"@id":"k:has_head"}
+    ,"pred": {"@id":"k:has_pred","@type": "@id"}
+    ,"head_idx": {"@id":"k:has_head_idx","@type": "@id"}
   },
   "@graph":[{
     "@type": "k:rule"

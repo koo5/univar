@@ -764,6 +764,8 @@ def emit_list(l, uri=None):
 		uri = bn().strip(':')
 	uri='_:'+uri
 	r = uri
+	uri += 'v'
+	kbdbg(r + " rdf:value " + uri)
 	kbdbg(uri + " a " + rdflib.RDF.List.n3())
 	for idx, i in enumerate(l):
 		if type(i) in (unicode, str):

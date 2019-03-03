@@ -31,8 +31,13 @@ router.post('/', function(req, res, next) {
               console.log("doc" + doc)
               res.status(500).send({ error: err });
             } else {
+              for (o in doc){
+                console.log("aaa:"+o)
+                console.log(doc[o])
+              }
+
               var frame = req.body['frame']
-              console.log("frame:"+frame)
+              //console.log("frame:"+frame)
               jsonld.frame(doc, frame, (err, framed) => {
                 if (err) {
                   console.log("errr " + err)

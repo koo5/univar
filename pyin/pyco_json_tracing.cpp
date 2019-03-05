@@ -35,7 +35,7 @@ void proof_trace_set_comment(state_id id, const string &comment)
     op.push_back(comment);
     proof_trace_add_op(op);
 }
-void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, string *comment)
+void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, RuleId rule_id, Thing* locals_address, string *comment)
 {
     /*json op;
     op["a"] = "set_status";
@@ -50,6 +50,9 @@ void proof_trace_set_status(state_id id, coro_status status, bool with_introduct
     {
         //op["parent_id"] = parent_id;
         op.push_back(parent_id);
+        op.push_back(rule_id);
+        op.push_back((size_t)locals_address);
+        //remove when rule descriptions are taken from the json
         if (comment)
         {
             //op["comment"] = *comment;

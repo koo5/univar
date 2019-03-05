@@ -253,7 +253,9 @@
 				if (!add_state(op, view))
 					return
 			}
-			comment = op[4]
+			rule_id = op[4]
+			locals_address = op[5]
+			comment = op[6]
 			if (comment != undefined)
 				view.index[id].comment = comment;
 

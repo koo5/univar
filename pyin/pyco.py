@@ -635,6 +635,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			b.append(
 				If("!state.dont_trace && top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
+			b.append(Statement('state.rule_id = '+str(r.debug_id)))
 			b.append(Statement('state.set_active(true)'))
 		if r.head:
 			b.append(Statement('ASSERT(state.incoming[0]->type() != BOUND)'))

@@ -1,0 +1,8 @@
+reqs:
+https://github.com/rdfjs/N3.js
+https://github.com/digitalbazaar/jsonld.js
+
+alts:
+https://github.com/RDFLib/rdflib-jsonld
+https://github.com/digitalbazaar/jsonld-cli
+

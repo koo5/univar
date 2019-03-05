@@ -47,7 +47,7 @@ using namespace std;
 #define ASSERT assert
 
 
-
+typedef long int RuleId;
 typedef unsigned long nodeid;
 enum ConstantType {URI, STRING, INTEGER};
 typedef pair<nodeid,size_t> nodeid_and_refcount;
@@ -441,6 +441,7 @@ struct cpppred_state
        size_t cumulative_euler_steps;
     #endif
     #ifdef TRACE_PROOF
+        RuleId rule_id;
         bool was_introduced;
         state_id id, parent;
         size_t num_substates;
@@ -473,6 +474,7 @@ struct cpppred_state
         }
         void construct(cpppred_state *parent_)
         {
+            rule_id = -1;
             dont_trace = false;
             was_introduced = false;
             id = next_state_id++;

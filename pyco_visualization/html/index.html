@@ -315,6 +315,25 @@
 					}
 				}
 			});
+			rm.rules.forEach(rule => {
+				thing = local_for_state(state, what)
+				if (thing !== undefined) {
+					what_thing = thing
+					if (where_thing) {
+						bind(what_thing, where_thing);
+						return true;
+					}
+				}
+				thing = local_for_state(state, where)
+				if (thing !== undefined) {
+					where_thing = thing
+					if (what_thing) {
+						bind(what_thing, where_thing);
+						return true;
+					}
+				}
+			});
+
 		}
 		else if (action == OP_UNBIND) {
 			what = 0+op[1]
@@ -336,9 +355,14 @@
 	}
 	function local_for_state(state, what)
 	{
+		fixme
 		idx = what - state.locals_address
-		if (idx >= 0 && idx <= vm.rules[state.locals.rule_id].locals_size - 1)
-			return state.locals[idx]
+		if (idx >= 0 && idx <= (rule_for_state(state).locals_size - 1) * thing_size)
+			return state.locals[idx/thing_size]
+	}
+	function const_for_rule(rule, what)
+	{
+		fixme
 	}
 	function add_state(op, view)
 	{
@@ -353,9 +377,25 @@
 		state.parent = parent
 		parent.children.push(state)
 		view.index[state.id] = state;
-		state.locals_adderss = op[5]
+		state.locals_address = op[5]
+		rule = rule_for_state(state)
+		locals = locals_for_rule(rule)
+		locals_count = locals.length
+		state.locals = Array(locals_count)
+		forEach(_.range(), i => {
+			state.locals[i] = {}
+		});
 		return true;
 	}
+	function locals_for_rule(rule)
+	{
+		return rule["k:has_locals"]["rdf:value"]["@list"]
+	}
+	function rule_for_state(state)
+	{
+		return vm.rules[state.rule_id]
+	}
+
 	function remove_state(id, view)
 	{
 		delete view.index[id]

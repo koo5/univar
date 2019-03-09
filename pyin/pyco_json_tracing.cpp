@@ -1,5 +1,7 @@
 const int OP_ADD_COMMENT = 0;
 const int OP_SET_STATE = 1;
+const int OP_BIND = 2;
+const int OP_UNBIND = 3;
 
 void dump_tracing_step()
 {
@@ -66,6 +68,23 @@ void proof_trace_emit_euler_steps()
     json op;
     op["a"] = "set_steps";
     op["value"] = euler_steps;
+    proof_trace_add_op(op);
+}
+
+void proof_trace_emit_bind(Thing *t, Thing *t2)
+{
+    json op = json::array();
+    op.push_back(OP_BIND);
+    op.push_back((size_t)t);
+    op.push_back((size_t)t2);
+    proof_trace_add_op(op);
+}
+
+void proof_trace_emit_unbind(Thing *t)
+{
+    json op = json::array();
+    op.push_back(OP_UNBIND);
+    op.push_back((size_t)t);
     proof_trace_add_op(op);
 }
 

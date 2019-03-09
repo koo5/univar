@@ -132,19 +132,20 @@ def tau(command, files, only_id, additional_identification):
 						def exit_gracefully(signum, frame):
 							exit_gracefully2()
 						def exit_gracefully2():
-							print('exit_gracefully..')
-							print('exit_gracefully..')
-							print('exit_gracefully..')
+							print('tau exit_gracefully..')
+							print('tau exit_gracefully..')
+							print('tau exit_gracefully..')
 							popen.terminate()
 						import atexit
 						atexit.register(exit_gracefully2)
 						import signal
 						signal.signal(signal.SIGTERM, exit_gracefully)
 						signal.signal(signal.SIGILL, exit_gracefully)
+						signal.signal(signal.SIGHUP, exit_gracefully)
 						signal.signal(signal.SIGQUIT, exit_gracefully)
 						signal.signal(signal.SIGINT, exit_gracefully)
 						signal.signal(signal.SIGABRT, exit_gracefully)
-						signal.signal(signal.SIGPIPE, exit_gracefully)
+						#signal.signal(signal.SIGPIPE, exit_gracefully)
 						#signal.signal(signal.SIGCHLD, exit_gracefully)
 						try:
 							#print('popen..')
@@ -152,9 +153,13 @@ def tau(command, files, only_id, additional_identification):
 							popen_output = ''
 							#print('poll..')
 							while popen.poll() == None:
+								print('readline...')
 								process_output(popen.stdout.readline())
+								print('readline.')
 							if not popen.stdout.closed:
+								print('readline..')
 								process_output(popen.stdout.readline())
+								print('readline.')
 							if popen.returncode:
 								fail()
 								print_kwrite_link()
@@ -213,7 +218,7 @@ def check_result(results, shouldbe_graph):
 	result_to_parse = results.pop(0)
 	#print('result_to_parse',result_to_parse,';')
 	result_graph = parse(data=''.join(prefixes+[result_to_parse]), identifier=base, publicID=base)
-	cmp = do_results_comparison(aa, result_graph)
+	cmp = do_results_comparison(shouldbe_graph, result_graph)
 	if cmp == True:
 		success()
 		return

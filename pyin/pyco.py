@@ -976,10 +976,11 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		os.unlink(pyin.rules_jsonld_file_name)
 	except:	pass
 
-	popen = subprocess.Popen(['bash', '-c', "python3 -m http.server 2999"], cwd="kbdbg2jsonld")
-	popen = subprocess.Popen(['bash', '-c', "./kbdbg2jsonld2/bin/www"])
+	kill_me = []
+	kill_me.append(subprocess.Popen(['bash', '-c', "python3 -m http.server 2999"], cwd="kbdbg2jsonld"))
+	kill_me.append(subprocess.Popen(['bash', '-c', "./kbdbg2jsonld2/bin/www"]))
 	import time;time.sleep(2)
-	popen = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, pyin.rules_jsonld_file_name])
+	converter = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, pyin.rules_jsonld_file_name])
 
 	try:
 		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)
@@ -994,13 +995,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	def exit_gracefully(signum, frame):
 		exit_gracefully2()
 	def exit_gracefully2():
-		print('exit_gracefully..')
-		#os.system('killall pyco;sleep 1;')
+		print('pyco exit_gracefully..')
+		os.system('killall pyco;sleep 1;')
 	import atexit
 	atexit.register(exit_gracefully2)
 	import signal
 	signal.signal(signal.SIGINT, exit_gracefully)
 	signal.signal(signal.SIGTERM, exit_gracefully)
+	signal.signal(signal.SIGHUP, exit_gracefully)
 
 	if profile:
 		subprocess.check_call(('time valgrind --tool=callgrind --dump-instr=yes --dump-line=yes --simulate-cache=yes --collect-jumps=yes --collect-systime=yes  --collect-bus=yes  --branch-sim=yes --cache-sim=yes'.split())+ [pyco_executable])
@@ -1010,6 +1012,12 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		subprocess.check_call(['time', pyco_executable], bufsize=1)#still not getting output until the end
 	else:
 		subprocess.check_call(['time', 'valgrind', '--main-stacksize=128000000', '--vgdb-error=1', pyco_executable])
+
+	while converter.poll() == None:
+		print('waiting on converter script to die')
+		time.sleep(1)
+		for i in kill_me:
+			i.kill()
 
 
 

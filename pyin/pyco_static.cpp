@@ -236,6 +236,8 @@ void release_things(size_t count);
     void proof_trace_set_comment(state_id id, const string &comment);
     void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, RuleId rule_id, Thing* locals_address, string *comment);
     void proof_trace_emit_euler_steps();
+    void proof_trace_emit_bind(Thing *t, Thing *t2);
+    void proof_trace_emit_unbind(Thing *t);
 
     void dump();
 
@@ -368,12 +370,18 @@ struct Thing
     {
         _type = BOUND;
         set_value(v);
+        #ifdef TRACE_PROOF
+            proof_trace_emit_bind(this, v);
+        #endif
     }
     void unbind()
     {
         _type = UNBOUND;
         #ifdef DEBUG
             set_value((Thing*)666);
+        #endif
+        #ifdef TRACE_PROOF
+            proof_trace_emit_unbind(this);
         #endif
     }
     void make_bnode_ungrounded()

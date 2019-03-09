@@ -233,6 +233,11 @@
 					return false
 				}
 			}
+			else if (op["a"] == "consts_address")
+			{
+				emit me in pyco
+				vm.rules[op["rule"]].consts_address = op["value"]
+			}
 			else
 				alert("unknown action in " + op)
 			return true

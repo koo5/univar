@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="263">
-              <caret line="360" column="36" lean-forward="true" selection-start-line="360" selection-start-column="36" selection-end-line="360" selection-end-column="36" />
+            <state relative-caret-position="227">
+              <caret line="237" column="31" lean-forward="true" selection-start-line="237" selection-start-column="31" selection-end-line="237" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -137,12 +137,12 @@
       <updated>1551273763148</updated>
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
-      <workItem from="1552134354490" duration="13650000" />
+      <workItem from="1552134354490" duration="14648000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="41492000" />
+    <option name="totallyTimeSpent" value="42490000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
@@ -198,8 +198,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="263">
-          <caret line="360" column="36" lean-forward="true" selection-start-line="360" selection-start-column="36" selection-end-line="360" selection-end-column="36" />
+        <state relative-caret-position="227">
+          <caret line="237" column="31" lean-forward="true" selection-start-line="237" selection-start-column="31" selection-end-line="237" selection-end-column="31" />
         </state>
       </provider>
     </entry>

@@ -19,6 +19,8 @@ import click
 import sys
 import common
 import pyin
+from pyin import kbdbg, emit_list,bn
+
 from collections import defaultdict, OrderedDict
 import memoized
 
@@ -52,7 +54,34 @@ def make_locals(rule):
 				if a not in consts_map:
 					consts_map[a] = len(consts)
 					consts.append(pyin.Atom(a))
+	#from IPython import embed; embed();exit()
+	kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(emit_local_infos(locals_map, locals_template)))
+	kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(emit_local_infos(consts_map, consts)))
 	return locals_map, consts_map, locals_template,	consts
+
+def emit_local_infos(locals_map, locals_template):
+	r = []
+	#from IPython import embed; embed();exit()
+	for k,v in locals_map.items():
+		r.append(emit_local_info(k, locals_template[v]))
+	return r
+
+def emit_local_info(k, thing):
+	uri = bn()
+	if type(k) == rdflib.Variable:
+		if thing.is_bnode:
+			t = "existential"
+		else:
+			t = "var"
+	elif type(k) in (rdflib.Literal, rdflib.URIRef):
+		t = "constant"
+	else:
+		assert False, (k, type(k))
+	kbdbg(uri + " rdf:type kbdbg:"+t)
+	kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(str(k)).n3())
+	if type(k) == rdflib.Literal:
+		kbdbg(uri + " kbdbg:has_value " + k.n3())
+	return uri
 
 def vars_in_original_head(rule):
 	result = set()
@@ -920,6 +949,9 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 					use = True
 		if use:
 			preds[pred].append(rule)
+
+	jsonld_kbdbg_file_name = pyin.kbdbg_file_name + '.jsonld'
+
 	e = Emitter()
 	create_builtins(e)
 	if oneword == 'auto':
@@ -941,6 +973,20 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	if debug_rules_:
 		e.prologue.append(Line('#define DEBUG_RULES'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
+
+
+
+	try:
+		os.unlink(jsonld_kbdbg_file_name)
+	except:
+		pass
+
+	popen = subprocess.Popen(['bash', '-c', "python3 -m http.server 2999"], cwd="kbdbg2jsonld")
+	popen = subprocess.Popen(['bash', '-c', "./kbdbg2jsonld2/bin/www"])
+	import time;time.sleep(2)
+	popen = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, jsonld_kbdbg_file_name])
+
+
 	try:
 		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)
 	except subprocess.CalledProcessError:

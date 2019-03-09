@@ -5,13 +5,15 @@ import json
 import requests
 
 
-f = '../runs/tests_clean_zzpanla_ldl0_1_0/kbdbgtests_clean_zzpanla_ldl0_1_0.n3'
-f = 'DATA'
-data = open(f).readlines()
+input_file_name = sys.argv[1]
+output_file_name = sys.argv[2]
 
 
-frame = "https://raw.githubusercontent.com/koo5/univar/master/kbdbg2jsonld/frame.jsonld"
-frame = "http://localhost:4444/frame.jsonld"
+data = open(input_file_name).readlines()
+
+
+#frame = "https://raw.githubusercontent.com/koo5/univar/master/kbdbg2jsonld/frame.jsonld"
+frame = "http://localhost:2999/frame.jsonld"
 
 def req(ddd):
 	r = requests.post("http://localhost:3000/convert", data={'frame':frame,'n3': ddd})
@@ -25,10 +27,10 @@ def req(ddd):
 		print(resp, file=sys.stderr)
 		print(r.status_code, r.reason, file=sys.stderr)
 		return False
+	open(output_file_name, 'w').write(json.dumps(json.loads(r.content.decode('utf-8')), indent=2))
 	return True
 
 
-#if True:
 if False:
 	for i in range(len(data)):
 		print(i)

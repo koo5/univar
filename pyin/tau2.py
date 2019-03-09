@@ -123,11 +123,11 @@ def tau(command, files, only_id, additional_identification):
 						with open(trace_output_path+'query_for_external_euler.n3', 'w') as f:
 							f.write(''.join(prefixes) + euler_formula)
 						write_out(trace_output_path+'query_for_external_raw.n3')
-						cccc= ' '.join([
+						reasoner_command= ' '.join([
 							command, ' --identification ', identification, ' --base ', base,
 							trace_output_path + 'kb_for_external_raw.n3', trace_output_path+ 'query_for_external_raw.n3'
 						])
-						print(cccc)
+						print('running:'+reasoner_command)
 						popen = None
 						def exit_gracefully(signum, frame):
 							exit_gracefully2()
@@ -148,7 +148,7 @@ def tau(command, files, only_id, additional_identification):
 						#signal.signal(signal.SIGCHLD, exit_gracefully)
 						try:
 							#print('popen..')
-							popen = subprocess.Popen(['bash', '-c', cccc], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
+							popen = subprocess.Popen(['bash', '-c', reasoner_command], universal_newlines=True, stdout=subprocess.PIPE, bufsize=1)
 							popen_output = ''
 							#print('poll..')
 							while popen.poll() == None:

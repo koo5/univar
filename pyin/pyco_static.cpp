@@ -234,7 +234,7 @@ void release_things(size_t count);
     void proof_trace_add_state(state_id id, state_id parent_id);
     void proof_trace_remove_state(state_id id);
     void proof_trace_set_comment(state_id id, const string &comment);
-    void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, string *comment);
+    void proof_trace_set_status(state_id id, coro_status status, bool with_introduction, state_id parent_id, RuleId rule_id, Thing* locals_address, string *comment);
     void proof_trace_emit_euler_steps();
 
     void dump();
@@ -467,7 +467,7 @@ struct cpppred_state
             status = s;
             if (tracing_enabled && tracing_active && !dont_trace)
             {
-                proof_trace_set_status(id, s, !was_introduced, parent, comment);
+                proof_trace_set_status(id, s, !was_introduced, parent, rule_id, locals, comment);
                 was_introduced = true;
                 dump_tracing_step();
             }

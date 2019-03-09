@@ -16,6 +16,7 @@
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
 		<div> {{ view.yield_count }} </div>
+		<div> {{ rules }} </div>
 </div>
 <script type="text/javascript">
 
@@ -55,6 +56,7 @@
 			last_loaded_file_id: -1,
 			file_status: "?",
 			navigation_status: "?",
+			rules:{}
 		},
 		mounted: function ()
 		{
@@ -331,6 +333,25 @@ vm.snapshots= []
 vm.steps= []
 
 console.log( "ready!" );
+
+//vm.rules = {}
+
+$.ajax({
+	dataType: "json",
+	url: "../rules.jsonld",
+	data: "",
+	success: function(data)
+	{
+
+		g = data["@graph"]
+		g.forEach(rule => {
+			//console.log(rule)
+			vm.rules[rule["k:has_id"]["@value"]] = rule
+	})
+
+	}
+});
+
 load_file(0)
 
 });

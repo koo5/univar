@@ -27,13 +27,13 @@ router.post('/', function(req, res, next) {
           //console.log("result?"+result)
           jsonld.fromRDF(result, {}, (err, doc) => {
             if (err) {
-              console.log("err" + err)
               console.log("doc" + doc)
+              console.log("err" + err)
               res.status(500).send({ error: err });
             } else {
               for (o in doc){
-                console.log("aaa:"+o)
-                console.log(doc[o])
+                //console.log("aaa:"+o)
+                //console.log(doc[o])
               }
 
               var frame = req.body['frame']

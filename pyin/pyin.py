@@ -482,6 +482,7 @@ class Rule(Kbdbgable):
 					print("\nwarning: var " + str(k) + " in " + singleton.kbdbg_name + " only appears once")
 
 		nolog or kbdbg(":"+singleton.kbdbg_name + ' rdf:type ' + 'kbdbg:rule')
+		nolog or kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_id ' + str(singleton.debug_id))
 		if not nolog:
 			if singleton.head:
 				head_uri = ":"+singleton.kbdbg_name + "Head"
@@ -887,10 +888,11 @@ def set_up(identification, base):
 	base = 'file://'  + base
 	this = "http://kbd.bg/run"+str(datetime.datetime.now()).replace(':', '-').replace('.', '-').replace(' ', '-')
 	kbdbg_fn = common.kbdbg_file_name(identification, fn)
+	jsonld_fn = common.kbdbg_file_name(identification, "rules.jsonld")
 	rules_fn = kbdbg_fn + '_rules'
 	subprocess.call(['rm', '-f', rules_fn])
 	os.system('mkdir -p '+outpath)
-	return kbdbg_fn, rules_fn, identification, base, this, outpath
+	return kbdbg_fn, rules_fn, jsonld_fn, identification, base, this, outpath
 
 
 def load(kb, goal, identification, base):

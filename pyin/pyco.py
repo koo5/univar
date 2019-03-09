@@ -933,7 +933,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	preds_excluded_from_proof_tracing = []
 	preds_excluded_from_proof_tracing = [rdflib.RDF.first, rdflib.RDF.rest]
 	preds = defaultdict(list)
-	pyin.kbdbg_file_name, pyin._rules_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
+	pyin.kbdbg_file_name, pyin._rules_file_name, pyin.rules_jsonld_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['ln', '-s', '../../pyco_visualization/html', outpath])
 	subprocess.call(['cp', '-r', 'pyco_makefile', outpath+'Makefile'])
 	pyin.nolog = nolog
@@ -949,8 +949,6 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 					use = True
 		if use:
 			preds[pred].append(rule)
-
-	jsonld_kbdbg_file_name = pyin.kbdbg_file_name + '.jsonld'
 
 	e = Emitter()
 	create_builtins(e)
@@ -974,18 +972,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		e.prologue.append(Line('#define DEBUG_RULES'))
 	open(outpath+"pyco_out.cpp", "w").write(e.generate_cpp(query_rule, goal_graph, outpath))
 
-
-
 	try:
-		os.unlink(jsonld_kbdbg_file_name)
-	except:
-		pass
+		os.unlink(pyin.rules_jsonld_file_name)
+	except:	pass
 
 	popen = subprocess.Popen(['bash', '-c', "python3 -m http.server 2999"], cwd="kbdbg2jsonld")
 	popen = subprocess.Popen(['bash', '-c', "./kbdbg2jsonld2/bin/www"])
 	import time;time.sleep(2)
-	popen = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, jsonld_kbdbg_file_name])
-
+	popen = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, pyin.rules_jsonld_file_name])
 
 	try:
 		subprocess.check_call(['make', ("profile" if profile else ("pyco" if nodebug else "debug"))], cwd = outpath)

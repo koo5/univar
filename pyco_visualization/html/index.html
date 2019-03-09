@@ -257,7 +257,6 @@
 					return
 			}
 			rule_id = op[4]
-			locals_address = op[5]
 			comment = op[6]
 			if (comment != undefined)
 				view.index[id].comment = comment;
@@ -293,9 +292,53 @@
 			//else console.log(id+" status != 0")
 
 		}
+		else if (action == OP_BIND) {
+			what = 0 + op[1]
+			where = 0 + op[2]
+			what_thing = undefined
+			where_thing = undefined
+			view.index.forEach(state => {
+				thing = local_for_state(state, what)
+				if (thing !== undefined) {
+					what_thing = thing
+					if (where_thing) {
+						bind(what_thing, where_thing);
+						return true;
+					}
+				}
+				thing = local_for_state(state, where)
+				if (thing !== undefined) {
+					where_thing = thing
+					if (what_thing) {
+						bind(what_thing, where_thing);
+						return true;
+					}
+				}
+			});
+		}
+		else if (action == OP_UNBIND) {
+			what = 0+op[1]
+			view.index.forEach(state => {
+				thing = local_for_state(state, what)
+				if (thing !== undefined)
+				{
+					thing.bound_to = undefined;
+					return true;
+				}
+			});
+		}
 		else
 			alert("unknown action: "+action)
 		return true
+	}
+	function bind(what_thing, where_thing) {
+		what_thing.bound_to = where_thing;
+	}
+	function local_for_state(state, what)
+	{
+		idx = what - state.locals_address
+		if (idx >= 0 && idx <= vm.rules[state.locals.rule_id].locals_size - 1)
+			return state.locals[idx]
 	}
 	function add_state(op, view)
 	{
@@ -310,6 +353,7 @@
 		state.parent = parent
 		parent.children.push(state)
 		view.index[state.id] = state;
+		state.locals_adderss = op[5]
 		return true;
 	}
 	function remove_state(id, view)
@@ -321,8 +365,11 @@
 	const coro_status = ["INACTIVE", "ACTIVE", "EP", "YIELD", "BNODE_YIELD"]
 	const OP_SET_COMMENT = 0;
 	const OP_SET_STATUS = 1;
+	const OP_BIND = 2;
+	const OP_UNBIND = 3;
 
-$( document ).ready(function() {
+
+	$( document ).ready(function() {
 
 /*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them
 and things would get silly slow. I first looked for solutions like this one:

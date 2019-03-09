@@ -916,7 +916,7 @@ def comment(s):
 @click.option('--prune_duplicate_results', default=False, type=bool)
 @click.option('--debug_rules', default=True, type=bool)
 def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, novalgrind, profile, profile2, oneword, trace_ep_checks, trace_ep_tables, trace_proof, trace_unification, second_chance, prune_duplicate_results, debug_rules):
-	global preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing, debug_rules_
+	global converter, kill_me, preds, query_rule, trace, trace_ep_tables_, trace_proof_, trace_unification_, second_chance_, prune_duplicate_results_, preds_excluded_from_proof_tracing, debug_rules_
 	prune_duplicate_results_ = prune_duplicate_results
 	second_chance_ = second_chance
 	debug_rules_ = debug_rules
@@ -996,6 +996,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 		exit_gracefully2()
 	def exit_gracefully2():
 		print('pyco exit_gracefully..')
+		kill_daemons()
 		os.system('killall pyco;sleep 1;')
 	import atexit
 	atexit.register(exit_gracefully2)
@@ -1013,11 +1014,14 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	else:
 		subprocess.check_call(['time', 'valgrind', '--main-stacksize=128000000', '--vgdb-error=1', pyco_executable])
 
+	kill_daemons()
+	
+def kill_daemons():
 	while converter.poll() == None:
 		print('waiting on converter script to die')
 		time.sleep(1)
-		for i in kill_me:
-			i.kill()
+	for i in kill_me:
+		i.kill()
 
 
 

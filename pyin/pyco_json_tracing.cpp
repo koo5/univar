@@ -1,5 +1,5 @@
 const int OP_ADD_COMMENT = 0;
-const int OP_SET_STATE = 1;
+const int OP_SET_STATUS = 1;
 const int OP_BIND = 2;
 const int OP_UNBIND = 3;
 
@@ -45,7 +45,7 @@ void proof_trace_set_status(state_id id, coro_status status, bool with_introduct
     op["status"] = (int)status;
     */
     json op = json::array();
-    op.push_back(OP_SET_STATE);
+    op.push_back(OP_SET_STATUS);
     op.push_back(id);
     op.push_back((int)status);
     if (with_introduction)

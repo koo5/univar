@@ -167,6 +167,21 @@ class Emitter(object):
 		r.append(Line('}'))
 		return r
 
+	def proof_trace_emit_rules_consts(s):
+		r = Lines([Line("""
+		void proof_trace_emit_rules_consts()
+		{
+			emit_thing_size();
+		""")])
+		for rule in s.all_rules:
+			if len(rule.consts) == 0: continue
+			i = rule.original_head
+			r.append(
+				Statement("emit_rule_consts_location("+str(rule.debug_id)+", &"+consts_of_rule(i)+"[0])"))
+		r.append(Line("}"))
+		return r
+
+
 	def get_prologue(s):
 		c = s.consts_initialization()
 		return Lines([
@@ -220,13 +235,13 @@ class Emitter(object):
 			s.prologue.append(Line('#define TRACE'))
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
 		s.prologue.append(Line('#include "../../pyin/pyco_static.cpp"'))
-		all_rules = []
+		s.all_rules = []
 		for pred,rules in preds.items():
 			for rule in rules:
 				if type(rule) != Builtin:
-					all_rules.append(rule)
-		all_rules.append(goal)
-		for rule in all_rules:
+					s.all_rules.append(rule)
+		s.all_rules.append(goal)
+		for rule in s.all_rules:
 			rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
 			rule.has_body = len(rule.body) != 0
 			""" so, the cpppred_state struct has a vector of states,
@@ -235,13 +250,13 @@ class Emitter(object):
 			rule.max_states_len = (len(rule.head.args) if rule.head else 0) + len(rule.body)
 			assert not rule.head or (len(rule.head.args) == 2)
 			#gotcha; is args just the vars? no its args in the meaning of term with args
-		s.ep_tables = ["ep" + str(rule.debug_id) for rule in all_rules if rule != goal]
+		s.ep_tables = ["ep" + str(rule.debug_id) for rule in s.all_rules if rule != goal]
 		for pred_name in preds.keys():
 			s.prologue.append(Statement(pred_func_declaration('pred_'+cppize_identifier(pred_name))+"__attribute__ ((unused))"))
 		consts_done = set()
 		consts = Lines()
-		for rule in all_rules:
-			if type(rule) == Builtin: continue
+		for rule in s.all_rules:
+			#if type(rule) == Builtin: continue
 			i = rule.original_head
 			if i in consts_done:
 				continue
@@ -255,6 +270,7 @@ class Emitter(object):
 				Statement("static ep_table "+x) for x in s.ep_tables]),
 			consts,
 			Lines([s.pred(pred, rules) for pred,rules in list(preds.items()) + [[None, [goal]]]]),
+			s.proof_trace_emit_rules_consts(),
 			s.print_result(goal, goal_graph),
 			s.unification(),
 			s.thing_groundedness_check(),

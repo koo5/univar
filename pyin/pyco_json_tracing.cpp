@@ -88,6 +88,23 @@ void proof_trace_emit_unbind(Thing *t)
     proof_trace_add_op(op);
 }
 
+void emit_rule_consts_location(RuleId rule, Thing *consts)
+{
+    json op;
+    op["a"] = "consts_address";
+    op["rule"] = rule;
+    op["consts"] = (size_t)consts;
+    proof_trace_add_op(op);
+}
+
+void emit_thing_size()
+{
+    json op;
+    op["a"] = "thing_size";
+    op["value"] = sizeof(Thing);
+    proof_trace_add_op(op);
+}
+
 void trace_write_raw(string s)
 {
     trace_string += s;

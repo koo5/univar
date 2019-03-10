@@ -91,7 +91,7 @@
 	});
 
 	const snapshot_interval = 80;
-	const word_size = 8;
+	thing_size = undefined;
 
 	function maybe_take_snapshot()
 	{
@@ -100,7 +100,7 @@
 			if (vm.snapshots[step_id] === undefined)
 				vm.snapshots[step_id] = _.cloneDeep(vm.view);
 	}
-/*	function go_to_next_deeper_step()
+	/*function go_to_next_deeper_step()
 	{
 		console.log("go_to_next_deeper_step");
 		move_view_to_next_step(vm.view)
@@ -235,8 +235,12 @@
 			}
 			else if (op["a"] == "consts_address")
 			{
-				emit me in pyco
-				vm.rules[op["rule"]].consts_address = op["value"]
+				const rule_id = 0+(op["rule"])
+				vm.rules[rule_id].consts_address = op["consts"]
+			}
+			else if (op["a"] == "thing_size")
+			{
+				thing_size = op["value"]
 			}
 			else
 				alert("unknown action in " + op)
@@ -261,7 +265,6 @@
 				if (!add_state(op, view))
 					return
 			}
-			rule_id = op[4]
 			comment = op[6]
 			if (comment != undefined)
 				view.index[id].comment = comment;
@@ -360,14 +363,21 @@
 	}
 	function local_for_state(state, what)
 	{
-		fixme
-		idx = what - state.locals_address
-		if (idx >= 0 && idx <= (rule_for_state(state).locals_size - 1) * thing_size)
-			return state.locals[idx/thing_size]
+		return state.locals[thing_idx(what, state.locals_address, rule_for_state(state).locals_size)]
 	}
 	function const_for_rule(rule, what)
 	{
-		fixme
+		return rule.consts[thing_idx(what, rule.consts_address, consts_for_rule(rule))]
+	}
+	function thing_idx(what, locals_address, locals_count)
+	{
+		offset = what - locals_address
+		if (offset >= 0 && offset <= (locals_count - 1) * thing_size)
+			return offset/thing_size
+	}
+	function consts_for_rule(rule)
+	{
+		return rule.consts_count
 	}
 	function add_state(op, view)
 	{
@@ -383,17 +393,19 @@
 		parent.children.push(state)
 		view.index[state.id] = state;
 		state.locals_address = op[5]
+		state.rule_id = op[4]
 		rule = rule_for_state(state)
 		locals = locals_for_rule(rule)
 		locals_count = locals.length
 		state.locals = Array(locals_count)
-		forEach(_.range(), i => {
+		_.range().forEach(i => {
 			state.locals[i] = {}
 		});
 		return true;
 	}
 	function locals_for_rule(rule)
 	{
+		console.log(rule)
 		return rule["k:has_locals"]["rdf:value"]["@list"]
 	}
 	function rule_for_state(state)
@@ -435,13 +447,12 @@ $.ajax({
 	data: "",
 	success: function(data)
 	{
-
 		g = data["@graph"]
 		g.forEach(rule => {
 			//console.log(rule)
 			vm.rules[rule["k:has_id"]["@value"]] = rule
-	})
-
+			rule.consts_count = rule["k:has_consts"]["rdf:value"]["@list"].length
+		})
 	}
 });
 

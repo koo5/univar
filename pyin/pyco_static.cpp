@@ -253,6 +253,8 @@ void release_things(size_t count);
     void trace_flush();
     void close_trace_file();
     void maybe_reopen_trace_file();
+
+    void proof_trace_emit_rules_consts();
 #endif
 
 
@@ -1104,6 +1106,9 @@ int main (int argc, char *argv[])
     ASSERT(consts2nodeids_and_refcounts.size() == nodeids2consts.size());
     #ifdef TRACE_PROOF
         open_trace_file();
+	#endif
+	#ifdef TRACE_PROOF
+        proof_trace_emit_rules_consts();
 	#endif
     query_start_time = std::chrono::steady_clock::now();
     top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(NULL));

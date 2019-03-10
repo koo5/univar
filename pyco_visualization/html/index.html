@@ -16,7 +16,14 @@
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
 		<div> {{ view.yield_count }} </div>
-		<div> {{ rules }} </div>
+		<div> rules:
+			<dl>
+			<div v-for="(rule, id) in rules" :key="id">
+				<dt> {{ id }}	</dt>
+				<dd> {{ rule }}	</dd>
+			</div>
+			</dl>
+		</div>
 </div>
 <script type="text/javascript">
 
@@ -56,7 +63,7 @@
 			last_loaded_file_id: -1,
 			file_status: "?",
 			navigation_status: "?",
-			rules:{}
+			rules:[]
 		},
 		mounted: function ()
 		{
@@ -235,7 +242,7 @@
 			}
 			else if (op["a"] == "consts_address")
 			{
-				const rule_id = 0+(op["rule"])
+				const rule_id = parseInt(op["rule"])
 				vm.rules[rule_id].consts_address = op["consts"]
 			}
 			else if (op["a"] == "thing_size")
@@ -301,8 +308,8 @@
 
 		}
 		else if (action == OP_BIND) {
-			what = 0 + op[1]
-			where = 0 + op[2]
+			what = op[1]
+			where = op[2]
 			what_thing = undefined
 			where_thing = undefined
 			view.index.forEach(state => {
@@ -323,28 +330,20 @@
 					}
 				}
 			});
-			rm.rules.forEach(rule => {
-				thing = local_for_state(state, what)
-				if (thing !== undefined) {
-					what_thing = thing
-					if (where_thing) {
-						bind(what_thing, where_thing);
-						return true;
-					}
-				}
-				thing = local_for_state(state, where)
+			vm.rules.forEach(rule => {
+				thing = const_for_rule(rule, where)
 				if (thing !== undefined) {
 					where_thing = thing
 					if (what_thing) {
 						bind(what_thing, where_thing);
 						return true;
 					}
+					else throw new Error("no what?")
 				}
 			});
-
 		}
 		else if (action == OP_UNBIND) {
-			what = 0+op[1]
+			what = parseInt(op[1])
 			view.index.forEach(state => {
 				thing = local_for_state(state, what)
 				if (thing !== undefined)
@@ -439,8 +438,6 @@ vm.steps= []
 
 console.log( "ready!" );
 
-//vm.rules = {}
-
 $.ajax({
 	dataType: "json",
 	url: "../rules.jsonld",
@@ -450,13 +447,14 @@ $.ajax({
 		g = data["@graph"]
 		g.forEach(rule => {
 			//console.log(rule)
-			vm.rules[rule["k:has_id"]["@value"]] = rule
+			vm.rules[parseInt(rule.has_id)] = rule
 			rule.consts_count = rule["k:has_consts"]["rdf:value"]["@list"].length
 		})
+		load_file(0);
 	}
 });
 
-load_file(0)
+
 
 });
 

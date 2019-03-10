@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pyco_visualization/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../pyco_visualization/html/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/pyco.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyco.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/pyco_json_tracing.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyco_json_tracing.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/pyco_static.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyco_static.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -24,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="275">
-              <caret line="396" column="8" selection-start-line="396" selection-start-column="8" selection-end-line="396" selection-end-column="8" />
+            <state relative-caret-position="159">
+              <caret line="449" column="42" selection-start-line="449" selection-start-column="42" selection-end-line="449" selection-end-column="42" />
             </state>
           </provider>
         </entry>
@@ -42,6 +37,10 @@
       <find>fix</find>
       <find>consts</find>
       <find>locals_for_rule</find>
+      <find>rule_id</find>
+      <find>forea</find>
+      <find>rules</find>
+      <find>0+</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -147,12 +146,12 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="2467000" />
+      <workItem from="1552228244985" duration="6204000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45557000" />
+    <option name="totallyTimeSpent" value="49294000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
@@ -208,8 +207,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="396" column="8" selection-start-line="396" selection-start-column="8" selection-end-line="396" selection-end-column="8" />
+        <state relative-caret-position="159">
+          <caret line="449" column="42" selection-start-line="449" selection-start-column="42" selection-end-line="449" selection-end-column="42" />
         </state>
       </provider>
     </entry>

@@ -947,7 +947,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	trace_ep_tables_ = trace_ep_tables
 	trace = not notrace
 	preds_excluded_from_proof_tracing = []
-	preds_excluded_from_proof_tracing = [rdflib.RDF.first, rdflib.RDF.rest]
+	#preds_excluded_from_proof_tracing = [rdflib.RDF.first, rdflib.RDF.rest]
 	preds = defaultdict(list)
 	pyin.kbdbg_file_name, pyin._rules_file_name, pyin.rules_jsonld_file_name, identification, base, this, outpath = pyin.set_up(identification, base)
 	subprocess.call(['ln', '-s', '../../pyco_visualization/html', outpath])

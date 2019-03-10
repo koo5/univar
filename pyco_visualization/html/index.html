@@ -432,7 +432,7 @@ and things would get silly slow. I first looked for solutions like this one:
 //Object.defineProperty(vm.view, 'index', {configurable:false});
 but none worked*/
 
-vm.view.index = {}
+vm.view.index = []
 vm.snapshots= []
 vm.steps= []
 
@@ -448,7 +448,9 @@ $.ajax({
 		g.forEach(rule => {
 			//console.log(rule)
 			vm.rules[parseInt(rule.has_id)] = rule
-			rule.consts_count = rule["k:has_consts"]["rdf:value"]["@list"].length
+			rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
+			delete rule["k:has_consts"]["rdf:value"]["@list"]
+			rule.consts_count = rule.consts.length
 		})
 		load_file(0);
 	}

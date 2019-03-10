@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="452" selection-start-line="452" selection-end-line="452" />
+            <state relative-caret-position="364">
+              <caret line="407" column="17" lean-forward="true" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -35,7 +35,6 @@
       <find>OP_SET_STATUS</find>
       <find>word</find>
       <find>fix</find>
-      <find>locals_for_rule</find>
       <find>rule_id</find>
       <find>forea</find>
       <find>rules</find>
@@ -44,6 +43,10 @@
       <find>index</find>
       <find>consts</find>
       <find>delete</find>
+      <find>hello! loading and parsing trace file...hopefully... ... you have a trace file, right?..</find>
+      <find>status</find>
+      <find>loading</find>
+      <find>locals_for_rule</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -149,12 +152,12 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="7890000" />
+      <workItem from="1552228244985" duration="9214000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="50980000" />
+    <option name="totallyTimeSpent" value="52304000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
@@ -210,8 +213,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="452" selection-start-line="452" selection-end-line="452" />
+        <state relative-caret-position="364">
+          <caret line="407" column="17" lean-forward="true" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
         </state>
       </provider>
     </entry>

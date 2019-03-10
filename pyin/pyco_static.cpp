@@ -484,6 +484,7 @@ struct cpppred_state
         }
         void construct(cpppred_state *parent_)
         {
+            locals = 0;
             rule_id = -1;
             dont_trace = false;
             was_introduced = false;

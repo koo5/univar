@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyco_visualization/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../pyco_visualization/html/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyin/pyco.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyco.py" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="407" column="17" lean-forward="true" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
+            <state relative-caret-position="245">
+              <caret line="400" column="32" lean-forward="true" selection-start-line="400" selection-start-column="32" selection-end-line="400" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -152,12 +152,12 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="9214000" />
+      <workItem from="1552228244985" duration="10052000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="52304000" />
+    <option name="totallyTimeSpent" value="53142000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
@@ -213,8 +213,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="407" column="17" lean-forward="true" selection-start-line="407" selection-start-column="17" selection-end-line="407" selection-end-column="17" />
+        <state relative-caret-position="245">
+          <caret line="400" column="32" lean-forward="true" selection-start-line="400" selection-start-column="32" selection-end-line="400" selection-end-column="32" />
         </state>
       </provider>
     </entry>

@@ -1070,7 +1070,7 @@ def is_pred_used(pred):
 
 def create_builtins(emitter):
 	b = Builtin()
-	b.doc = """ generalizes is_joined and is_split"""
+	b.doc = """"""
 	b.example = """
 	@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
 	"xy" string_builtins:strXlst ("x" "y") ."""
@@ -1233,7 +1233,18 @@ size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int dep
 							string s = input_string.substr(i,1);
 							state.locals[2+i*2] = Thing{CONST, push_const(Constant{STRING, s}) IF_TRACE("some substring")};//IF_TRACE(s)};
 						}
-					} 
+					}
+					
+									
+					/*
+						now we can activate the state.
+						the only issue is that the visualizer expects the locals of a state to follow the template of its rule.
+						so..just emit the locals template?
+					*/
+				
+
+					
+					 
 					state.states[0].entry = 0;
 					state.states[0].incoming[0] = state.incoming[1];
 					state.states[0].incoming[1] = &state.locals[1];
@@ -1255,6 +1266,10 @@ size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int dep
 					state.states[0].entry = 0;
 					state.states[0].incoming[0] = lst;
 					state.states[0].incoming[1] = *((Thing**)(&state.locals[0]));
+					
+					/* we'll just not care about query_list, all unknown binds will be ignored
+					*/
+					
 					while (query_list(state.states[0], 0))
 					{
 						{
@@ -1272,6 +1287,7 @@ size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int dep
 								}
 								else
 								{
+									/*something else than a const was found in the list. Finish the query_list coro and back out*/
 									while (query_list(state.states[0], 0))
 									{
 									};
@@ -1534,6 +1550,7 @@ size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int dep
 			return Lines([Line("""
 			{
 				INIT_DBG_DATA
+				
 				#ifdef TRACE_PROOF
 				{
 					if (top_level_tracing_coro && tracing_enabled && tracing_active)

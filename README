@@ -20,19 +20,16 @@ cd univar
 virtualenv -p python3 cpython3
 . cpython3/bin/activate
 pip install -r requirements_pyco.txt 
+cd kbdbg2jsonld2
+npm i
+cd ..
 
 
 #then you can run it like so:
+reset; env PYTHONUNBUFFERED=1 ./pyin/tau2.py --only-id 0   "./pyco_runner.sh --nolog 0 --novalgrind 1 --nodebug 0  --notrace false --trace_proof 1 --oneword false  --trace_unification 1  " tests/clean/existentials/addition2
 
-#fish shell:
-./pyin/tau2.py ./pyco_runner.sh tests/simple/*  2>&1 | tee  (date "+%F-%H-%M-%S") | grep ":test:"
+cd runs/tests_clean_existentials_addition2_0
 
+python -m http.server
 
-#bash:
-./pyin/tau2.py ./pyco_runner.sh tests/simple/*  2>&1 | tee  `date "+%F-%H-%M-%S"` | grep ":test:"
-
-
-#pyco will output a trace, point your browser to the pyco_visualization directory and use left and right arrows to move around the trace steps
-
-
-env PYTHONUNBUFFERED=1 ./pyin/tau2.py   "./pyco_runner.sh --novalgrind  true --nodebug true   --oneword true  --profile false   " tests/clean/zzpanla/ldl0     2>&1 | tee runs/(date "+%F-%H-%M-%S") | tee runs/last
+# this will serve the proof-trace visualization on port 8000; point your browser to localhost:8000/html to view visualization. use "," and "." keys to move around the trace steps

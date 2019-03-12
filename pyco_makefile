@@ -3,11 +3,13 @@ ASAN=  #  -fsanitize=address -fsanitize=undefined -ggdb -fsanitize-undefined-tra
 DBG=   $(ASAN) -DDEBUG  -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -ggdb -O0 -g3 
 
 DEPS = pyco_out.cpp ../../pyin/pyco_static.cpp
-CXX = time clang++ -fbracket-depth=99999999  -std=c++11 -O3 -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value -Wno-gnu-label-as-value -Wno-c99-extensions -Wno-c++14-binary-literal -Wno-write-strings -I../../include/
+COMPILER = time clang++ -fbracket-depth=99999999  -ferror-limit=3
+#COMPILER = g++-8
+CXX = $(COMPILER) -std=c++11 -O3 -Wall -Wextra -Wpedantic -Wno-gnu-label-as-value -Wno-gnu-label-as-value -Wno-c99-extensions -Wno-c++14-binary-literal -Wno-write-strings -I../../include/
 
 all: pyco
 
-STUFF = `pwd`/pyco_out.cpp -ferror-limit=3 -o pyco 
+STUFF = `pwd`/pyco_out.cpp -o pyco 
 
 debug: $(DEPS)
 	$(CXX) $(DBG) $(STUFF)

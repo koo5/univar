@@ -32,4 +32,4 @@ cd runs/tests_clean_existentials_addition2_0
 
 python -m http.server
 
-# this will serve the proof-trace visualization on port 8000; point your browser to localhost:8000/html to view visualization. use left and right arrows to move around the trace steps
+# this will serve the proof-trace visualization on port 8000; point your browser to localhost:8000/html to view visualization. use "," and "." keys to move around the trace steps

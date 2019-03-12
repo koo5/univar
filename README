@@ -20,6 +20,9 @@ cd univar
 virtualenv -p python3 cpython3
 . cpython3/bin/activate
 pip install -r requirements_pyco.txt 
+cd kbdbg2jsonld2
+npm i
+cd ..
 
 
 #then you can run it like so:

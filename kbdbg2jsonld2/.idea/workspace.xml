@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pyin/pyco.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pyin/pyco.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyco_visualization/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../pyco_visualization/html/index.html" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="245">
-              <caret line="400" column="32" lean-forward="true" selection-start-line="400" selection-start-column="32" selection-end-line="400" selection-end-column="32" />
+            <state relative-caret-position="157">
+              <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="43" />
             </state>
           </provider>
         </entry>
@@ -40,13 +40,24 @@
       <find>rules</find>
       <find>0+</find>
       <find>foreach</find>
-      <find>index</find>
       <find>consts</find>
       <find>delete</find>
       <find>hello! loading and parsing trace file...hopefully... ... you have a trace file, right?..</find>
       <find>status</find>
       <find>loading</find>
       <find>locals_for_rule</find>
+      <find>consts_count</find>
+      <find>str</find>
+      <find>locals_size</find>
+      <find>yield_count</find>
+      <find>BNODE_YIELD</find>
+      <find>yield_statuses</find>
+      <find>remove_state</find>
+      <find>index[</find>
+      <find>snap</find>
+      <find>index</find>
+      <find>inter</find>
+      <find>yie</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -61,7 +72,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="10" />
     <option name="y" value="20" />
     <option name="width" value="828" />
@@ -106,7 +117,7 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="preferences.editor" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -152,15 +163,15 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="10052000" />
+      <workItem from="1552228244985" duration="21674000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="53142000" />
+    <option name="totallyTimeSpent" value="64764000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
+    <frame x="-1" y="0" width="850" height="481" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13325472" />
@@ -213,8 +224,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="245">
-          <caret line="400" column="32" lean-forward="true" selection-start-line="400" selection-start-column="32" selection-end-line="400" selection-end-column="32" />
+        <state relative-caret-position="157">
+          <caret line="16" column="8" selection-start-line="16" selection-start-column="8" selection-end-line="16" selection-end-column="43" />
         </state>
       </provider>
     </entry>

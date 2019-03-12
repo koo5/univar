@@ -13,9 +13,9 @@
 <div id="top">
 		<div>last_loaded_file_id: {{ last_loaded_file_id }}, status: {{ file_status }}</div>
 		<div>navigation status: {{ navigation_status }}</div>
+		<div>yields: {{ view.yield_count }} </div>
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :coro_state="view.root"></coro_state>
-		<div> {{ view.yield_count }} </div>
 		<div> rules:
 			<dl>
 			<div v-for="(rule, id) in rules" :key="id">
@@ -54,10 +54,10 @@
 				step_id: -1,
 				yield_count: 0,
 			},
-			display_rules:[
+			/*display_rules:[
 				{action:"hide",filter:{rule: 0}},
 				{action:"hide",filter:{rule: 1}},
-			],
+			],*/
 			run_uuid: undefined,
 			files:[],
 			last_loaded_file_id: -1,
@@ -97,7 +97,7 @@
 		}
 	});
 
-	const snapshot_interval = 80;
+	const snapshot_interval = 10;
 	thing_size = undefined;
 
 	function maybe_take_snapshot()
@@ -212,17 +212,11 @@
 	}
 	function assign_cloned_snapshot_to_view(snapshot)
 	{
-		assign_cloned_snapshot_to_view1(snapshot)
-		assign_cloned_snapshot_to_view2(snapshot)
+		/*vm.view.yield_count = snapshot.yield_count
 		vm.view.step_id = snapshot.step_id;
-	}
-	function assign_cloned_snapshot_to_view1(snapshot)
-	{
 		vm.view.index = snapshot.index;
-	}
-	function assign_cloned_snapshot_to_view2(snapshot)
-	{
-		vm.view.root = snapshot.root
+		vm.view.root = snapshot.root*/
+		vm.view = snapshot
 	}
 	function do_op(op, view)
 	{
@@ -281,7 +275,7 @@
 			const new_status_string = coro_status[status];
 			const yield_statuses = ["EP", "YIELD", "BNODE_YIELD"];
 			if (yield_statuses.includes(old_status_string) && !yield_statuses.includes(new_status_string))
-				assert(--view.yield_count > 0)
+				assert(--view.yield_count >= 0)
 			else if (yield_statuses.includes(new_status_string) && !yield_statuses.includes(old_status_string))
 				view.yield_count++
 
@@ -308,12 +302,19 @@
 
 		}
 		else if (action == OP_BIND) {
-			what = op[1]
-			where = op[2]
+			what = parseInt(op[1])
+			where = parseInt(op[2])
 			what_thing = undefined
 			where_thing = undefined
-			view.index.forEach(state => {
+			for (const i in view.index)
+			{
+				console.log(i)
+				console.log(typeof(i))
+				state = view.index[i]
+				assert (state != undefined)
+				console.log("trying " + i + " " + state + " for "+ what)
 				thing = local_for_state(state, what)
+				console.log(thing)
 				if (thing !== undefined) {
 					what_thing = thing
 					if (where_thing) {
@@ -329,8 +330,10 @@
 						return true;
 					}
 				}
-			});
-			vm.rules.forEach(rule => {
+			}
+			for (const i in vm.rules)
+			{
+				rule = vm.rules[i]
 				thing = const_for_rule(rule, where)
 				if (thing !== undefined) {
 					where_thing = thing
@@ -338,20 +341,23 @@
 						bind(what_thing, where_thing);
 						return true;
 					}
-					else throw new Error("no what?")
+					else //throw new Error("no what?")
+							console.log("unknown thing: " + where)
 				}
-			});
+			}
 		}
 		else if (action == OP_UNBIND) {
 			what = parseInt(op[1])
-			view.index.forEach(state => {
+			for (const i in view.index)
+			{
+				state = view.index[i]
 				thing = local_for_state(state, what)
 				if (thing !== undefined)
 				{
 					thing.bound_to = undefined;
 					return true;
 				}
-			});
+			}
 		}
 		else
 			alert("unknown action: "+action)
@@ -362,21 +368,28 @@
 	}
 	function local_for_state(state, what)
 	{
-		return state.locals[thing_idx(what, state.locals_address, rule_for_state(state).locals_size)]
+		if (state.rule_id != -1)
+			size = locals_template_for_rule(rule_for_state(state)).length
+		else
+			if (state.locals_size !== undefined)
+				size = state.locals_size
+			else
+				return
+		return state.locals[thing_idx(what, state.locals_address, size)]
+	}
+	function locals_template_for_rule(rule)
+	{
+		return rule['k:has_locals']['rdf:value']['@list']
 	}
 	function const_for_rule(rule, what)
 	{
-		return rule.consts[thing_idx(what, rule.consts_address, consts_for_rule(rule))]
+		return rule.consts[thing_idx(what, rule.consts_address, rule.consts.length)]
 	}
 	function thing_idx(what, locals_address, locals_count)
 	{
 		offset = what - locals_address
 		if (offset >= 0 && offset <= (locals_count - 1) * thing_size)
 			return offset/thing_size
-	}
-	function consts_for_rule(rule)
-	{
-		return rule.consts_count
 	}
 	function add_state(op, view)
 	{
@@ -393,13 +406,15 @@
 		view.index[state.id] = state;
 		state.locals_address = op[5]
 		state.rule_id = op[4]
-		rule = rule_for_state(state)
-		locals = locals_for_rule(rule)
-		locals_count = locals.length
-		state.locals = Array(locals_count)
-		_.range().forEach(i => {
-			state.locals[i] = {}
-		});
+		if (state.rule_id != -1) {
+			rule = rule_for_state(state)
+			locals = locals_for_rule(rule)
+			locals_count = locals.length
+			state.locals = Array(locals_count)
+			_.range(locals_count).forEach(i => {
+				state.locals[i] = {}
+			});
+		}
 		return true;
 	}
 	function locals_for_rule(rule)
@@ -432,7 +447,7 @@ and things would get silly slow. I first looked for solutions like this one:
 //Object.defineProperty(vm.view, 'index', {configurable:false});
 but none worked*/
 
-vm.view.index = []
+vm.view.index = {}
 vm.snapshots= []
 vm.steps= []
 

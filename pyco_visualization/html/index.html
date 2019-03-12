@@ -35,6 +35,7 @@
 			<ul>
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li>
+				?{{ names_of_locals[local_idx] }}:
 				{{ coro_state.locals[local_idx] }}
 				</li>
 			</div>
@@ -47,7 +48,31 @@
 			</div>
 			</ul>
 			</div>
-		`
+		`,
+		computed: {
+			names_of_locals: function()
+			{
+				r = [];
+
+				if (this.coro_state.rule_id === -1)
+					for (local_idx in _.range(this.coro_state.locals.length))
+						r.push('?');
+				else
+				{
+					rule = rule_for_state(this.coro_state);
+					//console.log(this)
+					for (local_idx in _.range(this.coro_state.locals.length)) {
+						name = ''
+						v = rule["k:has_locals"]["rdf:value"]["@list"][local_idx]
+						if (v["@type"] === "k:existential")
+							name += '(E)'
+						name += v["k:has_name"]
+						r.push(name)
+					}
+				}
+				return r
+			}
+		}
 	});
 	var vm = new Vue({
 		el: '#top',
@@ -56,9 +81,10 @@
 			view:{
 				root:
 				{
-					//status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
+					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
 					children:[],
 					locals:[],
+					comment:"?"
 				},
 				step_id: -1,
 				yield_count: 0,
@@ -188,7 +214,9 @@
 			console.log( jqxhr.status ); // 200
 			console.log( "Load was performed." )
 			//if (view.step_id == -1)
-			go_to_next_step();
+			//go_to_next_step();
+			go_to_next_yield();
+
 			vm.last_loaded_file_id++
 			vm.file_status = "loaded"
 		});
@@ -402,7 +430,7 @@
 	}
 	function add_state(op, view)
 	{
-		state = {"children":[],"status":"idk",locals:[],comment:"???"};
+		state = {children:[],status:"idk",locals:[],comment:"???"};
 		state.id = op[1];
 		const parent_id = op[3];
 		state.parent_id = parent_id;

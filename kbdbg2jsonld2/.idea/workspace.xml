@@ -4,6 +4,7 @@
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pyco_visualization/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../pyco_visualization/html/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../requirements.txt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -19,8 +20,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="97">
-              <caret line="53" column="15" selection-start-line="53" selection-start-column="15" selection-end-line="53" selection-end-column="15" />
+            <state relative-caret-position="260">
+              <caret line="67" column="40" lean-forward="true" selection-start-line="67" selection-start-column="40" selection-end-line="67" selection-end-column="40" />
             </state>
           </provider>
         </entry>
@@ -29,8 +30,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>const</find>
-      <find>OP_SET_STATUS</find>
       <find>word</find>
       <find>fix</find>
       <find>rule_id</find>
@@ -59,6 +58,8 @@
       <find>range</find>
       <find>.locals</find>
       <find>root</find>
+      <find>locals</find>
+      <find>go_to</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -164,12 +165,12 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="24753000" />
+      <workItem from="1552228244985" duration="29408000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="67843000" />
+    <option name="totallyTimeSpent" value="72498000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="850" height="481" extended-state="6" />
@@ -225,8 +226,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="97">
-          <caret line="53" column="15" selection-start-line="53" selection-start-column="15" selection-end-line="53" selection-end-column="15" />
+        <state relative-caret-position="260">
+          <caret line="67" column="40" lean-forward="true" selection-start-line="67" selection-start-column="40" selection-end-line="67" selection-end-column="40" />
         </state>
       </provider>
     </entry>

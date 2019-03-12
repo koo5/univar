@@ -995,7 +995,7 @@ def query_from_files(kb, goal, identification, base, nolog, notrace, nodebug, no
 	kill_me = []
 	kill_me.append(subprocess.Popen(['bash', '-c', "python3 -m http.server 2999"], cwd="kbdbg2jsonld"))
 	kill_me.append(subprocess.Popen(['bash', '-c', "./kbdbg2jsonld2/bin/www"]))
-	import time;time.sleep(2)
+	import time;time.sleep(10)
 	converter = subprocess.Popen(["./kbdbg2jsonld/frame_n3.py", pyin.kbdbg_file_name, pyin.rules_jsonld_file_name])
 
 	try:

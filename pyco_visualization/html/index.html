@@ -33,6 +33,13 @@
 			<div class="coro_state">
 			{{ coro_state.status }} - {{ coro_state.comment }}
 			<ul>
+			<div v-for="local_idx in _.range(coro_state.locals.length)">
+				<li>
+				{{ coro_state.locals[local_idx] }}
+				</li>
+			</div>
+			</ul>
+			<ul>
 			<div v-for="child in coro_state.children" :key="child.id">
 				<li>
 				<coro_state :coro_state="child"></coro_state>
@@ -44,12 +51,14 @@
 	});
 	var vm = new Vue({
 		el: '#top',
+		watch: {'view.root.locals': function(x,y){}, deep: true},
 		data: {
 			view:{
 				root:
 				{
 					//status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
 					children:[],
+					locals:[],
 				},
 				step_id: -1,
 				yield_count: 0,
@@ -393,7 +402,7 @@
 	}
 	function add_state(op, view)
 	{
-		state = {"children":[],"status":"idk"};
+		state = {"children":[],"status":"idk",locals:[],comment:"???"};
 		state.id = op[1];
 		const parent_id = op[3];
 		state.parent_id = parent_id;
@@ -426,10 +435,15 @@
 	{
 		return vm.rules[state.rule_id]
 	}
-
 	function remove_state(id, view)
 	{
 		delete view.index[id]
+	}
+	function get_value(thing)
+	{
+		if (thing.bound_to)
+			return get_value(thing.bound_to)
+		return thing
 	}
 
 	const FileStatus = Object.freeze({error:1, loading:2, loaded:3, unloaded:4})

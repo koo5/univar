@@ -74,7 +74,31 @@
 			}
 		}
 	});*/
-	Vue.component('coro_state', {
+
+
+Vue.component('bnode', {
+	props: ["thing"],
+	template: `
+				<div class="bnode">
+				<v-for triple in bnodes[thing.origin].triples>
+					<bnode_triple :triple="triple" :thing="thing"<></bnode_triple>
+				</v-for>
+				</div>
+			`,
+});
+Vue.component('bnode_triple', {
+	props: ["triple", "thing"],
+	template: `
+				<div class="bnode">
+				<v-for triple in bnodes[thing.origin].triples>
+					<triple :triple="triple" :thing="thing"<></triple>
+				</v-for>
+				</div>
+			`,
+});
+
+
+Vue.component('coro_state', {
 		props: ["coro_state"],
 		template: `
 			<div class="coro_state">
@@ -560,7 +584,7 @@ $.ajax({
 			rule.locals.forEach(local => {
 				if (local["@type"] === "k:existential") {
 					local.has_origin = parseInt(local.has_origin)
-					vm.bnodes[local.has_origin] = rule.
+					//vm.bnodes[local.has_origin] = rule.
 				}
 
 			})

@@ -36,53 +36,6 @@ from ordered_rdflib_store import OrderedStore
 if sys.version_info.major == 3:
 	unicode = str
 
-
-def make_locals(rule):
-	locals_template = []
-	consts = []
-	locals_map = {}
-	consts_map = {}
-	for triple in rule.original_head_triples + rule.body:
-		for a in triple.args:
-			if pyin.is_var(a):
-				if a not in locals_map:
-					locals_map[a] = len(locals_template)
-					v = pyin.Var(a)
-					v.is_bnode = a in rule.existentials
-					locals_template.append(v)
-			else:
-				if a not in consts_map:
-					consts_map[a] = len(consts)
-					consts.append(pyin.Atom(a))
-	#from IPython import embed; embed();exit()
-	kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(emit_local_infos(locals_map, locals_template)))
-	kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(emit_local_infos(consts_map, consts)))
-	return locals_map, consts_map, locals_template,	consts
-
-def emit_local_infos(locals_map, locals_template):
-	r = []
-	#from IPython import embed; embed();exit()
-	for k,v in locals_map.items():
-		r.append(emit_local_info(k, locals_template[v]))
-	return r
-
-def emit_local_info(k, thing):
-	uri = bn()
-	if type(k) == rdflib.Variable:
-		if thing.is_bnode:
-			t = "existential"
-		else:
-			t = "var"
-	elif type(k) in (rdflib.Literal, rdflib.URIRef):
-		t = "constant"
-	else:
-		assert False, (k, type(k))
-	kbdbg(uri + " rdf:type kbdbg:"+t)
-	kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(str(k)).n3())
-	if type(k) == rdflib.Literal:
-		kbdbg(uri + " kbdbg:has_value " + k.n3())
-	return uri
-
 def vars_in_original_head(rule):
 	result = set()
 	for triple in rule.original_head_triples:
@@ -103,11 +56,59 @@ class Emitter(object):
 	prologue = Lines()
 	epilogue = Lines()
 
-	@memoized.memoized
+	def make_locals(s, rule):
+		locals_template = []
+		consts = []
+		locals_map = {}
+		consts_map = {}
+		for triple in rule.original_head_triples + rule.body:
+			for a in triple.args:
+				if pyin.is_var(a):
+					if a not in locals_map:
+						locals_map[a] = len(locals_template)
+						v = pyin.Var(a)
+						v.is_bnode = a in rule.existentials
+						locals_template.append(v)
+				else:
+					if a not in consts_map:
+						consts_map[a] = len(consts)
+						consts.append(pyin.Atom(a))
+		#from IPython import embed; embed();exit()
+		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(s.emit_local_infos(rule, locals_map, locals_template)))
+		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(s.emit_local_infos(rule, consts_map, consts)))
+		return locals_map, consts_map, locals_template,	consts
+
+	def emit_local_infos(s, rule, locals_map, locals_template):
+		r = []
+		#from IPython import embed; embed();exit()
+		for k,v in locals_map.items():
+			r.append(s.emit_local_info(rule, k, locals_template[v]))
+		return r
+
+	def emit_local_info(s, r, k, thing):
+		uri = bn()
+		if type(k) == rdflib.Variable:
+			if thing.is_bnode:
+				t = "existential"
+				kbdbg(uri + " kbdbg:has_origin "+rdflib.Literal(s.add_bnode(r, thing.debug_name)[1]).n3())
+			else:
+				t = "var"
+		elif type(k) in (rdflib.Literal, rdflib.URIRef):
+			t = "constant"
+		else:
+			assert False, (k, type(k))
+		kbdbg(uri + " rdf:type kbdbg:"+t)
+		kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(str(k)).n3())
+		if type(k) == rdflib.Literal:
+			kbdbg(uri + " kbdbg:has_value " + k.n3())
+		return uri
+
 	def add_bnode(s, rule, name):
-		cpp_name = s.get_bnode_origin(rule.original_head_ref.id, str(name))
+		cpp_name, origin = s.get_bnode_origin(rule.original_head_ref.id, str(name))
 		s.bnodes[cpp_name] = rule, name
-		return cpp_name
+		result = (cpp_name, origin)
+		#print("rrrr"+str(result))
+		return (cpp_name, origin)
 
 	@memoized.memoized
 	def get_bnode_origin(s, orig_rule_id, name):
@@ -116,7 +117,7 @@ class Emitter(object):
 		r = 'r'+str(orig_rule_id)+'bn'+cppize_identifier(name)
 		s.prologue.append(Statement('static const BnodeOrigin '+r+' = '+str(s.bnode_origin_counter)))
 		s.bnode_origin_counter += 1
-		return r
+		return r, s.bnode_origin_counter - 1
 
 	def thing2code(s,atom):
 		if atom in s.codes:
@@ -216,7 +217,7 @@ class Emitter(object):
 			v = ','+s.thing2code(thing.value)
 		elif thing.is_bnode:
 			t = 'BNODE'
-			v = ','+s.add_bnode(r, thing.debug_name)
+			v = ','+s.add_bnode(r, thing.debug_name)[0]
 		result = 'Thing(' + t + v
 		if trace:
 			result += ',' + cpp_string_literal(thing.debug_name)
@@ -242,7 +243,7 @@ class Emitter(object):
 					s.all_rules.append(rule)
 		s.all_rules.append(goal)
 		for rule in s.all_rules:
-			rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = make_locals(rule)
+			rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = s.make_locals(rule)
 			rule.has_body = len(rule.body) != 0
 			""" so, the cpppred_state struct has a vector of states,
 			used for both head-unification and for calling other rules,

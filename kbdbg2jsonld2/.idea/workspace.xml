@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3e02e1b7-90b9-495f-a9b0-0b522740618f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/convert.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/convert.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../libmarpa" beforeDir="false" afterPath="$PROJECT_DIR$/../libmarpa" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pyco_visualization/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../pyco_visualization/html/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../requirements.txt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -20,8 +21,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="260">
-              <caret line="67" column="40" lean-forward="true" selection-start-line="67" selection-start-column="40" selection-end-line="67" selection-end-column="40" />
+            <state relative-caret-position="272">
+              <caret line="562" column="55" selection-start-line="562" selection-start-column="55" selection-end-line="562" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -30,10 +31,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>word</find>
-      <find>fix</find>
-      <find>rule_id</find>
-      <find>forea</find>
       <find>rules</find>
       <find>0+</find>
       <find>foreach</find>
@@ -60,6 +57,10 @@
       <find>root</find>
       <find>locals</find>
       <find>go_to</find>
+      <find>(E</find>
+      <find>[&quot;k:has_consts&quot;][&quot;rdf:value&quot;][&quot;@list&quot;]</find>
+      <find>trying</find>
+      <find>forEach</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -74,7 +75,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
     <option name="x" value="10" />
     <option name="y" value="20" />
     <option name="width" value="828" />
@@ -119,7 +120,7 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -165,15 +166,15 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="29408000" />
+      <workItem from="1552228244985" duration="40381000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="72498000" />
+    <option name="totallyTimeSpent" value="83471000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="0" width="850" height="481" extended-state="6" />
+    <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13325472" />
@@ -226,8 +227,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="260">
-          <caret line="67" column="40" lean-forward="true" selection-start-line="67" selection-start-column="40" selection-end-line="67" selection-end-column="40" />
+        <state relative-caret-position="272">
+          <caret line="562" column="55" selection-start-line="562" selection-start-column="55" selection-end-line="562" selection-end-column="55" />
         </state>
       </provider>
     </entry>

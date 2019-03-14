@@ -32,8 +32,8 @@ router.post('/', function(req, res, next) {
               res.status(500).send({ error: err });
             } else {
               for (o in doc){
-                //console.log("aaa:"+o)
-                //console.log(doc[o])
+                console.log("aaa:"+o)
+                console.log(doc[o])
               }
 
               var frame = req.body['frame']

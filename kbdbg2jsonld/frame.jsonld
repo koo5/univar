@@ -10,6 +10,7 @@
     ,"pred": {"@id":"k:has_pred","@type": "@id"}
     ,"head_idx": {"@id":"k:has_head_idx","@type": "@id"}
     ,"has_id": {"@id":"k:has_id","@type": "http://www.w3.org/2001/XMLSchema#integer"}
+    ,"has_origin": {"@id":"k:has_origin","@type": "http://www.w3.org/2001/XMLSchema#integer"}
   },
   "@graph":[{
     "@type": "k:rule"

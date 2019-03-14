@@ -26,12 +26,12 @@
 		</div>
 </div>
 <script type="text/javascript">
-
-	Vue.component('coro_state', {
-		props: ["coro_state"],
+/*
+	Vue.component('thing', {
+		props: ["thing", "state"],
 		template: `
-			<div class="coro_state">
-			{{ coro_state.status }} - {{ coro_state.comment }}
+			<div class="thing">
+			<v-if "thing.bound_to"></v-if>
 			<ul>
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li>
@@ -64,9 +64,56 @@
 					for (local_idx in _.range(this.coro_state.locals.length)) {
 						name = ''
 						v = rule["k:has_locals"]["rdf:value"]["@list"][local_idx]
+						name += v["k:has_name"]
 						if (v["@type"] === "k:existential")
 							name += '(E)'
+						r.push(name)
+					}
+				}
+				return r
+			}
+		}
+	});*/
+	Vue.component('coro_state', {
+		props: ["coro_state"],
+		template: `
+			<div class="coro_state">
+			{{ coro_state.status }} - {{ coro_state.comment }}
+			<ul>
+			<div v-for="local_idx in _.range(coro_state.locals.length)">
+				<li>
+				?{{ names_of_locals[local_idx] }}:
+				<thing :thing="locals[local_idx]" :state="coro_state"></thing>
+				</li>
+			</div>
+			</ul>
+			<ul>
+			<div v-for="child in coro_state.children" :key="child.id">
+				<li>
+				<coro_state :coro_state="child"></coro_state>
+				</li>
+			</div>
+			</ul>
+			</div>
+		`,
+		computed: {
+			names_of_locals: function()
+			{
+				r = [];
+
+				if (this.coro_state.rule_id === -1)
+					for (local_idx in _.range(this.coro_state.locals.length))
+						r.push('?');
+				else
+				{
+					rule = rule_for_state(this.coro_state);
+					//console.log(this)
+					for (local_idx in _.range(this.coro_state.locals.length)) {
+						name = ''
+						v = rule["k:has_locals"]["rdf:value"]["@list"][local_idx]
 						name += v["k:has_name"]
+						if (v["@type"] === "k:existential")
+							name += '(E)'
 						r.push(name)
 					}
 				}
@@ -345,11 +392,11 @@
 			where_thing = undefined
 			for (const i in view.index)
 			{
-				console.log(i)
-				console.log(typeof(i))
+				//console.log(i)
+				//console.log(typeof(i))
 				state = view.index[i]
 				assert (state != undefined)
-				console.log("trying " + i + " " + state + " for "+ what)
+				//console.log("trying " + i + " " + state + " for "+ what)
 				thing = local_for_state(state, what)
 				console.log(thing)
 				if (thing !== undefined) {
@@ -503,11 +550,21 @@ $.ajax({
 	{
 		g = data["@graph"]
 		g.forEach(rule => {
-			//console.log(rule)
+			console.log(rule)
 			vm.rules[parseInt(rule.has_id)] = rule
 			rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
-			delete rule["k:has_consts"]["rdf:value"]["@list"]
+			delete        rule["k:has_consts"]["rdf:value"]["@list"]
 			rule.consts_count = rule.consts.length
+			rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
+			delete        rule["k:has_locals"]["rdf:value"]["@list"]
+			rule.locals.forEach(local => {
+				if (local["@type"] === "k:existential") {
+					local.has_origin = parseInt(local.has_origin)
+					vm.bnodes[local.has_origin] = rule.
+				}
+
+			})
+
 		})
 		load_file(0);
 	}

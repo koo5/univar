@@ -153,13 +153,13 @@ def tau(command, files, only_id, additional_identification):
 							popen_output = ''
 							#print('poll..')
 							while popen.poll() == None:
-								print('readline...')
+								#print('readline...')
 								process_output(popen.stdout.readline())
-								print('readline.')
+								#print('readline.')
 							if not popen.stdout.closed:
-								print('readline..')
+								#print('readline..')
 								process_output(popen.stdout.readline())
-								print('readline.')
+								#print('readline.')
 							if popen.returncode:
 								fail()
 								print_kwrite_link()

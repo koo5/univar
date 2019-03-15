@@ -100,7 +100,7 @@
 				b<bnode :thing="thing"></bnode>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
-				c{{ thing.type }}
+				c{{ thing["k:has_name"] }}
 			</span>
 			</span>
 		`,
@@ -184,7 +184,7 @@
 		mounted: function ()
 		{
 			window.addEventListener('keydown', function (event) {
-				c = event.keyCode;
+				const c = event.keyCode;
 				console.log(c);
 				if (c==188 && vm.view.step_id > 0)
 				{
@@ -459,10 +459,13 @@
 						bind(what_thing, where_thing);
 						return true;
 					}
-					else //throw new Error("no what?")
-						console.log("unknown thing: " + where)
+					else break;
 				}
 			}
+			if (!what_thing)
+				console.log("unknown unification source thing: " + what)
+			if (!where_thing)
+				console.log("unknown unification target thing: " + where)
 		}
 		else if (action == OP_UNBIND) {
 			const what = parseInt(op[1])
@@ -472,7 +475,7 @@
 				thing = local_for_state(state, what)
 				if (thing !== undefined)
 				{
-					delete thing.bound_to// = undefined;
+					delete thing.bound_to
 					thing.type = ThingType.UNBOUND;
 					return true;
 				}

@@ -26,27 +26,36 @@
 		</div>
 </div>
 <script type="text/javascript">
-/*
+
+	'use strict';
+
+//	class CoroState
+//	{
+//		rule_id = -1;
+//		locals;
+//		destruct()
+//			/*must be called manually*/
+//		{
+//			/*otherwise we have a references cycle and leak memory*/
+//			this.locals = undefined;
+//		}
+//	}
+
 	Vue.component('thing', {
-		props: ["thing", "state"],
+		props: ["thing"],
 		template: `
 			<div class="thing">
-			<v-if "thing.bound_to"></v-if>
-			<ul>
-			<div v-for="local_idx in _.range(coro_state.locals.length)">
-				<li>
-				?{{ names_of_locals[local_idx] }}:
-				{{ coro_state.locals[local_idx] }}
-				</li>
-			</div>
-			</ul>
-			<ul>
-			<div v-for="child in coro_state.children" :key="child.id">
-				<li>
-				<coro_state :coro_state="child"></coro_state>
-				</li>
-			</div>
-			</ul>
+			<v-if "thing.type === THING_TYPE_UNBOUND">?</v-if>
+			<v-if "thing.type === THING_TYPE_BOUND">
+				➜
+				<thing :thing="thing.bound_to"></thing>
+			</v-if>
+			<v-if "thing.type === THING_TYPE_BNODE">
+				<bnode :thing="thing"></bnode>
+			</v-if>
+			<v-if "thing.type === THING_TYPE_CONST">
+				{{ thing }}
+			</v-if>
 			</div>
 		`,
 		computed: {
@@ -73,7 +82,7 @@
 				return r
 			}
 		}
-	});*/
+	});
 
 
 Vue.component('bnode', {
@@ -88,14 +97,32 @@ Vue.component('bnode', {
 });
 Vue.component('bnode_triple', {
 	props: ["triple", "thing"],
+	/*thing is the bnode we are displaying*/
 	template: `
-				<div class="bnode">
-				<v-for triple in bnodes[thing.origin].triples>
-					<triple :triple="triple" :thing="thing"<></triple>
-				</v-for>
+				<div class="bnode_triple">
+					<bnode_triple_arg :thing="thing" :arg="triple[0]"></bnode_triple_arg>
+					{{ triple[1] }}
+					<bnode_triple_arg :thing="thing" :arg="triple[2]"></bnode_triple_arg>
 				</div>
 			`,
 });
+Vue.component('bnode_triple_arg', {
+	props: ["thing", "arg"],
+	/*thing is the thing thats either subj or obj in the triple*/
+	/*arg either string or an offset from thing*/
+	template: `
+				<div class="bnode_triple_arg">
+					<v-if "type(arg)===string">
+						{{ arg }}
+					</v-if>
+					<v-if "type(arg)===number">
+						<thing :thing="thing.state.locals[arg + offset]"></thing>
+					</v-if>
+				</div>
+			`,
+});
+
+
 
 
 Vue.component('coro_state', {
@@ -536,6 +563,7 @@ Vue.component('coro_state', {
 	}
 	function remove_state(id, view)
 	{
+		view.index[id].locals = undefined;
 		delete view.index[id]
 	}
 	function get_value(thing)
@@ -614,6 +642,15 @@ function assert(condition, message) {
         throw message; // Fallback
     }
 }
+
+/*
+todo:
+set thing.state when adding thing
+
+
+
+thread a display-stack parameter through the thing components, to catch corecursion
+ */
 
 </script>
 </body>

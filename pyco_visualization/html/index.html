@@ -29,6 +29,15 @@
 
 	'use strict';
 
+	window.ThingType = {
+		UNBOUND: 0,
+		BOUND: 1,
+		BNODE: 2,
+		CONST: 3
+	}
+
+	var bnodes = {}
+
 	Vue.component('coro_state', {
 		props: ["coro_state"],
 		template: `
@@ -81,30 +90,40 @@
 	Vue.component('thing', {
 		props: ["thing"],
 		template: `
-			<div class="thing">
-			<v-if "thing.type === THING_TYPE_UNBOUND">?</v-if>
-			<v-if "thing.type === THING_TYPE_BOUND">
+			<span class="thing">{{ thing.type }}
+			<span v-if="thing.type === ThingType.UNBOUND">(unbound)</span>
+			<span v-if="thing.type === ThingType.BOUND">
 				➜
-				<!--<thing :thing="thing.bound_to"></thing>-->
-			</v-if>
-			<v-if "thing.type === THING_TYPE_BNODE">
-				<bnode :thing="thing"></bnode>
-			</v-if>
-			<v-if "thing.type === THING_TYPE_CONST">
-				{{ thing.type }}
-			</v-if>
-			</div>
+				a<thing :thing="thing.bound_to"></thing>
+			</span>
+			<span v-if="thing.type === ThingType.BNODE">
+				b<bnode :thing="thing"></bnode>
+			</span>
+			<span v-if="thing.type === ThingType.CONST">
+				c{{ thing.type }}
+			</span>
+			</span>
 		`,
+		data: ()=> {
+			return {
+				ThingType: window.ThingType
+			}
+		}
 	});
 	Vue.component('bnode', {
 		props: ["thing"],
 		template: `
 				<div class="bnode">
-				<v-for triple in bnodes[thing.origin].triples>
-					<bnode_triple :triple="triple" :thing="thing"<></bnode_triple>
-				</v-for>
+					<div v-for="triple in bnodes[thing.origin].triples">
+						<bnode_triple :triple="triple" :thing="thing"></bnode_triple>
+					</div>
 				</div>
 			`,
+		data: ()=> {
+			return {
+				bnodes: window.bnodes
+			}
+		}
 	});
 	Vue.component('bnode_triple', {
 		props: ["triple", "thing"],
@@ -123,12 +142,12 @@
 		/*arg either string or an offset from thing*/
 		template: `
 				<div class="bnode_triple_arg">
-					<v-if "type(arg)===string">
+					<div v-if="type(arg)===string">
 						{{ arg }}
-					</v-if>
-					<v-if "type(arg)===number">
+					</div>
+					<div v-if="type(arg)===number">
 						<!--<thing :thing="thing.state.locals[arg + offset]"></thing>-->
-					</v-if>
+					</div>
 				</div>
 			`,
 	});
@@ -453,7 +472,8 @@
 				thing = local_for_state(state, what)
 				if (thing !== undefined)
 				{
-					thing.bound_to = undefined;
+					delete thing.bound_to// = undefined;
+					thing.type = ThingType.UNBOUND;
 					return true;
 				}
 			}
@@ -464,6 +484,7 @@
 	}
 	function bind(what_thing, where_thing) {
 		what_thing.bound_to = where_thing;
+		what_thing.type = ThingType.BOUND;
 	}
 	function local_for_state(state, what)
 	{
@@ -511,11 +532,11 @@
 				let local = {};
 				const template = locals[i]
 				if (template["@type"] == "k:existential") {
-					local.type = THING_TYPE_BNODE
+					local.type = ThingType.BNODE
 					local.has_origin = template["has_origin"]
 				}
 				else if (template["@type"] == "k:var")
-					local.type = THING_TYPE_UNBOUND
+					local.type = ThingType.UNBOUND
 				else throw Exception("not expected here:"+template)
 				local.state = state
 				state.locals[i] = local
@@ -545,11 +566,6 @@
 	const OP_SET_STATUS = 1;
 	const OP_BIND = 2;
 	const OP_UNBIND = 3;
-	const THING_TYPE_UNBOUND = 0;
-	const THING_TYPE_BOUND = 1;
-	const THING_TYPE_BNODE = 2;
-	const THING_TYPE_CONST = 3;
-
 
 	$( document ).ready(function() {
 
@@ -561,7 +577,6 @@ but none worked*/
 vm.view.index = {}
 vm.snapshots= []
 vm.steps= []
-
 console.log( "ready!" );
 
 $.ajax({
@@ -576,13 +591,14 @@ $.ajax({
 			vm.rules[parseInt(rule.has_id)] = rule
 			rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
 			delete        rule["k:has_consts"]
+			rule.consts.forEach(c => {c.type = ThingType.CONST});
 			rule.consts_count = rule.consts.length
 			rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
 			delete        rule["k:has_locals"]
 			rule.locals.forEach(local => {
 				if (local["@type"] === "k:existential") {
 					local.has_origin = parseInt(local.has_origin)
-					//vm.bnodes[local.has_origin] = rule.
+					bnodes[local.has_origin] = []
 				}
 
 			})

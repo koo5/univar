@@ -29,9 +29,6 @@
 
 	'use strict';
 
-
-
-
 	Vue.component('coro_state', {
 		props: ["coro_state"],
 		template: `
@@ -41,7 +38,7 @@
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li>
 				?{{ names_of_locals[local_idx] }}:
-				<thing :thing="locals[local_idx]"></thing>
+				<thing :thing="coro_state.locals[local_idx]"></thing>
 				</li>
 			</div>
 			</ul>
@@ -57,18 +54,18 @@
 		computed: {
 			names_of_locals: function()
 			{
-				r = [];
+				const r = [];
 
 				if (this.coro_state.rule_id === -1)
-					for (local_idx in _.range(this.coro_state.locals.length))
+					for (let local_idx in _.range(this.coro_state.locals.length))
 						r.push('?');
 				else
 				{
-					rule = rule_for_state(this.coro_state);
+					const rule = rule_for_state(this.coro_state);
 					//console.log(this)
-					for (local_idx in _.range(this.coro_state.locals.length)) {
-						name = ''
-						v = rule["k:has_locals"]["rdf:value"]["@list"][local_idx]
+					for (let local_idx in _.range(this.coro_state.locals.length)) {
+						var name = ''
+						const v = rule.locals[local_idx]
 						name += v["k:has_name"]
 						if (v["@type"] === "k:existential")
 							name += '(E)'
@@ -88,19 +85,17 @@
 			<v-if "thing.type === THING_TYPE_UNBOUND">?</v-if>
 			<v-if "thing.type === THING_TYPE_BOUND">
 				➜
-				<thing :thing="thing.bound_to"></thing>
+				<!--<thing :thing="thing.bound_to"></thing>-->
 			</v-if>
 			<v-if "thing.type === THING_TYPE_BNODE">
 				<bnode :thing="thing"></bnode>
 			</v-if>
 			<v-if "thing.type === THING_TYPE_CONST">
-				{{ thing }}
+				{{ thing.type }}
 			</v-if>
 			</div>
 		`,
 	});
-
-
 	Vue.component('bnode', {
 		props: ["thing"],
 		template: `
@@ -132,7 +127,7 @@
 						{{ arg }}
 					</v-if>
 					<v-if "type(arg)===number">
-						<thing :thing="thing.state.locals[arg + offset]"></thing>
+						<!--<thing :thing="thing.state.locals[arg + offset]"></thing>-->
 					</v-if>
 				</div>
 			`,
@@ -218,7 +213,7 @@
 	{
 		console.log("go_to_next_yield");
 		const old_yields = vm.view.yield_count;
-		for (i = 0; i < 100; i++)
+		for (let i = 0; i < 100; i++)
 		{
 			if (!go_to_next_step())
 				break;
@@ -229,7 +224,7 @@
 	function ff()
 	{
 		console.log("ff");
-		for (var i = 0; i < 50000; i++)
+		for (let i = 0; i < 50000; i++)
 		{
 			if (!move_view_to_next_step(vm.view))
 				break;
@@ -248,7 +243,7 @@
 		if (step != undefined)
 		{
 			view.step_id++
-			for (i = 0; i < step.length; i++)
+			for (let i = 0; i < step.length; i++)
 				if (!do_op(step[i], view))
 					return false
 			return true;
@@ -328,7 +323,7 @@
 		{
 			if (op["a"] == "run_uuid")
 			{
-				uuid = op["value"]
+				const uuid = op["value"]
 				if (vm.run_uuid === undefined)
 					vm.run_uuid = uuid
 				else if (vm.run_uuid != uuid)
@@ -362,7 +357,7 @@
 		else if (action == OP_SET_STATUS)
 		{
 			//console.log(op.id + " status "  +  coro_status[op.status]);
-			parent_id = op[3]
+			const parent_id = op[3]
 			if (view.index[id] == undefined)
 			{
 				if (parent_id == undefined)
@@ -370,7 +365,7 @@
 				if (!add_state(op, view))
 					return
 			}
-			comment = op[6]
+			const comment = op[6]
 			if (comment != undefined)
 				view.index[id].comment = comment;
 
@@ -406,19 +401,19 @@
 
 		}
 		else if (action == OP_BIND) {
-			what = parseInt(op[1])
-			where = parseInt(op[2])
-			what_thing = undefined
-			where_thing = undefined
+			const what = parseInt(op[1])
+			const where = parseInt(op[2])
+			var what_thing
+			var where_thing
+			var thing;
 			for (const i in view.index)
 			{
 				//console.log(i)
 				//console.log(typeof(i))
-				state = view.index[i]
+				const state = view.index[i]
 				assert (state != undefined)
 				//console.log("trying " + i + " " + state + " for "+ what)
 				thing = local_for_state(state, what)
-				console.log(thing)
 				if (thing !== undefined) {
 					what_thing = thing
 					if (where_thing) {
@@ -437,7 +432,7 @@
 			}
 			for (const i in vm.rules)
 			{
-				rule = vm.rules[i]
+				const rule = vm.rules[i]
 				thing = const_for_rule(rule, where)
 				if (thing !== undefined) {
 					where_thing = thing
@@ -446,15 +441,15 @@
 						return true;
 					}
 					else //throw new Error("no what?")
-							console.log("unknown thing: " + where)
+						console.log("unknown thing: " + where)
 				}
 			}
 		}
 		else if (action == OP_UNBIND) {
-			what = parseInt(op[1])
+			const what = parseInt(op[1])
 			for (const i in view.index)
 			{
-				state = view.index[i]
+				const state = view.index[i]
 				thing = local_for_state(state, what)
 				if (thing !== undefined)
 				{
@@ -472,8 +467,9 @@
 	}
 	function local_for_state(state, what)
 	{
+		var size;
 		if (state.rule_id != -1)
-			size = locals_template_for_rule(rule_for_state(state)).length
+			size = (rule_for_state(state)).locals.length
 		else
 			if (state.locals_size !== undefined)
 				size = state.locals_size
@@ -481,23 +477,19 @@
 				return
 		return state.locals[thing_idx(what, state.locals_address, size)]
 	}
-	function locals_template_for_rule(rule)
-	{
-		return rule['k:has_locals']['rdf:value']['@list']
-	}
 	function const_for_rule(rule, what)
 	{
 		return rule.consts[thing_idx(what, rule.consts_address, rule.consts.length)]
 	}
 	function thing_idx(what, locals_address, locals_count)
 	{
-		offset = what - locals_address
+		const offset = what - locals_address
 		if (offset >= 0 && offset <= (locals_count - 1) * thing_size)
 			return offset/thing_size
 	}
 	function add_state(op, view)
 	{
-		state = {children:[],status:"idk",locals:[],comment:"???"};
+		const state = {children:[],status:"idk",locals:[],comment:"???"};
 		state.id = op[1];
 		const parent_id = op[3];
 		state.parent_id = parent_id;
@@ -511,13 +503,13 @@
 		state.locals_address = op[5]
 		state.rule_id = op[4]
 		if (state.rule_id != -1) {
-			rule = rule_for_state(state)
-			locals = locals_for_rule(rule)
-			locals_count = locals.length
+			const rule = rule_for_state(state)
+			const locals = rule.locals
+			const locals_count = locals.length
 			state.locals = Array(locals_count)
 			_.range(locals_count).forEach(i => {
 				let local = {};
-				template = locals[i]
+				const template = locals[i]
 				if (template["@type"] == "k:existential") {
 					local.type = THING_TYPE_BNODE
 					local.has_origin = template["has_origin"]
@@ -530,11 +522,6 @@
 			});
 		}
 		return true;
-	}
-	function locals_for_rule(rule)
-	{
-		console.log(rule)
-		return rule["k:has_locals"]["rdf:value"]["@list"]
 	}
 	function rule_for_state(state)
 	{
@@ -588,10 +575,10 @@ $.ajax({
 			console.log(rule)
 			vm.rules[parseInt(rule.has_id)] = rule
 			rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
-			delete        rule["k:has_consts"]["rdf:value"]["@list"]
+			delete        rule["k:has_consts"]
 			rule.consts_count = rule.consts.length
 			rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
-			delete        rule["k:has_locals"]["rdf:value"]["@list"]
+			delete        rule["k:has_locals"]
 			rule.locals.forEach(local => {
 				if (local["@type"] === "k:existential") {
 					local.has_origin = parseInt(local.has_origin)

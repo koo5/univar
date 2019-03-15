@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="340">
-              <caret line="56" column="24" lean-forward="true" selection-start-line="56" selection-start-column="24" selection-end-line="56" selection-end-column="24" />
+            <state relative-caret-position="120">
+              <caret line="584" column="5" lean-forward="true" selection-start-line="584" selection-start-column="5" selection-end-line="584" selection-end-column="5" />
             </state>
           </provider>
         </entry>
@@ -29,7 +29,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>0+</find>
       <find>foreach</find>
       <find>consts</find>
       <find>delete</find>
@@ -59,6 +58,7 @@
       <find>trying</find>
       <find>forEach</find>
       <find>add_</find>
+      <find>coro_sta</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -73,7 +73,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="10" />
     <option name="y" value="20" />
     <option name="width" value="828" />
@@ -164,15 +164,15 @@
       <workItem from="1551273764718" duration="6452000" />
       <workItem from="1551353153867" duration="21390000" />
       <workItem from="1552134354490" duration="15248000" />
-      <workItem from="1552228244985" duration="50372000" />
+      <workItem from="1552228244985" duration="54413000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="93462000" />
+    <option name="totallyTimeSpent" value="97503000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1" y="-24" width="850" height="505" extended-state="6" />
+    <frame x="-1" y="0" width="850" height="481" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.13325472" />
@@ -225,8 +225,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../pyco_visualization/html/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="56" column="24" lean-forward="true" selection-start-line="56" selection-start-column="24" selection-end-line="56" selection-end-column="24" />
+        <state relative-caret-position="120">
+          <caret line="584" column="5" lean-forward="true" selection-start-line="584" selection-start-column="5" selection-end-line="584" selection-end-column="5" />
         </state>
       </provider>
     </entry>

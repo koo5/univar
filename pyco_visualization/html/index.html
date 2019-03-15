@@ -29,103 +29,10 @@
 
 	'use strict';
 
-//	class CoroState
-//	{
-//		rule_id = -1;
-//		locals;
-//		destruct()
-//			/*must be called manually*/
-//		{
-//			/*otherwise we have a references cycle and leak memory*/
-//			this.locals = undefined;
-//		}
-//	}
-
-	Vue.component('thing', {
-		props: ["thing"],
-		template: `
-			<div class="thing">
-			<v-if "thing.type === THING_TYPE_UNBOUND">?</v-if>
-			<v-if "thing.type === THING_TYPE_BOUND">
-				➜
-				<thing :thing="thing.bound_to"></thing>
-			</v-if>
-			<v-if "thing.type === THING_TYPE_BNODE">
-				<bnode :thing="thing"></bnode>
-			</v-if>
-			<v-if "thing.type === THING_TYPE_CONST">
-				{{ thing }}
-			</v-if>
-			</div>
-		`,
-		computed: {
-			names_of_locals: function()
-			{
-				r = [];
-
-				if (this.coro_state.rule_id === -1)
-					for (local_idx in _.range(this.coro_state.locals.length))
-						r.push('?');
-				else
-				{
-					rule = rule_for_state(this.coro_state);
-					//console.log(this)
-					for (local_idx in _.range(this.coro_state.locals.length)) {
-						name = ''
-						v = rule["k:has_locals"]["rdf:value"]["@list"][local_idx]
-						name += v["k:has_name"]
-						if (v["@type"] === "k:existential")
-							name += '(E)'
-						r.push(name)
-					}
-				}
-				return r
-			}
-		}
-	});
-
-
-Vue.component('bnode', {
-	props: ["thing"],
-	template: `
-				<div class="bnode">
-				<v-for triple in bnodes[thing.origin].triples>
-					<bnode_triple :triple="triple" :thing="thing"<></bnode_triple>
-				</v-for>
-				</div>
-			`,
-});
-Vue.component('bnode_triple', {
-	props: ["triple", "thing"],
-	/*thing is the bnode we are displaying*/
-	template: `
-				<div class="bnode_triple">
-					<bnode_triple_arg :thing="thing" :arg="triple[0]"></bnode_triple_arg>
-					{{ triple[1] }}
-					<bnode_triple_arg :thing="thing" :arg="triple[2]"></bnode_triple_arg>
-				</div>
-			`,
-});
-Vue.component('bnode_triple_arg', {
-	props: ["thing", "arg"],
-	/*thing is the thing thats either subj or obj in the triple*/
-	/*arg either string or an offset from thing*/
-	template: `
-				<div class="bnode_triple_arg">
-					<v-if "type(arg)===string">
-						{{ arg }}
-					</v-if>
-					<v-if "type(arg)===number">
-						<thing :thing="thing.state.locals[arg + offset]"></thing>
-					</v-if>
-				</div>
-			`,
-});
 
 
 
-
-Vue.component('coro_state', {
+	Vue.component('coro_state', {
 		props: ["coro_state"],
 		template: `
 			<div class="coro_state">
@@ -134,7 +41,7 @@ Vue.component('coro_state', {
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li>
 				?{{ names_of_locals[local_idx] }}:
-				<thing :thing="locals[local_idx]" :state="coro_state"></thing>
+				<thing :thing="locals[local_idx]"></thing>
 				</li>
 			</div>
 			</ul>
@@ -172,18 +79,80 @@ Vue.component('coro_state', {
 			}
 		}
 	});
+
+
+	Vue.component('thing', {
+		props: ["thing"],
+		template: `
+			<div class="thing">
+			<v-if "thing.type === THING_TYPE_UNBOUND">?</v-if>
+			<v-if "thing.type === THING_TYPE_BOUND">
+				➜
+				<thing :thing="thing.bound_to"></thing>
+			</v-if>
+			<v-if "thing.type === THING_TYPE_BNODE">
+				<bnode :thing="thing"></bnode>
+			</v-if>
+			<v-if "thing.type === THING_TYPE_CONST">
+				{{ thing }}
+			</v-if>
+			</div>
+		`,
+	});
+
+
+	Vue.component('bnode', {
+		props: ["thing"],
+		template: `
+				<div class="bnode">
+				<v-for triple in bnodes[thing.origin].triples>
+					<bnode_triple :triple="triple" :thing="thing"<></bnode_triple>
+				</v-for>
+				</div>
+			`,
+	});
+	Vue.component('bnode_triple', {
+		props: ["triple", "thing"],
+		/*thing is the bnode we are displaying*/
+		template: `
+				<div class="bnode_triple">
+					<bnode_triple_arg :thing="thing" :arg="triple[0]"></bnode_triple_arg>
+					{{ triple[1] }}
+					<bnode_triple_arg :thing="thing" :arg="triple[2]"></bnode_triple_arg>
+				</div>
+			`,
+	});
+	Vue.component('bnode_triple_arg', {
+		props: ["thing", "arg"],
+		/*thing is the thing thats either subj or obj in the triple*/
+		/*arg either string or an offset from thing*/
+		template: `
+				<div class="bnode_triple_arg">
+					<v-if "type(arg)===string">
+						{{ arg }}
+					</v-if>
+					<v-if "type(arg)===number">
+						<thing :thing="thing.state.locals[arg + offset]"></thing>
+					</v-if>
+				</div>
+			`,
+	});
+
+
+
+
 	var vm = new Vue({
 		el: '#top',
 		watch: {'view.root.locals': function(x,y){}, deep: true},
 		data: {
 			view:{
 				root:
-				{
-					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
-					children:[],
-					locals:[],
-					comment:"?"
-				},
+						{
+							status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
+							children:[],
+							locals:[],
+							comment:"?"
+						},
 				step_id: -1,
 				yield_count: 0,
 			},
@@ -231,7 +200,7 @@ Vue.component('coro_state', {
 	});
 
 	const snapshot_interval = 10;
-	thing_size = undefined;
+	var thing_size = undefined;
 
 	function maybe_take_snapshot()
 	{
@@ -547,7 +516,17 @@ Vue.component('coro_state', {
 			locals_count = locals.length
 			state.locals = Array(locals_count)
 			_.range(locals_count).forEach(i => {
-				state.locals[i] = {}
+				let local = {};
+				template = locals[i]
+				if (template["@type"] == "k:existential") {
+					local.type = THING_TYPE_BNODE
+					local.has_origin = template["has_origin"]
+				}
+				else if (template["@type"] == "k:var")
+					local.type = THING_TYPE_UNBOUND
+				else throw Exception("not expected here:"+template)
+				local.state = state
+				state.locals[i] = local
 			});
 		}
 		return true;
@@ -579,6 +558,10 @@ Vue.component('coro_state', {
 	const OP_SET_STATUS = 1;
 	const OP_BIND = 2;
 	const OP_UNBIND = 3;
+	const THING_TYPE_UNBOUND = 0;
+	const THING_TYPE_BOUND = 1;
+	const THING_TYPE_BNODE = 2;
+	const THING_TYPE_CONST = 3;
 
 
 	$( document ).ready(function() {
@@ -600,7 +583,7 @@ $.ajax({
 	data: "",
 	success: function(data)
 	{
-		g = data["@graph"]
+		const g = data["@graph"]
 		g.forEach(rule => {
 			console.log(rule)
 			vm.rules[parseInt(rule.has_id)] = rule
@@ -651,6 +634,23 @@ set thing.state when adding thing
 
 thread a display-stack parameter through the thing components, to catch corecursion
  */
+
+
+
+	//	class CoroState
+	//	{
+	//		rule_id = -1;
+	//		locals;
+	//		destruct()
+	//			/*must be called manually*/
+	//		{
+	//			/*otherwise we have a references cycle and leak memory*/
+	//			this.locals = undefined;
+	//		}
+	//	}
+
+
+
 
 </script>
 </body>

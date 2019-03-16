@@ -699,6 +699,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
 		b.append(Statement('CHECK_DBG_DATA'))
+		b.append(Statement('state.was_introduced = false'))
 		return b
 
 	def head(s, r):

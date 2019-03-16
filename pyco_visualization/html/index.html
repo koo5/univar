@@ -90,17 +90,17 @@
 	Vue.component('thing', {
 		props: ["thing"],
 		template: `
-			<span class="thing">{{ thing.type }}
+			<span class="thing"> <!--{{ thing.type }}-->
 			<span v-if="thing.type === ThingType.UNBOUND">(unbound)</span>
 			<span v-if="thing.type === ThingType.BOUND">
 				➜
-				a<thing :thing="thing.bound_to"></thing>
+				<thing :thing="thing.bound_to"></thing>
 			</span>
 			<span v-if="thing.type === ThingType.BNODE">
-				b<bnode :thing="thing"></bnode>
+				<bnode :thing="thing"></bnode>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
-				c{{ thing["k:has_name"] }}
+				{{ thing["k:has_name"] }}
 			</span>
 			</span>
 		`,
@@ -355,7 +355,7 @@
 			else if (op["a"] == "consts_address")
 			{
 				const rule_id = parseInt(op["rule"])
-				vm.rules[rule_id].consts_address = op["consts"]
+				vm.rules[rule_id].consts_address = parseInt(op["consts"], 16)
 			}
 			else if (op["a"] == "thing_size")
 			{
@@ -375,21 +375,31 @@
 		}
 		else if (action == OP_SET_STATUS)
 		{
-			//console.log(op.id + " status "  +  coro_status[op.status]);
-			const parent_id = op[3]
-			if (view.index[id] == undefined)
-			{
-				if (parent_id == undefined)
-					alert("first status but no parent id?");
-				if (!add_state(op, view))
-					return
-			}
-			const comment = op[6]
-			if (comment != undefined)
-				view.index[id].comment = comment;
+			var state = view.index[id]
+			const status = op[2]
+			if (op.length > 3) {
+				const parent_id = op[3]
+				const rule_id = op[4]
 
-			status = op[2]
-			const old_status_string = view.index[id].status;
+				if (state == undefined) {
+					if (parent_id == undefined)
+						alert("first status but no parent id?");
+					if (!add_state(op, view, parent_id, rule_id))
+						return
+					state = view.index[id]
+				}
+				state.rule_id = rule_id;
+				state.parent_id = parent_id;
+				state.locals_address = parseInt(op[5], 16)
+
+				copy_locals_from_template(state)
+
+				const comment = op[6]
+				if (comment != undefined)
+					state.comment = comment;
+			}
+
+			const old_status_string = state.status;
 			const new_status_string = coro_status[status];
 			const yield_statuses = ["EP", "YIELD", "BNODE_YIELD"];
 			if (yield_statuses.includes(old_status_string) && !yield_statuses.includes(new_status_string))
@@ -397,19 +407,19 @@
 			else if (yield_statuses.includes(new_status_string) && !yield_statuses.includes(old_status_string))
 				view.yield_count++
 
-			view.index[id].status = new_status_string
+			state.status = new_status_string
 
 			//console.log(id+" status:"+status)
 			if (status == 0)
 			{
-				if (view.index[id].children.length)
+				if (state.children.length)
 				{
 					//console.log("deleting inactive parent's children")
 					/*when a state is inactivated, its children
 					will never be used again*/
-					view.index[id].children.forEach(child =>
+					state.children.forEach(child =>
 						remove_state(child.id, view));
-					view.index[id].children = []
+					state.children = []
 					//if (view.index[id].parent == view.root)
 					//remove_state(id, view);
 				}
@@ -420,52 +430,57 @@
 
 		}
 		else if (action == OP_BIND) {
-			const what = parseInt(op[1])
-			const where = parseInt(op[2])
+			const what = parseInt(op[1], 16)
+			const where = parseInt(op[2], 16)
+			console.log("bind " + what + " to " + where)
 			var what_thing
 			var where_thing
-			var thing;
+			var thing
 			for (const i in view.index)
 			{
 				//console.log(i)
 				//console.log(typeof(i))
 				const state = view.index[i]
 				assert (state != undefined)
-				//console.log("trying " + i + " " + state + " for "+ what)
-				thing = local_for_state(state, what)
-				if (thing !== undefined) {
-					what_thing = thing
-					if (where_thing) {
-						bind(what_thing, where_thing);
-						return true;
+				console.log("trying " + i + " with locals_address " + state.locals_address + " and size " + locals_size_for_state(state))
+				if (!what_thing) {
+					thing = local_for_state(state, what)
+					if (thing !== undefined) {
+						what_thing = thing
+						if (where_thing) {
+							bind(what_thing, where_thing);
+							return true;
+						}
 					}
 				}
-				thing = local_for_state(state, where)
-				if (thing !== undefined) {
-					where_thing = thing
-					if (what_thing) {
-						bind(what_thing, where_thing);
-						return true;
+				if (!where_thing) {
+					thing = local_for_state(state, where)
+					if (thing !== undefined) {
+						where_thing = thing
+						if (what_thing) {
+							bind(what_thing, where_thing);
+							return true;
+						}
 					}
 				}
 			}
-			for (const i in vm.rules)
-			{
-				const rule = vm.rules[i]
-				thing = const_for_rule(rule, where)
-				if (thing !== undefined) {
-					where_thing = thing
-					if (what_thing) {
-						bind(what_thing, where_thing);
-						return true;
+			if (what_thing && !where_thing) {
+				for (const i in vm.rules) {
+					const rule = vm.rules[i]
+					thing = const_for_rule(rule, where)
+					if (thing !== undefined) {
+						where_thing = thing
+						if (what_thing) {
+							bind(what_thing, where_thing);
+							return true;
+						} else break;
 					}
-					else break;
 				}
 			}
 			if (!what_thing)
-				console.log("unknown unification source thing: " + what)
+				console.log("unknown unification source thing: " + what + "(" + what.toString(16) + ")")
 			if (!where_thing)
-				console.log("unknown unification target thing: " + where)
+				console.log("unknown unification target thing: " + where+ "(" + where.toString(16) + ")")
 		}
 		else if (action == OP_UNBIND) {
 			const what = parseInt(op[1])
@@ -491,15 +506,17 @@
 	}
 	function local_for_state(state, what)
 	{
+		var size = locals_size_for_state(state);
+		if (size !== undefined)
+			return state.locals[thing_idx(what, state.locals_address, size)]
+	}
+	function locals_size_for_state(state) {
 		var size;
 		if (state.rule_id != -1)
-			size = (rule_for_state(state)).locals.length
-		else
-			if (state.locals_size !== undefined)
-				size = state.locals_size
-			else
-				return
-		return state.locals[thing_idx(what, state.locals_address, size)]
+			size = rule_for_state(state).locals.length
+		else if (state.locals_size !== undefined)
+			size = state.locals_size
+		return size;
 	}
 	function const_for_rule(rule, what)
 	{
@@ -511,11 +528,10 @@
 		if (offset >= 0 && offset <= (locals_count - 1) * thing_size)
 			return offset/thing_size
 	}
-	function add_state(op, view)
+	function add_state(op, view, parent_id, rule_id)
 	{
 		const state = {children:[],status:"idk",locals:[],comment:"???"};
 		state.id = op[1];
-		const parent_id = op[3];
 		state.parent_id = parent_id;
 		if (view.index.hasOwnProperty(parent_id))
 			parent = view.index[parent_id]
@@ -524,8 +540,12 @@
 		state.parent = parent
 		parent.children.push(state)
 		view.index[state.id] = state;
-		state.locals_address = op[5]
-		state.rule_id = op[4]
+
+		state.rule_id = rule_id
+		return true;
+	}
+	function copy_locals_from_template(state)
+	{
 		if (state.rule_id != -1) {
 			const rule = rule_for_state(state)
 			const locals = rule.locals
@@ -545,8 +565,8 @@
 				state.locals[i] = local
 			});
 		}
-		return true;
 	}
+
 	function rule_for_state(state)
 	{
 		return vm.rules[state.rule_id]
@@ -572,48 +592,43 @@
 
 	$( document ).ready(function() {
 
-/*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them
-and things would get silly slow. I first looked for solutions like this one:
-//Object.defineProperty(vm.view, 'index', {configurable:false});
-but none worked*/
+		/*we initialize these from here, because if they were in the initial data declaration, vue would reactivize them
+		and things would get silly slow. I first looked for solutions like this one:
+		//Object.defineProperty(vm.view, 'index', {configurable:false});
+		but none worked*/
 
-vm.view.index = {}
-vm.snapshots= []
-vm.steps= []
-console.log( "ready!" );
+		vm.view.index = {}
+		vm.snapshots= []
+		vm.steps= []
+		console.log( "ready!" );
 
-$.ajax({
-	dataType: "json",
-	url: "../rules.jsonld",
-	data: "",
-	success: function(data)
-	{
-		const g = data["@graph"]
-		g.forEach(rule => {
-			console.log(rule)
-			vm.rules[parseInt(rule.has_id)] = rule
-			rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
-			delete        rule["k:has_consts"]
-			rule.consts.forEach(c => {c.type = ThingType.CONST});
-			rule.consts_count = rule.consts.length
-			rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
-			delete        rule["k:has_locals"]
-			rule.locals.forEach(local => {
-				if (local["@type"] === "k:existential") {
-					local.has_origin = parseInt(local.has_origin)
-					bnodes[local.has_origin] = []
-				}
-
-			})
-
-		})
-		load_file(0);
-	}
-});
-
-
-
-});
+		$.ajax({
+			dataType: "json",
+			url: "../rules.jsonld",
+			data: "",
+			success: function(data)
+			{
+				const g = data["@graph"]
+				g.forEach(rule => {
+					console.log(rule)
+					vm.rules[parseInt(rule.has_id)] = rule
+					rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
+					delete        rule["k:has_consts"]
+					rule.consts.forEach(c => {c.type = ThingType.CONST});
+					rule.consts_count = rule.consts.length
+					rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
+					delete        rule["k:has_locals"]
+					rule.locals.forEach(local => {
+						if (local["@type"] === "k:existential") {
+							local.has_origin = parseInt(local.has_origin)
+							bnodes[local.has_origin] = []
+						}
+					})
+				})
+				load_file(0);
+			}
+		});
+	});
 
 	/*this is the function called from withing the trace files*/
 	function S(x)
@@ -622,24 +637,24 @@ $.ajax({
 	}
 
 
-function assert(condition, message) {
-    if (!condition) {
-        message = message || "Assertion failed";
-        if (typeof Error !== "undefined") {
-            throw new Error(message);
-        }
-        throw message; // Fallback
-    }
-}
+	function assert(condition, message) {
+		if (!condition) {
+			message = message || "Assertion failed";
+			if (typeof Error !== "undefined") {
+				throw new Error(message);
+			}
+			throw message; // Fallback
+		}
+	}
 
-/*
-todo:
-set thing.state when adding thing
+	/*
+	todo:
+	set thing.state when adding thing
 
 
 
-thread a display-stack parameter through the thing components, to catch corecursion
- */
+	thread a display-stack parameter through the thing components, to catch corecursion
+	 */
 
 
 

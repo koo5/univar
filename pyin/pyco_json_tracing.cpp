@@ -3,6 +3,13 @@ const int OP_SET_STATUS = 1;
 const int OP_BIND = 2;
 const int OP_UNBIND = 3;
 
+string pointer_to_hex(void *p)
+{
+    std::stringstream stream;
+    stream << std::hex << p;//(size_t)
+    return string(stream.str());
+}
+
 void dump_tracing_step()
 {
     end_tracing_step();
@@ -53,7 +60,7 @@ void proof_trace_set_status(state_id id, coro_status status, bool with_introduct
         //op["parent_id"] = parent_id;
         op.push_back(parent_id);
         op.push_back(rule_id);
-        op.push_back((size_t)locals_address);
+        op.push_back(pointer_to_hex(locals_address));
         //remove when rule descriptions are taken from the json
         if (comment)
         {
@@ -75,8 +82,8 @@ void proof_trace_emit_bind(Thing *t, Thing *t2)
 {
     json op = json::array();
     op.push_back(OP_BIND);
-    op.push_back((size_t)t);
-    op.push_back((size_t)t2);
+    op.push_back(pointer_to_hex(t));
+    op.push_back(pointer_to_hex(t2));
     proof_trace_add_op(op);
 }
 
@@ -84,7 +91,7 @@ void proof_trace_emit_unbind(Thing *t)
 {
     json op = json::array();
     op.push_back(OP_UNBIND);
-    op.push_back((size_t)t);
+    op.push_back(pointer_to_hex(t));
     proof_trace_add_op(op);
 }
 
@@ -93,7 +100,7 @@ void emit_rule_consts_location(RuleId rule, Thing *consts)
     json op;
     op["a"] = "consts_address";
     op["rule"] = rule;
-    op["consts"] = (size_t)consts;
+    op["consts"] = pointer_to_hex(consts);
     proof_trace_add_op(op);
 }
 

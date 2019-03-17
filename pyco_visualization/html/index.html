@@ -611,32 +611,66 @@
 			{
 				const g = data["@graph"]
 				g.forEach(rule => {
-					//console.log(rule)
-					vm.rules[parseInt(rule.has_id)] = rule
-					rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
-					delete        rule["k:has_consts"]
-					rule.consts.forEach(c => {c.type = ThingType.CONST});
-					rule.consts_count = rule.consts.length
-					rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
-					delete        rule["k:has_locals"]
-					rule.locals.forEach(local => {
-
-						if (local["@type"] === "k:existential") {
-							//console.log(local)
-							local.origin = parseInt(local.has_origin)
-							delete local.has_origin
-							if (bnodes[local.origin] !== undefined) return;
-							//console.log(local.origin)
-							bnodes[local.origin] = {triples:[]}
-							
-
-						}
-					})
-				})
+					process_rule(rule);})
 				load_file(0);
 			}
 		});
 	});
+
+	function process_rule(rule)
+	{
+		//console.log(rule)
+		vm.rules[parseInt(rule.has_id)] = rule
+
+		rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
+		delete        rule["k:has_consts"]
+		rule.consts.forEach(c => {c.type = ThingType.CONST});
+		rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
+		delete        rule["k:has_locals"]
+		rule.original_head = rule["k:has_original_head"]["rdf:value"]["@list"]
+		delete rule["k:has_original_head"]
+
+		rule.locals.forEach(local => {
+			local.name = local["k:has_name"]
+			delete local["k:has_name"]
+
+			if (local["@type"] === "k:existential") {
+				//console.log(local)
+				local.origin = parseInt(local.has_origin)
+				delete local.has_origin
+
+				if (bnodes[local.origin] !== undefined) return;
+				//console.log(local.origin)
+				bnodes[local.origin] = {
+					triples: bnode_triples(local, rule)
+				}
+			}
+		})
+	}
+
+	function bnode_triples(bnode, rule)
+	{
+		for (let i = 0; i < rule.original_head.length; i++)
+		{
+			const triple = rule.original_head[i];
+			triple.args = triple["k:has_args"]["rdf:value"]["@list"];
+			delete triple["k:has_args"];
+			if (triple.args.includes(bnode.name))
+			{
+				triples.push(bnode_arg(triple.args[0]))
+				triples.push(triple.pred)
+				triples.push(bnode_arg(triple.args[1]))
+			}
+		}
+	}
+
+	function bnode_arg(original_head_arg, existential)
+	{
+		if (original_head_arg === existential.name)
+			return original_head_arg
+
+
+	}
 
 	/*this is the function called from withing the trace files*/
 	function S(x)

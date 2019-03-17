@@ -5,6 +5,7 @@ kb
 
 #— Existence of lists
 ?builtins_aware_list rdf:first ?ITEM; rdf:rest ?REST.
+:banana :makes "pie".
 
 :zero a :Nat.
 :zero :has_succ :one.

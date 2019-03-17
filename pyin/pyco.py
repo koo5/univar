@@ -90,7 +90,9 @@ class Emitter(object):
 		if type(k) == rdflib.Variable:
 			if thing.is_bnode:
 				t = "existential"
-				kbdbg(uri + " kbdbg:has_origin "+rdflib.Literal(s.add_bnode(r, thing.debug_name)[1]).n3())
+				bbbb = s.add_bnode(r, thing.debug_name)
+				#print('bbbb'+str(bbbb))
+				kbdbg(uri + " kbdbg:has_origin "+rdflib.Literal(bbbb[1]).n3())
 			else:
 				t = "var"
 		elif type(k) in (rdflib.Literal, rdflib.URIRef):
@@ -104,6 +106,7 @@ class Emitter(object):
 		return uri
 
 	def add_bnode(s, rule, name):
+		#print ('bbb'+str((rule, name)))
 		cpp_name, origin = s.get_bnode_origin(rule.original_head_ref.id, str(name))
 		s.bnodes[cpp_name] = rule, name
 		result = (cpp_name, origin)

@@ -97,6 +97,7 @@
 				<thing :thing="thing.bound_to"></thing>
 			</span>
 			<span v-if="thing.type === ThingType.BNODE">
+				bnode{{ thing.origin }}:
 				<bnode :thing="thing"></bnode>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
@@ -146,7 +147,7 @@
 						{{ arg }}
 					</div>
 					<div v-if="type(arg)===number">
-						<!--<thing :thing="thing.state.locals[arg + offset]"></thing>-->
+						<thing :thing="thing.state.locals[arg + offset]"></thing>
 					</div>
 				</div>
 			`,
@@ -556,7 +557,7 @@
 				const template = locals[i]
 				if (template["@type"] == "k:existential") {
 					local.type = ThingType.BNODE
-					local.has_origin = template["has_origin"]
+					local.origin = template.origin
 				}
 				else if (template["@type"] == "k:var")
 					local.type = ThingType.UNBOUND
@@ -610,7 +611,7 @@
 			{
 				const g = data["@graph"]
 				g.forEach(rule => {
-					console.log(rule)
+					//console.log(rule)
 					vm.rules[parseInt(rule.has_id)] = rule
 					rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
 					delete        rule["k:has_consts"]
@@ -619,9 +620,16 @@
 					rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
 					delete        rule["k:has_locals"]
 					rule.locals.forEach(local => {
+
 						if (local["@type"] === "k:existential") {
-							local.has_origin = parseInt(local.has_origin)
-							bnodes[local.has_origin] = []
+							//console.log(local)
+							local.origin = parseInt(local.has_origin)
+							delete local.has_origin
+							if (bnodes[local.origin] !== undefined) return;
+							//console.log(local.origin)
+							bnodes[local.origin] = {triples:[]}
+							
+
 						}
 					})
 				})

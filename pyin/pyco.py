@@ -58,6 +58,7 @@ class Emitter(object):
 	epilogue = Lines()
 
 	def make_locals(s, rule):
+		#print('make_locals'+str(rule.debug_id))
 		locals_template = []
 		consts = []
 		locals_map = {}
@@ -237,12 +238,14 @@ class Emitter(object):
 			s.prologue.append(Line('#define trace_output_path "' + trace_output_path +'"'))
 		s.prologue.append(Line('#include "../../pyin/pyco_static.cpp"'))
 		s.all_rules = []
+
 		for pred,rules in preds.items():
 			for rule in rules:
 				if type(rule) != Builtin:
 					s.all_rules.append(rule)
 		s.all_rules.append(goal)
 		for rule in s.all_rules:
+
 			rule.locals_map, rule.consts_map, rule.locals_template, rule.consts = s.make_locals(rule)
 			rule.has_body = len(rule.body) != 0
 			""" so, the cpppred_state struct has a vector of states,

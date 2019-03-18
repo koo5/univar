@@ -620,8 +620,10 @@
 	function process_rule(rule)
 	{
 		//console.log(rule)
+		const consts = rule["k:has_consts"]
+		if (consts === undefined)
+			return;//this rule isnt compiled in at all
 		vm.rules[parseInt(rule.has_id)] = rule
-
 		rule.consts = rule["k:has_consts"]["rdf:value"]["@list"]
 		delete        rule["k:has_consts"]
 		rule.consts.forEach(c => {c.type = ThingType.CONST});

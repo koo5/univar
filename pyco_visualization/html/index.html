@@ -655,6 +655,9 @@
 			const triple = rule.original_head[i];
 			triple.args = triple["k:has_args"]["rdf:value"]["@list"];
 			delete triple["k:has_args"];
+			bnode_is_in_triple = false
+			triple.args.forEach(arg => {if (arg["k:has_value"] == 0)
+				bnode_is_in_triple = true})
 			if (triple.args.includes(bnode.name))
 			{
 				triples.push(bnode_arg(triple.args[0]))

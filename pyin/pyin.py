@@ -379,8 +379,8 @@ def emit_args(args):
 def emit_arg2(arg):
 	uri = bn()
 	kbdbg(uri + " rdf:type kbdbg:"+arg.__class__.__name__)
-	if type(arg) == rdflib.Variable:
-		arg = rdflib.Literal(arg.n3())
+	#if type(arg) in (rdflib.Variable, rdflib.URIRef, rdflib.):
+	arg = rdflib.Literal(arg.n3())
 	kbdbg(uri + " kbdbg:has_value " + arg.n3())
 	return uri
 

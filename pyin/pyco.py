@@ -90,20 +90,16 @@ class Emitter(object):
 		uri = bn()
 		if type(k) == rdflib.Variable:
 			if thing.is_bnode:
-				t = "existential"
+				t = "Existential"
 				bbbb = s.add_bnode(r, thing.debug_name)
 				#print('bbbb'+str(bbbb))
 				kbdbg(uri + " kbdbg:has_origin "+rdflib.Literal(bbbb[1]).n3())
 			else:
-				t = "universal"
-		elif type(k) in (rdflib.Literal, rdflib.URIRef):
-			t = "constant"
+				t = "Universal"
 		else:
-			assert False, (k, type(k))
+			t = k.__class__.__name__
 		kbdbg(uri + " rdf:type kbdbg:"+t)
-		kbdbg(uri + " kbdbg:has_name " + rdflib.Literal(str(k)).n3())
-		if type(k) == rdflib.Literal:
-			kbdbg(uri + " kbdbg:has_value " + k.n3())
+		kbdbg(uri + " kbdbg:has_value " + rdflib.Literal(k.n3()).n3())
 		return uri
 
 	def add_bnode(s, rule, name):

@@ -150,3 +150,11 @@ def newList(self, n, f):
 def tell_if_is_last_element(x):
 	for i, j in enumerate(x):
 		yield j, (i == (len(x) - 1))
+
+
+bnode_counter = 0
+def bn():
+	global bnode_counter
+	bnode_counter += 1
+	return  ':bn' + str(bnode_counter)
+

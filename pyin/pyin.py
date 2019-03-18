@@ -11,7 +11,7 @@ except ImportError:
 	from urllib import quote_plus
 from collections import defaultdict, OrderedDict
 from common import pyin_prefixes as prefixes
-from common import shorten, un_move_me_ize_pred
+from common import shorten, un_move_me_ize_pred, bn
 import common
 
 
@@ -95,13 +95,6 @@ def step():
 		kbdbg('<'+step_list_item(global_step_counter) + "> rdf:rest <" + step_list_item(global_step_counter + 1)+'>', True)
 	global_step_counter += 1
 	#if step % 10000 == 0:
-
-
-bnode_counter = 0
-def bn():
-	global bnode_counter
-	bnode_counter += 1
-	return  ':bn' + str(bnode_counter)
 
 
 def printify(iterable, separator, shortener = lambda x:x):
@@ -377,6 +370,19 @@ def emit_arg(x):
 		kbdbg(r + ' kbdbg:arg_idx ' + str(x.arg_idx))
 	return r
 
+def emit_args(args):
+	r = []
+	for arg in args:
+		r.append(emit_arg2(arg))
+	return r
+
+def emit_arg2(arg):
+	uri = bn()
+	kbdbg(uri + " rdf:type kbdbg:"+arg.__class__.__name__)
+	if type(arg) == rdflib.Variable:
+		arg = rdflib.Literal(arg.n3())
+	kbdbg(uri + " kbdbg:has_value " + arg.n3())
+	return uri
 
 
 
@@ -834,7 +840,7 @@ def emit_terms(terms):
 def emit_term(t, uri):
 	kbdbg(uri + " rdf:type kbdbg:term")
 	kbdbg(uri + " kbdbg:has_pred " + t.pred.n3())
-	kbdbg(uri + " kbdbg:has_args " + emit_list(t.args))
+	kbdbg(uri + " kbdbg:has_args " + emit_list(emit_args(t.args)))
 	return uri
 
 def check_futures():

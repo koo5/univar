@@ -18,8 +18,9 @@ def nest(block):
 import click
 import sys
 import common
+from common import bn
 import pyin
-from pyin import kbdbg, emit_list,bn
+from pyin import kbdbg, emit_list
 
 from collections import defaultdict, OrderedDict
 import memoized
@@ -94,7 +95,7 @@ class Emitter(object):
 				#print('bbbb'+str(bbbb))
 				kbdbg(uri + " kbdbg:has_origin "+rdflib.Literal(bbbb[1]).n3())
 			else:
-				t = "var"
+				t = "universal"
 		elif type(k) in (rdflib.Literal, rdflib.URIRef):
 			t = "constant"
 		else:

@@ -46,7 +46,7 @@
 			<ul>
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li>
-				?{{ names_of_locals[local_idx] }}:
+				{{ names_of_locals[local_idx] }}:
 				<thing :thing="coro_state.locals[local_idx]"></thing>
 				</li>
 			</div>
@@ -67,7 +67,7 @@
 
 				if (this.coro_state.rule_id === -1)
 					for (let local_idx in _.range(this.coro_state.locals.length))
-						r.push('?');
+						r.push('???');
 				else
 				{
 					const rule = rule_for_state(this.coro_state);
@@ -75,8 +75,8 @@
 					for (let local_idx in _.range(this.coro_state.locals.length)) {
 						var name = ''
 						const v = rule.locals[local_idx]
-						name += v["k:has_name"]
-						if (v["@type"] === "k:existential")
+						name += v["k:has_value"]
+						if (v["@type"] === "k:Existential")
 							name += '(E)'
 						r.push(name)
 					}
@@ -91,7 +91,7 @@
 		props: ["thing"],
 		template: `
 			<span class="thing"> <!--{{ thing.type }}-->
-			<span v-if="thing.type === ThingType.UNBOUND">(unbound)</span>
+			<span v-if="thing.type === ThingType.UNBOUND">(free)</span>
 			<span v-if="thing.type === ThingType.BOUND">
 				➜
 				<thing :thing="thing.bound_to"></thing>
@@ -101,7 +101,7 @@
 				<bnode :thing="thing"></bnode>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
-				{{ thing["k:has_name"] }}
+				{{ thing["k:has_value"] }}
 			</span>
 			</span>
 		`,
@@ -555,13 +555,13 @@
 			_.range(locals_count).forEach(i => {
 				let local = {};
 				const template = locals[i]
-				if (template["@type"] == "k:existential") {
+				if (template["@type"] == "k:Existential") {
 					local.type = ThingType.BNODE
 					local.origin = template.origin
 				}
-				else if (template["@type"] == "k:var")
+				else if (template["@type"] == "k:Universal")
 					local.type = ThingType.UNBOUND
-				else throw Exception("not expected here:"+template)
+				else throw Error("not expected here:"+template)
 				local.state = state
 				state.locals[i] = local
 			});

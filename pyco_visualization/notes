@@ -1,0 +1,2 @@
+it seems better if var names are used with the question mark, rather than striping the question mark on parsing and then prepending it on displaying
+n3 allows any uri to be a variable..

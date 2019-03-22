@@ -73,12 +73,12 @@
 					const rule = rule_for_state(this.coro_state);
 					//console.log(this)
 					for (let local_idx in _.range(this.coro_state.locals.length)) {
-						var name = ''
+						var vv = ''
 						const v = rule.locals[local_idx]
-						name += v["k:has_value"]
-						if (v["@type"] === "k:Existential")
-							name += '(E)'
-						r.push(name)
+						vv += v.value
+						if (v.type === "k:Existential")
+							vv += '(E)'
+						r.push(vv)
 					}
 				}
 				return r
@@ -505,7 +505,7 @@
 		what_thing.bound_to = where_thing;
 		what_thing.type = ThingType.BOUND;
 	}
-	function local_for_state(state, what)
+	function local_for_state(state, what) /*by address*/
 	{
 		var size = locals_size_for_state(state);
 		if (size !== undefined)
@@ -519,11 +519,11 @@
 			size = state.locals_size
 		return size;
 	}
-	function const_for_rule(rule, what)
+	function const_for_rule(rule, what) /*by address*/
 	{
 		return rule.consts[thing_idx(what, rule.consts_address, rule.consts.length)]
 	}
-	function thing_idx(what, locals_address, locals_count)
+	function thing_idx(what, locals_address, locals_count) /*by address*/
 	{
 		const offset = what - locals_address
 		if (offset >= 0 && offset <= (locals_count - 1) * thing_size)
@@ -555,11 +555,12 @@
 			_.range(locals_count).forEach(i => {
 				let local = {};
 				const template = locals[i]
-				if (template["@type"] == "k:Existential") {
+				if (template.type == "k:Existential") {
+					assert (bnodes[template.origin])
 					local.type = ThingType.BNODE
 					local.origin = template.origin
 				}
-				else if (template["@type"] == "k:Universal")
+				else if (template.type == "k:Universal")
 					local.type = ThingType.UNBOUND
 				else throw Error("not expected here:"+template)
 				local.state = state
@@ -617,9 +618,21 @@
 		});
 	});
 
+	function fix_triple(t)
+	{
+		t.args = t["k:has_args"]["rdf:value"]["@list"]
+		delete t["k:has_args"]
+		t.args.forEach(arg => {
+			arg.type = arg['@type']
+			delete arg['@type']
+			arg.value = arg['k:has_value']
+			delete arg['k:has_value']
+		})
+	}
+
 	function process_rule(rule)
 	{
-		//console.log(rule)
+
 		const consts = rule["k:has_consts"]
 		if (consts === undefined)
 			return;//this rule isnt compiled in at all
@@ -629,20 +642,25 @@
 		rule.consts.forEach(c => {c.type = ThingType.CONST});
 		rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
 		delete        rule["k:has_locals"]
+		if (rule.head)
+			fix_triple(rule.head)
 		rule.original_head = rule["k:has_original_head"]["rdf:value"]["@list"]
 		delete rule["k:has_original_head"]
-
+		rule.original_head.forEach(triple => {
+			fix_triple(triple)
+		})
+		console.log(rule)
 		rule.locals.forEach(local => {
-			local.name = local["k:has_name"]
-			delete local["k:has_name"]
-
-			if (local["@type"] === "k:existential") {
+			local.value = local["k:has_value"]
+			delete local["k:has_value"]
+			local.type = local["@type"]
+			delete local["@type"]
+			if (local.type === "k:Existential") {
 				//console.log(local)
 				local.origin = parseInt(local.has_origin)
 				delete local.has_origin
-
 				if (bnodes[local.origin] !== undefined) return;
-				//console.log(local.origin)
+				console.log("bnodeszzzzzz" + local.origin)
 				bnodes[local.origin] = {
 					triples: bnode_triples(local, rule)
 				}
@@ -652,30 +670,45 @@
 
 	function bnode_triples(bnode, rule)
 	{
+		var triples = []
 		for (let i = 0; i < rule.original_head.length; i++)
 		{
 			const triple = rule.original_head[i];
-			triple.args = triple["k:has_args"]["rdf:value"]["@list"];
-			delete triple["k:has_args"];
-			bnode_is_in_triple = false
-			triple.args.forEach(arg => {if (arg["k:has_value"] == 0)
-				bnode_is_in_triple = true})
-			if (triple.args.includes(bnode.name))
+			var bnode_is_in_triple = false
+			triple.args.forEach(arg => {
+				if (arg.value == bnode.value)
+					bnode_is_in_triple = true
+			})
+			if (bnode_is_in_triple)
 			{
-				triples.push(bnode_arg(triple.args[0]))
-				triples.push(triple.pred)
-				triples.push(bnode_arg(triple.args[1]))
+				triples.push(
+						[bnode_arg(triple.args[0], bnode, rule),
+						triple.pred,
+						bnode_arg(triple.args[1], bnode, rule)])
 			}
 		}
+		console.log(triples)
+		return triples
 	}
 
-	function bnode_arg(original_head_arg, existential)
+	function bnode_arg(original_head_arg, existential, rule)
 	{
-		if (original_head_arg === existential.name)
-			return original_head_arg
-
-
+		console.log([original_head_arg, existential])
+		if (original_head_arg.value === existential.value)
+			return original_head_arg.value
+		else if (["k:URIRef", "k:Literal"].includes(original_head_arg.type))
+			return original_head_arg.value
+		else
+			return local_offset(original_head_arg, rule) - local_offset(existential, rule)
 	}
+
+	function local_offset(thing, rule)
+	{
+		for (var i = 0; i < rule.locals.length; i++)
+			if (rule.locals[i].value == thing.value)
+				return i
+	}
+
 
 	/*this is the function called from withing the trace files*/
 	function S(x)

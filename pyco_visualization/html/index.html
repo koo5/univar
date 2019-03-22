@@ -90,7 +90,7 @@
 	Vue.component('thing', {
 		props: ["thing"],
 		template: `
-			<span class="thing"> <!--{{ thing.type }}-->
+			<span class="thing" style="border-style: inset;  border-color:#FFFF00;box-shadow:0 0 10px #000000;"> <!--{{ thing.type }}-->
 			<span v-if="thing.type === ThingType.UNBOUND">(free)</span>
 			<span v-if="thing.type === ThingType.BOUND">
 				➜
@@ -115,9 +115,13 @@
 		props: ["thing"],
 		template: `
 				<div class="bnode">
+			[<ul>
 					<div v-for="triple in bnodes[thing.origin].triples">
+			<li>
 						<bnode_triple :triple="triple" :thing="thing"></bnode_triple>
+			</li>
 					</div>
+			</ul>]
 				</div>
 			`,
 		data: ()=> {
@@ -142,14 +146,14 @@
 		/*thing is the thing thats either subj or obj in the triple*/
 		/*arg either string or an offset from thing*/
 		template: `
-				<div class="bnode_triple_arg">
-					<div v-if="type(arg)===string">
+				<span class="bnode_triple_arg">
+					<span v-if="typeof(arg)==='string'">
 						{{ arg }}
-					</div>
-					<div v-if="type(arg)===number">
-						<thing :thing="thing.state.locals[arg + offset]"></thing>
-					</div>
-				</div>
+					</span>
+					<span v-if="typeof(arg)==='number'">
+						<thing :thing="thing.state.locals[arg]"></thing>
+					</span>
+				</span>
 			`,
 	});
 
@@ -655,6 +659,8 @@
 			delete local["k:has_value"]
 			local.type = local["@type"]
 			delete local["@type"]
+		})
+		rule.locals.forEach(local => {
 			if (local.type === "k:Existential") {
 				//console.log(local)
 				local.origin = parseInt(local.has_origin)
@@ -699,7 +705,7 @@
 		else if (["k:URIRef", "k:Literal"].includes(original_head_arg.type))
 			return original_head_arg.value
 		else
-			return local_offset(original_head_arg, rule) - local_offset(existential, rule)
+			return local_offset(original_head_arg, rule)
 	}
 
 	function local_offset(thing, rule)
@@ -707,6 +713,7 @@
 		for (var i = 0; i < rule.locals.length; i++)
 			if (rule.locals[i].value == thing.value)
 				return i
+		throw Error('?')
 	}
 
 

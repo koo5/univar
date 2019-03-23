@@ -63,31 +63,33 @@
 		computed: {
 			names_of_locals: function()
 			{
-				const r = [];
-
-				if (this.coro_state.rule_id === -1)
-					for (let local_idx in _.range(this.coro_state.locals.length))
-						r.push('???');
-				else
-				{
-					const rule = rule_for_state(this.coro_state);
-					//console.log(this)
-					for (let local_idx in _.range(this.coro_state.locals.length)) {
-						var vv = ''
-						const v = rule.locals[local_idx]
-						vv += v.value
-						if (v.type === "k:Existential")
-							vv += '(E)'
-						r.push(vv)
-					}
-				}
-				return r
+				return names_of_locals(this.coro_state)
 			}
 		}
 	});
 
+    function names_of_locals(coro)
+    {
+        const r = [];
 
-	Vue.component('thing', {
+        if (coro.rule_id === -1)
+            for (let local_idx in _.range(coro.locals.length))
+                r.push('???');
+        else
+        {
+            const rule = rule_for_state(coro);
+            for (let local_idx in _.range(coro.locals.length)) {
+                var vv = ''
+                const v = rule.locals[local_idx]
+                vv += v.value
+                r.push(vv)
+            }
+        }
+        return r
+    }
+
+
+    Vue.component('thing', {
 		props: ["thing"],
 		template: `
 			<span class="thing" style="border-style: inset;  border-color:#FFFF00;box-shadow:0 0 10px #000000;"> <!--{{ thing.type }}-->
@@ -97,14 +99,18 @@
 				<thing :thing="thing.bound_to"></thing>
 			</span>
 			<span v-if="thing.type === ThingType.BNODE">
+                <div v-if="is_list(
 				bnode{{ thing.origin }}:
 				<bnode :thing="thing"></bnode>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
-				{{ thing["k:has_value"] }}
+				{{ thing.value }}
 			</span>
 			</span>
 		`,
+		methods:{
+		    is_list()
+		},
 		data: ()=> {
 			return {
 				ThingType: window.ThingType

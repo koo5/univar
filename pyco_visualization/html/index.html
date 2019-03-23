@@ -45,7 +45,7 @@
 			{{ coro_state.status }} - {{ coro_state.comment }}
 			<ul>
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
-				<li>
+				<li  style="border-style: inset;">
 				{{ names_of_locals[local_idx] }}:
 				<thing :thing="coro_state.locals[local_idx]"></thing>
 				</li>
@@ -88,28 +88,36 @@
         return r
     }
 
+    function is_list(thing)
+	{
+		return (thing.type === ThingType.BNODE && thing.origin === 0 && names_of_locals(thing.state)[thing.idx] == '?builtins_aware_list')
+	}
 
     Vue.component('thing', {
 		props: ["thing"],
 		template: `
-			<span class="thing" style="border-style: inset;  border-color:#FFFF00;box-shadow:0 0 10px #000000;"> <!--{{ thing.type }}-->
+			<span class="thing" style="border-color:#FFFF00;box-shadow:0 0 10px #000000;"> !--{{ thing.type }}--
 			<span v-if="thing.type === ThingType.UNBOUND">(free)</span>
 			<span v-if="thing.type === ThingType.BOUND">
 				➜
 				<thing :thing="thing.bound_to"></thing>
 			</span>
 			<span v-if="thing.type === ThingType.BNODE">
-                <div v-if="is_list(
-				bnode{{ thing.origin }}:
-				<bnode :thing="thing"></bnode>
+                <div v-if="is_list">
+					<list :thing="thing"></list>
+				</div>
+				<div v-else>
+					bnode{{ thing.origin }}:
+					<bnode :thing="thing"></bnode>
+				</div>
 			</span>
 			<span v-if="thing.type === ThingType.CONST">
 				{{ thing.value }}
 			</span>
 			</span>
 		`,
-		methods:{
-		    is_list()
+		computed:{
+		    is_list: function(){return is_list(this.thing)}
 		},
 		data: ()=> {
 			return {
@@ -117,18 +125,61 @@
 			}
 		}
 	});
+	Vue.component('list', {
+		props: ["thing"],
+		template: `
+			<div class="list">
+			(<ul>
+			<div v-for="thing in items">
+			<li>
+			<span v-if='typeof thing == "string"'>
+				{{ thing }}
+			</span>
+			<span v-else>
+				<thing :thing="thing"></thing>
+			</span>
+			</li>
+			</div>
+			</ul>)
+			</div>
+			`,
+		computed: {
+			items: function()
+			{
+				var bn = this.thing
+				var r = []
+				while (true)
+				{
+					if(r.length >= 10)
+					{
+						r.push('....')
+						return r
+					}
+					r.push(bn.state.locals[bn.idx+1])
+					bn = get_value(bn.state.locals[bn.idx+2])
+					if (bn.type === ThingType.CONST && bn.value === "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>")
+						return r
+					if (bn.type !== ThingType.BNODE || bn.origin !== 0)
+					{
+						r.push('?!?!?')
+						return r
+					}
+				}
+			}
+		}
+	});
 	Vue.component('bnode', {
 		props: ["thing"],
 		template: `
-				<div class="bnode">
+			<div class="bnode">
 			[<ul>
-					<div v-for="triple in bnodes[thing.origin].triples">
+			<div v-for="triple in bnodes[thing.origin].triples">
 			<li>
-						<bnode_triple :triple="triple" :thing="thing"></bnode_triple>
+			<bnode_triple :triple="triple" :thing="thing"></bnode_triple>
 			</li>
-					</div>
+			</div>
 			</ul>]
-				</div>
+			</div>
 			`,
 		data: ()=> {
 			return {
@@ -443,7 +494,7 @@
 		else if (action == OP_BIND) {
 			const what = parseInt(op[1], 16)
 			const where = parseInt(op[2], 16)
-			console.log("bind " + what + " to " + where)
+			//console.log("bind " + what + " to " + where)
 			var what_thing
 			var where_thing
 			var thing
@@ -453,7 +504,7 @@
 				//console.log(typeof(i))
 				const state = view.index[i]
 				assert (state != undefined)
-				console.log("trying " + i + " with locals_address " + state.locals_address + " and size " + locals_size_for_state(state))
+				//console.log("trying " + i + " with locals_address " + state.locals_address + " and size " + locals_size_for_state(state))
 				if (!what_thing) {
 					thing = local_for_state(state, what)
 					if (thing !== undefined) {
@@ -574,6 +625,7 @@
 					local.type = ThingType.UNBOUND
 				else throw Error("not expected here:"+template)
 				local.state = state
+				local.idx = i
 				state.locals[i] = local
 			});
 		}
@@ -640,6 +692,13 @@
 		})
 	}
 
+	function fix_thing(local) {
+		local.value = local["k:has_value"]
+		delete local["k:has_value"]
+		local.type = local["@type"]
+		delete local["@type"]
+	}
+
 	function process_rule(rule)
 	{
 
@@ -661,10 +720,12 @@
 		})
 		console.log(rule)
 		rule.locals.forEach(local => {
-			local.value = local["k:has_value"]
-			delete local["k:has_value"]
-			local.type = local["@type"]
-			delete local["@type"]
+			fix_thing(local)
+		})
+		rule.consts.forEach(local => {
+			fix_thing(local)
+			local.const_type = local.type
+			local.type = ThingType.CONST
 		})
 		rule.locals.forEach(local => {
 			if (local.type === "k:Existential") {
@@ -672,7 +733,7 @@
 				local.origin = parseInt(local.has_origin)
 				delete local.has_origin
 				if (bnodes[local.origin] !== undefined) return;
-				console.log("bnodeszzzzzz" + local.origin)
+				//console.log("bnodeszzzzzz" + local.origin)
 				bnodes[local.origin] = {
 					triples: bnode_triples(local, rule)
 				}
@@ -699,13 +760,13 @@
 						bnode_arg(triple.args[1], bnode, rule)])
 			}
 		}
-		console.log(triples)
+		//console.log(triples)
 		return triples
 	}
 
 	function bnode_arg(original_head_arg, existential, rule)
 	{
-		console.log([original_head_arg, existential])
+		//console.log([original_head_arg, existential])
 		if (original_head_arg.value === existential.value)
 			return original_head_arg.value
 		else if (["k:URIRef", "k:Literal"].includes(original_head_arg.type))
@@ -770,9 +831,3 @@
 </body>
 </html>
 
-
-
-under 10 items:
-ul li li li /ul
->= 10 items:
-span span span

@@ -495,15 +495,16 @@ class Rule(Kbdbgable):
 				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 				emit_term(singleton.head, head_uri)
 				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head_idx ' + str(head_idx))
-			try:
-				emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
-			except KeyError:
-				emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), singleton.kbdbg_name + "Body")
+				emitted_body = emit_list_emit_terms(singleton.body))
+
+				set is hashable
+				or go all the way and separate them out?
+
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
 			try:
 				emitted_original_head = Rule.emitted_formulas[singleton.original_head]
 			except KeyError:
-				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), singleton.kbdbg_name + "OriginalHead")
+				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples))
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
@@ -792,7 +793,8 @@ def emit_list(l, uri=None):
 		if isinstance(i, rdflib.BNode):
 			kbdbg(i.n3() + ' kbdbg:comment "thats a bnode from the kb input graph, a subj or an obj of an implication. fixme."')
 		if idx != len(l) - 1:
-			uri2 = uri + "X"
+			#uri2 = uri + "X"
+			uri2 = '_:'+bn().strip(':')
 		else:
 			uri2 = 'rdf:nil'
 		kbdbg(uri + " rdf:rest " + uri2)

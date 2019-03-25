@@ -18,12 +18,13 @@ router.post('/', function(req, res, next) {
       writer.addQuad(quad)
     }
     else {
-      console.log("end..")
+      console.log("n3 parsed.")
       writer.end((error, result) => {
         if (error) {
           console.log("err?:" + error)
           res.send(error)
         } else {
+          console.log("nquads generated")
           //console.log("result?"+result)
           jsonld.fromRDF(result, {}, (err, doc) => {
             if (err) {
@@ -31,11 +32,11 @@ router.post('/', function(req, res, next) {
               console.log("err" + err)
               res.status(500).send({ error: err });
             } else {
+              console.log("nquads parsed")
               for (o in doc){
                 console.log("aaa:"+o)
-                console.log(doc[o])
+                //console.log(doc[o])
               }
-
               var frame = req.body['frame']
               //console.log("frame:"+frame)
               jsonld.frame(doc, frame, (err, framed) => {
@@ -43,6 +44,7 @@ router.post('/', function(req, res, next) {
                   console.log("errr " + err)
                   res.status(500).send({ error: err });
                 } else {
+                  console.log("jsonld framed.")
                   res.send(framed)
                 }
               });

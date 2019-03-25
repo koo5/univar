@@ -24,7 +24,7 @@ from pyin import kbdbg, emit_list
 
 from collections import defaultdict, OrderedDict
 import memoized
-
+import time
 
 import rdflib
 from rdflib.plugins.parsers import notation3
@@ -58,19 +58,22 @@ class Emitter(object):
 	epilogue = Lines()
 
 	def make_locals(s, rule):
-		#print('make_locals'+str(rule.debug_id))
+
 		locals_template = []
 		consts = []
 		locals_map = {}
 		consts_map = {}
+
 		if rule.head:
 			head = (rule.head,)
 		else:
 			head = tuple()
+
 		if len(rule.existentials):
 			relevant_head_triples = rule.original_head_triples
 		else:
 			relevant_head_triples = head
+
 		for triple in relevant_head_triples + rule.body:
 			for a in triple.args:
 				if pyin.is_var(a):
@@ -80,15 +83,16 @@ class Emitter(object):
 						v.is_bnode = a in rule.existentials
 						locals_template.append(v)
 
-		for triple in head + rule.body:
-			if not pyin.is_var(a):
-				if a not in consts_map:
-					consts_map[a] = len(consts)
-					consts.append(pyin.Atom(a))
+		for triple in relevant_head_triples + rule.body:
+			for a in triple.args:
+				if not pyin.is_var(a):
+					if a not in consts_map:
+						consts_map[a] = len(consts)
+						consts.append(pyin.Atom(a))
 
-		#from IPython import embed; embed();exit()
 		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(s.emit_local_infos(rule, locals_map, locals_template)))
 		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(s.emit_local_infos(rule, consts_map, consts)))
+
 		return locals_map, consts_map, locals_template,	consts
 
 	def emit_local_infos(s, rule, locals_map, locals_template):
@@ -893,6 +897,7 @@ def local_expr(name, rule, not_getval = False):
 		return ('get_value' if not not_getval else '') +  '(&state.locals[' + str(rule.locals_map[name]) + '])'
 	elif name in rule.consts_map:
 		return '&'+consts_of_rule(rule.original_head) + '[' + str(rule.consts_map[name])+']'
+	else: assert False, (name, rule.locals_map, rule.consts_map, str(rule))
 
 def cppize_identifier(i: str) -> str:
 	return common.fix_up_identification((i))
@@ -1663,4 +1668,6 @@ if __name__ == "__main__":
 
 
 # https://stackoverflow.com/a/32119760/376258
+
+#from IPython import embed; embed();exit()
 

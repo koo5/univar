@@ -18,8 +18,9 @@ frame = "http://localhost:2999/frame.jsonld"
 def req(ddd):
 	r = requests.post("http://localhost:3000/convert", data={'frame':frame,'n3': ddd})
 	if r.status_code == 200:
+		pass
 		#print(r.content)
-		print(json.dumps(json.loads(r.content.decode('utf-8')), indent=2))
+		#print(json.dumps(json.loads(r.content.decode('utf-8')), indent=2))
 
 	if r.status_code == 500:
 		#resp = json.dumps(json.loads(r.content.decode('utf-8')), indent=2)

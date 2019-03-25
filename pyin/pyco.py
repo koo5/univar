@@ -63,7 +63,15 @@ class Emitter(object):
 		consts = []
 		locals_map = {}
 		consts_map = {}
-		for triple in rule.original_head_triples + rule.body:
+		if rule.head:
+			head = (rule.head,)
+		else:
+			head = tuple()
+		if len(rule.existentials):
+			relevant_head_triples = rule.original_head_triples
+		else:
+			relevant_head_triples = head
+		for triple in relevant_head_triples + rule.body:
 			for a in triple.args:
 				if pyin.is_var(a):
 					if a not in locals_map:
@@ -71,10 +79,13 @@ class Emitter(object):
 						v = pyin.Var(a)
 						v.is_bnode = a in rule.existentials
 						locals_template.append(v)
-				else:
-					if a not in consts_map:
-						consts_map[a] = len(consts)
-						consts.append(pyin.Atom(a))
+
+		for triple in head + rule.body:
+			if not pyin.is_var(a):
+				if a not in consts_map:
+					consts_map[a] = len(consts)
+					consts.append(pyin.Atom(a))
+
 		#from IPython import embed; embed();exit()
 		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(s.emit_local_infos(rule, locals_map, locals_template)))
 		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(s.emit_local_infos(rule, consts_map, consts)))

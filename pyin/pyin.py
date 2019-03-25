@@ -13,8 +13,8 @@ from collections import defaultdict, OrderedDict
 from common import pyin_prefixes as prefixes
 from common import shorten, un_move_me_ize_pred, bn
 import common
-
-
+import memoized
+import itertools
 
 nolog = False
 kbdbg_prefix = URIRef('http://kbd.bg/#')
@@ -121,6 +121,10 @@ class Triple(object):
 		return shortener(str(s.pred)) + "(" + printify(s.args, ", ", shortener) + ")"
 
 class Graph(list):
+	def str(s, shortener = lambda x:x):
+		return "{" + printify(s, ". ", shortener) + "}"
+
+class GraphTuple(tuple):
 	def str(s, shortener = lambda x:x):
 		return "{" + printify(s, ". ", shortener) + "}"
 
@@ -434,11 +438,15 @@ def is_var(x):
 	return type(x) is rdflib.Variable
 
 
+@memoized.memoized
+def emit_list_of_terms(terms):
+	return emit_list(emit_terms(terms))
+
 class Rule(Kbdbgable):
 
 	last_frame_id = 0
 	emitted_formulas = {}
-	def __init__(singleton, original_head, head_idx, body=Graph()):
+	def __init__(singleton, original_head, head_idx, body=GraphTuple()):
 		Kbdbgable.__init__(singleton)
 		assert type(head_idx) == int or head_idx == None
 		singleton.head_idx = head_idx
@@ -457,7 +465,7 @@ class Rule(Kbdbgable):
 		"""
 		singleton.original_head = id(original_head)
 		singleton.original_head_ref = original_head #prevent gc
-		singleton.original_head_triples = original_head[:]
+		singleton.original_head_triples = original_head
 		singleton.locals_template = singleton.make_locals(singleton.original_head_triples, body, singleton.kbdbg_name)
 		singleton.ep_heads = []
 		nolog or log(singleton.kbdbg_name + ":")
@@ -478,7 +486,7 @@ class Rule(Kbdbgable):
 		for i in singleton.original_head_triples:
 			for arg in i.args:
 				head_vars.add(arg)
-		for i in singleton.original_head_triples + singleton.body:
+		for i in itertools.chain(singleton.original_head_triples, singleton.body):
 			for arg in i.args:
 				if is_var(arg):
 					all_args[arg] += 1
@@ -495,15 +503,9 @@ class Rule(Kbdbgable):
 				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head ' + head_uri)
 				emit_term(singleton.head, head_uri)
 				kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_head_idx ' + str(head_idx))
-			try:
-				emitted_body = Rule.emitted_formulas[id(singleton.original_head)]
-			except KeyError:
-				emitted_body = Rule.emitted_formulas[id(singleton.original_head)] = emit_list(emit_terms(singleton.body), singleton.kbdbg_name + "Body")
+			emitted_body = emit_list_of_terms(singleton.body)
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_body ' + emitted_body)
-			try:
-				emitted_original_head = Rule.emitted_formulas[singleton.original_head]
-			except KeyError:
-				emitted_original_head = Rule.emitted_formulas[singleton.original_head] = emit_list(emit_terms(singleton.original_head_triples), singleton.kbdbg_name + "OriginalHead")
+			emitted_original_head = emit_list_of_terms(singleton.original_head_triples)
 			kbdbg(":"+singleton.kbdbg_name + ' kbdbg:has_original_head ' + emitted_original_head)
 
 	def __str__(singleton, shortener = lambda x:x):
@@ -516,7 +518,7 @@ class Rule(Kbdbgable):
 	def make_locals(singleton, head, body, kbdbg_rule):
 		locals = Locals({}, singleton)
 		locals.kbdbg_frame = "locals_template_for_" + kbdbg_rule
-		for triple in (head if head else []) + body:
+		for triple in itertools.chain((head if head else GraphTuple()), body):
 			for a in triple.args:
 				if is_var(a):
 					x = Var(a, locals)
@@ -792,7 +794,8 @@ def emit_list(l, uri=None):
 		if isinstance(i, rdflib.BNode):
 			kbdbg(i.n3() + ' kbdbg:comment "thats a bnode from the kb input graph, a subj or an obj of an implication. fixme."')
 		if idx != len(l) - 1:
-			uri2 = uri + "X"
+			#uri2 = uri + "X"
+			uri2 = '_:'+bn().strip(':')
 		else:
 			uri2 = 'rdf:nil'
 		kbdbg(uri + " rdf:rest " + uri2)
@@ -940,7 +943,7 @@ def load(kb, goal, identification, base):
 	rules = []
 	head_triples_triples_id = 0
 	kb_graph_triples = [fixup(x) for x in kb_graph.triples((None, None, None))]
-	facts = Graph(Triple(un_move_me_ize_pred(fixup3(x[1])),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
+	facts = GraphTuple(Triple(un_move_me_ize_pred(fixup3(x[1])),[fixup3(x[0]),fixup3(x[2])]) for x in kb_graph_triples)
 	facts.id=head_triples_triples_id
 	head_triples_triples_id += 1
 	for kb_graph_triple_idx,(s,p,o) in enumerate(kb_graph_triples):
@@ -960,8 +963,6 @@ def load(kb, goal, identification, base):
 					body.append(triple)
 				else:
 					head_triples_triples.append(triple)
-			head_triples_triples.id=head_triples_triples_id
-			head_triples_triples_id += 1
 			for body_triple in [fixup(x) for x in kb_conjunctive.triples((None, None, None, s))]:
 				body.append(Triple((un_move_me_ize_pred(fixup3(body_triple[1]))), [fixup3(body_triple[0]), fixup3(body_triple[2])]))
 			#body.reverse()
@@ -974,16 +975,20 @@ def load(kb, goal, identification, base):
 			for thing in to_expand:
 				body.insert(0,Triple(rdflib.RDF.first, [thing, rdflib.Variable(str(thing)[:-1]+'f')]))
 				body.insert(0,Triple(rdflib.RDF.rest , [thing, rdflib.Variable(str(thing)[:-1]+'r')]))
-			if len(head_triples_triples) > 1:
-				with open(_rules_file_name, 'a') as ru:
-					ru.write("expanded rules for " + head_triples_triples.str(shorten) + ":\n")
+			body = GraphTuple(body)
+			head_triples_triples = GraphTuple(head_triples_triples)
+			head_triples_triples.id=head_triples_triples_id
+			head_triples_triples_id += 1
+#			if len(head_triples_triples) > 1:
+#				with open(_rules_file_name, 'a') as ru:
+#					ru.write("expanded rules for " + head_triples_triples.str(shorten) + ":\n")
 			for head_triple_idx in range(len(head_triples_triples)):
 				rules.append(Rule(head_triples_triples, head_triple_idx, body))
 			if len(head_triples_triples) > 1:
 				with open(_rules_file_name, 'a') as ru:
 					ru.write("\n\n")
 		else:
-			rules.append(Rule(facts, kb_graph_triple_idx, Graph()))
+			rules.append(Rule(facts, kb_graph_triple_idx, GraphTuple()))
 
 	goal_rdflib_graph = rdflib.ConjunctiveGraph(store=OrderedStore(), identifier=base)
 	goal_rdflib_graph.parse(goal_stream, format='n3', publicID=base)
@@ -1004,7 +1009,8 @@ def load(kb, goal, identification, base):
 	for s,p,o in [fixup(x) for x in goal_rdflib_graph.triples((None, None, None, None))]:
 		goal.append(Triple(un_move_me_ize_pred(fixup3(p)), [fixup3(s), fixup3(o)]))
 	#goal.reverse()
-	query_rule = Rule([], None, goal)
+	goal = GraphTuple(goal)
+	query_rule = Rule(GraphTuple(), None, goal)
 	return rules, query_rule, goal
 
 

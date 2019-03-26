@@ -33,10 +33,10 @@ router.post('/', function(req, res, next) {
               res.status(500).send({ error: err });
             } else {
               console.log("nquads parsed")
-              for (o in doc){
+              /*for (o in doc){
                 console.log("aaa:"+o)
                 //console.log(doc[o])
-              }
+              }*/
               var frame = req.body['frame']
               //console.log("frame:"+frame)
               jsonld.frame(doc, frame, (err, framed) => {

@@ -24,13 +24,14 @@ from pyin import kbdbg, emit_list
 
 from collections import defaultdict, OrderedDict
 import memoized
-import time
+from cachetools import cached
+from cachetools.keys import hashkey
 
 import rdflib
 from rdflib.plugins.parsers import notation3
 notation3.RDFSink.newList = common.newList
 
-
+import time
 import subprocess
 from ordered_rdflib_store import OrderedStore
 
@@ -61,8 +62,8 @@ class Emitter(object):
 
 		locals_template = []
 		consts = []
-		locals_map = {}
-		consts_map = {}
+		locals_map = common.HashableDict()
+		consts_map = common.HashableDict()
 
 		if rule.head:
 			head = (rule.head,)
@@ -82,19 +83,25 @@ class Emitter(object):
 						v = pyin.Var(a)
 						v.is_bnode = a in rule.existentials
 						locals_template.append(v)
-
-		for triple in relevant_head_triples + rule.body:
+		locals_template = tuple(locals_template)
+		for triple in rule.original_head_triples + rule.body:
 			for a in triple.args:
 				if not pyin.is_var(a):
 					if a not in consts_map:
 						consts_map[a] = len(consts)
 						consts.append(pyin.Atom(a))
+		consts = tuple(consts)
 
-		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + emit_list(s.emit_local_infos(rule, locals_map, locals_template)))
-		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + emit_list(s.emit_local_infos(rule, consts_map, consts)))
+		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_locals ' + s.emit_list_of_local_infos(rule, locals_map, locals_template))
+		kbdbg(":"+rule.kbdbg_name + ' kbdbg:has_consts ' + s.emit_list_of_local_infos(rule, consts_map, consts))
 
 		return locals_map, consts_map, locals_template,	consts
 
+	@cached(cache={}, key=lambda s, rule, locals_map, locals_template: (locals_map, locals_template))
+	def emit_list_of_local_infos(s, rule, locals_map, locals_template):
+		return emit_list(s.emit_local_infos(rule, locals_map, locals_template))
+
+	@cached(cache={}, key=lambda s, rule, locals_map, locals_template: (locals_map, locals_template))
 	def emit_local_infos(s, rule, locals_map, locals_template):
 		r = []
 		#from IPython import embed; embed();exit()
@@ -126,7 +133,7 @@ class Emitter(object):
 		#print("rrrr"+str(result))
 		return (cpp_name, origin)
 
-	@memoized.memoized
+	@cached(cache={}, key=lambda s, orig_rule_id, name: (orig_rule_id, name))
 	def get_bnode_origin(s, orig_rule_id, name):
 		global bnode_origin_counter
 		assert(type(name) == str)
@@ -246,6 +253,7 @@ class Emitter(object):
 		return Line(s.case_str() + ":;")
 
 	def generate_cpp(s, goal, goal_graph, trace_output_path):
+		s.n3_emitted_stuff = []
 		if second_chance_:
 			s.prologue.append(Line('#define SECOND_CHANCE'))
 		if trace:

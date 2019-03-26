@@ -65,7 +65,7 @@ void proof_trace_set_status(state_id id, coro_status status, bool with_introduct
         if (comment)
         {
             //op["comment"] = *comment;
-            op.push_back(*comment);
+            //op.push_back(*comment);
         }
     }
     proof_trace_add_op(op);
@@ -147,7 +147,7 @@ void close_trace_file()
 }
 void maybe_reopen_trace_file()
 {
-    if (written_bytes / (1024*1024*5))
+    if (written_bytes / (1024*1024*100))
     {
         close_trace_file();
         current_trace_file_id++;

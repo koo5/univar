@@ -30,7 +30,7 @@ kb
 fin.
 
 query
-:dummy tau_builtins:toggle_tracing :dummy.
+#:dummy tau_builtins:toggle_tracing :dummy.
 :pre_ldl_dcg :has_value ?v.
 ?v string_builtins:strXlst ?l.
 :dummy :statement_lines (?l rdf:nil ?grammar_concrete).
@@ -52,7 +52,7 @@ query
 :dummy tau_builtins:output "ldl:parse_nonterminal:".
 ?a3 :eq (?initial_ldl_text_list ?builtins_statements "statements").
 ?a4 :eq (rdf:nil ?_ast :minus_one).
-:dummy tau_builtins:toggle_tracing :dummy.
+#:dummy tau_builtins:toggle_tracing :dummy.
 ?a3 ldl:parse_nonterminal ?a4.
 
     :dummy tau_builtins:output "ast:".

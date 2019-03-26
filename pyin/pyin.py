@@ -251,6 +251,10 @@ class Atom(AtomVar):
 		if not nolog:
 			r.kbdbg_name = s.kbdbg_name
 		return r
+	def __eq__(a,b):
+		return a.value == b.value
+	def __hash__(a):
+		return hash(a.value)
 
 
 class Var(AtomVar):
@@ -318,6 +322,10 @@ class Var(AtomVar):
 		if not nolog:
 			kbdbg(uri + " kbdbg:was_unbound true")
 			#step()
+	def __eq__(a,b):
+		return a.debug_name == b.debug_name and a.is_bnode == b.is_bnode
+	def __hash__(a):
+		return hash((a.debug_name, a.is_bnode))
 
 
 def success(msg, orig, uri = None):

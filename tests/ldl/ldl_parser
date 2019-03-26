@@ -13,14 +13,14 @@
 
 {(?x0 ?grammar ?nont) ldl:parse_nonterminal (?rest ?ast ?depth)} <= {
 	?_depth_predecessor :has_succ ?depth.
-	:dummy tau_builtins:toggle_tracing_active :dummy.
+	#:dummy tau_builtins:toggle_tracing_active :dummy.
 
 	:dummy ldl:shorten_location_printout (?x0 ?x0_shortened).
 	:dummy tau_builtins:output ("ldl:parse_nonterminal " ?nont)^string_builtins:strXlst.
 	:dummy tau_builtins:output ("""invoking rules on """" ?x0_shortened^string_builtins:strXlst """"...""")^string_builtins:strXlst.
 
 	?rule :memberof ?grammar.
-	:dummy tau_builtins:toggle_tracing_active :dummy.
+	#:dummy tau_builtins:toggle_tracing_active :dummy.
 	(?x0 ?grammar ?rule ?nont) ldl:try_rule (?rest ?ast ?depth).
 }.
 

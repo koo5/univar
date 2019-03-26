@@ -158,3 +158,45 @@ def bn():
 	bnode_counter += 1
 	return  ':bn' + str(bnode_counter)
 
+
+
+
+class HashableDict(dict):
+	def __key(self):
+		return tuple((k,self[k]) for k in sorted(self))
+	def __hash__(self):
+		return hash(self.__key())
+
+class BadHashableDict(dict):
+	def __key(self):
+		return tuple((k,self[k]) for k in sorted(self))
+	def __hash__(self):
+		return 5
+
+def test_hashable_dict():
+	print('test_hashable_dict()')
+	cls = HashableDict
+	cls = BadHashableDict
+	a = cls()
+	a[0] = 0
+	a[1] = 1
+	b = cls()
+	b[0] = 0
+	b[1] = 1
+	c = cls()
+	c[0] = 0
+	c[1] = 1
+	
+	d = {}
+	
+	d[a] = "a"
+	
+	print(d)
+	print(d[a])
+	print(d[b])
+	
+	a[0] = 666
+	
+	print(d[b])
+
+#test_hashable_dict()

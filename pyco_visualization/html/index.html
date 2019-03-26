@@ -15,12 +15,11 @@
 		<div>navigation status: {{ navigation_status }}</div>
 		<div>yields: {{ view.yield_count }} </div>
 		<div>step: {{ view.step_id }}</div>
-		<coro_state :coro_state="view.root"></coro_state>
+		<coro_state :state="view.root"></coro_state>
 		<div> rules:
 			<dl>
-			<div v-for="(rule, id) in rules" :key="id">
-				<dt> {{ id }}	</dt>
-				<dd> {{ rule }}	</dd>
+			<div v-for="(rule, idx) in rules">
+				<dd v-if="rule"> {{ idx }} - <rule_description :rule="rule"></rule_description> </dd>
 			</div>
 			</dl>
 		</div>
@@ -38,23 +37,38 @@
 
 	var bnodes = {}
 
+	Vue.component('rule_description', {
+		props: ["rule"],
+		template: `
+			<span class="rule_description">
+			{{ description }}
+			</span>
+		`,
+		computed: {
+			description: function()
+			{
+				return rule_description(this.rule)
+			}
+		}
+	});
+
 	Vue.component('coro_state', {
-		props: ["coro_state"],
+		props: ["state"],
 		template: `
 			<div class="coro_state">
-			{{ coro_state.status }} - {{ coro_state.comment }} <div v-if="rule_id !== undefined">- {{ rule_description }}</div>
+			{{ state.status }} - {{ state.comment }} <span v-if="state.rule_id !== undefined">- {{ rule_description }}</span>
 			<ul>
-			<div v-for="local_idx in _.range(coro_state.locals.length)">
-				<li  style="border-style: inset;">
+			<div v-for="local_idx in _.range(state.locals.length)">
+				<li class="local">
 				{{ names_of_locals[local_idx] }}:
-				<thing :thing="coro_state.locals[local_idx]"></thing>
+				<thing :thing="state.locals[local_idx]"></thing>
 				</li>
 			</div>
 			</ul>
 			<ul>
-			<div v-for="child in coro_state.children" :key="child.id">
+			<div v-for="child in state.children" :key="child.id">
 				<li>
-				<coro_state :coro_state="child"></coro_state>
+				<coro_state :state="child"></coro_state>
 				</li>
 			</div>
 			</ul>
@@ -63,12 +77,11 @@
 		computed: {
 			names_of_locals: function()
 			{
-				return names_of_locals(this.coro_state)
+				return names_of_locals(this.state)
 			},
 			rule_description: function()
 			{
-				console.log(window)
-				return rule_description($root.rules.rules[rule_id])
+				return rule_description(this.$root.rules[this.state.rule_id])
 			}
 		}
 	});
@@ -101,7 +114,7 @@
     Vue.component('thing', {
 		props: ["thing"],
 		template: `
-			<span class="thing" style="border-color:#FFFF00;box-shadow:0 0 10px #000000;"> !--{{ thing.type }}--
+			<span class="thing"> <!--{{ thing.type }}-->
 			<span v-if="thing.type === ThingType.UNBOUND">(free)</span>
 			<span v-if="thing.type === ThingType.BOUND">
 				➜
@@ -248,6 +261,13 @@
 			file_status: "?",
 			navigation_status: "?",
 			rules:[]
+		},
+		computed:
+		{
+			rule_description: function(id, rule)
+			{
+				return rule_description(rule)
+			}
 		},
 		mounted: function ()
 		{
@@ -718,13 +738,14 @@
 		rule.locals = rule["k:has_locals"]["rdf:value"]["@list"]
 		delete        rule["k:has_locals"]
 		if (rule.head)
-			fix_triple(rule.head)
-		rule.original_head = rule["k:has_original_head"]["rdf:value"]["@list"]
-		delete rule["k:has_original_head"]
-		rule.original_head.forEach(triple => {
-			fix_triple(triple)
+			fix_triple(rule.head);
+		["original_head", "body"].map((key) => {
+			rule[key] = rule["k:has_"+key]["rdf:value"]["@list"]
+			delete rule["k:has_"+key]
+			rule[key].forEach(triple => {
+				fix_triple(triple)
+			})
 		})
-		console.log(rule)
 		rule.locals.forEach(local => {
 			fix_thing(local)
 		})
@@ -809,24 +830,33 @@
 
 	function triple_description(t)
 	{
-		r = ""
-		console.log(t)
-		r += "."
-		return r
+		return t.args[0].value + " " + t.pred + " " + t.args[1].value + "."
 	}
 
 
 	function rule_description(rule)
 	{
-		r = "{"
-		rule.head.forEach(t => {
-			r += triple_description(t)
-		})
+		var r = "{"
+		console.log("rrrr"+rule)
+		console.log(rule)
+
+		if (rule.head) {
+			for (let i = 0; i < rule.original_head.length; i++) {
+				if (i === rule.head_idx)
+					r += "<<"
+				r += triple_description(rule.original_head[i])
+				if (i === rule.head_idx)
+					r += ">>"
+			}
+		}
 		r += "} <= {"
-		rule.body.forEach(t => {
-			r += triple_description(t)
-		})
+		if(rule.body) {
+			rule.body.forEach(t => {
+				r += triple_description(t)
+			})
+		}
 		r += "}"
+		return r// + rule.toString()
 	}
 
 

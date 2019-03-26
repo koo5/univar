@@ -42,7 +42,7 @@
 		props: ["coro_state"],
 		template: `
 			<div class="coro_state">
-			{{ coro_state.status }} - {{ coro_state.comment }}
+			{{ coro_state.status }} - {{ coro_state.comment }} <div v-if="rule_id !== undefined">- {{ rule_description }}</div>
 			<ul>
 			<div v-for="local_idx in _.range(coro_state.locals.length)">
 				<li  style="border-style: inset;">
@@ -64,6 +64,11 @@
 			names_of_locals: function()
 			{
 				return names_of_locals(this.coro_state)
+			},
+			rule_description: function()
+			{
+				console.log(window)
+				return rule_description($root.rules.rules[rule_id])
 			}
 		}
 	});
@@ -223,12 +228,13 @@
 		data: {
 			view:{
 				root:
-						{
-							status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
-							children:[],
-							locals:[],
-							comment:"?"
-						},
+				{
+					status:"hello! loading and parsing trace file...hopefully... ... you have a trace file, right?...",
+					children:[],
+					locals:[],
+					comment:"?",
+					rule_id:undefined
+				},
 				step_id: -1,
 				yield_count: 0,
 			},
@@ -275,7 +281,7 @@
 		}
 	});
 
-	const snapshot_interval = 10;
+	const snapshot_interval = 100;
 	var thing_size = undefined;
 
 	function maybe_take_snapshot()
@@ -800,6 +806,29 @@
 			throw message; // Fallback
 		}
 	}
+
+	function triple_description(t)
+	{
+		r = ""
+		console.log(t)
+		r += "."
+		return r
+	}
+
+
+	function rule_description(rule)
+	{
+		r = "{"
+		rule.head.forEach(t => {
+			r += triple_description(t)
+		})
+		r += "} <= {"
+		rule.body.forEach(t => {
+			r += triple_description(t)
+		})
+		r += "}"
+	}
+
 
 	/*
 	todo:

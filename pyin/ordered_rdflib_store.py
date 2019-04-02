@@ -79,19 +79,25 @@ class OrderedStore(Store):
 	# stats = defaultdict(lambda : 0)
 
 	def triples(self, triplein, context=None):
+		"""
+		we try to optimize for the common pattern on (given subject, given predicate, return all objects, (in a given graph))
+		"""
 		# print("want ", triplein, " in ", context)
 		s1, p1, o1 = triplein
 
 		# self.__class__.stats["".join([('0' if (x == None) else '1') for x in (s1,p1,o1,context)])] += 1
 		# print (self.__class__.stats)
+
 		quads = self.quads[:]  # self.quads may be modified during the following iteration
+
 		if (s1 != None) and (p1 != None) and (o1 == None) and (context != None):
 			def filter_func(x):
 				(s2, p2, o2), c2 = x
 				return (s1 == s2) and (p1 == p2) and (context == c2)
-
 			return filter(filter_func, quads)
+
 		# return filter(lambda x: (s1 == x[0][0]) and (p1 == x[0][1]) and (context == x[1]), quads)
+
 		else:
 			return self.general_triple_helper(s1, p1, o1, context, quads)
 

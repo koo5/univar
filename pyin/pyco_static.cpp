@@ -248,6 +248,8 @@ void release_things(size_t count);
     size_t current_trace_file_id = 0;
     size_t written_bytes;
 
+    void emit_rule_consts_location(RuleId rule, Thing *consts);
+    void emit_thing_size();
     void trace_write_raw(string s);
     void open_trace_file();
     void trace_flush();
@@ -622,7 +624,7 @@ string serialize_literal_to_n3(string c)
                 else
                     id = todo[v].id;
             }
-            result << "?x" << id;
+            result << "_:" << id;
         }
         else
             ASSERT(false);
@@ -1113,7 +1115,9 @@ int main (int argc, char *argv[])
 	#endif
     query_start_time = std::chrono::steady_clock::now();
     top_level_tracing_coro = top_level_coro = grab_states(1 IF_TRACE_PROOF(NULL));
-    top_level_coro->dont_trace = false;
+    #ifdef TRACE_PROOF
+        top_level_coro->dont_trace = false;
+    #endif
     top_level_coro->entry = 0;
     while(query(*top_level_coro)!=0)
     {

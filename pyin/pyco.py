@@ -195,13 +195,16 @@ class Emitter(object):
 		r = Lines([Line("""
 		void proof_trace_emit_rules_consts()
 		{
-			emit_thing_size();
+			#ifdef TRACE_PROOF
+				emit_thing_size();
+			#endif
 		""")])
 		for rule in s.all_rules:
 			if len(rule.consts) == 0: continue
 			i = rule.original_head
-			r.append(
-				Statement("emit_rule_consts_location("+str(rule.debug_id)+", &"+consts_of_rule(i)+"[0])"))
+			if trace_proof_:
+				r.append(
+					Statement("emit_rule_consts_location("+str(rule.debug_id)+", &"+consts_of_rule(i)+"[0])"))
 		r.append(Line("}"))
 		return r
 
@@ -696,14 +699,14 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			for k,v in r.locals_map.items():
 				b.append(Statement('state.locals['+str(v)+'] = ' +
 					s.thing_literal(r, r.locals_template[v])))
-		r.trace_proof = trace_proof_ and not r.head or (r.head.pred not in preds_excluded_from_proof_tracing)
-		if not r.trace_proof:
+		r.trace_proof = trace_proof_ and (not r.head or (r.head.pred not in preds_excluded_from_proof_tracing))
+		if trace_proof_ and not r.trace_proof:
 			b.append(Statement('state.dont_trace = true'))
 		if r.max_states_len:
 			b.append(Statement("state.grab_substates(" + str(r.max_states_len) + ')'))
 		if trace_proof_:
 			b.append(Statement('state.num_substates = '+str(r.max_states_len)))
-		if r.trace_proof:
+		if trace_proof_ and r.trace_proof:
 			b.append(
 				If("!state.dont_trace && top_level_tracing_coro && tracing_enabled && tracing_active",
 					Statement('state.set_comment('+cpp_string_literal(r.__str__(shortener = common.shorten))+')')))
@@ -715,7 +718,7 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 			b.append(s.head(r))
 		else:
 			b.append(s.body_triples_block(r))
-		if r.trace_proof:
+		if trace_proof_ and r.trace_proof:
 			b.append(Statement('state.set_active(false)'))
 		if r.max_states_len:
 			b.append(Statement("release_states(" + str(r.max_states_len) + ')'))
@@ -725,7 +728,8 @@ string bnode_to_string2(set<Thing*> &processing, Thing* thing, int depth = -1)
 		if len(r.locals_template):
 			b.append(Statement("release_things(" + str(len(r.locals_template))  + ')'))
 		b.append(Statement('CHECK_DBG_DATA'))
-		b.append(Statement('state.was_introduced = false'))
+		if trace_proof_:
+			b.append(Statement('state.was_introduced = false'))
 		return b
 
 	def head(s, r):

@@ -52,11 +52,11 @@ query
 :dummy tau_builtins:output "ldl:parse_nonterminal:".
 ?a3 :eq (?initial_ldl_text_list ?builtins_statements "statements").
 ?a4 :eq (rdf:nil ?_ast :minus_one).
-#:dummy tau_builtins:toggle_tracing :dummy.
+##:dummy tau_builtins:toggle_tracing :dummy.
 ?a3 ldl:parse_nonterminal ?a4.
 
-    :dummy tau_builtins:output "ast:".
-    :dummy tau_builtins:serialize_thing ?_ast.
+   :dummy tau_builtins:output "ast:".
+   :dummy tau_builtins:serialize_thing ?_ast.
 
 
 #(?initial_ldl_text_list ?_ast "statements") ldl:parse_nonterminal (rdf:nil ?_ast :minus_one).

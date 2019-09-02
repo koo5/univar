@@ -624,7 +624,7 @@ string serialize_literal_to_n3(string c)
                 else
                     id = todo[v].id;
             }
-            result << "_:" << id;
+            result << ":bn" << id;
         }
         else
             ASSERT(false);

@@ -1422,6 +1422,7 @@ size_t query_list(cpppred_state & __restrict__ state, bool *was_cut_off, int dep
 			#endif
 			}
 			"""), emitter.do_yield(), Line("""
+			cerr << "////" << (size_t*)first_free_byte << endl;
 			#ifdef TRACE_PROOF
 				state.set_active(false);
 			#endif

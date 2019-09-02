@@ -12,7 +12,7 @@
 <body>
 <div id="top">
 		<div>last_loaded_file_id: {{ last_loaded_file_id }}, status: {{ file_status }}</div>
-		<div>navigation status: {{ navigation_status }}</div>
+ 		<div>navigation status: {{ navigation_status }}</div>
 		<div>yields: {{ view.yield_count }} </div>
 		<div>step: {{ view.step_id }}</div>
 		<coro_state :state="view.root"></coro_state>
@@ -377,6 +377,15 @@
 		if (vm.file_status == "loading")
 			return
 		vm.file_status = "loading"
+		
+		/*
+		iirc, the reason for the script format is that 
+		1) you cant have multiple json things in one file,
+		2) we have many small json things in one file 
+		3) we could wrap them in an array, but then we should correctly close it, even in case of program crash 
+		4) it turns out you can have multiple js things in one file, and the things are function calls.
+		*/
+		
 		$.getScript( "../trace"+id+".js", function( data, textStatus, jqxhr )
 		{
 			console.log( textStatus ); // Success
@@ -691,6 +700,7 @@
 		vm.snapshots= []
 		vm.steps= []
 		console.log( "ready!" );
+
 
 		$.ajax({
 			dataType: "json",

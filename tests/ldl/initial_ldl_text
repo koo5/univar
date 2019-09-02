@@ -6,7 +6,7 @@ newline ++> [\\n].
 statements ++> a series of top_level_item separated with newline.
 
 top_level_item ++> [].
-#top_level_item ++> statement, [.].
+
 top_level_item ++> builtin-postprocessed statement_with_period.
 statement_with_period ++> statement, [.].
 top_level_item ++> comment.

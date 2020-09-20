@@ -1,0 +1,1128 @@
+?bn0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn1. 
+?bn0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn2. 
+  ?bn1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn1 <http://ldl.ldl#type> """newline""". 
+  ?bn1 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn3. 
+?bn2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn4. 
+  ?bn3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn3 <http://ldl.ldl#type> """grammar""". 
+  ?bn3 <http://ldl.ldl#children> ?bn5. 
+    ?bn5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn6. 
+    ?bn5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn7. 
+      ?bn6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn6 <file://key> """node_name""". 
+      ?bn6 <file://value> ?bn8. 
+        ?bn8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn8 <http://ldl.ldl#type> """identifier""". 
+        ?bn8 <http://ldl.ldl#contents> """newline""". 
+    ?bn7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn9. 
+    ?bn7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn9 <file://key> """grammar_items""". 
+      ?bn9 <file://value> ?bn10. 
+        ?bn10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn11. 
+        ?bn10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn11 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn11 <http://ldl.ldl#type> """string""". 
+          ?bn11 <http://ldl.ldl#contents> """\n""". 
+?bn4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn12. 
+?bn4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn13. 
+  ?bn12 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn12 <http://ldl.ldl#type> """newline""". 
+  ?bn12 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn14. 
+?bn13 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn15. 
+  ?bn14 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn14 <http://ldl.ldl#type> """grammar""". 
+  ?bn14 <http://ldl.ldl#children> ?bn16. 
+    ?bn16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn17. 
+    ?bn16 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn18. 
+      ?bn17 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn17 <file://key> """node_name""". 
+      ?bn17 <file://value> ?bn19. 
+        ?bn19 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn19 <http://ldl.ldl#type> """identifier""". 
+        ?bn19 <http://ldl.ldl#contents> """statements""". 
+    ?bn18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn20. 
+    ?bn18 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn20 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn20 <file://key> """grammar_items""". 
+      ?bn20 <file://value> ?bn21. 
+        ?bn21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn22. 
+        ?bn21 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn22 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn22 <http://ldl.ldl#type> """a_series_of_y_separated_with_z""". 
+          ?bn22 <http://ldl.ldl#children> ?bn23. 
+            ?bn23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn24. 
+            ?bn23 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn25. 
+              ?bn24 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn24 <file://key> """item_type""". 
+              ?bn24 <file://value> ?bn26. 
+                ?bn26 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn26 <http://ldl.ldl#type> """identifier""". 
+                ?bn26 <http://ldl.ldl#contents> """top_level_item""". 
+            ?bn25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn27. 
+            ?bn25 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn27 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn27 <file://key> """separator""". 
+              ?bn27 <file://value> ?bn28. 
+                ?bn28 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn28 <http://ldl.ldl#type> """identifier""". 
+                ?bn28 <http://ldl.ldl#contents> """newline""". 
+?bn15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn29. 
+?bn15 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn30. 
+  ?bn29 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn29 <http://ldl.ldl#type> """newline""". 
+  ?bn29 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn31. 
+?bn30 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn32. 
+  ?bn31 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn31 <http://ldl.ldl#type> """grammar""". 
+  ?bn31 <http://ldl.ldl#children> ?bn33. 
+    ?bn33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn34. 
+    ?bn33 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn35. 
+      ?bn34 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn34 <file://key> """node_name""". 
+      ?bn34 <file://value> ?bn36. 
+        ?bn36 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn36 <http://ldl.ldl#type> """identifier""". 
+        ?bn36 <http://ldl.ldl#contents> """top_level_item""". 
+    ?bn35 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn37. 
+    ?bn35 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn37 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn37 <file://key> """grammar_items""". 
+      ?bn37 <file://value> ?bn38. 
+        ?bn38 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn39. 
+        ?bn38 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn39 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn39 <http://ldl.ldl#type> """string""". 
+          ?bn39 <http://ldl.ldl#contents> """""". 
+?bn32 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn40. 
+?bn32 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn41. 
+  ?bn40 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn40 <http://ldl.ldl#type> """newline""". 
+  ?bn40 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn41 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn42. 
+?bn41 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn43. 
+  ?bn42 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn42 <http://ldl.ldl#type> """grammar""". 
+  ?bn42 <http://ldl.ldl#children> ?bn44. 
+    ?bn44 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn45. 
+    ?bn44 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn46. 
+      ?bn45 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn45 <file://key> """node_name""". 
+      ?bn45 <file://value> ?bn47. 
+        ?bn47 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn47 <http://ldl.ldl#type> """identifier""". 
+        ?bn47 <http://ldl.ldl#contents> """top_level_item""". 
+    ?bn46 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn48. 
+    ?bn46 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn48 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn48 <file://key> """grammar_items""". 
+      ?bn48 <file://value> ?bn49. 
+        ?bn49 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn50. 
+        ?bn49 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn50 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn50 <http://ldl.ldl#type> """builtin_postprocessed""". 
+          ?bn50 <http://ldl.ldl#children> ?bn51. 
+            ?bn51 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn52. 
+            ?bn51 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn52 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn52 <file://key> """y""". 
+              ?bn52 <file://value> ?bn53. 
+                ?bn53 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn53 <http://ldl.ldl#type> """identifier""". 
+                ?bn53 <http://ldl.ldl#contents> """statement_with_period""". 
+?bn43 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn54. 
+?bn43 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn55. 
+  ?bn54 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn54 <http://ldl.ldl#type> """grammar""". 
+  ?bn54 <http://ldl.ldl#children> ?bn56. 
+    ?bn56 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn57. 
+    ?bn56 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn58. 
+      ?bn57 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn57 <file://key> """node_name""". 
+      ?bn57 <file://value> ?bn59. 
+        ?bn59 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn59 <http://ldl.ldl#type> """identifier""". 
+        ?bn59 <http://ldl.ldl#contents> """statement_with_period""". 
+    ?bn58 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn60. 
+    ?bn58 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn60 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn60 <file://key> """grammar_items""". 
+      ?bn60 <file://value> ?bn61. 
+        ?bn61 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn62. 
+        ?bn61 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn63. 
+          ?bn62 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn62 <http://ldl.ldl#type> """identifier""". 
+          ?bn62 <http://ldl.ldl#contents> """statement""". 
+        ?bn63 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn64. 
+        ?bn63 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn64 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn64 <http://ldl.ldl#type> """string""". 
+          ?bn64 <http://ldl.ldl#contents> """.""". 
+?bn55 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn65. 
+?bn55 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn66. 
+  ?bn65 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn65 <http://ldl.ldl#type> """grammar""". 
+  ?bn65 <http://ldl.ldl#children> ?bn67. 
+    ?bn67 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn68. 
+    ?bn67 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn69. 
+      ?bn68 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn68 <file://key> """node_name""". 
+      ?bn68 <file://value> ?bn70. 
+        ?bn70 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn70 <http://ldl.ldl#type> """identifier""". 
+        ?bn70 <http://ldl.ldl#contents> """top_level_item""". 
+    ?bn69 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn71. 
+    ?bn69 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn71 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn71 <file://key> """grammar_items""". 
+      ?bn71 <file://value> ?bn72. 
+        ?bn72 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn73. 
+        ?bn72 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn73 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn73 <http://ldl.ldl#type> """identifier""". 
+          ?bn73 <http://ldl.ldl#contents> """comment""". 
+?bn66 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn74. 
+?bn66 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn75. 
+  ?bn74 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn74 <http://ldl.ldl#type> """newline""". 
+  ?bn74 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn75 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn76. 
+?bn75 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn77. 
+  ?bn76 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn76 <http://ldl.ldl#type> """newline""". 
+  ?bn76 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn77 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn78. 
+?bn77 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn79. 
+  ?bn78 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn78 <http://ldl.ldl#type> """grammar""". 
+  ?bn78 <http://ldl.ldl#children> ?bn80. 
+    ?bn80 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn81. 
+    ?bn80 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn82. 
+      ?bn81 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn81 <file://key> """node_name""". 
+      ?bn81 <file://value> ?bn83. 
+        ?bn83 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn83 <http://ldl.ldl#type> """identifier""". 
+        ?bn83 <http://ldl.ldl#contents> """comment""". 
+    ?bn82 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn84. 
+    ?bn82 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn84 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn84 <file://key> """grammar_items""". 
+      ?bn84 <file://value> ?bn85. 
+        ?bn85 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn86. 
+        ?bn85 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn87. 
+          ?bn86 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn86 <http://ldl.ldl#type> """string""". 
+          ?bn86 <http://ldl.ldl#contents> """#""". 
+        ?bn87 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn88. 
+        ?bn87 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn88 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn88 <http://ldl.ldl#type> """all_chars_until_one_of""". 
+          ?bn88 <http://ldl.ldl#children> ?bn89. 
+            ?bn89 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn90. 
+            ?bn89 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn90 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn90 <file://key> """until""". 
+              ?bn90 <file://value> ?bn91. 
+                ?bn91 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn91 <http://ldl.ldl#type> """string""". 
+                ?bn91 <http://ldl.ldl#contents> """\n""". 
+?bn79 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn92. 
+?bn79 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn93. 
+  ?bn92 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn92 <http://ldl.ldl#type> """newline""". 
+  ?bn92 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn93 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn94. 
+?bn93 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn95. 
+  ?bn94 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn94 <http://ldl.ldl#type> """grammar""". 
+  ?bn94 <http://ldl.ldl#children> ?bn96. 
+    ?bn96 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn97. 
+    ?bn96 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn98. 
+      ?bn97 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn97 <file://key> """node_name""". 
+      ?bn97 <file://value> ?bn99. 
+        ?bn99 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn99 <http://ldl.ldl#type> """identifier""". 
+        ?bn99 <http://ldl.ldl#contents> """statement""". 
+    ?bn98 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn100. 
+    ?bn98 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn100 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn100 <file://key> """grammar_items""". 
+      ?bn100 <file://value> ?bn101. 
+        ?bn101 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn102. 
+        ?bn101 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn102 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn102 <http://ldl.ldl#type> """identifier""". 
+          ?bn102 <http://ldl.ldl#contents> """grammar""". 
+?bn95 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn103. 
+?bn95 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn104. 
+  ?bn103 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn103 <http://ldl.ldl#type> """grammar""". 
+  ?bn103 <http://ldl.ldl#children> ?bn105. 
+    ?bn105 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn106. 
+    ?bn105 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn107. 
+      ?bn106 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn106 <file://key> """node_name""". 
+      ?bn106 <file://value> ?bn108. 
+        ?bn108 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn108 <http://ldl.ldl#type> """identifier""". 
+        ?bn108 <http://ldl.ldl#contents> """grammar""". 
+    ?bn107 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn109. 
+    ?bn107 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn109 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn109 <file://key> """grammar_items""". 
+      ?bn109 <file://value> ?bn110. 
+        ?bn110 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn111. 
+        ?bn110 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn112. 
+          ?bn111 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn111 <http://ldl.ldl#type> """identifier""". 
+          ?bn111 <http://ldl.ldl#contents> """node_name""". 
+        ?bn112 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn113. 
+        ?bn112 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn114. 
+          ?bn113 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn113 <http://ldl.ldl#type> """string""". 
+          ?bn113 <http://ldl.ldl#contents> """ ++> """. 
+        ?bn114 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn115. 
+        ?bn114 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn115 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn115 <http://ldl.ldl#type> """identifier""". 
+          ?bn115 <http://ldl.ldl#contents> """grammar_items""". 
+?bn104 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn116. 
+?bn104 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn117. 
+  ?bn116 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn116 <http://ldl.ldl#type> """comment""". 
+  ?bn116 <http://ldl.ldl#children> ?bn118. 
+    ?bn118 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn119. 
+    ?bn118 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn119 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+      ?bn119 <http://ldl.ldl#type> """string""". 
+      ?bn119 <http://ldl.ldl#contents> """alternative syntax for grammar is node_name, [ has syntax ], grammar_items.""". 
+?bn117 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn120. 
+?bn117 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn121. 
+  ?bn120 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn120 <http://ldl.ldl#type> """newline""". 
+  ?bn120 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn121 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn122. 
+?bn121 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn123. 
+  ?bn122 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn122 <http://ldl.ldl#type> """grammar""". 
+  ?bn122 <http://ldl.ldl#children> ?bn124. 
+    ?bn124 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn125. 
+    ?bn124 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn126. 
+      ?bn125 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn125 <file://key> """node_name""". 
+      ?bn125 <file://value> ?bn127. 
+        ?bn127 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn127 <http://ldl.ldl#type> """identifier""". 
+        ?bn127 <http://ldl.ldl#contents> """grammar_items""". 
+    ?bn126 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn128. 
+    ?bn126 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn128 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn128 <file://key> """grammar_items""". 
+      ?bn128 <file://value> ?bn129. 
+        ?bn129 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn130. 
+        ?bn129 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn130 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn130 <http://ldl.ldl#type> """a_series_of_y_separated_with_z""". 
+          ?bn130 <http://ldl.ldl#children> ?bn131. 
+            ?bn131 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn132. 
+            ?bn131 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn133. 
+              ?bn132 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn132 <file://key> """item_type""". 
+              ?bn132 <file://value> ?bn134. 
+                ?bn134 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn134 <http://ldl.ldl#type> """identifier""". 
+                ?bn134 <http://ldl.ldl#contents> """grammar_item""". 
+            ?bn133 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn135. 
+            ?bn133 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn135 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn135 <file://key> """separator""". 
+              ?bn135 <file://value> ?bn136. 
+                ?bn136 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn136 <http://ldl.ldl#type> """string""". 
+                ?bn136 <http://ldl.ldl#contents> """, """. 
+?bn123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn137. 
+?bn123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn138. 
+  ?bn137 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn137 <http://ldl.ldl#type> """newline""". 
+  ?bn137 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn138 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn139. 
+?bn138 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn140. 
+  ?bn139 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn139 <http://ldl.ldl#type> """grammar""". 
+  ?bn139 <http://ldl.ldl#children> ?bn141. 
+    ?bn141 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn142. 
+    ?bn141 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn143. 
+      ?bn142 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn142 <file://key> """node_name""". 
+      ?bn142 <file://value> ?bn144. 
+        ?bn144 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn144 <http://ldl.ldl#type> """identifier""". 
+        ?bn144 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn143 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn145. 
+    ?bn143 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn145 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn145 <file://key> """grammar_items""". 
+      ?bn145 <file://value> ?bn146. 
+        ?bn146 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn147. 
+        ?bn146 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn147 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn147 <http://ldl.ldl#type> """identifier""". 
+          ?bn147 <http://ldl.ldl#contents> """string_literal""". 
+?bn140 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn148. 
+?bn140 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn149. 
+  ?bn148 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn148 <http://ldl.ldl#type> """grammar""". 
+  ?bn148 <http://ldl.ldl#children> ?bn150. 
+    ?bn150 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn151. 
+    ?bn150 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn152. 
+      ?bn151 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn151 <file://key> """node_name""". 
+      ?bn151 <file://value> ?bn153. 
+        ?bn153 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn153 <http://ldl.ldl#type> """identifier""". 
+        ?bn153 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn152 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn154. 
+    ?bn152 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn154 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn154 <file://key> """grammar_items""". 
+      ?bn154 <file://value> ?bn155. 
+        ?bn155 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn156. 
+        ?bn155 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn156 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn156 <http://ldl.ldl#type> """identifier""". 
+          ?bn156 <http://ldl.ldl#contents> """node_name""". 
+?bn149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn157. 
+?bn149 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn158. 
+  ?bn157 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn157 <http://ldl.ldl#type> """newline""". 
+  ?bn157 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn158 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn159. 
+?bn158 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn160. 
+  ?bn159 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn159 <http://ldl.ldl#type> """grammar""". 
+  ?bn159 <http://ldl.ldl#children> ?bn161. 
+    ?bn161 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn162. 
+    ?bn161 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn163. 
+      ?bn162 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn162 <file://key> """node_name""". 
+      ?bn162 <file://value> ?bn164. 
+        ?bn164 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn164 <http://ldl.ldl#type> """identifier""". 
+        ?bn164 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn165. 
+    ?bn163 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn165 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn165 <file://key> """grammar_items""". 
+      ?bn165 <file://value> ?bn166. 
+        ?bn166 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn167. 
+        ?bn166 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn167 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn167 <http://ldl.ldl#type> """identifier""". 
+          ?bn167 <http://ldl.ldl#contents> """node_name_with_child_name""". 
+?bn160 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn168. 
+?bn160 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn169. 
+  ?bn168 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn168 <http://ldl.ldl#type> """grammar""". 
+  ?bn168 <http://ldl.ldl#children> ?bn170. 
+    ?bn170 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn171. 
+    ?bn170 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn172. 
+      ?bn171 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn171 <file://key> """node_name""". 
+      ?bn171 <file://value> ?bn173. 
+        ?bn173 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn173 <http://ldl.ldl#type> """identifier""". 
+        ?bn173 <http://ldl.ldl#contents> """node_name_with_child_name""". 
+    ?bn172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn174. 
+    ?bn172 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn174 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn174 <file://key> """grammar_items""". 
+      ?bn174 <file://value> ?bn175. 
+        ?bn175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn176. 
+        ?bn175 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn177. 
+          ?bn176 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn176 <http://ldl.ldl#type> """node_name_with_child_name""". 
+          ?bn176 <http://ldl.ldl#children> ?bn178. 
+            ?bn178 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn179. 
+            ?bn178 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn180. 
+              ?bn179 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn179 <file://key> """child_name""". 
+              ?bn179 <file://value> ?bn181. 
+                ?bn181 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn181 <http://ldl.ldl#type> """identifier""". 
+                ?bn181 <http://ldl.ldl#contents> """child_name""". 
+            ?bn180 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn182. 
+            ?bn180 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn182 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn182 <file://key> """type_name""". 
+              ?bn182 <file://value> ?bn183. 
+                ?bn183 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn183 <http://ldl.ldl#type> """identifier""". 
+                ?bn183 <http://ldl.ldl#contents> """node_name""". 
+        ?bn177 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn184. 
+        ?bn177 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn185. 
+          ?bn184 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn184 <http://ldl.ldl#type> """string""". 
+          ?bn184 <http://ldl.ldl#contents> """:""". 
+        ?bn185 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn186. 
+        ?bn185 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn186 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn186 <http://ldl.ldl#type> """node_name_with_child_name""". 
+          ?bn186 <http://ldl.ldl#children> ?bn187. 
+            ?bn187 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn188. 
+            ?bn187 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn189. 
+              ?bn188 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn188 <file://key> """child_name""". 
+              ?bn188 <file://value> ?bn190. 
+                ?bn190 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn190 <http://ldl.ldl#type> """identifier""". 
+                ?bn190 <http://ldl.ldl#contents> """type_name""". 
+            ?bn189 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn191. 
+            ?bn189 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn191 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn191 <file://key> """type_name""". 
+              ?bn191 <file://value> ?bn192. 
+                ?bn192 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn192 <http://ldl.ldl#type> """identifier""". 
+                ?bn192 <http://ldl.ldl#contents> """node_name""". 
+?bn169 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn193. 
+?bn169 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn194. 
+  ?bn193 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn193 <http://ldl.ldl#type> """newline""". 
+  ?bn193 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn194 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn195. 
+?bn194 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn196. 
+  ?bn195 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn195 <http://ldl.ldl#type> """grammar""". 
+  ?bn195 <http://ldl.ldl#children> ?bn197. 
+    ?bn197 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn198. 
+    ?bn197 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn199. 
+      ?bn198 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn198 <file://key> """node_name""". 
+      ?bn198 <file://value> ?bn200. 
+        ?bn200 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn200 <http://ldl.ldl#type> """identifier""". 
+        ?bn200 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn199 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn201. 
+    ?bn199 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn201 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn201 <file://key> """grammar_items""". 
+      ?bn201 <file://value> ?bn202. 
+        ?bn202 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn203. 
+        ?bn202 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn203 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn203 <http://ldl.ldl#type> """identifier""". 
+          ?bn203 <http://ldl.ldl#contents> """a_series_of_y_separated_with_z""". 
+?bn196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn204. 
+?bn196 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn205. 
+  ?bn204 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn204 <http://ldl.ldl#type> """grammar""". 
+  ?bn204 <http://ldl.ldl#children> ?bn206. 
+    ?bn206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn207. 
+    ?bn206 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn208. 
+      ?bn207 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn207 <file://key> """node_name""". 
+      ?bn207 <file://value> ?bn209. 
+        ?bn209 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn209 <http://ldl.ldl#type> """identifier""". 
+        ?bn209 <http://ldl.ldl#contents> """a_series_of_y_separated_with_z""". 
+    ?bn208 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn210. 
+    ?bn208 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn210 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn210 <file://key> """grammar_items""". 
+      ?bn210 <file://value> ?bn211. 
+        ?bn211 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn212. 
+        ?bn211 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn213. 
+          ?bn212 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn212 <http://ldl.ldl#type> """string""". 
+          ?bn212 <http://ldl.ldl#contents> """a series of """. 
+        ?bn213 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn214. 
+        ?bn213 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn215. 
+          ?bn214 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn214 <http://ldl.ldl#type> """node_name_with_child_name""". 
+          ?bn214 <http://ldl.ldl#children> ?bn216. 
+            ?bn216 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn217. 
+            ?bn216 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn218. 
+              ?bn217 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn217 <file://key> """child_name""". 
+              ?bn217 <file://value> ?bn219. 
+                ?bn219 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn219 <http://ldl.ldl#type> """identifier""". 
+                ?bn219 <http://ldl.ldl#contents> """item_type""". 
+            ?bn218 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn220. 
+            ?bn218 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn220 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn220 <file://key> """type_name""". 
+              ?bn220 <file://value> ?bn221. 
+                ?bn221 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn221 <http://ldl.ldl#type> """identifier""". 
+                ?bn221 <http://ldl.ldl#contents> """grammar_item""". 
+        ?bn215 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn222. 
+        ?bn215 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn223. 
+          ?bn222 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn222 <http://ldl.ldl#type> """string""". 
+          ?bn222 <http://ldl.ldl#contents> """ separated with """. 
+        ?bn223 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn224. 
+        ?bn223 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn224 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn224 <http://ldl.ldl#type> """node_name_with_child_name""". 
+          ?bn224 <http://ldl.ldl#children> ?bn225. 
+            ?bn225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn226. 
+            ?bn225 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn227. 
+              ?bn226 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn226 <file://key> """child_name""". 
+              ?bn226 <file://value> ?bn228. 
+                ?bn228 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn228 <http://ldl.ldl#type> """identifier""". 
+                ?bn228 <http://ldl.ldl#contents> """separator""". 
+            ?bn227 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn229. 
+            ?bn227 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn229 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn229 <file://key> """type_name""". 
+              ?bn229 <file://value> ?bn230. 
+                ?bn230 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn230 <http://ldl.ldl#type> """identifier""". 
+                ?bn230 <http://ldl.ldl#contents> """grammar_item""". 
+?bn205 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn231. 
+?bn205 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn232. 
+  ?bn231 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn231 <http://ldl.ldl#type> """newline""". 
+  ?bn231 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn232 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn233. 
+?bn232 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn234. 
+  ?bn233 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn233 <http://ldl.ldl#type> """grammar""". 
+  ?bn233 <http://ldl.ldl#children> ?bn235. 
+    ?bn235 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn236. 
+    ?bn235 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn237. 
+      ?bn236 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn236 <file://key> """node_name""". 
+      ?bn236 <file://value> ?bn238. 
+        ?bn238 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn238 <http://ldl.ldl#type> """identifier""". 
+        ?bn238 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn237 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn239. 
+    ?bn237 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn239 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn239 <file://key> """grammar_items""". 
+      ?bn239 <file://value> ?bn240. 
+        ?bn240 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn241. 
+        ?bn240 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn241 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn241 <http://ldl.ldl#type> """identifier""". 
+          ?bn241 <http://ldl.ldl#contents> """all_chars_until_one_of""". 
+?bn234 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn242. 
+?bn234 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn243. 
+  ?bn242 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn242 <http://ldl.ldl#type> """grammar""". 
+  ?bn242 <http://ldl.ldl#children> ?bn244. 
+    ?bn244 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn245. 
+    ?bn244 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn246. 
+      ?bn245 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn245 <file://key> """node_name""". 
+      ?bn245 <file://value> ?bn247. 
+        ?bn247 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn247 <http://ldl.ldl#type> """identifier""". 
+        ?bn247 <http://ldl.ldl#contents> """all_chars_until_one_of""". 
+    ?bn246 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn248. 
+    ?bn246 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn248 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn248 <file://key> """grammar_items""". 
+      ?bn248 <file://value> ?bn249. 
+        ?bn249 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn250. 
+        ?bn249 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn251. 
+          ?bn250 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn250 <http://ldl.ldl#type> """string""". 
+          ?bn250 <http://ldl.ldl#contents> """all chars until one of """. 
+        ?bn251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn252. 
+        ?bn251 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn252 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn252 <http://ldl.ldl#type> """identifier""". 
+          ?bn252 <http://ldl.ldl#contents> """string_literal""". 
+?bn243 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn253. 
+?bn243 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn254. 
+  ?bn253 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn253 <http://ldl.ldl#type> """newline""". 
+  ?bn253 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn255. 
+?bn254 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn256. 
+  ?bn255 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn255 <http://ldl.ldl#type> """grammar""". 
+  ?bn255 <http://ldl.ldl#children> ?bn257. 
+    ?bn257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn258. 
+    ?bn257 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn259. 
+      ?bn258 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn258 <file://key> """node_name""". 
+      ?bn258 <file://value> ?bn260. 
+        ?bn260 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn260 <http://ldl.ldl#type> """identifier""". 
+        ?bn260 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn259 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn261. 
+    ?bn259 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn261 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn261 <file://key> """grammar_items""". 
+      ?bn261 <file://value> ?bn262. 
+        ?bn262 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn263. 
+        ?bn262 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn263 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn263 <http://ldl.ldl#type> """identifier""". 
+          ?bn263 <http://ldl.ldl#contents> """any_char_except""". 
+?bn256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn264. 
+?bn256 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn265. 
+  ?bn264 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn264 <http://ldl.ldl#type> """grammar""". 
+  ?bn264 <http://ldl.ldl#children> ?bn266. 
+    ?bn266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn267. 
+    ?bn266 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn268. 
+      ?bn267 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn267 <file://key> """node_name""". 
+      ?bn267 <file://value> ?bn269. 
+        ?bn269 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn269 <http://ldl.ldl#type> """identifier""". 
+        ?bn269 <http://ldl.ldl#contents> """any_char_except""". 
+    ?bn268 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn270. 
+    ?bn268 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn270 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn270 <file://key> """grammar_items""". 
+      ?bn270 <file://value> ?bn271. 
+        ?bn271 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn272. 
+        ?bn271 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn273. 
+          ?bn272 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn272 <http://ldl.ldl#type> """string""". 
+          ?bn272 <http://ldl.ldl#contents> """any char except """. 
+        ?bn273 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn274. 
+        ?bn273 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn274 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn274 <http://ldl.ldl#type> """identifier""". 
+          ?bn274 <http://ldl.ldl#contents> """string_literal""". 
+?bn265 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn275. 
+?bn265 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn276. 
+  ?bn275 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn275 <http://ldl.ldl#type> """newline""". 
+  ?bn275 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn276 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn277. 
+?bn276 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn278. 
+  ?bn277 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn277 <http://ldl.ldl#type> """grammar""". 
+  ?bn277 <http://ldl.ldl#children> ?bn279. 
+    ?bn279 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn280. 
+    ?bn279 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn281. 
+      ?bn280 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn280 <file://key> """node_name""". 
+      ?bn280 <file://value> ?bn282. 
+        ?bn282 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn282 <http://ldl.ldl#type> """identifier""". 
+        ?bn282 <http://ldl.ldl#contents> """grammar_item""". 
+    ?bn281 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn283. 
+    ?bn281 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn283 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn283 <file://key> """grammar_items""". 
+      ?bn283 <file://value> ?bn284. 
+        ?bn284 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn285. 
+        ?bn284 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn285 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn285 <http://ldl.ldl#type> """identifier""". 
+          ?bn285 <http://ldl.ldl#contents> """builtin_postprocessed""". 
+?bn278 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn286. 
+?bn278 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn287. 
+  ?bn286 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn286 <http://ldl.ldl#type> """grammar""". 
+  ?bn286 <http://ldl.ldl#children> ?bn288. 
+    ?bn288 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn289. 
+    ?bn288 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn290. 
+      ?bn289 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn289 <file://key> """node_name""". 
+      ?bn289 <file://value> ?bn291. 
+        ?bn291 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn291 <http://ldl.ldl#type> """identifier""". 
+        ?bn291 <http://ldl.ldl#contents> """builtin_postprocessed""". 
+    ?bn290 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn292. 
+    ?bn290 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn292 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn292 <file://key> """grammar_items""". 
+      ?bn292 <file://value> ?bn293. 
+        ?bn293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn294. 
+        ?bn293 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn295. 
+          ?bn294 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn294 <http://ldl.ldl#type> """string""". 
+          ?bn294 <http://ldl.ldl#contents> """builtin-postprocessed """. 
+        ?bn295 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn296. 
+        ?bn295 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn296 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn296 <http://ldl.ldl#type> """identifier""". 
+          ?bn296 <http://ldl.ldl#contents> """node_name""". 
+?bn287 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn297. 
+?bn287 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn298. 
+  ?bn297 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn297 <http://ldl.ldl#type> """newline""". 
+  ?bn297 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn298 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn299. 
+?bn298 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn300. 
+  ?bn299 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn299 <http://ldl.ldl#type> """grammar""". 
+  ?bn299 <http://ldl.ldl#children> ?bn301. 
+    ?bn301 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn302. 
+    ?bn301 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn303. 
+      ?bn302 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn302 <file://key> """node_name""". 
+      ?bn302 <file://value> ?bn304. 
+        ?bn304 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn304 <http://ldl.ldl#type> """identifier""". 
+        ?bn304 <http://ldl.ldl#contents> """node_name""". 
+    ?bn303 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn305. 
+    ?bn303 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn305 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn305 <file://key> """grammar_items""". 
+      ?bn305 <file://value> ?bn306. 
+        ?bn306 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn307. 
+        ?bn306 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn307 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn307 <http://ldl.ldl#type> """identifier""". 
+          ?bn307 <http://ldl.ldl#contents> """identifier""". 
+?bn300 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn308. 
+?bn300 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn309. 
+  ?bn308 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn308 <http://ldl.ldl#type> """grammar""". 
+  ?bn308 <http://ldl.ldl#children> ?bn310. 
+    ?bn310 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn311. 
+    ?bn310 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn312. 
+      ?bn311 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn311 <file://key> """node_name""". 
+      ?bn311 <file://value> ?bn313. 
+        ?bn313 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn313 <http://ldl.ldl#type> """identifier""". 
+        ?bn313 <http://ldl.ldl#contents> """identifier""". 
+    ?bn312 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn314. 
+    ?bn312 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn314 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn314 <file://key> """grammar_items""". 
+      ?bn314 <file://value> ?bn315. 
+        ?bn315 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn316. 
+        ?bn315 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn316 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn316 <http://ldl.ldl#type> """builtin_postprocessed""". 
+          ?bn316 <http://ldl.ldl#children> ?bn317. 
+            ?bn317 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn318. 
+            ?bn317 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn318 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn318 <file://key> """y""". 
+              ?bn318 <file://value> ?bn319. 
+                ?bn319 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn319 <http://ldl.ldl#type> """identifier""". 
+                ?bn319 <http://ldl.ldl#contents> """raw_identifier""". 
+?bn309 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn320. 
+?bn309 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn321. 
+  ?bn320 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn320 <http://ldl.ldl#type> """grammar""". 
+  ?bn320 <http://ldl.ldl#children> ?bn322. 
+    ?bn322 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn323. 
+    ?bn322 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn324. 
+      ?bn323 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn323 <file://key> """node_name""". 
+      ?bn323 <file://value> ?bn325. 
+        ?bn325 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn325 <http://ldl.ldl#type> """identifier""". 
+        ?bn325 <http://ldl.ldl#contents> """raw_identifier""". 
+    ?bn324 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn326. 
+    ?bn324 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn326 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn326 <file://key> """grammar_items""". 
+      ?bn326 <file://value> ?bn327. 
+        ?bn327 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn328. 
+        ?bn327 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn329. 
+          ?bn328 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn328 <http://ldl.ldl#type> """identifier""". 
+          ?bn328 <http://ldl.ldl#contents> """valid_identifier_char""". 
+        ?bn329 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn330. 
+        ?bn329 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn330 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn330 <http://ldl.ldl#type> """a_series_of_y_separated_with_z""". 
+          ?bn330 <http://ldl.ldl#children> ?bn331. 
+            ?bn331 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn332. 
+            ?bn331 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn333. 
+              ?bn332 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn332 <file://key> """item_type""". 
+              ?bn332 <file://value> ?bn334. 
+                ?bn334 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn334 <http://ldl.ldl#type> """identifier""". 
+                ?bn334 <http://ldl.ldl#contents> """valid_identifier_char""". 
+            ?bn333 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn335. 
+            ?bn333 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn335 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn335 <file://key> """separator""". 
+              ?bn335 <file://value> ?bn336. 
+                ?bn336 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn336 <http://ldl.ldl#type> """string""". 
+                ?bn336 <http://ldl.ldl#contents> """""". 
+?bn321 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn337. 
+?bn321 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn338. 
+  ?bn337 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn337 <http://ldl.ldl#type> """grammar""". 
+  ?bn337 <http://ldl.ldl#children> ?bn339. 
+    ?bn339 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn340. 
+    ?bn339 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn341. 
+      ?bn340 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn340 <file://key> """node_name""". 
+      ?bn340 <file://value> ?bn342. 
+        ?bn342 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn342 <http://ldl.ldl#type> """identifier""". 
+        ?bn342 <http://ldl.ldl#contents> """valid_identifier_char""". 
+    ?bn341 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn343. 
+    ?bn341 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn343 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn343 <file://key> """grammar_items""". 
+      ?bn343 <file://value> ?bn344. 
+        ?bn344 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn345. 
+        ?bn344 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn345 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn345 <http://ldl.ldl#type> """any_char_except""". 
+          ?bn345 <http://ldl.ldl#children> ?bn346. 
+            ?bn346 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn347. 
+            ?bn346 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn347 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn347 <file://key> """except""". 
+              ?bn347 <file://value> ?bn348. 
+                ?bn348 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn348 <http://ldl.ldl#type> """string""". 
+                ?bn348 <http://ldl.ldl#contents> """\n[]\\,.: """. 
+?bn338 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn349. 
+?bn338 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn350. 
+  ?bn349 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn349 <http://ldl.ldl#type> """newline""". 
+  ?bn349 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn350 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn351. 
+?bn350 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn352. 
+  ?bn351 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn351 <http://ldl.ldl#type> """grammar""". 
+  ?bn351 <http://ldl.ldl#children> ?bn353. 
+    ?bn353 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn354. 
+    ?bn353 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn355. 
+      ?bn354 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn354 <file://key> """node_name""". 
+      ?bn354 <file://value> ?bn356. 
+        ?bn356 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn356 <http://ldl.ldl#type> """identifier""". 
+        ?bn356 <http://ldl.ldl#contents> """string_literal""". 
+    ?bn355 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn357. 
+    ?bn355 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn357 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn357 <file://key> """grammar_items""". 
+      ?bn357 <file://value> ?bn358. 
+        ?bn358 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn359. 
+        ?bn358 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn359 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn359 <http://ldl.ldl#type> """builtin_postprocessed""". 
+          ?bn359 <http://ldl.ldl#children> ?bn360. 
+            ?bn360 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn361. 
+            ?bn360 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn361 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn361 <file://key> """y""". 
+              ?bn361 <file://value> ?bn362. 
+                ?bn362 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn362 <http://ldl.ldl#type> """identifier""". 
+                ?bn362 <http://ldl.ldl#contents> """raw_string_literal""". 
+?bn352 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn363. 
+?bn352 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn364. 
+  ?bn363 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn363 <http://ldl.ldl#type> """grammar""". 
+  ?bn363 <http://ldl.ldl#children> ?bn365. 
+    ?bn365 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn366. 
+    ?bn365 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn367. 
+      ?bn366 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn366 <file://key> """node_name""". 
+      ?bn366 <file://value> ?bn368. 
+        ?bn368 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn368 <http://ldl.ldl#type> """identifier""". 
+        ?bn368 <http://ldl.ldl#contents> """raw_string_literal""". 
+    ?bn367 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn369. 
+    ?bn367 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn369 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn369 <file://key> """grammar_items""". 
+      ?bn369 <file://value> ?bn370. 
+        ?bn370 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn371. 
+        ?bn370 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn372. 
+          ?bn371 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn371 <http://ldl.ldl#type> """string""". 
+          ?bn371 <http://ldl.ldl#contents> """[""". 
+        ?bn372 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn373. 
+        ?bn372 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn374. 
+          ?bn373 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn373 <http://ldl.ldl#type> """identifier""". 
+          ?bn373 <http://ldl.ldl#contents> """raw_string_literal_body""". 
+        ?bn374 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn375. 
+        ?bn374 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn375 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn375 <http://ldl.ldl#type> """string""". 
+          ?bn375 <http://ldl.ldl#contents> """]""". 
+?bn364 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn376. 
+?bn364 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn377. 
+  ?bn376 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn376 <http://ldl.ldl#type> """grammar""". 
+  ?bn376 <http://ldl.ldl#children> ?bn378. 
+    ?bn378 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn379. 
+    ?bn378 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn380. 
+      ?bn379 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn379 <file://key> """node_name""". 
+      ?bn379 <file://value> ?bn381. 
+        ?bn381 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn381 <http://ldl.ldl#type> """identifier""". 
+        ?bn381 <http://ldl.ldl#contents> """raw_string_literal_body""". 
+    ?bn380 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn382. 
+    ?bn380 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn382 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn382 <file://key> """grammar_items""". 
+      ?bn382 <file://value> ?bn383. 
+        ?bn383 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn384. 
+        ?bn383 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn384 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn384 <http://ldl.ldl#type> """a_series_of_y_separated_with_z""". 
+          ?bn384 <http://ldl.ldl#children> ?bn385. 
+            ?bn385 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn386. 
+            ?bn385 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn387. 
+              ?bn386 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn386 <file://key> """item_type""". 
+              ?bn386 <file://value> ?bn388. 
+                ?bn388 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn388 <http://ldl.ldl#type> """identifier""". 
+                ?bn388 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+            ?bn387 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn389. 
+            ?bn387 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn389 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn389 <file://key> """separator""". 
+              ?bn389 <file://value> ?bn390. 
+                ?bn390 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn390 <http://ldl.ldl#type> """string""". 
+                ?bn390 <http://ldl.ldl#contents> """""". 
+?bn377 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn391. 
+?bn377 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn392. 
+  ?bn391 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn391 <http://ldl.ldl#type> """newline""". 
+  ?bn391 <http://ldl.ldl#children> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+?bn392 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn393. 
+?bn392 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn394. 
+  ?bn393 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn393 <http://ldl.ldl#type> """grammar""". 
+  ?bn393 <http://ldl.ldl#children> ?bn395. 
+    ?bn395 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn396. 
+    ?bn395 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn397. 
+      ?bn396 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn396 <file://key> """node_name""". 
+      ?bn396 <file://value> ?bn398. 
+        ?bn398 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn398 <http://ldl.ldl#type> """identifier""". 
+        ?bn398 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+    ?bn397 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn399. 
+    ?bn397 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn399 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn399 <file://key> """grammar_items""". 
+      ?bn399 <file://value> ?bn400. 
+        ?bn400 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn401. 
+        ?bn400 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn401 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+          ?bn401 <http://ldl.ldl#type> """any_char_except""". 
+          ?bn401 <http://ldl.ldl#children> ?bn402. 
+            ?bn402 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn403. 
+            ?bn402 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+              ?bn403 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+              ?bn403 <file://key> """except""". 
+              ?bn403 <file://value> ?bn404. 
+                ?bn404 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+                ?bn404 <http://ldl.ldl#type> """string""". 
+                ?bn404 <http://ldl.ldl#contents> """\n[]\\""". 
+?bn394 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn405. 
+?bn394 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn406. 
+  ?bn405 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn405 <http://ldl.ldl#type> """grammar""". 
+  ?bn405 <http://ldl.ldl#children> ?bn407. 
+    ?bn407 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn408. 
+    ?bn407 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn409. 
+      ?bn408 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn408 <file://key> """node_name""". 
+      ?bn408 <file://value> ?bn410. 
+        ?bn410 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn410 <http://ldl.ldl#type> """identifier""". 
+        ?bn410 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+    ?bn409 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn411. 
+    ?bn409 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn411 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn411 <file://key> """grammar_items""". 
+      ?bn411 <file://value> ?bn412. 
+        ?bn412 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn413. 
+        ?bn412 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn413 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn413 <http://ldl.ldl#type> """string""". 
+          ?bn413 <http://ldl.ldl#contents> """\\n""". 
+?bn406 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn414. 
+?bn406 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn415. 
+  ?bn414 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn414 <http://ldl.ldl#type> """grammar""". 
+  ?bn414 <http://ldl.ldl#children> ?bn416. 
+    ?bn416 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn417. 
+    ?bn416 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn418. 
+      ?bn417 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn417 <file://key> """node_name""". 
+      ?bn417 <file://value> ?bn419. 
+        ?bn419 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn419 <http://ldl.ldl#type> """identifier""". 
+        ?bn419 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+    ?bn418 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn420. 
+    ?bn418 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn420 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn420 <file://key> """grammar_items""". 
+      ?bn420 <file://value> ?bn421. 
+        ?bn421 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn422. 
+        ?bn421 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn422 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn422 <http://ldl.ldl#type> """string""". 
+          ?bn422 <http://ldl.ldl#contents> """\\[""". 
+?bn415 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn423. 
+?bn415 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn424. 
+  ?bn423 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn423 <http://ldl.ldl#type> """grammar""". 
+  ?bn423 <http://ldl.ldl#children> ?bn425. 
+    ?bn425 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn426. 
+    ?bn425 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn427. 
+      ?bn426 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn426 <file://key> """node_name""". 
+      ?bn426 <file://value> ?bn428. 
+        ?bn428 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn428 <http://ldl.ldl#type> """identifier""". 
+        ?bn428 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+    ?bn427 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn429. 
+    ?bn427 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn429 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn429 <file://key> """grammar_items""". 
+      ?bn429 <file://value> ?bn430. 
+        ?bn430 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn431. 
+        ?bn430 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn431 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn431 <http://ldl.ldl#type> """string""". 
+          ?bn431 <http://ldl.ldl#contents> """\\]""". 
+?bn424 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn432. 
+?bn424 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+  ?bn432 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#compound>. 
+  ?bn432 <http://ldl.ldl#type> """grammar""". 
+  ?bn432 <http://ldl.ldl#children> ?bn433. 
+    ?bn433 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn434. 
+    ?bn433 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?bn435. 
+      ?bn434 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn434 <file://key> """node_name""". 
+      ?bn434 <file://value> ?bn436. 
+        ?bn436 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+        ?bn436 <http://ldl.ldl#type> """identifier""". 
+        ?bn436 <http://ldl.ldl#contents> """raw_string_literal_body_item""". 
+    ?bn435 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn437. 
+    ?bn435 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+      ?bn437 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <file://key_value_pair>. 
+      ?bn437 <file://key> """grammar_items""". 
+      ?bn437 <file://value> ?bn438. 
+        ?bn438 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?bn439. 
+        ?bn438 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>. 
+          ?bn439 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ldl.ldl#value>. 
+          ?bn439 <http://ldl.ldl#type> """string""". 
+          ?bn439 <http://ldl.ldl#contents> """\\\\""". 

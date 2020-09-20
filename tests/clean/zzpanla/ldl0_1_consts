@@ -1,0 +1,42 @@
+@keywords a .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldl:      <http://ldl.ldl#> .
+@prefix string_builtins: <http://loworbit.now.im/rdf/string_builtins#>.
+@prefix tau_builtins: <http://loworbit.now.im/rdf/tau_builtins#>.
+@prefix : <file://>.
+
+kb
+
+@include ../../ldl/utils
+@include ../../ldl/pre_ldl_dcg
+@include ../../ldl/dcg_datatypes
+@include ../../ldl/ldl_datatypes
+@include ../../ldl/parser_of_pre_ldl_dcg
+@include ../../ldl/initial_ldl_text
+@include ../../ldl/parse_initial_ldl_text_with_the_dcg
+@include ../../ldl/bootstrap2lemon
+@include ../../ldl/ldl_parser
+
+{:dcg0 :is ?bn0} <= {
+@include ../../ldl/ldl_n3
+}.
+
+fin.
+
+query
+"""
+newline ++> [\\n].
+""" string_builtins:strXlst ?initial_ldl_text_list.
+
+?a3 :eq (?initial_ldl_text_list :dcg0!:is "statements").
+?a4 :eq (rdf:nil ?ast :minus_one).
+?a3 ldl:parse_nonterminal ?a4.
+dummy tau_builtins:output "ast:".
+dummy tau_builtins:serialize_thing ?ast.
+#(?initial_ldl_text_list ?_ast "statements") ldl:parse_nonterminal (rdf:nil ?_ast :minus_one).
+
+fin.
+shouldbetrue
+
+
+

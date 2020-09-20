@@ -2,7 +2,7 @@ reqs:
 https://github.com/rdfjs/N3.js
 https://github.com/digitalbazaar/jsonld.js
 
-alts:
+possible alternatives:
 https://github.com/RDFLib/rdflib-jsonld
 https://github.com/digitalbazaar/jsonld-cli
 

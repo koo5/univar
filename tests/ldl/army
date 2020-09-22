@@ -1,0 +1,19 @@
+
+
+
+
+army **> determiner(number), " ", noun(number).
+determiner(singular) **> "this".
+determiner(plural) **> "these".
+noun(singular) **> "knight".
+noun(plural) **> "knights".
+
+
+
+abc(count) **> a(count), b(count), c(count).
+a(zero) **> .
+b(zero) **> .
+c(zero) **> .
+a(suc x) **> "a", a(x).
+b(suc x) **> "b", b(x).
+c(suc x) **> "c", c(x).

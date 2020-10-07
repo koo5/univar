@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+
+this script processess a peculiar data format, that is, at core, n3, but with significant, particularly formatted, comments between n3 statements. Statements are divided into blocks of "steps", and step id is signified by a comment "#step xxx", where xxx is a number in an increasing sequence.
+This script processess such file step-by-step, ( :-) ), and for each step, a graphviz visualization is generated.
+Each step is one step of the reasoner execution, for example a binding of a variable. Such reasoner step may be described in multiple n3 statements. What is visualized is always the state up to and including current step, not just the block of n3 statements that make up the current step.
+For each step, the lines of the n3 file up to and including the step are repeatedly parsed, the results are pickled, and stored in redis for another process (managed by ProcessPoolExecutor), which then unpickles, performs the translation of the description of resoner state into a graphviz drawing, and spawns "dot" to turn it into a PNG. 
+All that re-parsing is amusingly inefficient, and just plain unusable, beyond some input file size.
+
+"""
+
 #import ujson
 import time
 import pickle

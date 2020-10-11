@@ -9,8 +9,8 @@ avoid using a part of a graph name to store the step id,
 save the step id in its own triple: graph has_step step.
 However, from the viewpoint of a semantic desktop, it seems that
 we should put each triple into its own (uniquely-named) graph a-priori.
-Thats the only way to avoid having to remodel your data as soon as you want to for
-example just annotate some triple. In RDR sytax, for example: <<:frame7 rdf:type :variable> :comment "seems like a bug introduced in version bla bla>.
+Thats the only way to avoid having to remodel your data as soon as you want to, for
+example, just annotate some triple. In RDR sytax, for example: <<:frame7 rdf:type :variable> :comment "seems like a bug introduced in version bla bla>.
 or: https://ebiquity.umbc.edu/_file_directory_/papers/178.pdf
 
 Once you have each triple in its own graph, you have to tie them together with more triples:
@@ -24,7 +24,7 @@ must be better than extracting it from the name:)
 now for two practical issues: a better triplestore is needed, blazegraph is flaky, especially under
 parallel load. Or at least more ram is needed. Or a triplestore on aws.
 
-into this ties a small change, if we avoid running multiple workers in parallel, we should at least
+a small change ties into this, if we avoid running multiple workers in parallel, we should at least
 leave the file/convert io to another thread.
 
 """

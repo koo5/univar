@@ -64,7 +64,7 @@ def traverse(item):
 		for j in iter(i):
 			yield j
 """
-def join_generators??(a, b):
+def join_generators??(a, b): # that'd be a multiplication, eh
 	for i in a:
 		for j in b:
 			yield True

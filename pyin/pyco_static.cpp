@@ -910,7 +910,7 @@ int is_arg_productively_different(Thing *old, Thing *now)
 }
 
 bool detect_ep(cpppred_state &old, cpppred_state &now IF_SECOND_CHANCE(vector<Thing*> *(&now_lists)[2]))
-/* here we try to detect an ep by comparing a parent state to current one */
+/* here we try to detect an ep by comparing an ancestor state to current state */
 {
     #ifdef TRACE_EP_CHECKS
         current_ep_comment = thing_to_string_nogetval(old.incoming[0]) + " vs " + thing_to_string_nogetval(now.incoming[0]) +

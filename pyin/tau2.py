@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 
 import re
 import sys
@@ -24,6 +24,7 @@ class Mode(Enum):
 	query = 2
 	shouldbe = 3
 
+
 additional_identification_ = ''
 result_marker = ' RESULT :'
 query_number = 6666666
@@ -35,6 +36,7 @@ results = []
 buffer = []
 output = ''
 fn = '?'
+
 
 @click.command()#readable=True, exists=True, dir_okay=False
 @click.argument('command', type=click.Path(), required=True)

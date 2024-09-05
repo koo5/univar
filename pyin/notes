@@ -1,1 +1,6 @@
+pip install rdflib click pymantic memoized
+
+
+
+
 https://stackoverflow.com/a/32655449

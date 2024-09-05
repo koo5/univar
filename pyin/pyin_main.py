@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
+
 from pymantic import sparql
 from concurrent.futures import ThreadPoolExecutor
 import pyin

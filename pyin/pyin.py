@@ -1,3 +1,5 @@
+
+
 import subprocess, os, sys, logging
 from time import sleep
 import datetime
@@ -252,7 +254,7 @@ class Atom(AtomVar):
 			r.kbdbg_name = s.kbdbg_name
 		return r
 	def __eq__(a,b):
-		return a.value == b.value
+		return a.__class__ == b.__class__ and a.value == b.value
 	def __hash__(a):
 		return hash(a.value)
 
@@ -323,7 +325,7 @@ class Var(AtomVar):
 			kbdbg(uri + " kbdbg:was_unbound true")
 			#step()
 	def __eq__(a,b):
-		return a.debug_name == b.debug_name and a.is_bnode == b.is_bnode
+		return a.__class__ == b.__class__ and a.debug_name == b.debug_name and a.is_bnode == b.is_bnode
 	def __hash__(a):
 		return hash((a.debug_name, a.is_bnode))
 
@@ -927,12 +929,12 @@ def load(kb, goal, identification, base):
 		log('---kb:')
 		try:
 			for l in kb_graph.serialize(format='n3').splitlines():
-				log(l.decode('utf8'))
+				log(l)
 		except Exception as e:
 			log(str(e))
 		log('---kb quads:')
 		for l in kb_conjunctive.serialize(format='nquads').splitlines():
-			log(l.decode('utf8'))
+			log(l)
 		log('---')
 	def fixup3(o):
 		if isinstance(o, rdflib.Graph):
@@ -1005,12 +1007,12 @@ def load(kb, goal, identification, base):
 		log('---goal:')
 		try:
 			for l in goal_rdflib_graph.serialize(format='n3').splitlines():
-				log(l.decode('utf8'))
+				log(l)
 		except Exception as e:
 			log(str(e))
 		log('---goal nq:')
 		for l in goal_rdflib_graph.serialize(format='nquads').splitlines():
-			log(l.decode('utf8'))
+			log(l)
 		log('---')
 
 	goal = Graph()

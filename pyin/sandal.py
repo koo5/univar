@@ -1,51 +1,8 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 Semantic AutoNomic Deduction ALgorith
 """
-
-import click
-import rdflib
-from ordered_rdflib_store import OrderedStore
-
-from bg import *
-
-@click.command()
-@click.argument('kb', type=click.File('rb'))
-@click.argument('goal', type=click.File('rb'))
-@click.option('--nokbdbg', default=False)
-@click.option('--nolog', default=False)
-def init_from_files(kb, goal, nokbdbg, nolog):
-	global eden
-	kb_stream, goal_stream = kb, goal
-
-	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
-$
-	store = OrderedStore()
-
-	kb_input_graph = rdflib.Graph(store=store, identifier='@default')
-	kb_conjunctive = rdflib.ConjunctiveGraph(store=store)
-
-	kb_input_graph.parse(kb_stream, format='nquads')
-
-	#eden = rdflib.Graph(store=store, identifier='eden')
-	bg = Background(store)
-
-	bg.kb = rdflib.collection.Collection(bg.eden, ed.kb)
-
-	#first we add a fact for every triple. lets try treating them all as one rule with a big head
-	bg.kb.add(bg.add_rule([(s,p,o) in kb_input_graph.triples((None, None, None))], None))
-
-		for s,p,o in kb_input_graph.triples((None, None, None))
-		if p == implies:
-			head_triples = kb_conjunctive.triples((None, None, None), o)
-			body_triples = kb_conjunctive.triples((None, None, None), s)
-			bg.kb.add(bg.add_rule(head_triples, body_triples))
-
-	goal_rdflib_graph = rdflib.Graph(store=OrderedStore())
-	goal_rdflib_graph.parse(goal_stream, format='nquads')
-	bg.goal = bg.add_rule(None, [(s,p,o) in goal_rdflib_graph.triples((None, None, None))])
 
 
 
@@ -131,8 +88,16 @@ def printify(iterable, separator):
 	return r
 
 class Triple():
-	def __init__(s, pred, args):
-		s.pred = pred
+	def __init__(s, pred, args):def init_logging():
+	formatter = logging.Formatter('#%(message)s')
+	console_debug_out = logging.StreamHandler()
+	console_debug_out.setFormatter(formatter)
+
+	logger1=logging.getLogger()
+	logger1.addHandler(console_debug_out)
+	logger1.setLevel(logging.DEBUG)
+
+	s.pred = pred
 		s.args = args
 	def __str__(s):
 		if len(s.args) == 2:

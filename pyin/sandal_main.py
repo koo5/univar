@@ -5,6 +5,11 @@ import click
 import rdflib
 from ordered_rdflib_store import OrderedStore
 import sandal
+import pyin
+
+
+implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
+
 
 @click.command()
 @click.argument('kb', type=click.File('rb'))
@@ -12,37 +17,19 @@ import sandal
 @click.option('--nokbdbg', default=False)
 @click.option('--nolog', default=False)
 def query_from_files(kb, goal, nokbdbg, nolog):
-	import pyin
+	
 	pyin.nolog = nolog
 	pyin.nokbdbg = nokbdbg
-#	kb=  open('kb_for_external.nq', 'rb')
-#	goal=open('query_for_external.nq', 'rb')
-
-	kb_stream, goal_stream = kb, goal
-
-	implies = rdflib.URIRef("http://www.w3.org/2000/10/swap/log#implies")
 
 	store = OrderedStore()
+
 	kb_graph = rdflib.Graph(store=store, identifier='@default')
 	kb_conjunctive = rdflib.ConjunctiveGraph(store=store)
-	kb_graph.parse(kb_stream, format='nquads')
-	#exit()
+	kb_graph.parse(kb, format='nquads')
+
 	rules = []
 
-	"""
-	--------
-	kb:
-	?x y ?z. 
-	query:
-	...
-	--------
-	--------
-	?x y ?z. 
-	?z w a.
-	--------
-	
-	
-	"""
+
 
 	for s,p,o in kb_graph.triples((None, None, None)):
 		_t = Triple(p, [s, o])
@@ -74,14 +61,6 @@ def query_from_files(kb, goal, nokbdbg, nolog):
 
 if __name__ == "__main__":
 	query_from_files()
-	"""
-	try:
-		query_from_files()
-	except:
-		import kbdbg2graphviz
-		kbdbg2graphviz.run()
-		raise
-	"""
 
 
 #from IPython import embed; embed()
